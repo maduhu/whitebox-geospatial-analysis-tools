@@ -1,0 +1,9 @@
+plugins.ExtractStreams
+plugins.FindMainStem
+plugins.RemoveShortStreams
+plugins.StreamLinkClassification
+plugins.StreamLinkID
+plugins.StreamLinkLength
+plugins.StreamLinkSlope
+plugins.StreamMagnitude
+plugins.StreamOrder
