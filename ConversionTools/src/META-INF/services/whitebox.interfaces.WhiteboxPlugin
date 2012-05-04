@@ -1,0 +1,5 @@
+plugins.ChangeDataScale
+plugins.ChangeDataType
+plugins.ConvertNoDataToZero
+plugins.SetNoData
+plugins.XYZTextToRaster
