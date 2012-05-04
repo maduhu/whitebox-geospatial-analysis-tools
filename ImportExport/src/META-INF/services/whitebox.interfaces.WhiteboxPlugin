@@ -1,0 +1,11 @@
+plugins.ExportArcAsciiGrid
+plugins.ExportArcGrid
+plugins.ExportGRASSAsciiGrid
+plugins.ExportIDRISIRaster
+plugins.ExportSurferAsciiGrid
+plugins.ImportArcAsciiGrid
+plugins.ImportArcGrid
+plugins.ImportGeoTiff
+plugins.ImportGRASSAsciiGrid
+plugins.ImportIDRISIRaster
+plugins.ImportSurferAsciiGrid
