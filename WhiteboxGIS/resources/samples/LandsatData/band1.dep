@@ -1,0 +1,22 @@
+Min:	0.0
+Max:	255.0
+North:	4829250.0
+South:	4812150.0
+East:	568800.0
+West:	552180.0
+Cols:	555
+Rows:	571
+Data Type:	integer
+Z Units:	unspecified
+XY Units:	not specified
+Projection:	plane
+Data Scale:	continuous
+Display Min:	0.0
+Display Max:	204.45977783203125
+Preferred Palette:	RGB_blue.pal
+NoData:	-32768.0
+Byte Order:	LITTLE_ENDIAN
+Metadata Entry:	This file was created by the CONVERT module with the command line;
+Metadata Entry:	c;\users\john lindsay\documents\teaching\geog2420\labs\lab3\band1_cropped.rst*c;\users\john lindsay\documents\teaching\geog2420\labs\lab3\band1_cropped.rst*I*3*2*2
+Metadata Entry:	Created by the ImportIDRISIBinary tool
+Metadata Entry:	Created on January-12-10 2;35;34 PM

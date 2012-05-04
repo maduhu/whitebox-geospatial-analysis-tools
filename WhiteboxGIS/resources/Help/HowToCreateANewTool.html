@@ -1,0 +1,311 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
+  <title>GAT Help</title>
+  <link rel="stylesheet" type="text/css" href="Help.css">
+</head>
+
+<body>
+<h1>How to create and implement a new tool</h1>
+
+<p>This help entry walks you through the process of creating a custom tool and
+implementing it within the <b><i>Whitebox GAT</i></b> user-interface. Once you
+have experience creating and implementing custom tool, the process can be quite
+rapid. This is particularly the case when there is an example of an existing
+tool that performs a similar function or operates in a similar fashion to your
+new tool. Take advantage of the <b><i>View Code</i></b> button on existing
+tools to examine how they operate.</p>
+
+<p>This file covers the following help topics:</p>
+<ul>
+  <li><a href="#Approaches">Tool development approaches</a></li>
+  <li><a href="#NewToolPython">How to create a new tool using Python</a></li>
+  <li><a href="#NewToolVB">How to create a new tool using Visual
+  Basic/C#</a></li>
+</ul>
+
+<p><br>
+</p>
+
+<h2><a name="Approaches" id="Approaches"></a>Tool Development Approaches</h2>
+
+<p>There are two different ways to create a new tool. Tools can be created
+using a scripting language (currently only IronPython is supported) or using
+one of the traditional .NET programming languages, such as Visual Basic .NET or
+C#. Both of these approaches offer various advantages and limitations and rely
+on very different development environments. Undoubtedly the decision to use one
+approach over the other will depend on an individual's experience and level of
+comfort with various programming languages. If you are new to programming, you
+may consider Python as a development tool as it is considered to be one of the
+easiest programming languages to learn for those with little to no programming
+experience.</p>
+
+<p>Tools that are created using either approach behave very similarly in
+<i><b>Whitebox</b></i>. In fact, one of the only ways that they can be
+distinguished is by the icon that is displayed beside the tool name in the
+toolbox. Visual Basic/C# tools are displayed with a wrench icon, while Python
+tools are displayed with a script icon. When you select a Python tool, you may
+notice a slight delay in the time taken to open the dialog box compared to
+Visual Basic/C# tools, though this will only occur the first time that you make
+a call to IronPython. Both types of tools also offer similar levels of
+integration with the <i><b>Whitebox GAT</b></i> user-interface. For example,
+both tool types run asyncronously (i.e. the user may continue with other
+operations in <i><b>Whitebox </b></i>while your tool is operating), and allow
+progress updates, in-line messages (e.g. warnings), and the use of the cancel
+button to interupt the operation of the tool as it executes. The <i><b>View
+Code</b></i> button can be used to display the source code of either type of
+tool. At the time that this document is being written, only Visual Basic/C#
+tools can be called from a Python script. That is, it is not currently possible
+to call other script-based tools from within the <i><b>Scripter</b></i>
+environment. Also, script-based tools rely on the <i><b>Whitebox application
+programming interface (API)</b></i>, largely to facilitate interaction with the
+<i><b>Whitebox</b></i> user-interface and file interaction (e.g. reading and
+writing the <i><b>Whitebox GAT</b></i> raster data type), whereas Visual
+Basic/C# tools do not need to rely on the <i><b>Whitebox API</b></i>.</p>
+
+<p>Perhaps the easiest and fastest way to create, test, and implement a new
+tool in <i><b>Whitebox GAT</b></i> is to create a Python script/tool. In fact,
+the <i><b>New Script/Tool Wizard</b></i> can be used to automatically generate
+much of the Python code as well as the dialog box that is needed to create a
+new tool. The Wizard will walk you through the process step-by-step and can
+automate the process of creating the front-end of your tool (i.e. the dialog
+box), retreiving the various user-specified parameters from the dialog box,
+feeding them in an appropriate format to your program, and allowing your
+program to 'talk' to the <i><b>Whitebox GAT</b></i> user-interface. This
+approach is considerably less involved than the alternative. All of the
+development and testing can be carried out within the <i><b>Whitebox
+GAT</b></i> user-interface with a built-in module called
+<i><b>Scripter</b></i>, thereby eliminating the need for an alternative
+development environment, e.g. MS Visual Studio. This can greatly simplify the
+process of creating and testing a tool. One of the only disadvantages to Python
+as a means of creating and implementing a custom tool for <i><b>Whitebox
+GAT</b></i> is that its performance is considerably slower than a comparable
+tool written in a traditional .NET language such as Visual Basic. Thus, for
+tools that involve complex numerical operations or analysis of several images
+simutaneously, it is always preferable to write the code for the tool in Visual
+Basic/C#. You will notice that the <i><b>Whitebox</b></i> toolbox contains
+numerous tools that have been created using both approaches. In general,
+simpler tools have been developed using Python due to its greater ease of
+development, however, there are many more tools that have been developed using
+Visual Basic than Python.</p>
+
+<p>Although the <b><i>Whitebox GAT</i></b> user-interface has been written in
+the Visual Basic 2008 language, in fact, custom tools can be written in any
+.NET programming language. Developers that intend to use either Visual Basic or
+C# to write custom tools and extensions will require a third-party integrated
+development environment (IDE), such as the MS Visual Studio package. There are
+several free and open-source implementations of Visual Basic and C# compilers
+that may be of use. The Express Edition versions of Visual Basic and C# are
+highly refined (the user-interface and many of the tools in Whitebox GAT have,
+in fact, been written in VB Express Edition). Developers may wish to explore
+the Sharp-Develop compiler and IDE as well. Notice that the current version of
+the software targets the .NET framework 3.5, which must be installed on any
+computer running <i><b>Whitebox GAT</b></i>.</p>
+
+<p></p>
+<br>
+
+
+<h2><a name="NewToolPython" id="NewToolPython"></a>How to Create a New Tool
+Using Python</h2>
+
+<p>Find the toolbox into which you would like to place your new tool.
+Right-click the toolbox and select, <i><b>'Create new tool'</b></i>.
+Alternatively, you may select the <i><b>'New'</b></i> option from within
+<i><b>Scripter</b></i>. The <i><b>New Script/Tool Wizard</b></i> will
+displayed. Follow the steps, entering the information and making the selections
+that are appropriate for your custom tool. When you are complete, select the
+<i><b>Finish</b></i> button. The <i><b>Scripter</b></i> will be displayed with
+your automatically generated Python code. You will also find that the toolbox
+will have been refreshed and that your tool will appear in the approrpiate
+toolbox. If you click on your tool, the dialog box will be displayed. At
+present, the Python code associated with your tool doesn't do anything novel.
+It simply creates the dialog box, retrieves the user-specified parameters,
+sends them to your program, and returns some value. The heart of your new
+program is contained within the <i><b>Execute</b></i> function. It is likely
+that a double-nested For-loop has been generated (a very common code structure
+for GIS/Remote Sensing algorithms applied to raster images) in this function
+for you. Notice that the code will automatically deal with setting up your
+input and output images and that there is no need to deal with any data
+input/output (i.e. file reading or writing). This is all carried out in the
+<i><b>Whitebox API</b></i>. In many cases, you will simply need to add your new
+code to the inside loop of this code structure. Once you've completed your
+code, be sure to save it in order to update the <i>.py</i> file, which will be
+contained in the <i><b>Scripts </b></i>folder in the Whitebox main directory.
+Any changes that you make to this file will be immediately effective, greatly
+simplifying the process of debugging your code. You can run the script either
+by selecting the <i><b>Run</b></i>option from the <i><b>File</b></i> menu, the
+<i><b>Run</b></i> button on the <i><b>Scripter </b></i>toolbar, or by
+double-clicking on your tool in the <i><b>Whitebox GAT</b></i> toolbox.
+Unfortunately, it is not currently possible to place break-points in
+<i><b>Scripter</b></i>, which would further aid in debugging. This
+functionality may be added in future versions of the software.</p>
+
+<p>Once you have created the code for you new tool, you will want to create an
+associated help file. Help files can be created very easily using the
+<i><b>Create New Help Entry</b></i> tool under the <i><b>Whitebox GAT
+Tools</b></i> menu. If you use this tool for creating a help entry, it will
+automatically formate your file so that it will be styled like other
+<i><b>Whitebox </b></i>help entries. It will also save the file automatically
+to the appropriate <i><b>Help</b></i> folder within the main <i><b>Whitebox
+GAT</b></i> directory. Notice that help files are created using HTML and are
+saved as HTML files. Any HTML tags are allowable in help entries as long as
+they are supported by the browser used for the in-line help on the tool's
+dialog. Once you have created a help file, you must update the reference to the
+help file in the Python script file. This reference line is contained near the
+beginning of the <i><b>ShowDialog</b></i> function and must look similar to
+this example:</p>
+
+<p><br>
+<i><b>dlg.HelpFile = 'MyHelpFile'' #A reference to the tool's help file in the
+Help directory.</b></i></p>
+<br>
+
+
+<p>Notice that the file reference does not contain the directory or extension.
+The program will automatically look for this file in the <i><b>Help</b></i>
+directory.</p>
+
+<p></p>
+<br>
+
+
+<h2><a name="NewToolVB" id="NewToolVB"></a>How to Create a New Tool Using
+Visual Basic/C#</h2>
+
+<p>In the following sections, we will assume that you are using VB Express
+Edition, though most of the material is easily translated to other launguages
+and compilers. The steps for creating a custom tool or extension are as
+follows:</p>
+
+<p>1. Open your Integrated Development Environment (IDE) / compiler (e.g. VB
+Express Edition) and start a new Class Library project and name it something
+appropriate. A new project should have been created, probably containing a
+single generic class, perhaps called something like <i>Class1</i>. The name of
+this class is important because it is the name that will be assigned to your
+tool. You should call it something appropriate, i.e. a descriptive short name
+for your tool. It is also important that the file name be the same as the class
+name, so you may have to change the default file name once you've given the
+class an appropriate name that reflects your tool. Your new class must be
+declared as a Public class.Notice that more than one tool can reside in a
+single class library, each as a seperate class, that implements the appropriate
+interface (more on this later). For example, the <b><i>StatisticalTools</i></b>
+DLL contains several classes, each associated with a single tool.<br>
+</p>
+
+<p>2. Click on your new class in the <b><i>Solution Explorer</i></b> and then
+select the <b><i>Copy to Output Directory</i></b> property in the
+<b><i>Property Explorer</i></b>. The default for this parameter is likely
+<b><i>Do Not Copy</i></b>, but it should be set to <b><i>Copy if Newer</i></b>.
+This is important because it will allow the <b><i>View Code</i></b> button on
+your dialog box in the <b><i>Whitebox GAT</i></b> user-interface when your have
+completed your tool. When you eventually finish your coding and compile your
+new tool, it will write a source code file (e.g. MeasureDistance.vb) to the
+GAT's plugins directory. This is important to the transparent and open <a
+href="AboutTheWhiteboxPhilosophyAndLogo.html"></a></p>
+
+<p><a href="AboutTheWhiteboxPhilosophyAndLogo.html">philosophy of the
+<b><i>Whitebox GAT</i></b> project</a>.</p>
+
+<p>3. Find an existing tool that is most similar to the tool that you would
+like to create (e.g. it may have the same number and type of input parameters).
+Select the View Code button on the tool and copy its code (press Alt+A and
+Alt+C to select and copy text from the code viewer). Paste the copied code into
+the class containing your new code. You will now need to change the name of
+your class back to the original name, and adjust each of the appropriate
+entries, e.g. the descriptive name, description, and the toolbox information
+(the name of the tool box, which is not the same as the displayed label of the
+toolbox, can be found in the tool.txt file in the Whitebox GAT main directory).
+Under Project Properties, ensure that your new tool is a DLL project (class
+library) and that it will compile to the Plugins folder within the Whitebox GAT
+main directory. This will ensure that Whitebox finds your new tool when it is
+opens.</p>
+
+<p>4. Modify the code as needed to create the functionality of your new tool.
+Here you can draw upon the many code examples of existing tools. In fact, this
+is exactly the point of a transparent GIS/RS software package--make it easy to
+view and modify existing methods, thereby facilitating rapid community-based
+development of the software!</p>
+
+<p>5. Once you have created and compiled your new tool, the DLL file will be
+written to the Plugin directory (notice that Whitebox GAT will likely need to
+be closed when you compile your code). You will then need to create a Parameter
+File, which will be used to create the dialog box user-interface used to send
+parameters to your new tool. Parameter files are simply text files. You can
+open and modify any of the existing tool's parameter files using any text
+editor. However, Whitebox has a tool that simplifies the creation and editing
+of Parameter files, the GAT Dialog Designer. You can access this tool either by
+selecting Create New Dialog under the Tools menu or from a message box that
+opens when you try to launch your new tool (which does not currently have an
+associated Parameter file). Parameter files must have the same name as the tool
+(determined by the Class in your tool's project name) and must be saved in the
+Parameter Files directory. You can modify any existing Parameter file simply by
+launching the tool, right-clicking over the parameters portion of the dialog,
+and selecting 'Modify dialog parameters'. This will launch the GAT Dialog
+Designer and automatically open the relavent file. Notice that the order of the
+parameters on the dialog box must match the order of the parameters that your
+tool will read from the parameters array upon execution.</p>
+
+<p>6. Once you have created the tool and the tool's parameter file, it is also
+necessary to create an associated help file. Help files can be created very
+easily using the <i><b>Create New Help Entry</b></i> tool under the
+<i><b>Whitebox GAT Tools</b></i> menu. If you use this tool for creating a help
+entry, it will automatically formate your file so that it will be styled like
+other <i><b>Whitebox </b></i>help entries. It will also save the file
+automatically to the appropriate <i><b>Help</b></i> folder within the main
+<i><b>Whitebox GAT</b></i> directory. Notice that help files are created using
+HTML and are saved as HTML files. Any HTML tags are allowable in help entries
+as long as they are supported by the browser used for the in-line help on the
+tool's dialog. Once you have created a help file, you must update the reference
+to the help file in the Parameter file.</p>
+
+<p><b>Debugging Your Tool<b></b></b></p>
+
+<p>The process of debugging any program can be a frustrating exercise depending
+on your level of experience. Debugging a DLL project can be particularly
+difficult because the code must be executed from within another program, in
+this case, the Whtiebox GAT main interface. As such, it is often difficult to
+use the break-point functionality of the IDE to aid with debugging. There are
+some tips that I can recommend to make this process slightly less frustrating.
+First, test your program on a sample of data. If the output of your test
+application is not as you would expect, or the program does not successfully
+execture, make good use of the ShowFeedback function to display the values of
+variables that you think might be the source of the problem. These ShowFeedback
+lines can be easily commented out or deleted after the debugging process is
+complete. As an alternative and robust method of debugging a project, consider
+the following. I will often temporarily change the project type to a Windows
+Forms project from a Class Library and then use the in-line break-point
+debugging. This requires feeding the parameters and appropriate objects (e.g.
+the IHost) and having an appriate starting location. If you open one of the
+existing projects (e.g. ImageProc) you will see that in additon to each of the
+classes that correspond to the Whitebox Image Processing tools, this project
+contains three other files, clsDebug, clsHostForDebug, and MainModule. These
+three files will aid with the debugging process and can be imported directly to
+your project. In particular, you will simply need to modify the clsDebug file
+such that your tool's class is referenced in the line:</p>
+
+<p></p>
+
+<p><br>
+<i><b>Dim TestObj As New ADDYOURCLASSNAMEHERE</b></i><br>
+</p>
+
+<p></p>
+
+<p>You can also modify the parameter array that will be fed to your tool,
+specifying the directory path and file names appropriate with your tool's
+inputs and the test application data. Once you have successfully debugged your
+program, you must change the project properties back to a class library and
+re-compile the DLL file to the plugins directory. Remember that Whitebox GAT
+must be closed when re-compiling.</p>
+
+<p></p>
+
+<h2 class="SeeAlso">Credits:</h2>
+<ul>
+  <li>Help file: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
+    (19/11/2009)</li>
+</ul>
+</body>
+</html>

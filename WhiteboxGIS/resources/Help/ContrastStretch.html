@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
+  <title>GAT Help</title>
+  <link rel="stylesheet" type="text/css" href="Help.css">
+</head>
+
+<body>
+<h1>Contrast stretch</h1>
+
+<p>This tool can be used to enhance the contrast of a raster image. The user
+must specify the names of the input and output images. In addition, four
+contrast types are available including: 1) <i><b>Linear Stretch Without
+Saturation</b></i>, 2) <i><b>Linear Stretch With Saturation</b></i>, and 3)
+<i><b>Remove the Tails</b></i>, and 4) <i><b>Histogram Equilization</b></i>.
+The first option, a linear stretch without saturation, is really a means of
+rescalling the values in an image. For example, this could be used to map the
+values in an image that range from 0 to 100 onto a new scale ranging from 0 to
+255. In fact, this operation will not change the contrast of the image when
+displayed in Whitebox because Whitebox automatically performs a linear stretch
+between the display minimum and maximum values contained in the image header
+file every time an image possessing a <i>continuous</i> data scale is
+displayed. By changing the minimum and maximum values on the <i><b>Layer
+Properties</b></i> tab, it is possible to change the contrast properties of the
+image to emphasize certain parts of the distribution without the need for a
+contrast stretch. In general the display minimum and maximum values are set
+when the image is created to the actual minimum and maximum values contained in
+the image, although they can be changed at any point afterwards.</p>
+
+<p>The <b><i>Linear Stretch With Saturation</i></b> and <b><i>Remove the
+Tails</i></b> contrast stretch options are similar in operation. Both will
+remove the tails of the distribution of values in an image. For example, if the
+saturation percentage parameter is set to 1%, then the lower and upper 1% of
+values in the image will not be represented in the output image. Values within
+these tails will be assigned the new minimum and maximum values in the output
+image, effectively 'saturating' the extremes of the distribution. This can be a
+very effective method of improving the contrast of images that are affected by
+a small percentage of uncharacteristically high or low values. The original
+values of all grid cells containing values between the extremes of the tails
+are retained using the <b><i>Remove the Tails</i></b> option, while these
+values are rescaled onto a new scale ranging between the user-specified minimum
+and maximum value when the <b><i>Linear Stretch With Saturation</i></b>
+option.</p>
+
+<p><b><i>Histogram Equalization</i></b> is a sophisticated contrast stetch
+method that modifies the entire distribution of values in an image (rather than
+just altering the tails) by rearranging the values into bins of nearly equal
+size. The result is an image with a uniform statistical distribution.</p>
+
+<p><b><i>NoData</i></b> values in the input image are assigned
+<b><i>NoData</i></b> values in the output image. The output raster is of the
+<i>float</i> data type and <i>continuous</i> data scale.</p>
+<br>
+
+
+<h2 class="SeeAlso">See Also:</h2>
+<ul>
+  <li>None</li>
+</ul>
+<br>
+
+
+<h2 class="SeeAlso">Credits:</h2>
+<ul>
+  <li>Algorithm: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
+    (30/06/2009)</li>
+  <li>Help file: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
+    (12/11/2009)</li>
+</ul>
+</body>
+</html>
