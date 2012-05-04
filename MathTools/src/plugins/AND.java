@@ -31,6 +31,10 @@ public class AND implements WhiteboxPlugin {
     private WhiteboxPluginHost myHost = null;
     private String[] args;
 
+    /**
+     * Returns the plugin's name.
+     * @return String containing the plugin name.
+     */
     @Override
     public String getName() {
         return "AND";
