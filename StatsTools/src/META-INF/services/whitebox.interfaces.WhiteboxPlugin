@@ -1,0 +1,17 @@
+plugins.CompareImagesForDifferences
+plugins.CumulativeDistributionFunction
+plugins.CrispnessIndex
+plugins.CrossTabulation
+plugins.ExtractStatistics
+plugins.FuzzyMembership
+plugins.Histogram
+plugins.HistogramMatching
+plugins.ImageAverage
+plugins.ImageCorrelation
+plugins.ImageRegression
+plugins.ImageStandardDeviation
+plugins.KappaIndex
+plugins.TestForNormality
+plugins.TurningBands
+plugins.RandomSample
+plugins.ZScores
