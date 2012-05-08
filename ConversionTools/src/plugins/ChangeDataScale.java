@@ -91,6 +91,10 @@ public class ChangeDataScale implements WhiteboxPlugin {
     }
     
     private boolean cancelOp = false;
+    /**
+     * Used to communicate a cancel operation from the Whitebox GUI.
+     * @param cancel Set to true if the plugin should be canceled.
+     */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
@@ -102,6 +106,10 @@ public class ChangeDataScale implements WhiteboxPlugin {
     }
     
     private boolean amIActive = false;
+    /**
+     * Used by the Whitebox GUI to tell if this plugin is still running.
+     * @return a boolean describing whether or not the plugin is actively being used.
+     */
     @Override
     public boolean isActive() {
         return amIActive;
