@@ -36,6 +36,7 @@ public interface WhiteboxPlugin extends Runnable {
      * Used to run the plugin tool.
      * @param args Array of Strings containing the parameters used to run the plugin tool.
      */
+    @Override
     public void run();
 
     /**
