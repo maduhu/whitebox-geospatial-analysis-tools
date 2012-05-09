@@ -9,7 +9,7 @@
 <body>
 <h1>Downslope flowpath length</h1>
 
-<p>This tool can be used to calculate the downslope flowpath length from each grid cell in a raster to an outlet cell either at the edge of the grid or at the outlet point of a watershed. The user must specify the name of a flow pointer grid derived using the <a
+<p>This tool can be used to calculate the <b><i>downslope flowpath length </i></b>from each grid cell in a raster to an outlet cell either at the edge of the grid or at the outlet point of a watershed. The user must specify the name of a flow pointer grid derived using the <a
 href="FlowPointerD8.html">D8 flow algorithm</a>. This grid should be derived from a digital elevation model that has been pre-processed to remove artifact topographic depressions and flat areas. The user may also optionally provide watershed and weights images. The optional watershed image can be used to define one or more irregular-shaped watershed boundaries. Flowpath lengths are measured within each watershed in the watershed image (each defined by a unique identifying number) as the flowpath length to the watershed's outlet cell. The following is an example of measuring downslope flowpath length for a series of watersheds:</p>
 
 <p><center><img alt="Downslope flowpath length watersheds" src="img/DnFlowpathLgthWatersheds.png" /></center></p>
@@ -32,10 +32,7 @@ href="FlowPointerD8.html">D8 flow algorithm</a>. This grid should be derived fro
 
 <h2 class="SeeAlso">Credits:</h2>
 <ul>
-  <li>Algorithm: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (21/12/2009)</li>
-  <li>Help file: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (21/12/2009)</li>
+  <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
 </ul>
 </body>
 </html>

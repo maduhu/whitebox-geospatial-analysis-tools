@@ -9,27 +9,27 @@
 <body>
 <h1>Olympic filter</h1>
 
-<p>This tool performs an olympic filter on a raster image. Olympic filters are
-closely related mean filters, and therefore, can be used to emphasize the
+<p>This tool performs an <b><i>Olympic filter</i></b> on a raster image. <b><i>Olympic filters</i></b> are
+closely related <b><i>mean filters</i></b>, and therefore, can be used to emphasize the
 longer-range variability in an image, effectively acting to smooth the image.
 This can be useful for reducing the noise in an image. The algorithm operates
 by calculating the average value in a moving window centred on each grid cell.
 In estimating the average, the highest and lowest values in the neighbourhood
 are not used. Because averages are highly affected by extremely high and low
-values, the olympic filter is far less sensitive to shot noise in an image than
-the mean filter. The median filter is another attractive smoothing alternative,
+values, the <b><i>Olympic filter</i></b> is far less sensitive to shot noise in an image than
+the <b><i>mean filter</i></b>. The <b><i>median filter</i></b> is another attractive smoothing alternative,
 though considerably less computationally efficient.</p>
 
 <p>Neighbourhood size, or filter size, is determined by the user-defined x and
-y dimensions. These dimensions should be odd, positive integer values, e.g. 3,
-5, 7, 9... The user may also define the neighbourhood shape as either
-<b><i>squared</i></b>or <b><i>rounded</i></b>. A rounded neighbourhood
+y dimensions. These dimensions should be odd, positive integer values (e.g. 3,
+5, 7, 9, etc.)  The user may also define the neighbourhood shape as either
+<b><i>squared</i></b> or <b><i>rounded</i></b>. A rounded neighbourhood
 approximates an ellipse; a rounded neighbourhood with equal x and y dimensions
 approximates a circle.</p>
 
-<p><b><i>NoData</i></b>values in the input image are ignored during filtering.
+<p><b><i>NoData</i></b> values in the input image are ignored during filtering.
 When the neighbourhood around a grid cell extends beyond the edge of the grid,
-<b><i>NoData</i></b>values are assigned to these sites. The output raster is of
+<b><i>NoData</i></b> values are assigned to these sites. The output raster is of
 the <i>float</i> data type and <i>continuous</i> data scale.</p>
 <br>
 
@@ -43,10 +43,8 @@ the <i>float</i> data type and <i>continuous</i> data scale.</p>
 
 <h2 class="SeeAlso">Credits:</h2>
 <ul>
-  <li>Algorithm: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (07/07/2009)</li>
-  <li>Help file: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (02/07/2009)</li>
+  <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
+
 </ul>
 </body>
 </html>

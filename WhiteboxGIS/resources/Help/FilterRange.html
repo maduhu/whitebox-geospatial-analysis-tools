@@ -9,11 +9,11 @@
 <body>
 <h1>Range filter</h1>
 
-<p>This tool performs a range filter on a raster image. Range filters assign each cell in the output grid the difference between the maximum and minimum value in a moving window centred on each grid cell.</p>
+<p>This tool performs a <b><i>range filter</i></b> on a raster image. Range filters assign each cell in the output grid the difference between the maximum and minimum value in a moving window centred on each grid cell.</p>
 
-<p>Neighbourhood size, or filter size, is determined by the user-defined x and y dimensions. These dimensions should be odd, positive integer values, e.g. 3, 5, 7, 9... The user may also define the neighbourhood shape as either <b><i>squared</i></b>or <b><i>rounded</i></b>. A rounded neighbourhood approximates an ellipse; a rounded neighbourhood with equal x and y dimensions approximates a circle.</p>
+<p>Neighbourhood size, or filter size, is determined by the user-defined x and y dimensions. These dimensions should be odd, positive integer values (e.g. 3, 5, 7, 9, etc.)  The user may also define the neighbourhood shape as either <b><i>squared</i></b> or <b><i>rounded</i></b>. A rounded neighbourhood approximates an ellipse; a rounded neighbourhood with equal x and y dimensions approximates a circle.</p>
 
-<p><b><i>NoData</i></b>values in the input image are ignored during filtering. When the neighbourhood around a grid cell extends beyond the edge of the grid, <b><i>NoData</i></b>values are assigned to these sites. The output raster is of the <i>float</i> data type and <i>continuous</i> data scale.</p>
+<p><b><i>NoData</i></b> values in the input image are ignored during filtering. When the neighbourhood around a grid cell extends beyond the edge of the grid, <b><i>NoData</i></b> values are assigned to these sites. The output raster is of the <i>float</i> data type and <i>continuous</i> data scale.</p>
 <br>
 
 
@@ -26,10 +26,8 @@
 
 <h2 class="SeeAlso">Credits:</h2>
 <ul>
-  <li>Algorithm: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (07/07/2009)</li>
-  <li>Help file: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (02/07/2009)</li>
+  <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
+
 </ul>
 </body>
 </html>

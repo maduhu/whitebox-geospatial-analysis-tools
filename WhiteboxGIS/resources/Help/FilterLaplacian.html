@@ -9,8 +9,8 @@
 <body>
 <h1>Laplacian filter</h1>
 
-<p>This tool can be used to perform a Laplacian filter on a raster image. A
-Laplacian filter can be used to emphasize the edges in an image. As such, this
+<p>This tool can be used to perform a <b><i>Laplacian filter</i></b> on a raster image. A
+<b><i>Laplacian filter</i></b> can be used to emphasize the edges in an image. As such, this
 filter type is commonly used in edge-detection applications. The algorithm
 operates by convolving a kernel of weights with each grid cell and its
 neighbours in an image. Four 3x3 sized filters and one 5x5 filter are available
@@ -311,8 +311,7 @@ for selection. The weights of the kernels are as follows:</p>
   </tbody>
 </table>
 
-<p>This tool relies on the <b><i>SpatialConvolution</i></b> function within the
-Whitebox API. <b><i>NoData</i></b> values in the input image are replaced with
+<p><b><i>NoData</i></b> values in the input image are replaced with
 the average value of all valid cells within the kernel. This is also the
 procedure when the neighbourhood around a grid cell extends beyond the edge of
 the grid. The output raster is of the <i>float</i> data type and
@@ -329,10 +328,7 @@ the grid. The output raster is of the <i>float</i> data type and
 
 <h2 class="SeeAlso">Credits:</h2>
 <ul>
-  <li>Algorithm: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (20/10/2009)</li>
-  <li>Help file: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (12/11/2009)</li>
+  <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
 </ul>
 </body>
 </html>

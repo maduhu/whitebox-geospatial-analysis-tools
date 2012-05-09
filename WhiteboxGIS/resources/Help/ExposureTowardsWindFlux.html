@@ -9,7 +9,7 @@
 <body>
 <h1>Exposure towards a wind flux</h1>
 
-<p>This tool creates a new raster in which each grid cell is assigned the exposure of the land-surface to a hypothetical wind flux. It can be conceptualised as the angle between a plane orthogonal to the wind and a plane that represents the local topography at a grid cell (Böhner and Antonic, 2007). The user must specify the name of an input slope raster file (created using the Slope tool), an input aspect raster file (created using the Aspect tool), an azimuth value (i.e. a wind direction), and optionally an input maximum upwind slope raster file (created using the <a href="HorizonAngle.html"><b><i>Horizon Angle</i></b></a> tool). Notice that the specified azimuth represents a regional wind direction. The algorithm works in two modes: 1) exposure is measured to the horizontal component of the wind, and 2) exposure is measured to the sloped wind (i.e. taking into account both the vertical and horizontal vector components). There is no need to specify a horizon angle image when exposure to the horizontal wind component is calculated. Exposure towards the sloped wind flux essentially combines the relative terrain aspect and the maximum upwind slope (i.e. horizon angle). This terrain attribute accounts for land-surface orientation, relative to the wind, and shadowing effects of distant topographic features but does not account for deflection of the wind by topography. This tool should not be used on very extensive areas over which Earth’s curvature must be taken into account.</p>
+<p>This tool creates a new raster in which each grid cell is assigned the exposure of the land-surface to a hypothetical wind flux. It can be conceptualised as the angle between a plane orthogonal to the wind and a plane that represents the local topography at a grid cell (Böhner and Antonic, 2007). The user must specify the name of an input slope raster file (created using the <b><i>Slope</i></b> tool), an input aspect raster file (created using the <b><i>Aspect</i></b> tool), an azimuth value (i.e. a wind direction), and optionally an input maximum upwind slope raster file (created using the <a href="HorizonAngle.html"><b><i>Horizon Angle</i></b></a> tool). Notice that the specified azimuth represents a regional wind direction. The algorithm works in two modes: 1) exposure is measured to the horizontal component of the wind, and 2) exposure is measured to the sloped wind (i.e. taking into account both the vertical and horizontal vector components). There is no need to specify a horizon angle image when exposure to the horizontal wind component is calculated. Exposure towards the sloped wind flux essentially combines the relative terrain aspect and the maximum upwind slope (i.e. horizon angle). This terrain attribute accounts for land-surface orientation, relative to the wind, and shadowing effects of distant topographic features but does not account for deflection of the wind by topography. This tool should not be used on very extensive areas over which Earth’s curvature must be taken into account.</p>
 
 <h2>Algorithm Description</h2>
 <p>Exposure is measured based on the equation presented in Antonic and Legovic (1999):</p>
@@ -28,10 +28,7 @@
 
 <h2 class="SeeAlso">Credits:</h2>
 <ul>
-  <li>Algorithm: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (23/12/2009)</li>
-  <li>Help file: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (23/12/2009)</li>
+  <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
 </ul>
 </body>
 </html>

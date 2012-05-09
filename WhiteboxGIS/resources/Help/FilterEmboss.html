@@ -11,10 +11,10 @@
 
 <p>This tool can be used to perform one of eight 3x3 emboss filters on a raster
 image. Like the <a href="FilterSobel.html">Sobel</a> and <a
-href="FilterPrewitt.html">Prewitt</a> filters, the emboss filter is often
+href="FilterPrewitt.html">Prewitt</a> filters, the <b><i>emboss filter</i></b> is often
 applied in edge-detection applications. While these other two common
 edge-detection filters approximate the slope magnitude of the local
-neighbourhood surrounding each grid cell, the emboss filter can be used to
+neighbourhood surrounding each grid cell, the <b><i>emboss filter</i></b> can be used to
 estimate the directional slope. The kernel weights for each of the eight
 availble filters are as follows:</p>
 
@@ -305,8 +305,7 @@ availble filters are as follows:</p>
   </tbody>
 </table>
 
-<p>This tool relies on the <b><i>SpatialConvolution</i></b> function
-within the Whitebox API. <b><i>NoData</i></b> values in the input image are replaced
+<p><b><i>NoData</i></b> values in the input image are replaced
 with the average value of all valid cells within the kernel. This is also the
 procedure when the neighbourhood around a grid cell extends beyond the edge of
 the grid. The output raster is of the <i>float</i> data type and
@@ -318,17 +317,14 @@ the grid. The output raster is of the <i>float</i> data type and
 <ul>
   <li><a href="SpatialFilters.html">Spatial filters</a></li>
   <li><a href="FilterPrewitt.html">Prewitt edge-detection filter</a></li>
-  <li><a href="FilterSobel.html">Sobel edge detection filter</a></li>
+  <li><a href="FilterSobel.html">Sobel edge-detection filter</a></li>
 </ul>
 <br>
 
 
 <h2 class="SeeAlso">Credits:</h2>
 <ul>
-  <li>Algorithm: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (17/10/2009)</li>
-  <li>Help file: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a>
-    (12/11/2009)</li>
+  <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
 </ul>
 </body>
 </html>

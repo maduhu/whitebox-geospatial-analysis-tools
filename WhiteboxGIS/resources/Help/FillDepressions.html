@@ -8,7 +8,7 @@
 <h1>Fill depressions</h1>
 
 <p>
-This tool can be used to fill all of the depressions in a digital elevation model (DEM) and to remove the flat areas. This is a common pre-processing step required by many flow-path analysis tools to ensure continuous flow from each grid cell to an outlet located along the grid edge. The <b>Fill Depressions</b> algorithm is based on the computationally efficient approach of examining each cell based on its spill elevaton, starting from the edge cells, and visiting cells from lowest order using a priority queue. As such, it is based on the algorithm proposed by Wang and Liu (2006). It is currently the most efficient depression-removal algorithm available in Whitebox GIS for use with small to medium sized DEMs. The efficiency of the algorithm is severely diminished if the data cannot be held entirely in memory.</p>
+This tool can be used to fill all of the depressions in a digital elevation model (DEM) and to remove the flat areas. This is a common pre-processing step required by many flow-path analysis tools to ensure continuous flow from each grid cell to an outlet located along the grid edge. The <b><i>Fill Depressions</i></b> algorithm is based on the computationally efficient approach of examining each cell based on its spill elevaton, starting from the edge cells, and visiting cells from lowest order using a priority queue. As such, it is based on the algorithm proposed by Wang and Liu (2006). It is currently the most efficient depression-removal algorithm available in Whitebox GIS for use with small to medium sized DEMs. The efficiency of the algorithm is severely diminished if the data cannot be held entirely in memory.</p>
 <p>
 If the input DEM has gaps, or missing-data holes, that contain <i><b>NoData</i></b> values, it is better to use the <i><b><a href="FillMissingDataHoles.html">Fill Missing Data Holes tool</a></i></b> to repair these gaps. This tool will interpolate values across the gaps and produce a more natural-looking surface than the flat areas that are produced by depression filling. Importantly, the <i><b>Fill Depressions</b></i> tool algorithm implementation assumes that there are no 'donut hole' <i><b>NoData</b></i> gaps within the area of valid data. Any <i><b>NoData</b></i> areas along the edge of the grid will simply be ingnored and will remain <i><b>NoData</b></i> areas in the output image.</p>
 
@@ -24,8 +24,7 @@ If the input DEM has gaps, or missing-data holes, that contain <i><b>NoData</i><
 
 <br><h2 class="SeeAlso">Credits:</h2>
 <ul>
-<li>Algorithm: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (13/07/2011)</li>
-<li>Help file: <a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (13/07/2011)</li>
+<li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
 
 </ul>
 </body>

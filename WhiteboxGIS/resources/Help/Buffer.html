@@ -10,7 +10,7 @@
 <p>
 This tool can be used to identify an area of interest within a specified distance of features of interest. The <a href="EuclideanDistance.html">Euclidean distance</a> (i.e. straight-line distance) is calculated between each grid cell and the nearest 'target cell' in the input image. Target cells are all non-zero, non-NoData grid cells. Because <b><i>NoData</b></i> values in the input image are assigned the <b><i>NoData</b></i> value in the output image, the only valid background value in the input image is zero.</p>
 <p>The user must specify the input target image, the output image name, the desired buffer size, and the units that the buffer size are measured in. Buffer size units are either  map units (e.g. meters) or grid cells.</p>
-<p>Buffer grid cells in the output image are assigned the value of the nearest target grid cell in the input image. All non-buffer grid cells are assigned the <b><i>NoData</b></i> in the output. Therefore, the output of <b><i>Buffer</b></i> is essentially the intesection between the <a href="EuclideanAllocation.html">Euclidean allocation</a> image and a <i>Less Than Or Equal To</i> comparison operation on the <a href="EuclideanDistance.html">Euclidean distance</a> image, specifying some maximum distance.</p>
+<p>Buffer grid cells in the output image are assigned the value of the nearest target grid cell in the input image. All non-buffer grid cells are assigned the <b><i>NoData</b></i> in the output. Therefore, the output of <b><i>Buffer</b></i> is essentially the intesection between the <a href="EuclideanAllocation.html">Euclidean allocation</a> image and a <b><i>Less Than Or Equal To</i></b> comparison operation on the <a href="EuclideanDistance.html">Euclidean distance</a> image, specifying some maximum distance.</p>
 <p>Three temporary images are created during the calculation and should be automatically deleted upon completion. There must be enough room on the computer hard drive to store these temporary images.</p>
 
 
@@ -25,7 +25,7 @@ This tool can be used to identify an area of interest within a specified distanc
 
 <br><h2 class="SeeAlso">Credits:</h2>
 <ul>
-<li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2012)</li>
+<li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
 </ul>
 </body>
 </html>
