@@ -18,8 +18,8 @@ package plugins;
 
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  *

@@ -17,8 +17,8 @@
 
 package plugins;
 
-import java.util.Date;
 import java.text.DecimalFormat;
+import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -31,18 +31,22 @@ public class Area implements WhiteboxPlugin {
     private WhiteboxPluginHost myHost = null;
     private String[] args;
 
+    @Override
     public String getName() {
         return "Area";
     }
 
+    @Override
     public String getDescriptiveName() {
     	return "Area";
     }
 
+    @Override
     public String getToolDescription() {
     	return "Calculates the area of polygons or classes within a raster image.";
     }
 
+    @Override
     public String[] getToolbox() {
     	String[] ret = { "GISTools" };
     	return ret;
