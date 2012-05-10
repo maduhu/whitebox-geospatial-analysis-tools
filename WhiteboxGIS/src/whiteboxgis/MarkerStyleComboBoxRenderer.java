@@ -28,7 +28,7 @@ import javax.swing.ListCellRenderer;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-class MarkerStyleComboBoxRenderer extends JLabel implements ListCellRenderer {
+public class MarkerStyleComboBoxRenderer extends JLabel implements ListCellRenderer {
 
     private ArrayList<double[][]> markers = new ArrayList<double[][]>();
     float lineThickness;
