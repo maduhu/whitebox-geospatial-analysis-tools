@@ -16,19 +16,16 @@
  */
 package whitebox.geospatialfiles;
 
-import java.io.File;
-import java.nio.ByteOrder;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import whitebox.geospatialfiles.shapefile.DBF.DBFException;
+import whitebox.geospatialfiles.shapefile.DBF.DBFField;
+import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
+import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
+import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.utilities.ByteSwapper;
-import whitebox.geospatialfiles.shapefile.*;
-import whitebox.geospatialfiles.shapefile.DBF.*;
-//import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 
 /**
  *
@@ -39,7 +36,6 @@ public class ShapeFile {
     private String shortFileName;
     private String indexFile;
     private String databaseFile;
-    public boolean databaseFileExists;
     private String projectionFile;
     private int fileCode;
     private int fileLength;
@@ -61,6 +57,8 @@ public class ShapeFile {
     private String xShift;
     private String yShift;
     private double[] parameters;
+    public boolean databaseFileExists;
+    public ShapeFileRecord[] records;
     
     // Constructors
     public ShapeFile(String fileName) {
@@ -235,10 +233,8 @@ public class ShapeFile {
     
     // Methods
     private boolean readHeaderData() {
-        int pos;
-        
         RandomAccessFile rIn = null;
-        ByteBuffer buf = null;
+        ByteBuffer buf;
         
         try {
 
@@ -290,7 +286,6 @@ public class ShapeFile {
         return records[recordNumber];
     }
     
-    public ShapeFileRecord[] records;
     private boolean countRecords() {
         int pos = 100;
         int recordNumber, contentLength;
