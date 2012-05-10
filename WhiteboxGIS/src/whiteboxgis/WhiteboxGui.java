@@ -306,6 +306,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     frame.setVisible(true);
                 } catch (Exception e) {
                 }
+//            } else if (retStr.contains("DOCTYPE html")) {
+//                // display this markup in a webbrowser component
+//                try {
+//                    JFrame frame = new HTMLViewer(retStr);
+//                    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//                    frame.setSize(600, 600);
+//                    frame.setVisible(true);
+//                } catch (Exception e) {
+//                }
             } else {
                 // display the text area, if it's not already.
                 if (splitPane3.getDividerLocation() / splitPane3.getHeight() < 0.75) {

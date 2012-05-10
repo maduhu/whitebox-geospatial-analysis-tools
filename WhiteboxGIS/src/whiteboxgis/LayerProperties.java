@@ -78,6 +78,9 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private JComboBox valueFieldCombo;
     private JTabbedPane tabs;
     private Color backColour = new Color(225, 245, 255); //210, 230, 255);
+    private JTextField XYUnitsText;
+    private JTextField ZUnitsText;
+    private boolean updatedFileHeader = false;
     
     public LayerProperties(Frame owner, boolean modal, MapLayer layer, MapInfo map) {
         super(owner, modal);
@@ -781,8 +784,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private Box getFileMainBox() {
         Box fileMainBox = Box.createVerticalBox();
         try {
-            JLabel label = null;
-            JLabel label2 = null;
+            JLabel label;
+            JLabel label2;
             if (layer instanceof RasterLayerInfo) {
                 RasterLayerInfo rli = (RasterLayerInfo) layer;
                 WhiteboxRasterInfo wri = rli.getWhiteboxRasterInfo();
@@ -1004,10 +1007,15 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 XYUnitBox.setBackground(Color.white);
                 XYUnitBox.add(Box.createHorizontalStrut(10));
                 label = new JLabel("XY Units");
+                label.setPreferredSize(new Dimension(180, 24));
                 XYUnitBox.add(label);
                 XYUnitBox.add(Box.createHorizontalGlue());
-                label2 = new JLabel(String.valueOf(wri.getXYUnits()));
-                XYUnitBox.add(label2);
+                //label2 = new JLabel(String.valueOf(wri.getXYUnits()));
+                XYUnitsText = new JTextField(wri.getXYUnits(), 30);
+                XYUnitsText.setMaximumSize(new Dimension(600, 30));
+                XYUnitsText.setHorizontalAlignment(JTextField.RIGHT);
+                XYUnitsText.addKeyListener(new myKeyListener());
+                XYUnitBox.add(XYUnitsText); //label2);
                 XYUnitBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(XYUnitBox);
                 
@@ -1017,10 +1025,15 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 ZUnitBox.setBackground(backColour);
                 ZUnitBox.add(Box.createHorizontalStrut(10));
                 label = new JLabel("Z Units");
+                label.setPreferredSize(new Dimension(180, 24));
                 ZUnitBox.add(label);
                 ZUnitBox.add(Box.createHorizontalGlue());
-                label2 = new JLabel(String.valueOf(wri.getZUnits()));
-                ZUnitBox.add(label2);
+                //label2 = new JLabel(String.valueOf(wri.getZUnits()));
+                ZUnitsText = new JTextField(wri.getZUnits(), 30);
+                ZUnitsText.setMaximumSize(new Dimension(600, 30));
+                ZUnitsText.setHorizontalAlignment(JTextField.RIGHT);
+                ZUnitsText.addKeyListener(new myKeyListener());
+                ZUnitBox.add(ZUnitsText); //label2);
                 ZUnitBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(ZUnitBox);
                 
@@ -1292,6 +1305,12 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     public void updateLayer() {
         if (layer instanceof RasterLayerInfo) {
             RasterLayerInfo rli = (RasterLayerInfo)layer;
+            // see if the user has modified information in the header.
+            if (updatedFileHeader) {
+                WhiteboxRasterInfo wri = rli.getWhiteboxRasterInfo();
+                wri.setXYUnits(XYUnitsText.getText());
+                wri.setZUnits(ZUnitsText.getText());
+            }
             rli.setLayerTitle(titleText.getText());
             rli.setAlpha((Integer) (scrollAlpha.getValue()));
             rli.setDisplayMinVal(Double.parseDouble(minVal.getText()));
@@ -1576,5 +1595,24 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             g.drawRect(0, 0, this.getWidth() - 1, this.getHeight() - 1);
             
         }
+    }
+    
+    private class myKeyListener implements KeyListener {
+
+        @Override
+        public void keyTyped(KeyEvent ke) {
+            
+        }
+
+        @Override
+        public void keyPressed(KeyEvent ke) {
+
+        }
+
+        @Override
+        public void keyReleased(KeyEvent ke) {
+            updatedFileHeader = true;
+        }
+        
     }
 }

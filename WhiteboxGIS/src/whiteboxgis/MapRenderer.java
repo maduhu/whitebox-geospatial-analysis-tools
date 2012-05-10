@@ -1,24 +1,27 @@
 package whiteboxgis;
 
-import javax.swing.*;
+import java.awt.Point;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.*;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.print.*;
-import java.awt.geom.*;
-import java.awt.Point;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.awt.image.MemoryImageSource;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.io.File;
 import java.text.DecimalFormat;
 import javax.imageio.ImageIO;
-import java.io.File;
+import javax.swing.*;
 import whitebox.cartographic.PointMarkers;
-//import whitebox.cartographic.PointMarkers.MarkerStyle;
-import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.structures.GridCell;
-import whitebox.structures.DimensionBox;
-import whitebox.interfaces.MapLayer.MapLayerType;
 import whitebox.geospatialfiles.shapefile.*;
+import whitebox.interfaces.MapLayer.MapLayerType;
+import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.structures.DimensionBox;
+import whitebox.structures.GridCell;
 import whitebox.utilities.OSFinder;
 
 /**
@@ -96,10 +99,6 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
         this.mapinfo = mapinfo;
     }
 
-    //public StatusBar getStatusBar() {
-    //    return status;
-    //}
-    
     public void setStatusBar(StatusBar status) {
         this.status = status;
     }
@@ -207,14 +206,6 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
 
                 }
                 
-//                // draw the imageable area
-//                g2d.setColor(Color.LIGHT_GRAY);
-//                int x = (int)(pageLeft + pageFormat.getImageableX() * scale);
-//                int y = (int)(pageTop + pageFormat.getImageableY() * scale);
-//                int width = (int)(pageFormat.getImageableWidth() * scale);
-//                int height = (int)(pageFormat.getImageableHeight() * scale);
-//                g2d.drawRect(x, y, width, height);
-                
                 int numLayers = mapinfo.getNumLayers();
                 if (numLayers == 0) {
                     return;
@@ -269,6 +260,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 
 
                 String XYUnits = "";
+                
                 for (int i = 0; i < numLayers; i++) {
                     if (mapinfo.getLayer(i).getLayerType() == MapLayerType.RASTER) {
                         RasterLayerInfo layer = (RasterLayerInfo) mapinfo.getLayer(i);
@@ -276,6 +268,8 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                             XYUnits = " m";
                         } else if (layer.getXYUnits().toLowerCase().contains("deg")) {
                             XYUnits = "\u00B0";
+                        } else if (!layer.getXYUnits().toLowerCase().contains("not specified")) {
+                            XYUnits = " " + layer.getXYUnits();
                         }
 
                         if (layer.isVisible()) {
@@ -337,8 +331,8 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                             XYUnits = " m";
                         } else if (layer.getXYUnits().toLowerCase().contains("deg")) {
                             XYUnits = "\u00B0";
-                        } else {
-                            XYUnits = layer.getXYUnits();
+                        } else if (!layer.getXYUnits().toLowerCase().contains("not specified")) {
+                            XYUnits = " " + layer.getXYUnits();
                         }
 
                         
