@@ -16,20 +16,25 @@
  */
 package whiteboxgis;
 
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.FileChannel;
-import whitebox.structures.DimensionBox;
-import whitebox.interfaces.MapLayer;
-import whitebox.geospatialfiles.ShapeFile;
-import whitebox.geospatialfiles.shapefile.ShapeType;
-import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
-import whitebox.cartographic.PointMarkers.MarkerStyle;
-import whitebox.geospatialfiles.shapefile.DBF.*;
 import java.awt.Color;
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import whitebox.cartographic.PointMarkers.MarkerStyle;
+import whitebox.geospatialfiles.ShapeFile;
+import whitebox.geospatialfiles.shapefile.DBF.DBFException;
+import whitebox.geospatialfiles.shapefile.DBF.DBFField;
+import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
+import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
+import whitebox.geospatialfiles.shapefile.ShapeType;
+import whitebox.interfaces.MapLayer;
+import whitebox.structures.DimensionBox;
 
 /**
  *

@@ -351,14 +351,14 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                             if (flag) {
                                 
                                 // get the colours and adjust for transparency.
-                                int r1 = layer.getFillColour().getRed();
-                                int g1 = layer.getFillColour().getGreen();
-                                int b1 = layer.getFillColour().getBlue();
+//                                int r1 = layer.getFillColour().getRed();
+//                                int g1 = layer.getFillColour().getGreen();
+//                                int b1 = layer.getFillColour().getBlue();
                                 int a1 = layer.getAlpha();
-                                Color fillColour = new Color(r1, g1, b1, a1);
-                                r1 = layer.getLineColour().getRed();
-                                g1 = layer.getLineColour().getGreen();
-                                b1 = layer.getLineColour().getBlue();
+                                //Color fillColour = new Color(r1, g1, b1, a1);
+                                int r1 = layer.getLineColour().getRed();
+                                int g1 = layer.getLineColour().getGreen();
+                                int b1 = layer.getLineColour().getBlue();
                                 Color lineColour = new Color(r1, g1, b1, a1);
                                 
                                 ShapeType shapeType = layer.getShapeType();
