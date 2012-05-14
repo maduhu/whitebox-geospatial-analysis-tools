@@ -54,8 +54,8 @@ public class ShapeFile {
     private String zUnits = "";
     private String xyUnits = "";
     private String spheroid = "";
-    private String xShift;
-    private String yShift;
+    private String xShift = "";
+    private String yShift = "";
     private double[] parameters;
     public boolean databaseFileExists;
     public ShapeFileRecord[] records;
@@ -64,12 +64,23 @@ public class ShapeFile {
     public ShapeFile(String fileName) {
         setFileName(fileName);
         int extensionIndex = fileName.lastIndexOf(".");
-        indexFile = fileName.substring(0, extensionIndex) + ".shx";
+        this.indexFile = fileName.substring(0, extensionIndex) + ".shx";
         setProjectionFile(fileName.substring(0, extensionIndex) + ".prj");
         setDatabaseFile(fileName.substring(0, extensionIndex) + ".dbf");
         // see if the databaseFile exists.
         databaseFileExists = (new File(databaseFile)).exists();
         
+    }
+    
+    public ShapeFile(String fileName, ShapeFileRecord[] recs) {
+        numRecs = recs.length;
+        records = new ShapeFileRecord[numRecs];
+        System.arraycopy(recs, 0, records, 0, numRecs);
+        this.fileName = fileName;
+        int extensionIndex = fileName.lastIndexOf(".");
+        this.indexFile = fileName.substring(0, extensionIndex) + ".shx";
+        this.projectionFile = fileName.substring(0, extensionIndex) + ".prj";
+        this.databaseFile = fileName.substring(0, extensionIndex) + ".dbf";
     }
 
     // Properties
@@ -88,8 +99,15 @@ public class ShapeFile {
     
     public final void setFileName(String fileName) {
         this.fileName = fileName;
-        readHeaderData();
-        countRecords();
+        // See if the data file exists.
+        File file = new File(fileName);
+        if (file.exists()) { // it's an existing file
+            readHeaderData();
+            countRecords();
+        } else { // it's a new file
+            
+        }
+        
     }
 
     public String getProjectionFile() {
@@ -279,6 +297,45 @@ public class ShapeFile {
                 } catch (Exception e) {
                 }
             }
+        }
+    }
+    
+    private boolean writeHeaderData() {
+        return true;
+    }
+    
+    public boolean addRecord(ShapeFileRecord rec) {
+        if (rec.getShapeType() == shapeType) {
+            ShapeFileRecord[] copy = new ShapeFileRecord[records.length];
+            System.arraycopy(records, 0, copy, 0, records.length);
+            numRecs++;
+            records = new ShapeFileRecord[numRecs];
+            System.arraycopy(copy, 0, records, 0, copy.length);
+            records[numRecs - 1] = rec;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean addRecords(ShapeFileRecord[] recs) {
+        boolean allRightShapeType = true;
+        for (int a = 0; a < recs.length; a++) {
+            if (recs[a].getShapeType() != shapeType) {
+                allRightShapeType = false;
+            }
+        }
+        if (allRightShapeType) {
+            int oldNumRecs = numRecs;
+            ShapeFileRecord[] copy = new ShapeFileRecord[records.length];
+            System.arraycopy(records, 0, copy, 0, records.length);
+            numRecs += recs.length;
+            records = new ShapeFileRecord[numRecs];
+            System.arraycopy(copy, 0, records, 0, copy.length);
+            System.arraycopy(recs, 0, records, oldNumRecs, recs.length);
+            return true;
+        } else {
+            return false;
         }
     }
     
