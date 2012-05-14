@@ -16,15 +16,15 @@
  */
 package plugins;
 
+
+import java.util.Date;
+import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.WhiteboxPluginHost;
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-import java.util.Date;
-import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.interfaces.WhiteboxPlugin;
-
 public class Clump implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;

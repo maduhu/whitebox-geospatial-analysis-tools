@@ -16,11 +16,11 @@
  */
 package plugins;
 
+import java.util.ArrayList;
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
-import java.util.ArrayList;
+import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
