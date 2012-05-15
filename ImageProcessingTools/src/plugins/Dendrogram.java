@@ -36,7 +36,7 @@ import whitebox.structures.ExtensionFileFilter;
 import java.util.ArrayList;
 
 /**
- *
+ * 
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 class Dendrogram extends JPanel implements ActionListener, Printable, MouseMotionListener, MouseListener {
