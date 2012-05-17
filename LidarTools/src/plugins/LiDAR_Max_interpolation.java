@@ -35,7 +35,7 @@ import whitebox.structures.KdTree;
  * 
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
+public class LiDAR_Max_interpolation implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -48,9 +48,9 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "LiDAR_IDW_interpolation";
+        return "LiDAR_Max_interpolation";
     }
-
+    
     /**
      * Used to retrieve the plugin tool's descriptive name. This can be a longer
      * name (containing spaces) and is used in the interface to list the tool.
@@ -59,7 +59,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "IDW Interpolation (LiDAR)";
+        return "Maximum Interpolation (LiDAR)";
     }
 
     /**
@@ -69,8 +69,8 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-        return "Interpolates LiDAR point data from text files using an "
-                + "inverse-distance to a weight scheme.";
+        return "Interpolates LiDAR point data from text files using a "
+                + "maximum z-value scheme.";
     }
 
     /**
@@ -90,7 +90,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
      * and return objects.
      *
      * @param host The WhiteboxPluginHost that called the plugin tool.
-     */    
+     */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
@@ -109,7 +109,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
-
+    
     /**
      * Used to communicate a return object from a plugin tool to the main
      * Whitebox user-interface.
@@ -205,10 +205,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
         int a, i;
         int progress = 0;
         int numPoints = 0;
-        int numPointsToUse = 8;
-        double dist = 0;
-        double weight = 1;
-        double maxDist = Double.POSITIVE_INFINITY;
+        double maxValue;
         double minX = Double.POSITIVE_INFINITY;
         double maxX = Double.NEGATIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
@@ -220,7 +217,6 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
         BufferedWriter bw = null;
         PrintWriter out = null;
         List<KdTree.Entry<Double>> results;
-        double sumWeights;
         double noData = -32768;
         double northing, easting;
         String whatToInterpolate = "";
@@ -247,23 +243,19 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
         suffix = " " + args[1].trim();
         whatToInterpolate = args[2].toLowerCase();
         returnNumberToInterpolate = args[3].toLowerCase();
-        weight = Double.parseDouble(args[4]);
-        if (!args[5].equalsIgnoreCase("not specified")) {
-            maxDist = Double.parseDouble(args[5]);
-        }
-        numPointsToUse = Integer.parseInt(args[6]);
-        resolution = Double.parseDouble(args[7]);
-        excludeNeverClassified = Boolean.parseBoolean(args[8]);
-        excludeUnclassified = Boolean.parseBoolean(args[9]);
-        excludeBareGround = Boolean.parseBoolean(args[10]);
-        excludeLowVegetation = Boolean.parseBoolean(args[11]);
-        excludeMediumVegetation = Boolean.parseBoolean(args[12]);
-        excludeHighVegetation = Boolean.parseBoolean(args[13]);
-        excludeBuilding = Boolean.parseBoolean(args[14]);
-        excludeLowPoint = Boolean.parseBoolean(args[15]);
-        //excludeHighPoint = Boolean.parseBoolean(args[16]);
-        excludeModelKeyPoint = Boolean.parseBoolean(args[16]);
-        excludeWater = Boolean.parseBoolean(args[17]);
+        resolution = Double.parseDouble(args[4]);
+        double circleCircumscrbingGridCell = Math.sqrt(2) * resolution;
+        excludeNeverClassified = Boolean.parseBoolean(args[5]);
+        excludeUnclassified = Boolean.parseBoolean(args[6]);
+        excludeBareGround = Boolean.parseBoolean(args[7]);
+        excludeLowVegetation = Boolean.parseBoolean(args[8]);
+        excludeMediumVegetation = Boolean.parseBoolean(args[9]);
+        excludeHighVegetation = Boolean.parseBoolean(args[10]);
+        excludeBuilding = Boolean.parseBoolean(args[11]);
+        excludeLowPoint = Boolean.parseBoolean(args[12]);
+        //excludeHighPoint = Boolean.parseBoolean(args[14]);
+        excludeModelKeyPoint = Boolean.parseBoolean(args[13]);
+        excludeWater = Boolean.parseBoolean(args[14]);
         
         
         
@@ -292,10 +284,6 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
             int numPointFiles = pointFiles.length;
             long numPointsInFile = 0;
                 
-            if (maxDist < Double.POSITIVE_INFINITY) {
-                maxDist = maxDist * maxDist;
-            }
-            
             PointRecord point;
             PointRecColours pointColours;
             double[] entry;
@@ -339,6 +327,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                 maxY = Double.NEGATIVE_INFINITY;
         
                 KdTree<Double> pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(numPoints));
+            
                 
                 // read the points in
                 if (returnNumberToInterpolate.equals("all points")) {
@@ -549,106 +538,38 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                 WhiteboxRaster image = new WhiteboxRaster(outputHeader, "rw");
 
                 double halfResolution = resolution / 2;
-                if (!whatToInterpolate.equals("rgb data")) {
-                    for (row = 0; row < nrows; row++) {
-                        for (col = 0; col < ncols; col++) {
-                            easting = (col * resolution) + (west + halfResolution);
-                            northing = (north - halfResolution) - (row * resolution);
-                            entry = new double[]{northing, easting};
-                            results = pointsTree.nearestNeighbor(entry, numPointsToUse, false);
-                            sumWeights = 0;
+                for (row = 0; row < nrows; row++) {
+                    for (col = 0; col < ncols; col++) {
+                        easting = (col * resolution) + (west + halfResolution);
+                        northing = (north - halfResolution) - (row * resolution);
+                        entry = new double[]{northing, easting};
+                        results = pointsTree.neighborsWithinRange(entry, circleCircumscrbingGridCell);
+                        if (!results.isEmpty()) {
+                            maxValue = Float.NEGATIVE_INFINITY;
                             for (i = 0; i < results.size(); i++) {
-                                if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
-                                    dist = Math.pow(Math.sqrt(results.get(i).distance), weight);
-                                    sumWeights += 1 / dist;
-                                } else if (results.get(i).distance == 0) {
-                                    break;
-                                }
+                                z = results.get(i).value;
+                                if (z > maxValue) { maxValue = z; };
                             }
-                            if (sumWeights > 0) {
-                                z = 0;
-                                for (i = 0; i < results.size(); i++) {
-                                    if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
-                                        dist = 1 / Math.pow(Math.sqrt(results.get(i).distance), weight);
-                                        z += (dist * results.get(i).value) / sumWeights;
-                                    } else if (results.get(i).distance == 0) {
-                                        z = results.get(i).value;
-                                        break;
-                                    }
-                                }
-                                image.setValue(row, col, z);
-                            } else {
-                                image.setValue(row, col, noData);
-                            }
+                            image.setValue(row, col, maxValue);
+                        } else {
+                            image.setValue(row, col, noData);
                         }
-                        if (cancelOp) {
-                            cancelOperation();
-                            return;
-                        }
-                        progress = (int) (100f * row / (nrows - 1));
-                        updateProgress("Interpolating point data:", progress);
                     }
-                } else { // rgb is being interpolated
-                    double r, g, b;
-                    double zR, zG, zB;
-                    double val;
-                    for (row = 0; row < nrows; row++) {
-                        for (col = 0; col < ncols; col++) {
-                            easting = (col * resolution) + (west + halfResolution);
-                            northing = (north - halfResolution) - (row * resolution);
-                            entry = new double[]{northing, easting};
-                            results = pointsTree.nearestNeighbor(entry, numPointsToUse, false);
-                            sumWeights = 0;
-                            for (i = 0; i < results.size(); i++) {
-                                if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
-                                    dist = Math.pow(Math.sqrt(results.get(i).distance), weight);
-                                    sumWeights += 1 / dist;
-                                } else if (results.get(i).distance == 0) {
-                                    break;
-                                }
-                            }
-                            if (sumWeights > 0) {
-                                z = 0;
-                                zR = 0;
-                                zG = 0;
-                                zB = 0;
-                                for (i = 0; i < results.size(); i++) {
-                                    if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
-                                        val = results.get(i).value;
-                                        r = (double)((int)val & 0xFF);
-                                        g = (double)(((int)val >> 8) & 0xFF);
-                                        b = (double)(((int)val >> 16) & 0xFF);
-                                        
-                                        dist = 1 / Math.pow(Math.sqrt(results.get(i).distance), weight);
-                                        zR += (dist * r) / sumWeights;
-                                        zG += (dist * g) / sumWeights;
-                                        zB += (dist * b) / sumWeights;
-                                    } else if (results.get(i).distance == 0) {
-                                        z = results.get(i).value;
-                                        break;
-                                    }
-                                }
-                                z = (double)((255 << 24) | ((int)zB << 16) | ((int)zG << 8) | (int)zR);
-                                image.setValue(row, col, z);
-                            } else {
-                                image.setValue(row, col, noData);
-                            }
-                        }
-                        if (cancelOp) {
-                            cancelOperation();
-                            return;
-                        }
-                        progress = (int) (100f * row / (nrows - 1));
-                        updateProgress("Interpolating point data:", progress);
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
                     }
+                    progress = (int) (100f * row / (nrows - 1));
+                    updateProgress("Interpolating point data:", progress);
                 }
+
                 image.addMetadataEntry("Created by the "
                         + getDescriptiveName() + " tool.");
                 image.addMetadataEntry("Created on " + new Date());
 
                 image.close();
             }
-
+            
             returnData(pointFiles[0].replace(".las", suffix + ".dep"));
             
         } catch (OutOfMemoryError oe) {
@@ -662,22 +583,20 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
             myHost.pluginComplete();
         }
     }
-      
-//    // this is only used for debugging the tool
+//      
+//    //this is only used for debugging the tool
 //    public static void main(String[] args) {
-//        LiDAR_IDW_interpolation nn = new LiDAR_IDW_interpolation();
-//        args = new String[19];
+//        LiDAR_Min_interpolation min = new LiDAR_Min_interpolation();
+//        args = new String[17];
 //        args[0] = "/Users/johnlindsay/Documents/Data/u_5565073175.las";
-//        //args[0] = "/Users/johnlindsay/Documents/Data/u_5565073250.las";
-//        args[1] = "IDW last return";
-//        args[2] = "Z (elevation)"; // "intensity";
+//        args[0] = "/Users/johnlindsay/Documents/Data/u_5565073250.las";
+//        args[1] = " min interpolation";
+//        args[2] = "z (elevation)";
 //        args[3] = "last return";
-//        args[4] = "1"; // weight
-//        args[5] = "4"; // max dist
-//        args[6] = "8"; // num points to use
-//        args[7] = "1"; // resolution
-//        nn.setArgs(args);
-//        nn.run();
+//        args[4] = "1";
+//        min.setArgs(args);
+//        min.run();
 //        
 //    }
 }
+

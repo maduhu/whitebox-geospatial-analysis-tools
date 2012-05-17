@@ -1,4 +1,6 @@
 plugins.LiDAR_IDW_interpolation
+plugins.LiDAR_Max_interpolation
+plugins.LiDAR_Min_interpolation
 plugins.LiDAR_NN_interpolation
 plugins.LiDAR_PointDensity
 plugins.RemoveOffTerrainObjects
