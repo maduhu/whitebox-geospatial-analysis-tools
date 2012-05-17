@@ -153,13 +153,14 @@ public class BreachDepressions implements WhiteboxPlugin {
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
+    
+    private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
      *
      * @param cancel Set to true if the plugin should be canceled.
      */
-    private boolean cancelOp = false;
-
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
