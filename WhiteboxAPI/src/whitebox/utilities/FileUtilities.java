@@ -16,7 +16,6 @@
  */
 package whitebox.utilities;
 
-import java.nio.channels.FileChannel;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
 import java.io.PrintWriter;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 /**

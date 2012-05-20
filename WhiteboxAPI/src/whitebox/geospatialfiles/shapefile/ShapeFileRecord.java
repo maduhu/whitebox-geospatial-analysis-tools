@@ -27,31 +27,49 @@ public class ShapeFileRecord {
     private ShapeType shapeType; // notice that the shape type is not officially part of the
     // record header, but that it is the starting part of each shapeType and as such
     // is effectively a component of the header.
-    Object data;
+    private Object data;
+    private boolean pointType;
 
+    /**
+     * Constructor.
+     */
     public ShapeFileRecord() {
     }
 
+    /**
+     * Constructor.
+     * @param recordNumber
+     * @param contentLength
+     * @param shapeType
+     * @param data 
+     */
     public ShapeFileRecord(int recordNumber, int contentLength, ShapeType shapeType, byte[] data) {
         this.recordNumber = recordNumber;
         this.contentLength = contentLength;
         this.shapeType = shapeType;
+        this.pointType = false;
         if (shapeType == ShapeType.POINT) {
             this.data = new Point(data);
+            this.pointType = true;
         } else if (shapeType == ShapeType.MULTIPOINT) {
             this.data = new MultiPoint(data);
+            this.pointType = true;
         } else if (shapeType == ShapeType.POLYLINE) {
             this.data = new PolyLine(data);
         } else if (shapeType == ShapeType.POINTZ) {
             this.data = new PointZ(data);
+            this.pointType = true;
         } else if (shapeType == ShapeType.POINTM) {
             this.data = new PointM(data);
+            this.pointType = true;
         } else if (shapeType == ShapeType.MULTIPOINTM) {
             this.data = new MultiPointM(data);
+            this.pointType = true;
         } else if (shapeType == ShapeType.POLYLINEM) {
             this.data = new PolyLineM(data);
         } else if (shapeType == ShapeType.MULTIPOINTZ) {
             this.data = new MultiPointZ(data);
+            this.pointType = true;
         } else if (shapeType == ShapeType.POLYLINEZ) {
             this.data = new PolyLineZ(data);
         } else if (shapeType == ShapeType.POLYGON) {
@@ -96,4 +114,9 @@ public class ShapeFileRecord {
     public Object getData() {
         return data;
     }
+
+    public boolean isPointType() {
+        return pointType;
+    }
+    
 }

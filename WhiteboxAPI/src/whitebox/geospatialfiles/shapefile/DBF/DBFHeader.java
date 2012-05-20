@@ -117,7 +117,6 @@ class DBFHeader {
         dataOutput.writeByte(month); /* 2 */
         dataOutput.writeByte(day);   /* 3 */
 
-        //System.out.println( "Number of records in O/S: " + numberOfRecords);
         numberOfRecords = Utils.littleEndian(numberOfRecords);
         dataOutput.writeInt(numberOfRecords); /* 4-7 */
 
@@ -140,7 +139,6 @@ class DBFHeader {
 
         for (int i = 0; i < fieldArray.length; i++) {
 
-            //System.out.println( "Length: " + fieldArray[i].getFieldLength());
             fieldArray[i].write(dataOutput);
         }
 

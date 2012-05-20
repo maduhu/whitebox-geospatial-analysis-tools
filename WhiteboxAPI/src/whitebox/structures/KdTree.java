@@ -308,6 +308,95 @@ public abstract class KdTree<T> {
             this.value = value;
         }
     }
+    
+    /**
+     * finds all points within 'range' distance to 'location'
+     */
+    @SuppressWarnings("unchecked")
+    public List<Entry<T>> neighborsWithinRange(double[] location, double range) {
+        KdTree<T> cursor = this;
+        cursor.status = Status.NONE;
+        range = range * range; 
+        ArrayList<Entry<T>> results = new ArrayList<Entry<T>>();
+        
+        do {
+            if (cursor.status == Status.ALLVISITED) {
+                // At a fully visited part. Move up the tree
+                cursor = cursor.parent;
+                continue;
+            }
+ 
+            if (cursor.status == Status.NONE && cursor.locations != null) {
+                // At a leaf. Use the data.
+                if (cursor.locationCount > 0) {
+                    if (cursor.singularity) {
+                        double dist = pointDist(cursor.locations[0], location);
+                        if (dist <= range) {
+                            for (int i = 0; i < cursor.locationCount; i++) {
+                                results.add(new Entry<T>(dist, (T)cursor.data[i]));
+                            }
+                        }
+                    }
+                    else {
+                        for (int i = 0; i < cursor.locationCount; i++) {
+                            double dist = pointDist(cursor.locations[i], location);
+                            if (dist <= range) {
+                                results.add(new Entry<T>(dist, (T)cursor.data[i]));
+                            }
+                        }
+                    }
+                }
+ 
+                if (cursor.parent == null) {
+                    break;
+                }
+                cursor = cursor.parent;
+                continue;
+            }
+ 
+            // Going to descend
+            KdTree<T> nextCursor = null;
+            if (cursor.status == Status.NONE) {
+                // At a fresh node, descend the most probably useful direction
+                if (location[cursor.splitDimension] > cursor.splitValue) {
+                    // Descend right
+                    nextCursor = cursor.right;
+                    cursor.status = Status.RIGHTVISITED;
+                }
+                else {
+                    // Descend left;
+                    nextCursor = cursor.left;
+                    cursor.status = Status.LEFTVISITED;
+                }
+            }
+            else if (cursor.status == Status.LEFTVISITED) {
+                // Left node visited, descend right.
+                nextCursor = cursor.right;
+                cursor.status = Status.ALLVISITED;
+            }
+            else if (cursor.status == Status.RIGHTVISITED) {
+                // Right node visited, descend left.
+                nextCursor = cursor.left;
+                cursor.status = Status.ALLVISITED;
+            }
+ 
+            // Check if it's worth descending. Assume it is if it's sibling has
+            // not been visited yet.
+            if (cursor.status == Status.ALLVISITED) {
+                if (nextCursor.locationCount == 0
+                        || (!nextCursor.singularity && pointRegionDist(location, nextCursor.minLimit,
+                                nextCursor.maxLimit) > range)) {
+                    continue;
+                }
+            }
+ 
+            // Descend down the tree
+            cursor = nextCursor;
+            cursor.status = Status.NONE;
+        } while (cursor.parent != null || cursor.status != Status.ALLVISITED);
+ 
+        return results;
+    }
  
     /**
      * Calculates the nearest 'count' points to 'location'

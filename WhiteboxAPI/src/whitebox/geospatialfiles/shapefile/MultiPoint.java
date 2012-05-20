@@ -18,12 +18,14 @@ package whitebox.geospatialfiles.shapefile;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import whitebox.structures.BoundingBox;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class MultiPoint {
-    private double[] box = new double[4];
+   //private double[] box = new double[4];
+    private BoundingBox bb;
     private int numPoints;
     private double[][] points;
     
@@ -34,10 +36,12 @@ public class MultiPoint {
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.rewind();
             
-            box[0] = buf.getDouble(0);
-            box[1] = buf.getDouble(8);
-            box[2] = buf.getDouble(16);
-            box[3] = buf.getDouble(24);
+//            box[0] = buf.getDouble(0);
+//            box[1] = buf.getDouble(8);
+//            box[2] = buf.getDouble(16);
+//            box[3] = buf.getDouble(24);
+            bb = new BoundingBox(buf.getDouble(0), buf.getDouble(8), 
+                    buf.getDouble(16), buf.getDouble(24));
             numPoints = buf.getInt(32);
             points = new double[numPoints][2];
             for (int i = 0; i < numPoints; i++) {
@@ -51,10 +55,26 @@ public class MultiPoint {
     }
     
     // properties
-    public double[] getBox() {
-        return box;
+    public BoundingBox getBox() {
+        return bb;
     }
-
+    
+    public double getXMin() {
+        return bb.getMinX();
+    }
+    
+    public double getYMin() {
+        return bb.getMinY();
+    }
+    
+    public double getXMax() {
+        return bb.getMaxX();
+    }
+    
+    public double getYMax() {
+        return bb.getMaxY();
+    }
+    
     public int getNumPoints() {
         return numPoints;
     }

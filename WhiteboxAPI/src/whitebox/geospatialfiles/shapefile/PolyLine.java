@@ -18,16 +18,18 @@ package whitebox.geospatialfiles.shapefile;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import whitebox.structures.BoundingBox;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class PolyLine {
-    private double[] box = new double[4];
+    //private double[] box = new double[4];
     private int numParts;
     private int numPoints;
     private int[] parts;
     private double[][] points;
+    private BoundingBox bb;
     
     //constructors
     public PolyLine(byte[] rawData) {
@@ -36,10 +38,13 @@ public class PolyLine {
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.rewind();
             
-            box[0] = buf.getDouble(0);
-            box[1] = buf.getDouble(8);
-            box[2] = buf.getDouble(16);
-            box[3] = buf.getDouble(24);
+            //box[0] = buf.getDouble(0);
+            //box[1] = buf.getDouble(8);
+            //box[2] = buf.getDouble(16);
+            //box[3] = buf.getDouble(24);
+            bb = new BoundingBox(buf.getDouble(0), buf.getDouble(8), 
+                    buf.getDouble(16), buf.getDouble(24));
+            
             numParts = buf.getInt(32);
             numPoints = buf.getInt(36);
             parts = new int[numParts];
@@ -59,10 +64,26 @@ public class PolyLine {
     }
     
     // properties
-    public double[] getBox() {
-        return box;
+    public BoundingBox getBox() {
+        return bb;
     }
-
+    
+    public double getXMin() {
+        return bb.getMinX();
+    }
+    
+    public double getYMin() {
+        return bb.getMinY();
+    }
+    
+    public double getXMax() {
+        return bb.getMaxX();
+    }
+    
+    public double getYMax() {
+        return bb.getMaxY();
+    }
+    
     public int getNumPoints() {
         return numPoints;
     }

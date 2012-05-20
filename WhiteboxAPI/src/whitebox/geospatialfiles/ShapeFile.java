@@ -20,11 +20,13 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.Arrays;
 import whitebox.geospatialfiles.shapefile.DBF.DBFException;
 import whitebox.geospatialfiles.shapefile.DBF.DBFField;
 import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
-import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
-import whitebox.geospatialfiles.shapefile.ShapeType;
+import whitebox.geospatialfiles.shapefile.*;
+import whitebox.structures.BoundingBox;
 import whitebox.utilities.ByteSwapper;
 
 /**
@@ -59,6 +61,7 @@ public class ShapeFile {
     private double[] parameters;
     public boolean databaseFileExists;
     public ShapeFileRecord[] records;
+    private boolean pointType;
     
     // Constructors
     public ShapeFile(String fileName) {
@@ -103,7 +106,7 @@ public class ShapeFile {
         File file = new File(fileName);
         if (file.exists()) { // it's an existing file
             readHeaderData();
-            countRecords();
+            readRecords();
         } else { // it's a new file
             
         }
@@ -248,6 +251,10 @@ public class ShapeFile {
     public void setXYUnits(String xyUnits) {
         this.xyUnits = xyUnits;
     }
+
+    public boolean isPointType() {
+        return pointType;
+    }
     
     // Methods
     private boolean readHeaderData() {
@@ -255,7 +262,6 @@ public class ShapeFile {
         ByteBuffer buf;
         
         try {
-
             // See if the data file exists.
             File file = new File(fileName);
             if (!file.exists()) {
@@ -278,6 +284,22 @@ public class ShapeFile {
             version = buf.getShort(28);
             shapeType = getShapeTypeFromInt(buf.getShort(32));
             
+            if (shapeType == ShapeType.POINT) {
+                this.pointType = true;
+            } else if (shapeType == ShapeType.MULTIPOINT) {
+                this.pointType = true;
+            } else if (shapeType == ShapeType.POINTZ) {
+                this.pointType = true;
+            } else if (shapeType == ShapeType.POINTM) {
+                this.pointType = true;
+            } else if (shapeType == ShapeType.MULTIPOINTM) {
+                this.pointType = true;
+            } else if (shapeType == ShapeType.MULTIPOINTZ) {
+                this.pointType = true;
+            } else {
+                pointType = false;
+            }
+
             xMin = buf.getDouble(36);
             yMin = buf.getDouble(44);
             xMax = buf.getDouble(52);
@@ -343,13 +365,13 @@ public class ShapeFile {
         return records[recordNumber];
     }
     
-    private boolean countRecords() {
+    private boolean readRecords() {
         int pos = 100;
         int recordNumber, contentLength;
         ShapeType recShapeType;
         
         RandomAccessFile rIn = null;
-        ByteBuffer buf = null;
+        ByteBuffer buf;
         
         try {
 
@@ -411,6 +433,222 @@ public class ShapeFile {
                 }
             }
         }
+    }
+    
+    
+    public ArrayList<ShapeFileRecord> getRecordsInBoundingBox(BoundingBox box) {
+        ArrayList<ShapeFileRecord> recs = new ArrayList<ShapeFileRecord>();
+        
+        if (shapeType == ShapeType.POINT) {
+            for (int r = 0; r < records.length; r++) {
+                whitebox.geospatialfiles.shapefile.Point rec = 
+                        (whitebox.geospatialfiles.shapefile.Point) (records[r].getData());
+                if (box.isPointInBox(rec.getX(), rec.getY())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POINTZ) {
+            for (int r = 0; r < records.length; r++) {
+                PointZ rec = (PointZ) (records[r].getData());
+                if (box.isPointInBox(rec.getX(), rec.getY())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POINTM) {
+            for (int r = 0; r < records.length; r++) {
+                PointM rec = (PointM) (records[r].getData());
+                if (box.isPointInBox(rec.getX(), rec.getY())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.MULTIPOINT) {
+            double[][] recPoints;
+            for (int r = 0; r < records.length; r++) {
+                MultiPoint rec = (MultiPoint) (records[r].getData());
+                recPoints = rec.getPoints();
+                for (int p = 0; p < recPoints.length; p++) {
+                    if (box.isPointInBox(recPoints[p][0], recPoints[p][1])) {
+                        recs.add(records[r]);
+                    }
+                }
+            }
+        } else if (shapeType == ShapeType.MULTIPOINTZ) {
+            double[][] recPoints;
+            for (int r = 0; r < records.length; r++) {
+                MultiPointZ rec = (MultiPointZ) (records[r].getData());
+                recPoints = rec.getPoints();
+                for (int p = 0; p < recPoints.length; p++) {
+                    if (box.isPointInBox(recPoints[p][0], recPoints[p][1])) {
+                        recs.add(records[r]);
+                    }
+                }
+            }
+        } else if (shapeType == ShapeType.MULTIPOINTM) {
+            double[][] recPoints;
+            for (int r = 0; r < records.length; r++) {
+                MultiPointM rec = (MultiPointM) (records[r].getData());
+                recPoints = rec.getPoints();
+                for (int p = 0; p < recPoints.length; p++) {
+                    if (box.isPointInBox(recPoints[p][0], recPoints[p][1])) {
+                        recs.add(records[r]);
+                    }
+                }
+            }
+        } else if (shapeType == ShapeType.POLYLINE) {
+            for (int r = 0; r < records.length; r++) {
+                PolyLine rec = (PolyLine) (records[r].getData());
+                if (box.doesIntersect(rec.getBox())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYLINEZ) {
+            for (int r = 0; r < records.length; r++) {
+                PolyLineZ rec = (PolyLineZ) (records[r].getData());
+                if (box.doesIntersect(rec.getBox())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYLINEM) {
+            for (int r = 0; r < records.length; r++) {
+                PolyLineM rec = (PolyLineM) (records[r].getData());
+                if (box.doesIntersect(rec.getBox())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYGON) {
+            for (int r = 0; r < records.length; r++) {
+                Polygon rec = (Polygon) (records[r].getData());
+                if (box.doesIntersect(rec.getBox())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYGONZ) {
+            for (int r = 0; r < records.length; r++) {
+                PolygonZ rec = (PolygonZ) (records[r].getData());
+                if (box.doesIntersect(rec.getBox())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYGONM) {
+            for (int r = 0; r < records.length; r++) {
+                PolygonM rec = (PolygonM) (records[r].getData());
+                if (box.doesIntersect(rec.getBox())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else {
+            return null;
+        }
+        
+        return recs; //(ShapeFileRecord[]) recs.toArray(new ShapeFileRecord[recs.size()]);
+    }
+     
+    
+    public ArrayList<ShapeFileRecord> getRecordsInBoundingBox(BoundingBox box, double minSize) {
+        ArrayList<ShapeFileRecord> recs = new ArrayList<ShapeFileRecord>();
+        
+        if (shapeType == ShapeType.POINT) {
+            for (int r = 0; r < records.length; r++) {
+                whitebox.geospatialfiles.shapefile.Point rec = 
+                        (whitebox.geospatialfiles.shapefile.Point) (records[r].getData());
+                if (box.isPointInBox(rec.getX(), rec.getY())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POINTZ) {
+            for (int r = 0; r < records.length; r++) {
+                PointZ rec = (PointZ) (records[r].getData());
+                if (box.isPointInBox(rec.getX(), rec.getY())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POINTM) {
+            for (int r = 0; r < records.length; r++) {
+                PointM rec = (PointM) (records[r].getData());
+                if (box.isPointInBox(rec.getX(), rec.getY())) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.MULTIPOINT) {
+            double[][] recPoints;
+            for (int r = 0; r < records.length; r++) {
+                MultiPoint rec = (MultiPoint) (records[r].getData());
+                recPoints = rec.getPoints();
+                for (int p = 0; p < recPoints.length; p++) {
+                    if (box.isPointInBox(recPoints[p][0], recPoints[p][1])) {
+                        recs.add(records[r]);
+                    }
+                }
+            }
+        } else if (shapeType == ShapeType.MULTIPOINTZ) {
+            double[][] recPoints;
+            for (int r = 0; r < records.length; r++) {
+                MultiPointZ rec = (MultiPointZ) (records[r].getData());
+                recPoints = rec.getPoints();
+                for (int p = 0; p < recPoints.length; p++) {
+                    if (box.isPointInBox(recPoints[p][0], recPoints[p][1])) {
+                        recs.add(records[r]);
+                    }
+                }
+            }
+        } else if (shapeType == ShapeType.MULTIPOINTM) {
+            double[][] recPoints;
+            for (int r = 0; r < records.length; r++) {
+                MultiPointM rec = (MultiPointM) (records[r].getData());
+                recPoints = rec.getPoints();
+                for (int p = 0; p < recPoints.length; p++) {
+                    if (box.isPointInBox(recPoints[p][0], recPoints[p][1])) {
+                        recs.add(records[r]);
+                    }
+                }
+            }
+        } else if (shapeType == ShapeType.POLYLINE) {
+            for (int r = 0; r < records.length; r++) {
+                PolyLine rec = (PolyLine) (records[r].getData());
+                if (box.doesIntersect(rec.getBox()) && rec.getBox().getMaxExtent() > minSize) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYLINEZ) {
+            for (int r = 0; r < records.length; r++) {
+                PolyLineZ rec = (PolyLineZ) (records[r].getData());
+                if (box.doesIntersect(rec.getBox()) && rec.getBox().getMaxExtent() > minSize) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYLINEM) {
+            for (int r = 0; r < records.length; r++) {
+                PolyLineM rec = (PolyLineM) (records[r].getData());
+                if (box.doesIntersect(rec.getBox()) && rec.getBox().getMaxExtent() > minSize) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYGON) {
+            for (int r = 0; r < records.length; r++) {
+                Polygon rec = (Polygon) (records[r].getData());
+                if (box.doesIntersect(rec.getBox()) && rec.getBox().getMaxExtent() > minSize) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYGONZ) {
+            for (int r = 0; r < records.length; r++) {
+                PolygonZ rec = (PolygonZ) (records[r].getData());
+                if (box.doesIntersect(rec.getBox()) && rec.getBox().getMaxExtent() > minSize) {
+                    recs.add(records[r]);
+                }
+            }
+        } else if (shapeType == ShapeType.POLYGONM) {
+            for (int r = 0; r < records.length; r++) {
+                PolygonM rec = (PolygonM) (records[r].getData());
+                if (box.doesIntersect(rec.getBox()) && rec.getBox().getMaxExtent() > minSize) {
+                    recs.add(records[r]);
+                }
+            }
+        } else {
+            return null;
+        }
+        
+        return recs; //(ShapeFileRecord[]) recs.toArray(new ShapeFileRecord[recs.size()]);
     }
     
     public String[] getAttributeTableFields() {
