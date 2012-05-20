@@ -17,12 +17,14 @@
 package whiteboxgis;
 
 import java.io.*;
-import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
-import whitebox.structures.DimensionBox;
 import whitebox.interfaces.MapLayer;
+import whitebox.structures.BoundingBox;
 
 /**
  *
@@ -100,8 +102,8 @@ public class RasterLayerInfo implements MapLayer {
             increasesNorthward = false;
         }
 
-        currentExtent = new DimensionBox(source.getNorth(), source.getEast(),
-                source.getSouth(), source.getWest());
+        currentExtent = new BoundingBox(source.getWest(), source.getSouth(), 
+                source.getEast(), source.getNorth());
 
         fullExtent = currentExtent.clone();
     }
@@ -154,8 +156,8 @@ public class RasterLayerInfo implements MapLayer {
             increasesNorthward = false;
         }
 
-        currentExtent = new DimensionBox(source.getNorth(), source.getEast(),
-                source.getSouth(), source.getWest());
+        currentExtent = new BoundingBox(source.getWest(), source.getSouth(),
+                source.getEast(), source.getNorth());
 
         fullExtent = currentExtent.clone();
     }
@@ -357,24 +359,23 @@ public class RasterLayerInfo implements MapLayer {
             paletteData = copyPalette.clone();
         }
     }
-    DimensionBox fullExtent = null;
+    BoundingBox fullExtent = null;
 
     @Override
-    public DimensionBox getFullExtent() {
+    public BoundingBox getFullExtent() {
         return fullExtent.clone();
     }
-    DimensionBox currentExtent = null;
+    BoundingBox currentExtent = null;
 
-    public DimensionBox getCurrentExtent() {
+    @Override
+    public BoundingBox getCurrentExtent() {
         return currentExtent.clone();
     }
 
-    public void setCurrentExtent(DimensionBox db) {
-        if (db.getTop() != currentExtent.getTop()
-                || db.getRight() != currentExtent.getRight()
-                || db.getBottom() != currentExtent.getBottom()
-                || db.getLeft() != currentExtent.getLeft()) {
-            currentExtent = db.clone();
+    @Override
+    public void setCurrentExtent(BoundingBox bb) {
+        if (!bb.equals(currentExtent)) {
+            currentExtent = bb.clone();
             dirty = true;
         }
     }
@@ -441,10 +442,10 @@ public class RasterLayerInfo implements MapLayer {
                 readPalette();
             }
 
-            startRow = (int) (Math.abs(fullExtent.getTop() - currentExtent.getTop()) / source.getCellSizeY());
-            endRow = (int) (rows - (Math.abs(fullExtent.getBottom() - currentExtent.getBottom()) / source.getCellSizeY())) - 1;
-            startCol = (int) (Math.abs(fullExtent.getLeft() - currentExtent.getLeft()) / source.getCellSizeX());
-            endCol = (int) (cols - (Math.abs(fullExtent.getRight() - currentExtent.getRight()) / source.getCellSizeX())) - 1;
+            startRow = (int) (Math.abs(fullExtent.getMaxY() - currentExtent.getMaxY()) / source.getCellSizeY());
+            endRow = (int) (rows - (Math.abs(fullExtent.getMinY() - currentExtent.getMinY()) / source.getCellSizeY())) - 1;
+            startCol = (int) (Math.abs(fullExtent.getMinX() - currentExtent.getMinX()) / source.getCellSizeX());
+            endCol = (int) (cols - (Math.abs(fullExtent.getMaxX() - currentExtent.getMaxX()) / source.getCellSizeX())) - 1;
             int row, col;
             double range = maxVal - minVal;
             double value = 0;
@@ -652,7 +653,7 @@ public class RasterLayerInfo implements MapLayer {
         createPixelData();
     }
 
-    public void clipLayerToExtent(DimensionBox extent, String outputFileName) {
+    public void clipLayerToExtent(BoundingBox extent, String outputFileName) {
         String str1 = null;
         FileWriter fw = null;
         BufferedWriter bw = null;
@@ -661,20 +662,20 @@ public class RasterLayerInfo implements MapLayer {
         try {
             // Do the two extents overlap?
             boolean cond1, cond2, cond3, cond4;
-            if (fullExtent.getBottom() < fullExtent.getTop()) { // y-axis increases upwards
-                cond1 = (extent.getTop() < fullExtent.getBottom());
-                cond2 = (extent.getBottom() > fullExtent.getTop());
+            if (fullExtent.getMinY() < fullExtent.getMaxY()) { // y-axis increases upwards
+                cond1 = (extent.getMaxY() < fullExtent.getMinY());
+                cond2 = (extent.getMinY() > fullExtent.getMaxY());
             } else { // y-axis increases downwards
-                cond1 = (extent.getTop() > fullExtent.getBottom());
-                cond2 = (extent.getBottom() < fullExtent.getTop());
+                cond1 = (extent.getMaxY() > fullExtent.getMinY());
+                cond2 = (extent.getMinY() < fullExtent.getMaxY());
             }
 
-            if (fullExtent.getLeft() < fullExtent.getRight()) { // x-axis increases to right
-                cond3 = (extent.getLeft() > fullExtent.getRight());
-                cond4 = (extent.getRight() < fullExtent.getLeft());
+            if (fullExtent.getMinX() < fullExtent.getMaxX()) { // x-axis increases to right
+                cond3 = (extent.getMinX() > fullExtent.getMaxX());
+                cond4 = (extent.getMaxX() < fullExtent.getMinX());
             } else { // x-axis increases to left
-                cond3 = (extent.getLeft() < fullExtent.getRight());
-                cond4 = (extent.getRight() > fullExtent.getLeft());
+                cond3 = (extent.getMinX() < fullExtent.getMaxX());
+                cond4 = (extent.getMaxX() > fullExtent.getMinX());
             }
 
             if (!cond1 && !cond2 && !cond3 && !cond4) {
@@ -684,25 +685,25 @@ public class RasterLayerInfo implements MapLayer {
                 double top, bottom, left, right;
                 int fromRow, toRow, fromCol, toCol;
 
-                if (fullExtent.getBottom() < fullExtent.getTop()) {
-                    top = Math.min(extent.getTop(), fullExtent.getTop());
-                    bottom = Math.max(extent.getBottom(), fullExtent.getBottom());
+                if (fullExtent.getMinY() < fullExtent.getMaxY()) {
+                    top = Math.min(extent.getMaxY(), fullExtent.getMaxY());
+                    bottom = Math.max(extent.getMinY(), fullExtent.getMinY());
                 } else {
-                    top = Math.max(extent.getTop(), fullExtent.getTop());
-                    bottom = Math.min(extent.getBottom(), fullExtent.getBottom());
+                    top = Math.max(extent.getMaxY(), fullExtent.getMaxY());
+                    bottom = Math.min(extent.getMinY(), fullExtent.getMinY());
                 }
-                if (fullExtent.getLeft() < fullExtent.getRight()) {
-                    left = Math.max(extent.getLeft(), fullExtent.getLeft());
-                    right = Math.min(extent.getRight(), fullExtent.getRight());
+                if (fullExtent.getMinX() < fullExtent.getMaxX()) {
+                    left = Math.max(extent.getMinX(), fullExtent.getMinX());
+                    right = Math.min(extent.getMaxX(), fullExtent.getMaxX());
                 } else {
-                    left = Math.min(extent.getLeft(), fullExtent.getLeft());
-                    right = Math.max(extent.getRight(), fullExtent.getRight());
+                    left = Math.min(extent.getMinX(), fullExtent.getMinX());
+                    right = Math.max(extent.getMaxX(), fullExtent.getMaxX());
                 }
 
-                fromRow = (int) ((fullExtent.getTop() - top) / (fullExtent.getTop() - fullExtent.getBottom()) * (rows - 0.5));
-                toRow = (int) ((fullExtent.getTop() - bottom) / (fullExtent.getTop() - fullExtent.getBottom()) * (rows - 0.5));
-                fromCol = (int) ((left - fullExtent.getLeft()) / (fullExtent.getRight() - fullExtent.getLeft()) * (cols - 0.5));
-                toCol = (int) ((right - fullExtent.getLeft()) / (fullExtent.getRight() - fullExtent.getLeft()) * (cols - 0.5));
+                fromRow = (int) ((fullExtent.getMaxY() - top) / (fullExtent.getMaxY() - fullExtent.getMinY()) * (rows - 0.5));
+                toRow = (int) ((fullExtent.getMaxY() - bottom) / (fullExtent.getMaxY() - fullExtent.getMinY()) * (rows - 0.5));
+                fromCol = (int) ((left - fullExtent.getMinX()) / (fullExtent.getMaxX() - fullExtent.getMinX()) * (cols - 0.5));
+                toCol = (int) ((right - fullExtent.getMinX()) / (fullExtent.getMaxX() - fullExtent.getMinX()) * (cols - 0.5));
 
                 if (fromRow > toRow) {
                     int i = fromRow;
@@ -718,10 +719,10 @@ public class RasterLayerInfo implements MapLayer {
                 // recalculate top, bottom, left and right to align with the row/col coordinates
                 double gridResY = source.getCellSizeY();
                 double gridResX = source.getCellSizeX();
-                top = fullExtent.getTop() - fromRow * gridResY;
-                bottom = fullExtent.getTop() - (toRow + 1) * gridResY;
-                left = fullExtent.getLeft() + fromCol * gridResX;
-                right = fullExtent.getLeft() + (toCol + 1) * gridResX;
+                top = fullExtent.getMaxY() - fromRow * gridResY;
+                bottom = fullExtent.getMaxY() - (toRow + 1) * gridResY;
+                left = fullExtent.getMinX() + fromCol * gridResX;
+                right = fullExtent.getMinX() + (toCol + 1) * gridResX;
 
                 int nRows = toRow - fromRow + 1;
                 int nCols = toCol - fromCol + 1;

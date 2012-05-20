@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
 import rastercalculator.RasterCalculator;
 import whitebox.interfaces.MapLayer.MapLayerType;
 import whitebox.interfaces.*;
-import whitebox.structures.DimensionBox;
+import whitebox.structures.BoundingBox;
 import whitebox.structures.ExtensionFileFilter;
 import whitebox.utilities.FileUtilities;
 
@@ -75,7 +75,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private String propsFile;
     private int splitterLoc1 = 250;
     private int splitterToolboxLoc;
-    //private int splitterLocTextArea;
     private int tbTabsIndex = 0;
     private int qlTabsIndex = 0;
     private int[] selectedMapAndLayer = new int[2];
@@ -355,12 +354,50 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         populateToolTabs();
 
         WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.DESCRIPTIVE_NAME);
-        String helpFile = helpDirectory + plug.getName() + ".html";
-        ToolDialog dlg = new ToolDialog(this, false, plug.getName(), plug.getDescriptiveName(), helpFile);
-        dlg.setSize(800, 400);
-        dlg.setVisible(true);
-        //dlg.dispose();
-        //dlg = null;
+        
+        // does this plugin provide it's own dialog?
+        boolean pluginProvidesDialog = false;
+        
+        String parameterFile = resourcesDirectory + "plugins" + 
+                pathSep + "Dialogs" + pathSep + plug.getName() + ".xml";
+        File file = new File(parameterFile);
+
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(file);
+            doc.getDocumentElement().normalize();
+            Node topNode = doc.getFirstChild();
+            Element docElement = doc.getDocumentElement();
+            
+            NodeList nl = docElement.getElementsByTagName("DialogComponent");
+            String componentType;
+            if (nl != null && nl.getLength() > 0) {
+                for (int i = 0; i < nl.getLength(); i++) {
+
+                    Element el = (Element) nl.item(i);
+                    componentType = el.getAttribute("type");
+                    
+                    if (componentType.equals("CustomDialogProvidedByPlugin")) {
+                        pluginProvidesDialog = true;
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
+        if (pluginProvidesDialog) {
+            String[] args = { "" };
+            runPlugin(plug.getName(), args);
+        } else {
+            // use the xml-based dialog provided in the Dialog folder.
+            String helpFile = helpDirectory + plug.getName() + ".html";
+            ToolDialog dlg = new ToolDialog(this, false, plug.getName(), plug.getDescriptiveName(), helpFile);
+            dlg.setSize(800, 400);
+            dlg.setVisible(true);
+        }
     }
 
     @Override
@@ -2562,7 +2599,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
 
         if (openMaps.get(mapNum).getNumLayers() > 0) {
-            DimensionBox db = openMaps.get(mapNum).getFullExtent();
+            BoundingBox db = openMaps.get(mapNum).getFullExtent();
             openMaps.get(mapNum).setCurrentExtent(db.clone());
             refreshMap(false);
         }
@@ -2590,7 +2627,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         if (openMaps.get(mapNum).getNumLayers() > 0) {
             openMaps.get(mapNum).calculateFullExtent();
-            DimensionBox db = openMaps.get(mapNum).getLayer(layerOverlayNum).getFullExtent();
+            BoundingBox db = openMaps.get(mapNum).getLayer(layerOverlayNum).getFullExtent();
             openMaps.get(mapNum).setCurrentExtent(db);
 
             refreshMap(false);

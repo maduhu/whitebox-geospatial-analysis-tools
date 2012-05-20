@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -34,7 +35,7 @@ import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.interfaces.MapLayer;
-import whitebox.structures.DimensionBox;
+import whitebox.structures.BoundingBox;
 
 /**
  *
@@ -50,8 +51,8 @@ public class VectorLayerInfo implements MapLayer {
     private int alpha = 255;
     private double gamma = 1.0;
     private boolean visible = true;
-    private DimensionBox fullExtent = null;
-    private DimensionBox currentExtent = null;
+    private BoundingBox fullExtent = null;
+    private BoundingBox currentExtent = null;
     private float markerSize = 8.0f;
     private float lineThickness = 1.0f;
     private Color lineColour = Color.black;
@@ -74,6 +75,7 @@ public class VectorLayerInfo implements MapLayer {
     private int[] paletteData = null;
     private double minimumValue = 0;
     private double maximumValue = 0;
+//    private boolean dirty;
     
     public VectorLayerInfo(String fileName, int alpha, int overlayNumber) {
         this.fileName = fileName;
@@ -87,8 +89,8 @@ public class VectorLayerInfo implements MapLayer {
 
         shapefile = new ShapeFile(fileName);
 
-        currentExtent = new DimensionBox(shapefile.getyMax(), shapefile.getxMax(),
-                shapefile.getyMin(), shapefile.getxMin());
+        currentExtent = new BoundingBox(shapefile.getxMin(), shapefile.getyMin(),
+                shapefile.getxMax(), shapefile.getyMax());
 
         fullExtent = currentExtent.clone();
         shapeType = shapefile.getShapeType();
@@ -172,8 +174,9 @@ public class VectorLayerInfo implements MapLayer {
         return shapeType;
     }
 
-    public ShapeFileRecord[] getData() {
-        return shapefile.records;
+    public ArrayList<ShapeFileRecord> getData() {
+        return recs;
+        
     }
 
     public float getMarkerSize() {
@@ -264,10 +267,35 @@ public class VectorLayerInfo implements MapLayer {
     }
 
     @Override
-    public DimensionBox getFullExtent() {
+    public BoundingBox getFullExtent() {
         return fullExtent.clone();
     }
 
+    
+    @Override
+    public BoundingBox getCurrentExtent() {
+        return currentExtent.clone();
+    }
+
+    ArrayList<ShapeFileRecord> recs;
+    
+    @Override
+    public final void setCurrentExtent(BoundingBox bb) {
+        if (!bb.equals(currentExtent)) {
+            currentExtent = bb.clone();
+            //recs = shapefile.getRecordsInBoundingBox(currentExtent);
+//            dirty = true;
+        }
+    }
+    
+    public final void setCurrentExtent(BoundingBox bb, double minSize) {
+        if (!bb.equals(currentExtent) || recs == null) {
+            currentExtent = bb.clone();
+            recs = shapefile.getRecordsInBoundingBox(currentExtent, minSize);
+//            dirty = true;
+        }
+    }
+    
     @Override
     public boolean isVisible() {
         return visible;

@@ -14,13 +14,14 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import whitebox.cartographic.PointMarkers;
 import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.MapLayer.MapLayerType;
 import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.structures.DimensionBox;
+import whitebox.structures.BoundingBox;
 import whitebox.structures.GridCell;
 import whitebox.utilities.OSFinder;
 
@@ -30,7 +31,7 @@ import whitebox.utilities.OSFinder;
 public class MapRenderer extends JPanel implements Printable, MouseMotionListener, 
         MouseListener, ImageObserver {
     private int borderWidth = 20;
-    private DimensionBox mapExtent = new DimensionBox();
+    private BoundingBox mapExtent = new BoundingBox();
     public MapInfo mapinfo = null;
     private StatusBar status = null;
     private WhiteboxPluginHost host = null;
@@ -242,10 +243,14 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 double scale;
                 int x, y;
 
-                DimensionBox currentExtent = mapinfo.getCurrentExtent();
-                double xRange = Math.abs(currentExtent.getRight() - currentExtent.getLeft());
-                double yRange = Math.abs(currentExtent.getTop() - currentExtent.getBottom());
+                BoundingBox currentExtent = mapinfo.getCurrentExtent();
+                double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+                double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
                 scale = Math.min((myWidth / xRange), (myHeight / yRange));
+                
+                // this is used for drawing vectors. Any feature that is smaller
+                // than this value will be excluded from the map.
+                double minDistinguishableLength = 1 / scale;
 
                 int left = (int) (borderWidth + ((myWidth - xRange * scale) / 2));
                 int top = (int) (borderWidth + ((myHeight - yRange * scale) / 2));
@@ -253,10 +258,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 // what are the edge coordinates of the actual map area
                 double deltaY = (top - borderWidth) / scale;
                 double deltaX = (left - borderWidth) / scale;
-                mapExtent.setTop(currentExtent.getTop() + deltaY);
-                mapExtent.setBottom(currentExtent.getBottom() - deltaY);
-                mapExtent.setLeft(currentExtent.getLeft() - deltaX); 
-                mapExtent.setRight(currentExtent.getRight() + deltaX);
+                mapExtent.setMaxY(currentExtent.getMaxY() + deltaY);
+                mapExtent.setMinY(currentExtent.getMinY() - deltaY);
+                mapExtent.setMinX(currentExtent.getMinX() - deltaX); 
+                mapExtent.setMaxX(currentExtent.getMaxX() + deltaX);
                 
 
                 String XYUnits = "";
@@ -274,37 +279,20 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
 
                         if (layer.isVisible()) {
 
-                            DimensionBox fe = layer.getFullExtent();
-
-                            // does the layer even overlay with the mapExtent?
-                            boolean flag = true;
-                            if (fe.getTop() < mapExtent.getBottom()
-                                    || fe.getRight() < mapExtent.getLeft()
-                                    || fe.getBottom() > mapExtent.getTop()
-                                    || fe.getLeft() > mapExtent.getRight()) {
-                                flag = false;
-                                
-                            }
-                            if (flag) {
-                                DimensionBox layerCE = new DimensionBox();
-
-                                layerCE.setTop(Math.min(fe.getTop(), mapExtent.getTop()));
-                                layerCE.setRight(Math.min(fe.getRight(), mapExtent.getRight()));
-                                layerCE.setBottom(Math.max(fe.getBottom(), mapExtent.getBottom()));
-                                layerCE.setLeft(Math.max(fe.getLeft(), mapExtent.getLeft()));
-
+                            BoundingBox fe = layer.getFullExtent();
+                            if (fe.doesIntersect(mapExtent)) {
+                                BoundingBox layerCE = fe.intersect(mapExtent);
                                 layer.setCurrentExtent(layerCE);
+                                x = (int) (left + (layerCE.getMinX() - currentExtent.getMinX()) * scale);
+                                int layerWidth = (int) ((Math.abs(layerCE.getMaxX() - layerCE.getMinX())) * scale);
+                                y = (int) (top + (currentExtent.getMaxY() - layerCE.getMaxY()) * scale);
+                                int layerHeight = (int) ((Math.abs(layerCE.getMaxY() - layerCE.getMinY())) * scale);
 
-                                x = (int) (left + (layerCE.getLeft() - currentExtent.getLeft()) * scale);
-                                int layerWidth = (int) ((Math.abs(layerCE.getRight() - layerCE.getLeft())) * scale);
-                                y = (int) (top + (currentExtent.getTop() - layerCE.getTop()) * scale);
-                                int layerHeight = (int) ((Math.abs(layerCE.getTop() - layerCE.getBottom())) * scale);
 
-
-                                int startR = (int) (Math.abs(layer.fullExtent.getTop() - layerCE.getTop()) / layer.getCellSizeY());
-                                int endR = (int) (layer.getNumberRows() - (Math.abs(layer.fullExtent.getBottom() - layerCE.getBottom()) / layer.getCellSizeY()));
-                                int startC = (int) (Math.abs(layer.fullExtent.getLeft() - layerCE.getLeft()) / layer.getCellSizeX());
-                                int endC = (int) (layer.getNumberColumns() - (Math.abs(layer.fullExtent.getRight() - layerCE.getRight()) / layer.getCellSizeX()));
+                                int startR = (int) (Math.abs(layer.fullExtent.getMaxY() - layerCE.getMaxY()) / layer.getCellSizeY());
+                                int endR = (int) (layer.getNumberRows() - (Math.abs(layer.fullExtent.getMinY() - layerCE.getMinY()) / layer.getCellSizeY()));
+                                int startC = (int) (Math.abs(layer.fullExtent.getMinX() - layerCE.getMinX()) / layer.getCellSizeX());
+                                int endC = (int) (layer.getNumberColumns() - (Math.abs(layer.fullExtent.getMaxX() - layerCE.getMaxX()) / layer.getCellSizeX()));
                                 int numRows = endR - startR;
                                 int numCols = endC - startC;
 
@@ -334,26 +322,13 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                         } else if (!layer.getXYUnits().toLowerCase().contains("not specified")) {
                             XYUnits = " " + layer.getXYUnits();
                         }
-
+                        int r;
                         
                         if (layer.isVisible()) {
-                            DimensionBox fe = layer.getFullExtent();
-
-                            // does the layer even overlay with the mapExtent?
-                            boolean flag = true;
-                            if (fe.getTop() < mapExtent.getBottom()
-                                    || fe.getRight() < mapExtent.getLeft()
-                                    || fe.getBottom() > mapExtent.getTop()
-                                    || fe.getLeft() > mapExtent.getRight()) {
-                                flag = false;
-                                
-                            }
-                            if (flag) {
-                                
-                                // get the colours and adjust for transparency.
-//                                int r1 = layer.getFillColour().getRed();
-//                                int g1 = layer.getFillColour().getGreen();
-//                                int b1 = layer.getFillColour().getBlue();
+                            BoundingBox fe = layer.getFullExtent();
+                            if (fe.doesIntersect(mapExtent)) {
+                                BoundingBox layerCE = fe.intersect(mapExtent);
+                                layer.setCurrentExtent(layerCE, minDistinguishableLength);
                                 int a1 = layer.getAlpha();
                                 //Color fillColour = new Color(r1, g1, b1, a1);
                                 int r1 = layer.getLineColour().getRed();
@@ -362,13 +337,14 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 Color lineColour = new Color(r1, g1, b1, a1);
                                 
                                 ShapeType shapeType = layer.getShapeType();
-                                ShapeFileRecord[] records = layer.getData();
+                                //ShapeFileRecord[] records = layer.getData();
+                                ArrayList<ShapeFileRecord> records = layer.getData();
                                 double x1, y1;
                                 //int xInt, yInt, x2Int, y2Int;
-                                double topCoord = mapExtent.getTop();
-                                double bottomCoord = mapExtent.getBottom();
-                                double leftCoord = mapExtent.getLeft();
-                                double rightCoord = mapExtent.getRight();
+                                double topCoord = mapExtent.getMaxY();
+                                double bottomCoord = mapExtent.getMinY();
+                                double leftCoord = mapExtent.getMinX();
+                                double rightCoord = mapExtent.getMaxX();
                                 double EWRange = rightCoord - leftCoord;
                                 double NSRange = topCoord - bottomCoord;
                                 
@@ -382,9 +358,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         
                                     boolean isFilled = layer.isFilled();
                                     boolean isOutlined = layer.isOutlined();
-                                    for (int r = 0; r < records.length; r++) {
-                                        if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                            whitebox.geospatialfiles.shapefile.Point rec = (whitebox.geospatialfiles.shapefile.Point) (records[r].getData());
+                                    for (ShapeFileRecord record : records) {
+                                        r = record.getRecordNumber() - 1;
+                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                            whitebox.geospatialfiles.shapefile.Point rec = (whitebox.geospatialfiles.shapefile.Point) (record.getData());
                                             x1 = rec.getX();
                                             y1 = rec.getY();
                                             if (y1 < bottomCoord || x1 < leftCoord
@@ -429,9 +406,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         
                                     boolean isFilled = layer.isFilled();
                                     boolean isOutlined = layer.isOutlined();
-                                    for (int r = 0; r < records.length; r++) {
-                                        if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                            PointZ rec = (PointZ) (records[r].getData());
+                                    for (ShapeFileRecord record : records) {
+                                        r = record.getRecordNumber() - 1;
+                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                            PointZ rec = (PointZ) (record.getData());
                                             x1 = rec.getX();
                                             y1 = rec.getY();
                                             if (y1 < bottomCoord || x1 < leftCoord
@@ -476,9 +454,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         
                                     boolean isFilled = layer.isFilled();
                                     boolean isOutlined = layer.isOutlined();
-                                    for (int r = 0; r < records.length; r++) {
-                                        if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                            PointM rec = (PointM) (records[r].getData());
+                                    for (ShapeFileRecord record : records) {
+                                        r = record.getRecordNumber() - 1;
+                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                            PointM rec = (PointM) (record.getData());
                                             x1 = rec.getX();
                                             y1 = rec.getY();
                                             if (y1 < bottomCoord || x1 < leftCoord
@@ -524,9 +503,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                     double[][] recPoints;
                                     boolean isFilled = layer.isFilled();
                                     boolean isOutlined = layer.isOutlined();
-                                    for (int r = 0; r < records.length; r++) {
-                                        if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                            MultiPoint rec = (MultiPoint) (records[r].getData());
+                                    for (ShapeFileRecord record : records) {
+                                        r = record.getRecordNumber() - 1;
+                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                            MultiPoint rec = (MultiPoint) (record.getData());
                                             recPoints = rec.getPoints();
                                             for (int p = 0; p < recPoints.length; p++) {
                                                 x1 = recPoints[p][0];
@@ -574,9 +554,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                     double[][] recPoints;
                                     boolean isFilled = layer.isFilled();
                                     boolean isOutlined = layer.isOutlined();
-                                    for (int r = 0; r < records.length; r++) {
-                                        if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                            MultiPointZ rec = (MultiPointZ) (records[r].getData());
+                                    for (ShapeFileRecord record : records) {
+                                        r = record.getRecordNumber() - 1;
+                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                            MultiPointZ rec = (MultiPointZ) (record.getData());
                                             recPoints = rec.getPoints();
                                             for (int p = 0; p < recPoints.length; p++) {
                                                 x1 = recPoints[p][0];
@@ -624,9 +605,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                     double[][] recPoints;
                                     boolean isFilled = layer.isFilled();
                                     boolean isOutlined = layer.isOutlined();
-                                    for (int r = 0; r < records.length; r++) {
-                                        if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                            MultiPointM rec = (MultiPointM) (records[r].getData());
+                                    for (ShapeFileRecord record : records) {
+                                        r = record.getRecordNumber() - 1;
+                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                            MultiPointM rec = (MultiPointM) (record.getData());
                                             recPoints = rec.getPoints();
                                             for (int p = 0; p < recPoints.length; p++) {
                                                 x1 = recPoints[p][0];
@@ -683,9 +665,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                     Stroke oldStroke = g2d.getStroke();
                                     g2d.setStroke(myStroke);
                                     Color[] colours = layer.getColourData();
-                                    for (int r = 0; r < records.length; r++) {
-                                        if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                            PolyLine rec = (PolyLine) (records[r].getData());
+                                    for (ShapeFileRecord record : records) {
+                                        r = record.getRecordNumber() - 1;
+                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                            PolyLine rec = (PolyLine) (record.getData());
                                             partStart = rec.getParts();
                                             points = rec.getPoints();
                                             for (int p = 0; p < rec.getNumParts(); p++) {
@@ -734,9 +717,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                     Stroke oldStroke = g2d.getStroke();
                                     g2d.setStroke(myStroke);
                                     Color[] colours = layer.getColourData();
-                                    for (int r = 0; r < records.length; r++) {
-                                        if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                            PolyLineZ rec = (PolyLineZ) (records[r].getData());
+                                    for (ShapeFileRecord record : records) {
+                                        r = record.getRecordNumber() - 1;
+                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                            PolyLineZ rec = (PolyLineZ) (record.getData());
                                             partStart = rec.getParts();
                                             points = rec.getPoints();
                                             for (int p = 0; p < rec.getNumParts(); p++) {
@@ -786,10 +770,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                     g2d.setStroke(myStroke);
                                     
                                     Color[] colours = layer.getColourData();
-                                    
-                                    for (int r = 0; r < records.length; r++) {
-                                        if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                            PolyLineM rec = (PolyLineM) (records[r].getData());
+                                    for (ShapeFileRecord record : records) {
+                                        r = record.getRecordNumber() - 1;
+                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                            PolyLineM rec = (PolyLineM) (record.getData());
                                             partStart = rec.getParts();
                                             points = rec.getPoints();
                                             for (int p = 0; p < rec.getNumParts(); p++) {
@@ -829,9 +813,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                     
                                     if (layer.isFilled()) {
                                         Color[] colours = layer.getColourData();
-                                        for (int r = 0; r < records.length; r++) {
-                                            if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                                whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (records[r].getData());
+                                        for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getData());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
@@ -873,9 +858,9 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         }
                                         Stroke oldStroke = g2d.getStroke();
                                         g2d.setStroke(myStroke);
-                                        for (int r = 0; r < records.length; r++) {
-                                            if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                                whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (records[r].getData());
+                                        for (ShapeFileRecord record : records) {
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getData());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 for (int p = 0; p < rec.getNumParts(); p++) {
@@ -914,9 +899,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                     
                                     if (layer.isFilled()) {
                                         Color[] colours = layer.getColourData();
-                                        for (int r = 0; r < records.length; r++) {
-                                            if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolygonZ rec = (PolygonZ) (records[r].getData());
+                                        for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                PolygonZ rec = (PolygonZ) (record.getData());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
@@ -958,9 +944,9 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         }
                                         Stroke oldStroke = g2d.getStroke();
                                         g2d.setStroke(myStroke);
-                                        for (int r = 0; r < records.length; r++) {
-                                            if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolygonZ rec = (PolygonZ) (records[r].getData());
+                                        for (ShapeFileRecord record : records) {
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                PolygonZ rec = (PolygonZ) (record.getData());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 for (int p = 0; p < rec.getNumParts(); p++) {
@@ -999,9 +985,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                     
                                     if (layer.isFilled()) {
                                         Color[] colours = layer.getColourData();
-                                        for (int r = 0; r < records.length; r++) {
-                                            if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolygonM rec = (PolygonM) (records[r].getData());
+                                        for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                PolygonM rec = (PolygonM) (record.getData());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
@@ -1043,9 +1030,9 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         }
                                         Stroke oldStroke = g2d.getStroke();
                                         g2d.setStroke(myStroke);
-                                        for (int r = 0; r < records.length; r++) {
-                                            if (records[r].getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolygonM rec = (PolygonM) (records[r].getData());
+                                        for (ShapeFileRecord record : records) {
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                PolygonM rec = (PolygonM) (record.getData());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 for (int p = 0; p < rec.getNumParts(); p++) {
@@ -1074,7 +1061,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         g2d.setStroke(oldStroke);
                                     }
                                 } else if (shapeType == ShapeType.MULTIPATCH) {
-                                    // unsupported
+                                    // this vector type is unsupported
                                 }
                             }
                         }
@@ -1124,12 +1111,12 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 FontMetrics metrics = g.getFontMetrics(font);
                 int hgt, adv;
 
-                double x2 = currentExtent.getLeft() - (left - borderWidth) / scale;
+                double x2 = currentExtent.getMinX() - (left - borderWidth) / scale;
                 String label = df.format(x2) + XYUnits;
                 g2d.drawString(label, leftEdge + 3, topEdge - 4);
                 g2d.drawString(label, leftEdge + 3, bottomEdge + 13);
 
-                label = df.format(currentExtent.getRight()) + XYUnits;
+                label = df.format(currentExtent.getMaxX()) + XYUnits;
                 hgt = metrics.getHeight();
                 adv = metrics.stringWidth(label);
                 Dimension size = new Dimension(adv + 2, hgt + 2);
@@ -1142,7 +1129,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 Font f = oldFont.deriveFont(AffineTransform.getRotateInstance(-Math.PI / 2.0));
                 g2d.setFont(f);
 
-                double y2 = currentExtent.getTop() + (top - borderWidth) / scale;
+                double y2 = currentExtent.getMaxY() + (top - borderWidth) / scale;
 
                 label = df.format(y2) + XYUnits;
                 hgt = metrics.getHeight();
@@ -1152,7 +1139,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 g2d.drawString(label, leftEdge - 3, topEdge + size.width);
                 g2d.drawString(label, rightEdge + 11, topEdge + size.width);
 
-                y2 = currentExtent.getBottom() - (top - borderWidth) / scale;
+                y2 = currentExtent.getMinY() - (top - borderWidth) / scale;
                 label = df.format(y2) + XYUnits;
                 hgt = metrics.getHeight();
                 adv = metrics.stringWidth(label);
@@ -1330,13 +1317,13 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if (status != null && mapExtent.getBottom() != mapExtent.getTop()) {
+        if (status != null && mapExtent.getMinY() != mapExtent.getMaxY()) {
             double myWidth = this.getWidth() - borderWidth * 2;
             double myHeight = this.getHeight() - borderWidth * 2;
             startRow = e.getY();
             startCol = e.getX();
-            startY = mapExtent.getTop() - (startRow - borderWidth) / myHeight * (mapExtent.getTop() - mapExtent.getBottom());
-            startX = mapExtent.getLeft() + (startCol - borderWidth) / myWidth * (mapExtent.getRight() - mapExtent.getLeft());
+            startY = mapExtent.getMaxY() - (startRow - borderWidth) / myHeight * (mapExtent.getMaxY() - mapExtent.getMinY());
+            startX = mapExtent.getMinX() + (startCol - borderWidth) / myWidth * (mapExtent.getMaxX() - mapExtent.getMinX());
             
             if (myMode == MOUSE_MODE_PAN) { this.setCursor(panClosedHandCursor); }
         }
@@ -1345,37 +1332,37 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (status != null && mapExtent.getBottom() != mapExtent.getTop()) {
+        if (status != null && mapExtent.getMinY() != mapExtent.getMaxY()) {
             //int clickCount = e.getClickCount();
             double myWidth = this.getWidth() - borderWidth * 2;
             double myHeight = this.getHeight() - borderWidth * 2;
-            endY = mapExtent.getTop() - (e.getY() - borderWidth) / myHeight * (mapExtent.getTop() - mapExtent.getBottom());
-            endX = mapExtent.getLeft() + (e.getX() - borderWidth) / myWidth * (mapExtent.getRight() - mapExtent.getLeft());
+            endY = mapExtent.getMaxY() - (e.getY() - borderWidth) / myHeight * (mapExtent.getMaxY() - mapExtent.getMinY());
+            endX = mapExtent.getMinX() + (e.getX() - borderWidth) / myWidth * (mapExtent.getMaxX() - mapExtent.getMinX());
 
             if (mouseDragged && myMode == MOUSE_MODE_ZOOM && !usingDistanceTool) {
                 // move the current extent such that it is centered on the point
-                DimensionBox db = mapinfo.getCurrentExtent();
-                db.setTop(Math.max(startY, endY));
-                db.setBottom(Math.min(startY, endY));
-                db.setLeft(Math.min(startX, endX));
-                db.setRight(Math.max(startX, endX));
+                BoundingBox db = mapinfo.getCurrentExtent();
+                db.setMaxY(Math.max(startY, endY));
+                db.setMinY(Math.min(startY, endY));
+                db.setMinX(Math.min(startX, endX));
+                db.setMaxX(Math.max(startX, endX));
                 mapinfo.setCurrentExtent(db);
                 modifyPixelsX = -1;
                 modifyPixelsY = -1;
                 host.refreshMap(false);
             }  else if (mouseDragged && myMode == MOUSE_MODE_PAN && !usingDistanceTool) {
                 // move the current extent such that it is centered on the point
-                DimensionBox db = mapinfo.getCurrentExtent();
+                BoundingBox db = mapinfo.getCurrentExtent();
                 double deltaY = startY - endY;
                 double deltaX = startX - endX;
-                double z = db.getTop();
-                db.setTop(z + deltaY);
-                z = db.getBottom();
-                db.setBottom(z + deltaY);
-                z = db.getLeft();
-                db.setLeft(z + deltaX);
-                z = db.getRight();
-                db.setRight(z + deltaX);
+                double z = db.getMaxY();
+                db.setMaxY(z + deltaY);
+                z = db.getMinY();
+                db.setMinY(z + deltaY);
+                z = db.getMinX();
+                db.setMinX(z + deltaX);
+                z = db.getMaxX();
+                db.setMaxX(z + deltaX);
                 mapinfo.setCurrentExtent(db);
                 modifyPixelsX = -1;
                 modifyPixelsY = -1;
@@ -1408,8 +1395,8 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             modifyPixelsY = e.getY();
             double myWidth = this.getWidth() - borderWidth * 2;
             double myHeight = this.getHeight() - borderWidth * 2;
-            double y = mapExtent.getTop() - (modifyPixelsY - borderWidth) / myHeight * (mapExtent.getTop() - mapExtent.getBottom());
-            double x = mapExtent.getLeft() + (modifyPixelsX - borderWidth) / myWidth * (mapExtent.getRight() - mapExtent.getLeft());
+            double y = mapExtent.getMaxY() - (modifyPixelsY - borderWidth) / myHeight * (mapExtent.getMaxY() - mapExtent.getMinY());
+            double x = mapExtent.getMinX() + (modifyPixelsX - borderWidth) / myWidth * (mapExtent.getMaxX() - mapExtent.getMinX());
             GridCell point = mapinfo.getRowAndColumn(x, y);
             if (point.row >= 0) {
                 host.refreshMap(false);
@@ -1430,13 +1417,13 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             }
         } else if (clickCount == 1) {
             // move the current extent such that it is centered on the point
-            DimensionBox db = mapinfo.getCurrentExtent();
-            double halfYRange = Math.abs(db.getTop() - db.getBottom()) / 2;
-            double halfXRange = Math.abs(db.getRight() - db.getLeft()) / 2;
-            db.setTop(startY + halfYRange);
-            db.setBottom(startY - halfYRange);
-            db.setLeft(startX - halfXRange);
-            db.setRight(startX + halfXRange);
+            BoundingBox db = mapinfo.getCurrentExtent();
+            double halfYRange = Math.abs(db.getMaxY() - db.getMinY()) / 2;
+            double halfXRange = Math.abs(db.getMaxX() - db.getMinX()) / 2;
+            db.setMaxY(startY + halfYRange);
+            db.setMinY(startY - halfYRange);
+            db.setMinX(startX - halfXRange);
+            db.setMaxX(startX + halfXRange);
             mapinfo.setCurrentExtent(db);
             if (e.getButton() == 1) {
                 mapinfo.zoomIn();
@@ -1452,11 +1439,11 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
     }
 
     private void updateStatus(MouseEvent e) {
-        if (status != null && mapExtent.getBottom() != mapExtent.getTop()) {
+        if (status != null && mapExtent.getMinY() != mapExtent.getMaxY()) {
             double myWidth = this.getWidth() - borderWidth * 2;
             double myHeight = this.getHeight() - borderWidth * 2;
-            double y = mapExtent.getTop() - (e.getY() - borderWidth) / myHeight * (mapExtent.getTop() - mapExtent.getBottom());
-            double x = mapExtent.getLeft() + (e.getX() - borderWidth) / myWidth * (mapExtent.getRight() - mapExtent.getLeft());
+            double y = mapExtent.getMaxY() - (e.getY() - borderWidth) / myHeight * (mapExtent.getMaxY() - mapExtent.getMinY());
+            double x = mapExtent.getMinX() + (e.getX() - borderWidth) / myWidth * (mapExtent.getMaxX() - mapExtent.getMinX());
             DecimalFormat df = new DecimalFormat("###,###,###.0");
             String xStr = df.format(x);
             String yStr = df.format(y);

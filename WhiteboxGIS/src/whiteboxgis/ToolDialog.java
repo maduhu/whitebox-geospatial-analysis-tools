@@ -5,23 +5,28 @@
 
 package whiteboxgis;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.io.*;
-import whitebox.interfaces.DialogComponent;
-import whitebox.interfaces.Communicator;
-//import javax.swing.event.HyperlinkListener;
+import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.lobobrowser.gui.FramePanel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import whitebox.interfaces.Communicator;
+import whitebox.interfaces.DialogComponent;
 import whitebox.utilities.FileUtilities;
-import org.lobobrowser.gui.*;
 
 /**
  *
@@ -218,7 +223,6 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener 
     
     private void drawMainPanel() {
         try {
-            //Box box = Box.createVerticalBox();
             mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
             String[] args;
             
@@ -232,7 +236,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener 
             Element docElement = doc.getDocumentElement();
             
             NodeList nl = docElement.getElementsByTagName("DialogComponent");
-            String componentType = "";
+            String componentType;
             if (nl != null && nl.getLength() > 0) {
                 for (int i = 0; i < nl.getLength(); i++) {
 

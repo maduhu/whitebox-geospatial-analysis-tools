@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.io.*;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
-import whitebox.structures.DimensionBox;
+import whitebox.structures.BoundingBox;
 import whitebox.interfaces.MapLayer;
 /**
  *
@@ -74,8 +74,8 @@ public class MultispectralLayerInfo implements MapLayer {
             increasesNorthward = false;
         } 
         
-        currentExtent = new DimensionBox(source.getNorth(), source.getEast(), 
-                source.getSouth(), source.getWest());
+        currentExtent = new BoundingBox(source.getWest(), source.getSouth(), 
+                source.getEast(), source.getNorth());
         
         fullExtent = currentExtent.clone();
     }
@@ -213,21 +213,24 @@ public class MultispectralLayerInfo implements MapLayer {
         return source.getDataFileSize();
     }
     
-    DimensionBox fullExtent = null;
-    public DimensionBox getFullExtent() {
+    BoundingBox fullExtent = null;
+    @Override
+    public BoundingBox getFullExtent() {
         return fullExtent.clone();
     }
     
-    DimensionBox currentExtent = null;
-    public DimensionBox getCurrentExtent() {
+    BoundingBox currentExtent = null;
+    @Override
+    public BoundingBox getCurrentExtent() {
         return currentExtent.clone();
     }
     
-    public void setCurrentExtent(DimensionBox db) {
-        if (db.getTop() != currentExtent.getTop() || 
-                db.getRight() != currentExtent.getRight() ||
-                db.getBottom() != currentExtent.getBottom() ||
-                db.getLeft() != currentExtent.getLeft()) {
+    @Override
+    public void setCurrentExtent(BoundingBox db) {
+        if (db.getMaxY() != currentExtent.getMaxY() || 
+                db.getMaxX() != currentExtent.getMaxX() ||
+                db.getMinY() != currentExtent.getMinY() ||
+                db.getMinX() != currentExtent.getMinX()) {
             currentExtent = db.clone();
             isDirty = true;
         }
@@ -257,10 +260,10 @@ public class MultispectralLayerInfo implements MapLayer {
     int endCol;
     public void createPixelData() {
         try {
-            startRow = (int)(Math.abs(fullExtent.getTop() - currentExtent.getTop()) / source.getCellSizeY());
-            endRow = (int)(rows - (Math.abs(fullExtent.getBottom() - currentExtent.getBottom()) / source.getCellSizeY())) - 1;
-            startCol = (int)(Math.abs(fullExtent.getLeft() - currentExtent.getLeft()) / source.getCellSizeX());
-            endCol = (int)(cols - (Math.abs(fullExtent.getRight() - currentExtent.getRight()) / source.getCellSizeX())) - 1;
+            startRow = (int)(Math.abs(fullExtent.getMaxY() - currentExtent.getMaxY()) / source.getCellSizeY());
+            endRow = (int)(rows - (Math.abs(fullExtent.getMinY() - currentExtent.getMinY()) / source.getCellSizeY())) - 1;
+            startCol = (int)(Math.abs(fullExtent.getMinX() - currentExtent.getMinX()) / source.getCellSizeX());
+            endCol = (int)(cols - (Math.abs(fullExtent.getMaxX() - currentExtent.getMaxX()) / source.getCellSizeX())) - 1;
             int row, col;
             
             double redVal, greenVal, blueVal;

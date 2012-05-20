@@ -8,7 +8,7 @@ import java.awt.print.Paper;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
 import whitebox.structures.GridCell;
-import whitebox.structures.DimensionBox;
+import whitebox.structures.BoundingBox;
 import whitebox.interfaces.MapLayer;
 import whitebox.interfaces.MapLayer.MapLayerType;
 import whitebox.cartographic.PointMarkers.MarkerStyle;
@@ -41,10 +41,10 @@ public class MapInfo {
     private int activeLayerIndex = -1;
     private String mapTitle = "New Map";
     private boolean dirty = false; 
-    private ArrayList<DimensionBox> listOfExtents = new ArrayList<DimensionBox>();
+    private ArrayList<BoundingBox> listOfExtents = new ArrayList<BoundingBox>();
     private String fileName = "";
-    private DimensionBox fullExtent = null;
-    private DimensionBox currentExtent = null;
+    private BoundingBox fullExtent = null;
+    private BoundingBox currentExtent = null;
     private int listOfExtentsIndex = -1;
     private String workingDirectory = "";
     private String applicationDirectory = "";
@@ -122,11 +122,11 @@ public class MapInfo {
         this.fileName = fileName;
     }
     
-    public DimensionBox getFullExtent() {
+    public BoundingBox getFullExtent() {
         return fullExtent = calculateFullExtent();
     }
     
-    public DimensionBox getCurrentExtent() {
+    public BoundingBox getCurrentExtent() {
         if (currentExtent == null) {
             calculateFullExtent();
             currentExtent = getFullExtent();
@@ -134,7 +134,7 @@ public class MapInfo {
         return currentExtent.clone();
     }
     
-    public void setCurrentExtent(DimensionBox extent) {
+    public void setCurrentExtent(BoundingBox extent) {
         currentExtent = extent.clone();
         addToExtentHistory(extent);
     }
@@ -190,7 +190,7 @@ public class MapInfo {
     
     // Methods
     
-    private void addToExtentHistory(DimensionBox extent) {
+    private void addToExtentHistory(BoundingBox extent) {
         if (listOfExtentsIndex == listOfExtents.size() - 1) {
             listOfExtents.add(extent);
             listOfExtentsIndex = listOfExtents.size() - 1;
@@ -231,11 +231,11 @@ public class MapInfo {
                 RasterLayerInfo layer = (RasterLayerInfo) (activeLayer);
                 double noDataValue = layer.getNoDataValue();
                 // first see if this point is within the active layer.
-                DimensionBox db = layers.get(activeLayerIndex).getFullExtent();
-                double top = db.getTop();
-                double bottom = db.getBottom();
-                double left = db.getLeft();
-                double right = db.getRight();
+                BoundingBox db = layers.get(activeLayerIndex).getFullExtent();
+                double top = db.getMaxY();
+                double bottom = db.getMinY();
+                double left = db.getMinX();
+                double right = db.getMaxX();
                 double z;
                 boolean flag = false;
 
@@ -264,10 +264,10 @@ public class MapInfo {
                         if (getLayer(i) instanceof RasterLayerInfo) {
                             RasterLayerInfo rli = (RasterLayerInfo) getLayer(i);
                             db = rli.getFullExtent();
-                            top = db.getTop();
-                            bottom = db.getBottom();
-                            left = db.getLeft();
-                            right = db.getRight();
+                            top = db.getMaxY();
+                            bottom = db.getMinY();
+                            left = db.getMinX();
+                            right = db.getMaxX();
                             flag = false;
                             rows = rli.getNumberRows();
                             columns = rli.getNumberColumns();
@@ -301,93 +301,94 @@ public class MapInfo {
         
     }
     
-    public DimensionBox calculateFullExtent() {
+    public BoundingBox calculateFullExtent() {
         double top = -Double.MAX_VALUE;
         double bottom = Double.MAX_VALUE;
         double left = Double.MAX_VALUE;
         double right = -Double.MAX_VALUE;
         
         for (MapLayer rli: layers) {
-            DimensionBox db = rli.getFullExtent();
-            if (db.getTop() > top) { top = db.getTop(); }
-            if (db.getBottom() < bottom) { bottom = db.getBottom(); }
-            if (db.getRight() > right) { right = db.getRight(); }
-            if (db.getLeft() < left) { left = db.getLeft(); }
+            BoundingBox db = rli.getFullExtent();
+            if (db.getMaxY() > top) { top = db.getMaxY(); }
+            if (db.getMinY() < bottom) { bottom = db.getMinY(); }
+            if (db.getMaxX() > right) { right = db.getMaxX(); }
+            if (db.getMinX() < left) { left = db.getMinX(); }
             
         }
         
-        fullExtent = new DimensionBox(top, right, bottom, left);
+        //fullExtent = new BoundingBox(top, right, bottom, left);
+        fullExtent = new BoundingBox(left, bottom, right, top);
         
         return fullExtent.clone();
     }
     
     public void zoomIn() {
-        double rangeX = Math.abs(currentExtent.getRight() - currentExtent.getLeft());
-        double rangeY = Math.abs(currentExtent.getTop() - currentExtent.getBottom());
+        double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+        double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
         double z;
-        z = currentExtent.getBottom();
-        currentExtent.setBottom(z + rangeY * 0.1);
-        z = currentExtent.getTop();
-        currentExtent.setTop(z - rangeY * 0.1);
-        z = currentExtent.getLeft();
-        currentExtent.setLeft(z + rangeX * 0.1);
-        z = currentExtent.getRight();
-        currentExtent.setRight(z - rangeX * 0.1);
+        z = currentExtent.getMinY();
+        currentExtent.setMinY(z + rangeY * 0.1);
+        z = currentExtent.getMaxY();
+        currentExtent.setMaxY(z - rangeY * 0.1);
+        z = currentExtent.getMinX();
+        currentExtent.setMinX(z + rangeX * 0.1);
+        z = currentExtent.getMaxX();
+        currentExtent.setMaxX(z - rangeX * 0.1);
         addToExtentHistory(currentExtent);
     }
     
     public void zoomOut() {
-        double rangeX = Math.abs(currentExtent.getRight() - currentExtent.getLeft());
-        double rangeY = Math.abs(currentExtent.getTop() - currentExtent.getBottom());
+        double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+        double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
         double z;
-        z = currentExtent.getBottom();
-        currentExtent.setBottom(z - rangeY * 0.1);
-        z = currentExtent.getTop();
-        currentExtent.setTop(z + rangeY * 0.1);
-        z = currentExtent.getLeft();
-        currentExtent.setLeft(z - rangeX * 0.1);
-        z = currentExtent.getRight();
-        currentExtent.setRight(z + rangeX * 0.1);
+        z = currentExtent.getMinY();
+        currentExtent.setMinY(z - rangeY * 0.1);
+        z = currentExtent.getMaxY();
+        currentExtent.setMaxY(z + rangeY * 0.1);
+        z = currentExtent.getMinX();
+        currentExtent.setMinX(z - rangeX * 0.1);
+        z = currentExtent.getMaxX();
+        currentExtent.setMaxX(z + rangeX * 0.1);
         addToExtentHistory(currentExtent);
     }
     
     public void panUp() {
-        double rangeY = Math.abs(currentExtent.getTop() - currentExtent.getBottom());
+        double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
         double z;
-        z = currentExtent.getBottom();
-        currentExtent.setBottom(z + rangeY * 0.1);
-        z = currentExtent.getTop();
-        currentExtent.setTop(z + rangeY * 0.1);
+        z = currentExtent.getMinY();
+        currentExtent.setMinY(z + rangeY * 0.1);
+        z = currentExtent.getMaxY();
+        currentExtent.setMaxY(z + rangeY * 0.1);
         addToExtentHistory(currentExtent);
     }
     
     public void panDown() {
-        double rangeY = Math.abs(currentExtent.getTop() - currentExtent.getBottom());
+        double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
         double z;
-        z = currentExtent.getBottom();
-        currentExtent.setBottom(z - rangeY * 0.1);
-        z = currentExtent.getTop();
-        currentExtent.setTop(z - rangeY * 0.1);
+        z = currentExtent.getMinY();
+        currentExtent.setMinY(z - rangeY * 0.1);
+        z = currentExtent.getMaxY();
+        currentExtent.setMaxY(z - rangeY * 0.1);
         addToExtentHistory(currentExtent);
     } 
     
     public void panLeft() {
-        double rangeX = Math.abs(currentExtent.getRight() - currentExtent.getLeft());
+        double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
         double z;
-        z = currentExtent.getLeft();
-        currentExtent.setLeft(z - rangeX * 0.1);
-        z = currentExtent.getRight();
-        currentExtent.setRight(z - rangeX * 0.1);
+        z = currentExtent.getMinX();
+        currentExtent.setMinX(z - rangeX * 0.1);
+        z = currentExtent.getMaxX();
+        currentExtent.setMaxX(z - rangeX * 0.1);
         addToExtentHistory(currentExtent);
     }
     
     public void panRight() {
-        double rangeX = Math.abs(currentExtent.getRight() - currentExtent.getLeft());
+        double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
         double z;
-        z = currentExtent.getLeft();
-        currentExtent.setLeft(z + rangeX * 0.1);
-        z = currentExtent.getRight();
-        currentExtent.setRight(z + rangeX * 0.1);
+        z = currentExtent.getMinX();
+        currentExtent.setMinX(z + rangeX * 0.1);
+        z = currentExtent.getMaxX();
+        currentExtent.setMaxX(z + rangeX * 0.1);
         addToExtentHistory(currentExtent);
     }
     
@@ -652,31 +653,31 @@ public class MapInfo {
             Element fullextent = doc.createElement("FullExtent");
             mapElements.appendChild(fullextent);
             Element feTop = doc.createElement("Top");
-            feTop.appendChild(doc.createTextNode(String.valueOf(fullExtent.getTop())));
+            feTop.appendChild(doc.createTextNode(String.valueOf(fullExtent.getMaxY())));
             fullextent.appendChild(feTop);
             Element feBottom = doc.createElement("Bottom");
-            feBottom.appendChild(doc.createTextNode(String.valueOf(fullExtent.getBottom())));
+            feBottom.appendChild(doc.createTextNode(String.valueOf(fullExtent.getMinY())));
             fullextent.appendChild(feBottom);
             Element feLeft = doc.createElement("Left");
-            feLeft.appendChild(doc.createTextNode(String.valueOf(fullExtent.getLeft())));
+            feLeft.appendChild(doc.createTextNode(String.valueOf(fullExtent.getMinX())));
             fullextent.appendChild(feLeft);
             Element feRight = doc.createElement("Right");
-            feRight.appendChild(doc.createTextNode(String.valueOf(fullExtent.getRight())));
+            feRight.appendChild(doc.createTextNode(String.valueOf(fullExtent.getMaxX())));
             fullextent.appendChild(feRight);
 
             Element currentextent = doc.createElement("CurrentExtent");
             mapElements.appendChild(currentextent);
             Element ceTop = doc.createElement("Top");
-            ceTop.appendChild(doc.createTextNode(String.valueOf(currentExtent.getTop())));
+            ceTop.appendChild(doc.createTextNode(String.valueOf(currentExtent.getMaxY())));
             currentextent.appendChild(ceTop);
             Element ceBottom = doc.createElement("Bottom");
-            ceBottom.appendChild(doc.createTextNode(String.valueOf(currentExtent.getBottom())));
+            ceBottom.appendChild(doc.createTextNode(String.valueOf(currentExtent.getMinY())));
             currentextent.appendChild(ceBottom);
             Element ceLeft = doc.createElement("Left");
-            ceLeft.appendChild(doc.createTextNode(String.valueOf(currentExtent.getLeft())));
+            ceLeft.appendChild(doc.createTextNode(String.valueOf(currentExtent.getMinX())));
             currentextent.appendChild(ceLeft);
             Element ceRight = doc.createElement("Right");
-            ceRight.appendChild(doc.createTextNode(String.valueOf(currentExtent.getRight())));
+            ceRight.appendChild(doc.createTextNode(String.valueOf(currentExtent.getMaxX())));
             currentextent.appendChild(ceRight);
 
             Element activelayer = doc.createElement("ActiveLayerNum");
@@ -894,7 +895,7 @@ public class MapInfo {
                     double bottom = Double.parseDouble(el.getElementsByTagName("Bottom").item(0).getTextContent());
                     double right = Double.parseDouble(el.getElementsByTagName("Right").item(0).getTextContent());
                     double left = Double.parseDouble(el.getElementsByTagName("Left").item(0).getTextContent());
-                    fullExtent = new DimensionBox(top, right, bottom, left);
+                    fullExtent = new BoundingBox(left, bottom, right, top);
                 }
             }
             
@@ -907,7 +908,7 @@ public class MapInfo {
                     double bottom = Double.parseDouble(el.getElementsByTagName("Bottom").item(0).getTextContent());
                     double right = Double.parseDouble(el.getElementsByTagName("Right").item(0).getTextContent());
                     double left = Double.parseDouble(el.getElementsByTagName("Left").item(0).getTextContent());
-                    currentExtent = new DimensionBox(top, right, bottom, left);
+                    currentExtent = new BoundingBox(left, bottom, right, top);
                 }
             }
             
