@@ -40,10 +40,6 @@ public class Polygon {
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.rewind();
             
-//            box[0] = buf.getDouble(0);
-//            box[1] = buf.getDouble(8);
-//            box[2] = buf.getDouble(16);
-//            box[3] = buf.getDouble(24);
             bb = new BoundingBox(buf.getDouble(0), buf.getDouble(8), 
                     buf.getDouble(16), buf.getDouble(24));
             numParts = buf.getInt(32);

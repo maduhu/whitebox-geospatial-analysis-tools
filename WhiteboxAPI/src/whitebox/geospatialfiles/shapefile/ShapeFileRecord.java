@@ -43,47 +43,63 @@ public class ShapeFileRecord {
      * @param shapeType
      * @param data 
      */
-    public ShapeFileRecord(int recordNumber, int contentLength, ShapeType shapeType, byte[] data) {
+    public ShapeFileRecord(int recordNumber, int contentLength, ShapeType shapeType, byte[] rawData) {
         this.recordNumber = recordNumber;
         this.contentLength = contentLength;
         this.shapeType = shapeType;
         this.pointType = false;
-        if (shapeType == ShapeType.POINT) {
-            this.data = new Point(data);
-            this.pointType = true;
-        } else if (shapeType == ShapeType.MULTIPOINT) {
-            this.data = new MultiPoint(data);
-            this.pointType = true;
-        } else if (shapeType == ShapeType.POLYLINE) {
-            this.data = new PolyLine(data);
-        } else if (shapeType == ShapeType.POINTZ) {
-            this.data = new PointZ(data);
-            this.pointType = true;
-        } else if (shapeType == ShapeType.POINTM) {
-            this.data = new PointM(data);
-            this.pointType = true;
-        } else if (shapeType == ShapeType.MULTIPOINTM) {
-            this.data = new MultiPointM(data);
-            this.pointType = true;
-        } else if (shapeType == ShapeType.POLYLINEM) {
-            this.data = new PolyLineM(data);
-        } else if (shapeType == ShapeType.MULTIPOINTZ) {
-            this.data = new MultiPointZ(data);
-            this.pointType = true;
-        } else if (shapeType == ShapeType.POLYLINEZ) {
-            this.data = new PolyLineZ(data);
-        } else if (shapeType == ShapeType.POLYGON) {
-            this.data = new Polygon(data);
-        } else if (shapeType == ShapeType.POLYGONM) {
-            this.data = new PolygonM(data);
-        } else if (shapeType == ShapeType.POLYGONZ) {
-            this.data = new PolygonZ(data);
-        } else if (shapeType == ShapeType.MULTIPATCH) {
-            this.data = new MultiPatch(data);
-        } else if (shapeType == ShapeType.NULLSHAPE) {
-            this.data = null;
-        } else {
-            System.err.println("Shape type not recognized.");
+        switch (shapeType) {
+            case POINT:
+                this.data = new Point(rawData);
+                this.pointType = true;
+                break;
+            case MULTIPOINT:
+                this.data = new MultiPoint(rawData);
+                this.pointType = true;
+                break;
+            case POLYLINE:
+                this.data = new PolyLine(rawData);
+                break;
+            case POINTZ:
+                this.data = new PointZ(rawData);
+                this.pointType = true;
+                break;
+            case POINTM:
+                this.data = new PointM(rawData);
+                this.pointType = true;
+                break;
+            case MULTIPOINTM:
+                this.data = new MultiPointM(rawData);
+                this.pointType = true;
+                break;
+            case POLYLINEM:
+                this.data = new PolyLineM(rawData);
+                break;
+            case MULTIPOINTZ:
+                this.data = new MultiPointZ(rawData);
+                this.pointType = true;
+                break;
+            case POLYLINEZ:
+                this.data = new PolyLineZ(rawData);
+                break;
+            case POLYGON:
+                this.data = new Polygon(rawData);
+                break;
+            case POLYGONM:
+                this.data = new PolygonM(rawData);
+                break;
+            case POLYGONZ:
+                this.data = new PolygonZ(rawData);
+                break;
+            case MULTIPATCH:
+                this.data = new MultiPatch(rawData);
+                break;
+            case NULLSHAPE:
+                this.data = null;
+                break;
+            default:
+                System.err.println("Shape type not recognized.");
+                break;
         }
     }
 
