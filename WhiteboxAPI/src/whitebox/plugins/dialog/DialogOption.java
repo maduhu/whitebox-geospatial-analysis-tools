@@ -24,7 +24,7 @@ import whitebox.interfaces.DialogComponent;
 
 /**
  *
- * @author johnlindsay
+ * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class DialogOption extends JPanel implements ActionListener, DialogComponent {
    

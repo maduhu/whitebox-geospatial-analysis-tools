@@ -16,10 +16,6 @@
  */
 package whitebox.plugins.dialog;
 
-/**
- *
- * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
- */
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
@@ -36,10 +32,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-
 /**
  *
- * @author johnlindsay
+ * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ToolDialog extends JDialog implements Communicator, ActionListener, HyperlinkListener {
     private JButton ok = new JButton("OK");

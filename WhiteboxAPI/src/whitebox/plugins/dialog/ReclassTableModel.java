@@ -18,6 +18,10 @@ package whitebox.plugins.dialog;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
 
+/**
+ *
+ * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
+ */
 public class ReclassTableModel extends AbstractTableModel {
 
     public static final int NEW_INDEX = 0;
