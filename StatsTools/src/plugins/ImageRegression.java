@@ -16,12 +16,12 @@
  */
 package plugins;
 
-import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.interfaces.WhiteboxPlugin;
 import java.text.DecimalFormat;
 import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
+import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
