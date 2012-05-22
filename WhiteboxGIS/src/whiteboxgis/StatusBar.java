@@ -31,10 +31,9 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import whitebox.interfaces.WhiteboxPluginHost;
 
-
 /**
  *
- * @author John Lindsay
+ * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class StatusBar extends JPanel implements MouseListener {
 

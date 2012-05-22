@@ -16,10 +16,6 @@
  */
 package whiteboxgis;
 
-/**
- *
- * @author John Lindsay
- */
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.print.PrinterException;
@@ -55,6 +51,10 @@ import whitebox.structures.BoundingBox;
 import whitebox.structures.ExtensionFileFilter;
 import whitebox.utilities.FileUtilities;
 
+/**
+ *
+ * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
+ */
 public class WhiteboxGui extends JFrame implements ThreadListener, ActionListener, WhiteboxPluginHost, Communicator {
 
     private static PluginService pluginService = null;

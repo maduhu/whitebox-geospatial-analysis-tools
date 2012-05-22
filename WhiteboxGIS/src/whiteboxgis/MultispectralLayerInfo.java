@@ -24,7 +24,7 @@ import whitebox.structures.BoundingBox;
 import whitebox.interfaces.MapLayer;
 /**
  *
- * @author johnlindsay
+ * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class MultispectralLayerInfo implements MapLayer { 
     private WhiteboxRasterInfo source = null;
