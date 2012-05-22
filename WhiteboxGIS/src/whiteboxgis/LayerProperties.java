@@ -81,6 +81,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private JTextField XYUnitsText;
     private JTextField ZUnitsText;
     private boolean updatedFileHeader = false;
+    private JScrollBar scrollGeneralizeLevel = new JScrollBar(Adjustable.HORIZONTAL, 0, 0, 0, 100);
     
     public LayerProperties(Frame owner, boolean modal, MapLayer layer, MapInfo map) {
         super(owner, modal);
@@ -660,7 +661,23 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             
             }
             
-            
+            JPanel generalizedBox = new JPanel();
+            generalizedBox.setLayout(new BoxLayout(generalizedBox, BoxLayout.X_AXIS));
+            generalizedBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Cartographic generalization");
+            generalizedBox.setToolTipText("Generalized layers render far quicker but can " +
+                    "result in artifacts at small spatial scales.");
+            label.setPreferredSize(new Dimension(180, 24));
+            generalizedBox.add(label);
+            generalizedBox.add(Box.createHorizontalGlue());
+            generalizedBox.add(new JLabel("Low"));
+            generalizedBox.add(Box.createHorizontalStrut(5));
+            scrollGeneralizeLevel.setValue((int)(vli.getCartographicGeneralizationLevel() / 5.0 * 100));
+            scrollGeneralizeLevel.setMaximumSize(new Dimension(200, 22));
+            generalizedBox.add(scrollGeneralizeLevel);
+            generalizedBox.add(Box.createHorizontalStrut(5));
+            generalizedBox.add(new JLabel("High"));
+            generalizedBox.add(Box.createHorizontalStrut(10));
             
             if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM ||
                     st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
@@ -690,6 +707,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 mainBox.add(scalePaletteBox);
                 alphaBox.setBackground(backColour);
                 mainBox.add(alphaBox);
+                generalizedBox.setBackground(Color.white);
+                mainBox.add(generalizedBox);
                 mainBox.add(Box.createVerticalStrut(80));
             } else if (st == ShapeType.POINT ||
                     st == ShapeType.POINTM || st == ShapeType.POINTZ ||
@@ -747,6 +766,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 mainBox.add(scalePaletteBox);
                 alphaBox.setBackground(Color.white);
                 mainBox.add(alphaBox);
+                generalizedBox.setBackground(backColour);
+                mainBox.add(generalizedBox);
                 mainBox.add(Box.createVerticalStrut(130));
             }
         }
@@ -1346,7 +1367,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             }
             vli.setAlpha((int) (scrollAlpha.getValue()));
             vli.setMarkerStyle(PointMarkers.findMarkerStyleFromIndex(markerCombo.getSelectedIndex()));
-            
+            vli.setCartographicGeneralizationLevel(scrollGeneralizeLevel.getValue() / 100.0 * 5.0);
             ShapeType shapeType = vli.getShapeType();
             if (shapeType == ShapeType.POLYLINE || shapeType == ShapeType.POLYLINEM
                     || shapeType == ShapeType.POLYLINEZ) {

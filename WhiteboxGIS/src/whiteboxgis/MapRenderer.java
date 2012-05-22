@@ -28,8 +28,9 @@ import whitebox.utilities.OSFinder;
 /**
  * @author johnlindsay
  */
-public class MapRenderer extends JPanel implements Printable, MouseMotionListener, 
+public class MapRenderer extends JPanel implements Printable, MouseMotionListener,
         MouseListener, ImageObserver {
+
     private int borderWidth = 20;
     private BoundingBox mapExtent = new BoundingBox();
     public MapInfo mapinfo = null;
@@ -49,7 +50,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
     private Cursor panClosedHandCursor = null;
     private Cursor selectCursor = null;
     private String graphicsDirectory;
-    
+
     public MapRenderer() {
         init();
     }
@@ -67,8 +68,8 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 // directory containing the class files
                 applicationDirectory = new File(applicationDirectory).getParent();
             }
-            graphicsDirectory = applicationDirectory + File.separator +
-                    "resources" + File.separator + "Images" + File.separator;
+            graphicsDirectory = applicationDirectory + File.separator
+                    + "resources" + File.separator + "Images" + File.separator;
 
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             Point cursorHotSpot = new Point(0, 0);
@@ -88,14 +89,13 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             this.addMouseMotionListener(this);
             this.addMouseListener(this);
         } catch (Exception e) {
-            
         }
     }
-    
+
     public MapInfo getMapInfo() {
         return mapinfo;
     }
-    
+
     public void setMapInfo(MapInfo mapinfo) {
         this.mapinfo = mapinfo;
     }
@@ -110,7 +110,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
 
     public void setMouseMode(int mouseMode) {
         myMode = mouseMode;
-        
+
         switch (myMode) {
             case MOUSE_MODE_ZOOM:
                 this.setCursor(zoomCursor);
@@ -122,13 +122,13 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 this.setCursor(selectCursor);
                 break;
         }
-        
+
     }
 
     public void setHost(WhiteboxPluginHost host) {
         this.host = host;
     }
-    
+
     public void setModifyingPixels(boolean val) {
         modifyingPixels = val;
     }
@@ -136,63 +136,63 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
     public boolean isModifyingPixels() {
         return modifyingPixels;
     }
-    
+
     public void setUsingDistanceTool(boolean val) {
         usingDistanceTool = val;
     }
-    
+
     public boolean isUsingDistanceTool() {
         return usingDistanceTool;
     }
-    
+
     @Override
-    public void paint (Graphics g) {
+    public void paint(Graphics g) {
         if (mapinfo.isCartoView()) {
             drawMapCartoView(g);
         } else {
             drawMapDataView(g);
         }
     }
-    
+
     private void drawMapCartoView(Graphics g) {
         try {
-            Graphics2D g2d = (Graphics2D)g;
+            Graphics2D g2d = (Graphics2D) g;
             RenderingHints rh = new RenderingHints(
-                RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                    RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             g2d.setRenderingHints(rh);
             rh = new RenderingHints(
-                RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setRenderingHints(rh);
-            
+
             g2d.setColor(Color.white);
             g2d.fillRect(0, 0, getWidth(), getHeight());
-            
+
             if (mapinfo != null) {
-                
+
                 // get the drawing area's width and height
                 double myWidth = this.getWidth();
                 double myHeight = this.getHeight();
-                
+
 
                 // get the page size information
                 PageFormat pageFormat = mapinfo.getPageFormat();
                 double pageWidth = pageFormat.getWidth();// / 72.0;
                 double pageHeight = pageFormat.getHeight();// / 72.0;
                 //double pageAspect = pageWidth / pageHeight;
-                
+
                 // set the scale
                 int pageShadowSize = 5;
-                double scale = Math.min(((myWidth - 4.0 * pageShadowSize) / pageWidth), 
+                double scale = Math.min(((myWidth - 4.0 * pageShadowSize) / pageWidth),
                         ((myHeight - 4.0 * pageShadowSize) / pageHeight));
 
                 // what are the margins of the page on the drawing area?
-                
+
                 double pageTop = myHeight / 2.0 - pageHeight / 2.0 * scale;
                 double pageLeft = myWidth / 2.0 - pageWidth / 2.0 * scale;
-                
+
                 // draw the page on the drawing area if it is visible
                 if (mapinfo.isCartoView()) {
-                   
+
                     g2d.setColor(Color.GRAY);
                     g2d.fillRect((int) (pageLeft + pageShadowSize),
                             (int) (pageTop + pageShadowSize), (int) (pageWidth * scale),
@@ -206,29 +206,29 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                             (int) (pageHeight * scale));
 
                 }
-                
+
                 int numLayers = mapinfo.getNumLayers();
                 if (numLayers == 0) {
                     return;
                 }
-                
+
             }
         } catch (Exception e) {
             host.showFeedback(e.getMessage());
             //System.out.println(e.getMessage());
         }
     }
-    
+
     private void drawMapDataView(Graphics g) {
         try {
-            Graphics2D g2d = (Graphics2D)g;
+            Graphics2D g2d = (Graphics2D) g;
             RenderingHints rh = new RenderingHints(
-                RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                    RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             g2d.setRenderingHints(rh);
             rh = new RenderingHints(
-                RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setRenderingHints(rh);
-            
+
             g2d.setColor(Color.white);
             g2d.fillRect(0, 0, getWidth(), getHeight());
             if (mapinfo != null) {
@@ -247,25 +247,21 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
                 double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
                 scale = Math.min((myWidth / xRange), (myHeight / yRange));
-                
-                // this is used for drawing vectors. Any feature that is smaller
-                // than this value will be excluded from the map.
-                double minDistinguishableLength = 1 / scale;
 
                 int left = (int) (borderWidth + ((myWidth - xRange * scale) / 2));
                 int top = (int) (borderWidth + ((myHeight - yRange * scale) / 2));
-                
+
                 // what are the edge coordinates of the actual map area
                 double deltaY = (top - borderWidth) / scale;
                 double deltaX = (left - borderWidth) / scale;
                 mapExtent.setMaxY(currentExtent.getMaxY() + deltaY);
                 mapExtent.setMinY(currentExtent.getMinY() - deltaY);
-                mapExtent.setMinX(currentExtent.getMinX() - deltaX); 
+                mapExtent.setMinX(currentExtent.getMinX() - deltaX);
                 mapExtent.setMaxX(currentExtent.getMaxX() + deltaX);
-                
+
 
                 String XYUnits = "";
-                
+
                 for (int i = 0; i < numLayers; i++) {
                     if (mapinfo.getLayer(i).getLayerType() == MapLayerType.RASTER) {
                         RasterLayerInfo layer = (RasterLayerInfo) mapinfo.getLayer(i);
@@ -296,8 +292,8 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 int numRows = endR - startR;
                                 int numCols = endC - startC;
 
-                                int res = (int) (Math.min(numRows / (double)layerHeight, numCols / (double)layerWidth));
-                                
+                                int res = (int) (Math.min(numRows / (double) layerHeight, numCols / (double) layerWidth));
+
                                 layer.setResolutionFactor(res);
 
                                 if (layer.isDirty()) {
@@ -310,7 +306,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 if (!g2d.drawImage(image, x, y, layerWidth + 1, layerHeight + 1, this)) {
                                     // do nothing
                                 }
-                                
+
                             }
                         }
                     } else if (mapinfo.getLayer(i).getLayerType() == MapLayerType.VECTOR) {
@@ -322,8 +318,16 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                         } else if (!layer.getXYUnits().toLowerCase().contains("not specified")) {
                             XYUnits = " " + layer.getXYUnits();
                         }
+                        /*
+                         * minDistinguishableLength is used to speed up the
+                         * drawing of vectors. Any feature that is smaller than
+                         * this value will be excluded from the map. This is an
+                         * example of cartographic generalization.
+                         */
+                        double minDistinguishableLength = layer.getCartographicGeneralizationLevel() / scale;
+
                         int r;
-                        
+
                         if (layer.isVisible()) {
                             BoundingBox fe = layer.getFullExtent();
                             if (fe.doesIntersect(mapExtent)) {
@@ -335,7 +339,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 int g1 = layer.getLineColour().getGreen();
                                 int b1 = layer.getLineColour().getBlue();
                                 Color lineColour = new Color(r1, g1, b1, a1);
-                                
+
                                 ShapeType shapeType = layer.getShapeType();
                                 //ShapeFileRecord[] records = layer.getData();
                                 ArrayList<ShapeFileRecord> records = layer.getData();
@@ -347,508 +351,305 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 double rightCoord = mapExtent.getMaxX();
                                 double EWRange = rightCoord - leftCoord;
                                 double NSRange = topCoord - bottomCoord;
-                                
-                                if (shapeType == ShapeType.POINT) {
-                                    double[][] xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
-                                    GeneralPath gp;
-                                    BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
-                                    Stroke oldStroke = g2d.getStroke();
-                                    g2d.setStroke(myStroke);
-                                    Color[] colours = layer.getColourData();
-                                        
-                                    boolean isFilled = layer.isFilled();
-                                    boolean isOutlined = layer.isOutlined();
-                                    for (ShapeFileRecord record : records) {
-                                        r = record.getRecordNumber() - 1;
-                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                            whitebox.geospatialfiles.shapefile.Point rec = (whitebox.geospatialfiles.shapefile.Point) (record.getData());
-                                            x1 = rec.getX();
-                                            y1 = rec.getY();
-                                            if (y1 < bottomCoord || x1 < leftCoord
-                                                    || y1 > topCoord || x1 > rightCoord) {
-                                                // It's not within the map area; do nothing.
-                                            } else {
-                                                x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
-                                                y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
-                                                gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
-                                                for (int a = 0; a < xyData.length; a++) {
-                                                    if (xyData[a][0] == 0) { // moveTo
-                                                        gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                    } else if (xyData[a][0] == 1) { // lineTo
-                                                        gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                    } else if (xyData[a][0] == 2) { // elipse2D
-                                                        Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
 
-                                                        gp.append(circle, true);
-                                                    }
-                                                }
-                                                //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
-                                                if (isFilled) {
-                                                    g2d.setColor(colours[r]);
-                                                    g2d.fill(gp); 
-                                                }
-                                                if (isOutlined) {
-                                                    g2d.setColor(lineColour);
-                                                    g2d.draw(gp); 
-                                                }
-                                                
-                                            }
-                                        }
-                                    }
-                                    g2d.setStroke(oldStroke);
-                                } else if (shapeType == ShapeType.POINTZ) {
-                                    double[][] xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
-                                    GeneralPath gp;
-                                    BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
-                                    Stroke oldStroke = g2d.getStroke();
-                                    g2d.setStroke(myStroke);
-                                    Color[] colours = layer.getColourData();
-                                        
-                                    boolean isFilled = layer.isFilled();
-                                    boolean isOutlined = layer.isOutlined();
-                                    for (ShapeFileRecord record : records) {
-                                        r = record.getRecordNumber() - 1;
-                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                            PointZ rec = (PointZ) (record.getData());
-                                            x1 = rec.getX();
-                                            y1 = rec.getY();
-                                            if (y1 < bottomCoord || x1 < leftCoord
-                                                    || y1 > topCoord || x1 > rightCoord) {
-                                                // It's not within the map area; do nothing.
-                                            } else {
-                                                x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
-                                                y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
-                                                gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
-                                                for (int a = 0; a < xyData.length; a++) {
-                                                    if (xyData[a][0] == 0) { // moveTo
-                                                        gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                    } else if (xyData[a][0] == 1) { // lineTo
-                                                        gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                    } else if (xyData[a][0] == 2) { // elipse2D
-                                                        Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
+                                double[][] xyData;
+                                GeneralPath gp;
+                                BasicStroke myStroke;
+                                Stroke oldStroke;
+                                Color[] colours = layer.getColourData();
+                                boolean isFilled = layer.isFilled();
+                                boolean isOutlined = layer.isOutlined();
+                                double[][] recPoints;
 
-                                                        gp.append(circle, true);
-                                                    }
-                                                }
-                                                //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
-                                                if (isFilled) {
-                                                    g2d.setColor(colours[r]);
-                                                    g2d.fill(gp); 
-                                                }
-                                                if (isOutlined) {
-                                                    g2d.setColor(lineColour);
-                                                    g2d.draw(gp); 
-                                                }
-                                                
-                                            }
-                                        }
-                                    }
-                                    g2d.setStroke(oldStroke);
-                                } else if (shapeType == ShapeType.POINTM) {
-                                    double[][] xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
-                                    GeneralPath gp;
-                                    BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
-                                    Stroke oldStroke = g2d.getStroke();
-                                    g2d.setStroke(myStroke);
-                                    Color[] colours = layer.getColourData();
-                                        
-                                    boolean isFilled = layer.isFilled();
-                                    boolean isOutlined = layer.isOutlined();
-                                    for (ShapeFileRecord record : records) {
-                                        r = record.getRecordNumber() - 1;
-                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                            PointM rec = (PointM) (record.getData());
-                                            x1 = rec.getX();
-                                            y1 = rec.getY();
-                                            if (y1 < bottomCoord || x1 < leftCoord
-                                                    || y1 > topCoord || x1 > rightCoord) {
-                                                // It's not within the map area; do nothing.
-                                            } else {
-                                                x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
-                                                y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
-                                                gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
-                                                for (int a = 0; a < xyData.length; a++) {
-                                                    if (xyData[a][0] == 0) { // moveTo
-                                                        gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                    } else if (xyData[a][0] == 1) { // lineTo
-                                                        gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                    } else if (xyData[a][0] == 2) { // elipse2D
-                                                        Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
+                                int[] partStart;
+                                double[][] points;
+                                int pointSt;
+                                int pointEnd;
+                                float xPoints[];
+                                float yPoints[];
+                                GeneralPath polyline;
 
-                                                        gp.append(circle, true);
-                                                    }
-                                                }
-                                                //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
-                                                if (isFilled) {
-                                                    g2d.setColor(colours[r]);
-                                                    g2d.fill(gp); 
-                                                }
-                                                if (isOutlined) {
-                                                    g2d.setColor(lineColour);
-                                                    g2d.draw(gp); 
-                                                }
-                                                
-                                            }
-                                        }
-                                    }
-                                    g2d.setStroke(oldStroke);
-                                } else if (shapeType == ShapeType.MULTIPOINT) {
-                                    double[][] xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
-                                    GeneralPath gp;
-                                    BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
-                                    Stroke oldStroke = g2d.getStroke();
-                                    g2d.setStroke(myStroke);
-                                    Color[] colours = layer.getColourData();
-                                        
-                                    double[][] recPoints;
-                                    boolean isFilled = layer.isFilled();
-                                    boolean isOutlined = layer.isOutlined();
-                                    for (ShapeFileRecord record : records) {
-                                        r = record.getRecordNumber() - 1;
-                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                            MultiPoint rec = (MultiPoint) (record.getData());
-                                            recPoints = rec.getPoints();
-                                            for (int p = 0; p < recPoints.length; p++) {
-                                                x1 = recPoints[p][0];
-                                                y1 = recPoints[p][1];
-                                                if (y1 < bottomCoord || x1 < leftCoord
-                                                        || y1 > topCoord || x1 > rightCoord) {
-                                                    // It's not within the map area; do nothing.
-                                                } else {
-                                                    x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
-                                                    y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
+                                switch (shapeType) {
 
-                                                    gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
-                                                    for (int a = 0; a < xyData.length; a++) {
-                                                        if (xyData[a][0] == 0) { // moveTo
-                                                            gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                        } else if (xyData[a][0] == 1) { // lineTo
-                                                            gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                        } else if (xyData[a][0] == 2) { // elipse2D
-                                                            Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
+                                    case POINT:
+                                        xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
+                                        myStroke = new BasicStroke(layer.getLineThickness());
+                                        oldStroke = g2d.getStroke();
+                                        g2d.setStroke(myStroke);
 
-                                                            gp.append(circle, true);
-                                                        }
-                                                    }
-                                                    if (isFilled) {
-                                                        g2d.setColor(colours[r]);
-                                                        g2d.fill(gp);
-                                                    }
-                                                    if (isOutlined) {
-                                                        g2d.setColor(lineColour);
-                                                        g2d.draw(gp);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    g2d.setStroke(oldStroke);
-                                } else if (shapeType == ShapeType.MULTIPOINTZ) {
-                                    double[][] xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
-                                    GeneralPath gp;
-                                    BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
-                                    Stroke oldStroke = g2d.getStroke();
-                                    g2d.setStroke(myStroke);
-                                    Color[] colours = layer.getColourData();
-                                        
-                                    double[][] recPoints;
-                                    boolean isFilled = layer.isFilled();
-                                    boolean isOutlined = layer.isOutlined();
-                                    for (ShapeFileRecord record : records) {
-                                        r = record.getRecordNumber() - 1;
-                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                            MultiPointZ rec = (MultiPointZ) (record.getData());
-                                            recPoints = rec.getPoints();
-                                            for (int p = 0; p < recPoints.length; p++) {
-                                                x1 = recPoints[p][0];
-                                                y1 = recPoints[p][1];
-                                                if (y1 < bottomCoord || x1 < leftCoord
-                                                        || y1 > topCoord || x1 > rightCoord) {
-                                                    // It's not within the map area; do nothing.
-                                                } else {
-                                                    x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
-                                                    y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
-
-                                                    gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
-                                                    for (int a = 0; a < xyData.length; a++) {
-                                                        if (xyData[a][0] == 0) { // moveTo
-                                                            gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                        } else if (xyData[a][0] == 1) { // lineTo
-                                                            gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                        } else if (xyData[a][0] == 2) { // elipse2D
-                                                            Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
-
-                                                            gp.append(circle, true);
-                                                        }
-                                                    }
-                                                    if (isFilled) {
-                                                        g2d.setColor(colours[r]);
-                                                        g2d.fill(gp);
-                                                    }
-                                                    if (isOutlined) {
-                                                        g2d.setColor(lineColour);
-                                                        g2d.draw(gp);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    g2d.setStroke(oldStroke);
-                                } else if (shapeType == ShapeType.MULTIPOINTM) {
-                                    double[][] xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
-                                    GeneralPath gp;
-                                    BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
-                                    Stroke oldStroke = g2d.getStroke();
-                                    g2d.setStroke(myStroke);
-                                    Color[] colours = layer.getColourData();
-                                        
-                                    double[][] recPoints;
-                                    boolean isFilled = layer.isFilled();
-                                    boolean isOutlined = layer.isOutlined();
-                                    for (ShapeFileRecord record : records) {
-                                        r = record.getRecordNumber() - 1;
-                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                            MultiPointM rec = (MultiPointM) (record.getData());
-                                            recPoints = rec.getPoints();
-                                            for (int p = 0; p < recPoints.length; p++) {
-                                                x1 = recPoints[p][0];
-                                                y1 = recPoints[p][1];
-                                                if (y1 < bottomCoord || x1 < leftCoord
-                                                        || y1 > topCoord || x1 > rightCoord) {
-                                                    // It's not within the map area; do nothing.
-                                                } else {
-                                                    x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
-                                                    y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
-
-                                                    gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
-                                                    for (int a = 0; a < xyData.length; a++) {
-                                                        if (xyData[a][0] == 0) { // moveTo
-                                                            gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                        } else if (xyData[a][0] == 1) { // lineTo
-                                                            gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
-                                                        } else if (xyData[a][0] == 2) { // elipse2D
-                                                            Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
-
-                                                            gp.append(circle, true);
-                                                        }
-                                                    }
-                                                    if (isFilled) {
-                                                        g2d.setColor(colours[r]);
-                                                        g2d.fill(gp);
-                                                    }
-                                                    if (isOutlined) {
-                                                        g2d.setColor(lineColour);
-                                                        g2d.draw(gp);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    g2d.setStroke(oldStroke);
-                                } else if (shapeType == ShapeType.POLYLINE) {
-                                    //g2d.setColor(lineColour);
-                                    int[] partStart;
-                                    double[][] points;
-                                    int pointSt;
-                                    int pointEnd;
-                                    float xPoints[];
-                                    float yPoints[];
-                                    GeneralPath polyline;
-                                    BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
-                                    if (layer.isDashed()) {
-                                        myStroke =
-                                            new BasicStroke(layer.getLineThickness(),
-                                            BasicStroke.CAP_BUTT,
-                                            BasicStroke.JOIN_MITER,
-                                            10.0f, layer.getDashArray(), 0.0f);
-                                    }
-                                    Stroke oldStroke = g2d.getStroke();
-                                    g2d.setStroke(myStroke);
-                                    Color[] colours = layer.getColourData();
-                                    for (ShapeFileRecord record : records) {
-                                        r = record.getRecordNumber() - 1;
-                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                            PolyLine rec = (PolyLine) (record.getData());
-                                            partStart = rec.getParts();
-                                            points = rec.getPoints();
-                                            for (int p = 0; p < rec.getNumParts(); p++) {
-                                                pointSt = partStart[p];
-                                                if (p < rec.getNumParts() - 1) {
-                                                    pointEnd = partStart[p + 1];
-                                                } else {
-                                                    pointEnd = points.length;
-                                                }
-                                                xPoints = new float[pointEnd - pointSt];
-                                                yPoints = new float[pointEnd - pointSt];
-                                                for (int k = pointSt; k < pointEnd; k++) {
-                                                    xPoints[k - pointSt] = (float)(borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
-                                                    yPoints[k - pointSt] = (float)(borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
-                                                }
-                                                polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
-
-                                                polyline.moveTo(xPoints[0], yPoints[0]);
-
-                                                for (int index = 1; index < xPoints.length; index++) {
-                                                    polyline.lineTo(xPoints[index], yPoints[index]);
-                                                }
-                                                g2d.setColor(colours[r]);
-                                                g2d.draw(polyline);
-                                            }
-                                        }
-                                    }
-                                    g2d.setStroke(oldStroke);
-                                } else if (shapeType == ShapeType.POLYLINEZ) {
-                                    //g2d.setColor(lineColour);
-                                    int[] partStart;
-                                    double[][] points;
-                                    int pointSt;
-                                    int pointEnd;
-                                    float xPoints[];
-                                    float yPoints[];
-                                    GeneralPath polyline;
-                                    BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
-                                    if (layer.isDashed()) {
-                                        myStroke =
-                                            new BasicStroke(layer.getLineThickness(),
-                                            BasicStroke.CAP_BUTT,
-                                            BasicStroke.JOIN_MITER,
-                                            10.0f, layer.getDashArray(), 0.0f);
-                                    }
-                                    Stroke oldStroke = g2d.getStroke();
-                                    g2d.setStroke(myStroke);
-                                    Color[] colours = layer.getColourData();
-                                    for (ShapeFileRecord record : records) {
-                                        r = record.getRecordNumber() - 1;
-                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                            PolyLineZ rec = (PolyLineZ) (record.getData());
-                                            partStart = rec.getParts();
-                                            points = rec.getPoints();
-                                            for (int p = 0; p < rec.getNumParts(); p++) {
-                                                pointSt = partStart[p];
-                                                if (p < rec.getNumParts() - 1) {
-                                                    pointEnd = partStart[p + 1];
-                                                } else {
-                                                    pointEnd = points.length;
-                                                }
-                                                xPoints = new float[pointEnd - pointSt];
-                                                yPoints = new float[pointEnd - pointSt];
-                                                for (int k = pointSt; k < pointEnd; k++) {
-                                                    xPoints[k - pointSt] = (float)(borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
-                                                    yPoints[k - pointSt] = (float)(borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
-                                                }
-                                                polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
-
-                                                polyline.moveTo(xPoints[0], yPoints[0]);
-
-                                                for (int index = 1; index < xPoints.length; index++) {
-                                                    polyline.lineTo(xPoints[index], yPoints[index]);
-                                                }
-                                                g2d.setColor(colours[r]);
-                                                g2d.draw(polyline);
-                                            }
-                                        }
-                                    }
-                                    g2d.setStroke(oldStroke);
-                                } else if (shapeType == ShapeType.POLYLINEM) {
-                                    //g2d.setColor(lineColour);
-                                    int[] partStart;
-                                    double[][] points;
-                                    int pointSt;
-                                    int pointEnd;
-                                    float xPoints[];
-                                    float yPoints[];
-                                    GeneralPath polyline;
-                                    BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
-                                    if (layer.isDashed()) {
-                                        myStroke =
-                                            new BasicStroke(layer.getLineThickness(),
-                                            BasicStroke.CAP_BUTT,
-                                            BasicStroke.JOIN_MITER,
-                                            10.0f, layer.getDashArray(), 0.0f);
-                                    }
-                                    Stroke oldStroke = g2d.getStroke();
-                                    g2d.setStroke(myStroke);
-                                    
-                                    Color[] colours = layer.getColourData();
-                                    for (ShapeFileRecord record : records) {
-                                        r = record.getRecordNumber() - 1;
-                                        if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                            PolyLineM rec = (PolyLineM) (record.getData());
-                                            partStart = rec.getParts();
-                                            points = rec.getPoints();
-                                            for (int p = 0; p < rec.getNumParts(); p++) {
-                                                pointSt = partStart[p];
-                                                if (p < rec.getNumParts() - 1) {
-                                                    pointEnd = partStart[p + 1];
-                                                } else {
-                                                    pointEnd = points.length;
-                                                }
-                                                xPoints = new float[pointEnd - pointSt];
-                                                yPoints = new float[pointEnd - pointSt];
-                                                for (int k = pointSt; k < pointEnd; k++) {
-                                                    xPoints[k - pointSt] = (float)(borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
-                                                    yPoints[k - pointSt] = (float)(borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
-                                                }
-                                                polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
-
-                                                polyline.moveTo(xPoints[0], yPoints[0]);
-
-                                                for (int index = 1; index < xPoints.length; index++) {
-                                                    polyline.lineTo(xPoints[index], yPoints[index]);
-                                                }
-                                                g2d.setColor(colours[r]);
-                                                g2d.draw(polyline);
-                                            }
-                                        }
-                                    }
-                                    g2d.setStroke(oldStroke);
-                                } else if (shapeType == ShapeType.POLYGON) {
-                                    int[] partStart;
-                                    double[][] points;
-                                    int pointSt;
-                                    int pointEnd;
-                                    float xPoints[];
-                                    float yPoints[];
-                                    GeneralPath polyline;
-                                    
-                                    if (layer.isFilled()) {
-                                        Color[] colours = layer.getColourData();
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getData());
-                                                partStart = rec.getParts();
-                                                points = rec.getPoints();
-                                                polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
-                                                for (int p = 0; p < rec.getNumParts(); p++) {
-                                                    pointSt = partStart[p];
-                                                    if (p < rec.getNumParts() - 1) {
-                                                        pointEnd = partStart[p + 1];
-                                                    } else {
-                                                        pointEnd = points.length;
-                                                    }
-                                                    xPoints = new float[pointEnd - pointSt];
-                                                    yPoints = new float[pointEnd - pointSt];
-                                                    for (int k = pointSt; k < pointEnd; k++) {
-                                                        xPoints[k - pointSt] = (float) (borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
-                                                        yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
-                                                    }
-                                                    polyline.moveTo(xPoints[0], yPoints[0]);
+                                                whitebox.geospatialfiles.shapefile.Point rec = (whitebox.geospatialfiles.shapefile.Point) (record.getData());
+                                                x1 = rec.getX();
+                                                y1 = rec.getY();
+                                                if (y1 < bottomCoord || x1 < leftCoord
+                                                        || y1 > topCoord || x1 > rightCoord) {
+                                                    // It's not within the map area; do nothing.
+                                                } else {
+                                                    x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
+                                                    y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
+                                                    gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                                    for (int a = 0; a < xyData.length; a++) {
+                                                        if (xyData[a][0] == 0) { // moveTo
+                                                            gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                        } else if (xyData[a][0] == 1) { // lineTo
+                                                            gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                        } else if (xyData[a][0] == 2) { // elipse2D
+                                                            Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
 
-                                                    for (int index = 1; index < xPoints.length; index++) {
-                                                        polyline.lineTo(xPoints[index], yPoints[index]);
+                                                            gp.append(circle, true);
+                                                        }
                                                     }
-                                                    polyline.closePath();
+                                                    //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
+                                                    if (isFilled) {
+                                                        g2d.setColor(colours[r]);
+                                                        g2d.fill(gp);
+                                                    }
+                                                    if (isOutlined) {
+                                                        g2d.setColor(lineColour);
+                                                        g2d.draw(gp);
+                                                    }
+
                                                 }
-                                                g2d.setColor(colours[r]);
-                                                g2d.fill(polyline);
                                             }
                                         }
-                                    }
+                                        g2d.setStroke(oldStroke);
+                                        break;
+                                    case POINTZ:
+                                        xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
+                                        myStroke = new BasicStroke(layer.getLineThickness());
+                                        oldStroke = g2d.getStroke();
+                                        g2d.setStroke(myStroke);
 
-                                    if (layer.isOutlined()) {
-                                        g2d.setColor(lineColour);
-                                        BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
+                                        for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                PointZ rec = (PointZ) (record.getData());
+                                                x1 = rec.getX();
+                                                y1 = rec.getY();
+                                                if (y1 < bottomCoord || x1 < leftCoord
+                                                        || y1 > topCoord || x1 > rightCoord) {
+                                                    // It's not within the map area; do nothing.
+                                                } else {
+                                                    x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
+                                                    y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
+                                                    gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                                    for (int a = 0; a < xyData.length; a++) {
+                                                        if (xyData[a][0] == 0) { // moveTo
+                                                            gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                        } else if (xyData[a][0] == 1) { // lineTo
+                                                            gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                        } else if (xyData[a][0] == 2) { // elipse2D
+                                                            Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
+
+                                                            gp.append(circle, true);
+                                                        }
+                                                    }
+                                                    //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
+                                                    if (isFilled) {
+                                                        g2d.setColor(colours[r]);
+                                                        g2d.fill(gp);
+                                                    }
+                                                    if (isOutlined) {
+                                                        g2d.setColor(lineColour);
+                                                        g2d.draw(gp);
+                                                    }
+
+                                                }
+                                            }
+                                        }
+                                        g2d.setStroke(oldStroke);
+                                        break;
+                                    case POINTM:
+                                        xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
+                                        myStroke = new BasicStroke(layer.getLineThickness());
+                                        oldStroke = g2d.getStroke();
+                                        g2d.setStroke(myStroke);
+
+                                        for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                PointM rec = (PointM) (record.getData());
+                                                x1 = rec.getX();
+                                                y1 = rec.getY();
+                                                if (y1 < bottomCoord || x1 < leftCoord
+                                                        || y1 > topCoord || x1 > rightCoord) {
+                                                    // It's not within the map area; do nothing.
+                                                } else {
+                                                    x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
+                                                    y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
+                                                    gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                                    for (int a = 0; a < xyData.length; a++) {
+                                                        if (xyData[a][0] == 0) { // moveTo
+                                                            gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                        } else if (xyData[a][0] == 1) { // lineTo
+                                                            gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                        } else if (xyData[a][0] == 2) { // elipse2D
+                                                            Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
+
+                                                            gp.append(circle, true);
+                                                        }
+                                                    }
+                                                    //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
+                                                    if (isFilled) {
+                                                        g2d.setColor(colours[r]);
+                                                        g2d.fill(gp);
+                                                    }
+                                                    if (isOutlined) {
+                                                        g2d.setColor(lineColour);
+                                                        g2d.draw(gp);
+                                                    }
+
+                                                }
+                                            }
+                                        }
+                                        g2d.setStroke(oldStroke);
+                                        break;
+                                    case MULTIPOINT:
+                                        xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
+                                        myStroke = new BasicStroke(layer.getLineThickness());
+                                        oldStroke = g2d.getStroke();
+                                        g2d.setStroke(myStroke);
+
+                                        for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                MultiPoint rec = (MultiPoint) (record.getData());
+                                                recPoints = rec.getPoints();
+                                                for (int p = 0; p < recPoints.length; p++) {
+                                                    x1 = recPoints[p][0];
+                                                    y1 = recPoints[p][1];
+                                                    if (y1 < bottomCoord || x1 < leftCoord
+                                                            || y1 > topCoord || x1 > rightCoord) {
+                                                        // It's not within the map area; do nothing.
+                                                    } else {
+                                                        x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
+                                                        y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
+
+                                                        gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                                        for (int a = 0; a < xyData.length; a++) {
+                                                            if (xyData[a][0] == 0) { // moveTo
+                                                                gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                            } else if (xyData[a][0] == 1) { // lineTo
+                                                                gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                            } else if (xyData[a][0] == 2) { // elipse2D
+                                                                Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
+
+                                                                gp.append(circle, true);
+                                                            }
+                                                        }
+                                                        if (isFilled) {
+                                                            g2d.setColor(colours[r]);
+                                                            g2d.fill(gp);
+                                                        }
+                                                        if (isOutlined) {
+                                                            g2d.setColor(lineColour);
+                                                            g2d.draw(gp);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        g2d.setStroke(oldStroke);
+                                        break;
+                                    case MULTIPOINTZ:
+                                        xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
+                                        myStroke = new BasicStroke(layer.getLineThickness());
+                                        oldStroke = g2d.getStroke();
+                                        g2d.setStroke(myStroke);
+
+                                        for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                MultiPointZ rec = (MultiPointZ) (record.getData());
+                                                recPoints = rec.getPoints();
+                                                for (int p = 0; p < recPoints.length; p++) {
+                                                    x1 = recPoints[p][0];
+                                                    y1 = recPoints[p][1];
+                                                    if (y1 < bottomCoord || x1 < leftCoord
+                                                            || y1 > topCoord || x1 > rightCoord) {
+                                                        // It's not within the map area; do nothing.
+                                                    } else {
+                                                        x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
+                                                        y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
+
+                                                        gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                                        for (int a = 0; a < xyData.length; a++) {
+                                                            if (xyData[a][0] == 0) { // moveTo
+                                                                gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                            } else if (xyData[a][0] == 1) { // lineTo
+                                                                gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                            } else if (xyData[a][0] == 2) { // elipse2D
+                                                                Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
+
+                                                                gp.append(circle, true);
+                                                            }
+                                                        }
+                                                        if (isFilled) {
+                                                            g2d.setColor(colours[r]);
+                                                            g2d.fill(gp);
+                                                        }
+                                                        if (isOutlined) {
+                                                            g2d.setColor(lineColour);
+                                                            g2d.draw(gp);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        g2d.setStroke(oldStroke);
+                                        break;
+                                    case MULTIPOINTM:
+                                        xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
+                                        myStroke = new BasicStroke(layer.getLineThickness());
+                                        oldStroke = g2d.getStroke();
+                                        g2d.setStroke(myStroke);
+
+                                        for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
+                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                MultiPointM rec = (MultiPointM) (record.getData());
+                                                recPoints = rec.getPoints();
+                                                for (int p = 0; p < recPoints.length; p++) {
+                                                    x1 = recPoints[p][0];
+                                                    y1 = recPoints[p][1];
+                                                    if (y1 < bottomCoord || x1 < leftCoord
+                                                            || y1 > topCoord || x1 > rightCoord) {
+                                                        // It's not within the map area; do nothing.
+                                                    } else {
+                                                        x1 = (borderWidth + (x1 - leftCoord) / EWRange * myWidth);
+                                                        y1 = (borderWidth + (topCoord - y1) / NSRange * myHeight);
+
+                                                        gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                                        for (int a = 0; a < xyData.length; a++) {
+                                                            if (xyData[a][0] == 0) { // moveTo
+                                                                gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                            } else if (xyData[a][0] == 1) { // lineTo
+                                                                gp.lineTo(x1 + xyData[a][1], y1 + xyData[a][2]);
+                                                            } else if (xyData[a][0] == 2) { // elipse2D
+                                                                Ellipse2D circle = new Ellipse2D.Double((x1 - xyData[a][1]), (y1 - xyData[a][1]), xyData[a][2], xyData[a][2]);
+
+                                                                gp.append(circle, true);
+                                                            }
+                                                        }
+                                                        if (isFilled) {
+                                                            g2d.setColor(colours[r]);
+                                                            g2d.fill(gp);
+                                                        }
+                                                        if (isOutlined) {
+                                                            g2d.setColor(lineColour);
+                                                            g2d.draw(gp);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        g2d.setStroke(oldStroke);
+                                        break;
+                                    case POLYLINE:
+                                        //g2d.setColor(lineColour);
+                                        myStroke = new BasicStroke(layer.getLineThickness());
                                         if (layer.isDashed()) {
                                             myStroke =
                                                     new BasicStroke(layer.getLineThickness(),
@@ -856,11 +657,13 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                                     BasicStroke.JOIN_MITER,
                                                     10.0f, layer.getDashArray(), 0.0f);
                                         }
-                                        Stroke oldStroke = g2d.getStroke();
+                                        oldStroke = g2d.getStroke();
                                         g2d.setStroke(myStroke);
+
                                         for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getData());
+                                                PolyLine rec = (PolyLine) (record.getData());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 for (int p = 0; p < rec.getNumParts(); p++) {
@@ -877,64 +680,21 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                                         yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
                                                     }
                                                     polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+
                                                     polyline.moveTo(xPoints[0], yPoints[0]);
 
                                                     for (int index = 1; index < xPoints.length; index++) {
                                                         polyline.lineTo(xPoints[index], yPoints[index]);
                                                     }
+                                                    g2d.setColor(colours[r]);
                                                     g2d.draw(polyline);
                                                 }
                                             }
                                         }
                                         g2d.setStroke(oldStroke);
-                                    }
-                                } else if (shapeType == ShapeType.POLYGONZ) {
-                                    int[] partStart;
-                                    double[][] points;
-                                    int pointSt;
-                                    int pointEnd;
-                                    float xPoints[];
-                                    float yPoints[];
-                                    GeneralPath polyline;
-                                    
-                                    if (layer.isFilled()) {
-                                        Color[] colours = layer.getColourData();
-                                        for (ShapeFileRecord record : records) {
-                                            r = record.getRecordNumber() - 1;
-                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolygonZ rec = (PolygonZ) (record.getData());
-                                                partStart = rec.getParts();
-                                                points = rec.getPoints();
-                                                polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
-                                                for (int p = 0; p < rec.getNumParts(); p++) {
-                                                    pointSt = partStart[p];
-                                                    if (p < rec.getNumParts() - 1) {
-                                                        pointEnd = partStart[p + 1];
-                                                    } else {
-                                                        pointEnd = points.length;
-                                                    }
-                                                    xPoints = new float[pointEnd - pointSt];
-                                                    yPoints = new float[pointEnd - pointSt];
-                                                    for (int k = pointSt; k < pointEnd; k++) {
-                                                        xPoints[k - pointSt] = (float) (borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
-                                                        yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
-                                                    }
-                                                    polyline.moveTo(xPoints[0], yPoints[0]);
-
-                                                    for (int index = 1; index < xPoints.length; index++) {
-                                                        polyline.lineTo(xPoints[index], yPoints[index]);
-                                                    }
-                                                    polyline.closePath();
-                                                }
-                                                g2d.setColor(colours[r]);
-                                                g2d.fill(polyline);
-                                            }
-                                        }
-                                    }
-
-                                    if (layer.isOutlined()) {
-                                        g2d.setColor(lineColour);
-                                        BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
+                                        break;
+                                    case POLYLINEZ:
+                                        myStroke = new BasicStroke(layer.getLineThickness());
                                         if (layer.isDashed()) {
                                             myStroke =
                                                     new BasicStroke(layer.getLineThickness(),
@@ -942,11 +702,12 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                                     BasicStroke.JOIN_MITER,
                                                     10.0f, layer.getDashArray(), 0.0f);
                                         }
-                                        Stroke oldStroke = g2d.getStroke();
+                                        oldStroke = g2d.getStroke();
                                         g2d.setStroke(myStroke);
                                         for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolygonZ rec = (PolygonZ) (record.getData());
+                                                PolyLineZ rec = (PolyLineZ) (record.getData());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 for (int p = 0; p < rec.getNumParts(); p++) {
@@ -963,64 +724,21 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                                         yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
                                                     }
                                                     polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+
                                                     polyline.moveTo(xPoints[0], yPoints[0]);
 
                                                     for (int index = 1; index < xPoints.length; index++) {
                                                         polyline.lineTo(xPoints[index], yPoints[index]);
                                                     }
+                                                    g2d.setColor(colours[r]);
                                                     g2d.draw(polyline);
                                                 }
                                             }
                                         }
                                         g2d.setStroke(oldStroke);
-                                    }
-                                } else if (shapeType == ShapeType.POLYGONM) {
-                                    int[] partStart;
-                                    double[][] points;
-                                    int pointSt;
-                                    int pointEnd;
-                                    float xPoints[];
-                                    float yPoints[];
-                                    GeneralPath polyline;
-                                    
-                                    if (layer.isFilled()) {
-                                        Color[] colours = layer.getColourData();
-                                        for (ShapeFileRecord record : records) {
-                                            r = record.getRecordNumber() - 1;
-                                            if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolygonM rec = (PolygonM) (record.getData());
-                                                partStart = rec.getParts();
-                                                points = rec.getPoints();
-                                                polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
-                                                for (int p = 0; p < rec.getNumParts(); p++) {
-                                                    pointSt = partStart[p];
-                                                    if (p < rec.getNumParts() - 1) {
-                                                        pointEnd = partStart[p + 1];
-                                                    } else {
-                                                        pointEnd = points.length;
-                                                    }
-                                                    xPoints = new float[pointEnd - pointSt];
-                                                    yPoints = new float[pointEnd - pointSt];
-                                                    for (int k = pointSt; k < pointEnd; k++) {
-                                                        xPoints[k - pointSt] = (float) (borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
-                                                        yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
-                                                    }
-                                                    polyline.moveTo(xPoints[0], yPoints[0]);
-
-                                                    for (int index = 1; index < xPoints.length; index++) {
-                                                        polyline.lineTo(xPoints[index], yPoints[index]);
-                                                    }
-                                                    polyline.closePath();
-                                                }
-                                                g2d.setColor(colours[r]);
-                                                g2d.fill(polyline);
-                                            }
-                                        }
-                                    }
-
-                                    if (layer.isOutlined()) {
-                                        g2d.setColor(lineColour);
-                                        BasicStroke myStroke = new BasicStroke(layer.getLineThickness());
+                                        break;
+                                    case POLYLINEM:
+                                        myStroke = new BasicStroke(layer.getLineThickness());
                                         if (layer.isDashed()) {
                                             myStroke =
                                                     new BasicStroke(layer.getLineThickness(),
@@ -1028,11 +746,13 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                                     BasicStroke.JOIN_MITER,
                                                     10.0f, layer.getDashArray(), 0.0f);
                                         }
-                                        Stroke oldStroke = g2d.getStroke();
+                                        oldStroke = g2d.getStroke();
                                         g2d.setStroke(myStroke);
+
                                         for (ShapeFileRecord record : records) {
+                                            r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolygonM rec = (PolygonM) (record.getData());
+                                                PolyLineM rec = (PolyLineM) (record.getData());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 for (int p = 0; p < rec.getNumParts(); p++) {
@@ -1049,19 +769,260 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                                         yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
                                                     }
                                                     polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+
                                                     polyline.moveTo(xPoints[0], yPoints[0]);
 
                                                     for (int index = 1; index < xPoints.length; index++) {
                                                         polyline.lineTo(xPoints[index], yPoints[index]);
                                                     }
+                                                    g2d.setColor(colours[r]);
                                                     g2d.draw(polyline);
                                                 }
                                             }
                                         }
                                         g2d.setStroke(oldStroke);
-                                    }
-                                } else if (shapeType == ShapeType.MULTIPATCH) {
-                                    // this vector type is unsupported
+                                        break;
+                                    case POLYGON:
+
+                                        if (layer.isFilled()) {
+                                            colours = layer.getColourData();
+                                            for (ShapeFileRecord record : records) {
+                                                r = record.getRecordNumber() - 1;
+                                                if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                    whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getData());
+                                                    partStart = rec.getParts();
+                                                    points = rec.getPoints();
+                                                    polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
+                                                    for (int p = 0; p < rec.getNumParts(); p++) {
+                                                        pointSt = partStart[p];
+                                                        if (p < rec.getNumParts() - 1) {
+                                                            pointEnd = partStart[p + 1];
+                                                        } else {
+                                                            pointEnd = points.length;
+                                                        }
+                                                        xPoints = new float[pointEnd - pointSt];
+                                                        yPoints = new float[pointEnd - pointSt];
+                                                        for (int k = pointSt; k < pointEnd; k++) {
+                                                            xPoints[k - pointSt] = (float) (borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
+                                                            yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
+                                                        }
+                                                        polyline.moveTo(xPoints[0], yPoints[0]);
+
+                                                        for (int index = 1; index < xPoints.length; index++) {
+                                                            polyline.lineTo(xPoints[index], yPoints[index]);
+                                                        }
+                                                        polyline.closePath();
+                                                    }
+                                                    g2d.setColor(colours[r]);
+                                                    g2d.fill(polyline);
+                                                }
+                                            }
+                                        }
+
+                                        if (layer.isOutlined()) {
+                                            g2d.setColor(lineColour);
+                                            myStroke = new BasicStroke(layer.getLineThickness());
+                                            if (layer.isDashed()) {
+                                                myStroke =
+                                                        new BasicStroke(layer.getLineThickness(),
+                                                        BasicStroke.CAP_BUTT,
+                                                        BasicStroke.JOIN_MITER,
+                                                        10.0f, layer.getDashArray(), 0.0f);
+                                            }
+                                            oldStroke = g2d.getStroke();
+                                            g2d.setStroke(myStroke);
+                                            for (ShapeFileRecord record : records) {
+                                                if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                    whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getData());
+                                                    partStart = rec.getParts();
+                                                    points = rec.getPoints();
+                                                    for (int p = 0; p < rec.getNumParts(); p++) {
+                                                        pointSt = partStart[p];
+                                                        if (p < rec.getNumParts() - 1) {
+                                                            pointEnd = partStart[p + 1];
+                                                        } else {
+                                                            pointEnd = points.length;
+                                                        }
+                                                        xPoints = new float[pointEnd - pointSt];
+                                                        yPoints = new float[pointEnd - pointSt];
+                                                        for (int k = pointSt; k < pointEnd; k++) {
+                                                            xPoints[k - pointSt] = (float) (borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
+                                                            yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
+                                                        }
+                                                        polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+                                                        polyline.moveTo(xPoints[0], yPoints[0]);
+
+                                                        for (int index = 1; index < xPoints.length; index++) {
+                                                            polyline.lineTo(xPoints[index], yPoints[index]);
+                                                        }
+                                                        g2d.draw(polyline);
+                                                    }
+                                                }
+                                            }
+                                            g2d.setStroke(oldStroke);
+                                        }
+                                        break;
+                                    case POLYGONZ:
+                                        if (layer.isFilled()) {
+                                            colours = layer.getColourData();
+                                            for (ShapeFileRecord record : records) {
+                                                r = record.getRecordNumber() - 1;
+                                                if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                    PolygonZ rec = (PolygonZ) (record.getData());
+                                                    partStart = rec.getParts();
+                                                    points = rec.getPoints();
+                                                    polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
+                                                    for (int p = 0; p < rec.getNumParts(); p++) {
+                                                        pointSt = partStart[p];
+                                                        if (p < rec.getNumParts() - 1) {
+                                                            pointEnd = partStart[p + 1];
+                                                        } else {
+                                                            pointEnd = points.length;
+                                                        }
+                                                        xPoints = new float[pointEnd - pointSt];
+                                                        yPoints = new float[pointEnd - pointSt];
+                                                        for (int k = pointSt; k < pointEnd; k++) {
+                                                            xPoints[k - pointSt] = (float) (borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
+                                                            yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
+                                                        }
+                                                        polyline.moveTo(xPoints[0], yPoints[0]);
+
+                                                        for (int index = 1; index < xPoints.length; index++) {
+                                                            polyline.lineTo(xPoints[index], yPoints[index]);
+                                                        }
+                                                        polyline.closePath();
+                                                    }
+                                                    g2d.setColor(colours[r]);
+                                                    g2d.fill(polyline);
+                                                }
+                                            }
+                                        }
+
+                                        if (layer.isOutlined()) {
+                                            g2d.setColor(lineColour);
+                                            myStroke = new BasicStroke(layer.getLineThickness());
+                                            if (layer.isDashed()) {
+                                                myStroke =
+                                                        new BasicStroke(layer.getLineThickness(),
+                                                        BasicStroke.CAP_BUTT,
+                                                        BasicStroke.JOIN_MITER,
+                                                        10.0f, layer.getDashArray(), 0.0f);
+                                            }
+                                            oldStroke = g2d.getStroke();
+                                            g2d.setStroke(myStroke);
+                                            for (ShapeFileRecord record : records) {
+                                                if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                    PolygonZ rec = (PolygonZ) (record.getData());
+                                                    partStart = rec.getParts();
+                                                    points = rec.getPoints();
+                                                    for (int p = 0; p < rec.getNumParts(); p++) {
+                                                        pointSt = partStart[p];
+                                                        if (p < rec.getNumParts() - 1) {
+                                                            pointEnd = partStart[p + 1];
+                                                        } else {
+                                                            pointEnd = points.length;
+                                                        }
+                                                        xPoints = new float[pointEnd - pointSt];
+                                                        yPoints = new float[pointEnd - pointSt];
+                                                        for (int k = pointSt; k < pointEnd; k++) {
+                                                            xPoints[k - pointSt] = (float) (borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
+                                                            yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
+                                                        }
+                                                        polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+                                                        polyline.moveTo(xPoints[0], yPoints[0]);
+
+                                                        for (int index = 1; index < xPoints.length; index++) {
+                                                            polyline.lineTo(xPoints[index], yPoints[index]);
+                                                        }
+                                                        g2d.draw(polyline);
+                                                    }
+                                                }
+                                            }
+                                            g2d.setStroke(oldStroke);
+                                        }
+                                        break;
+                                    case POLYGONM:
+                                        if (layer.isFilled()) {
+                                            colours = layer.getColourData();
+                                            for (ShapeFileRecord record : records) {
+                                                r = record.getRecordNumber() - 1;
+                                                if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                    PolygonM rec = (PolygonM) (record.getData());
+                                                    partStart = rec.getParts();
+                                                    points = rec.getPoints();
+                                                    polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
+                                                    for (int p = 0; p < rec.getNumParts(); p++) {
+                                                        pointSt = partStart[p];
+                                                        if (p < rec.getNumParts() - 1) {
+                                                            pointEnd = partStart[p + 1];
+                                                        } else {
+                                                            pointEnd = points.length;
+                                                        }
+                                                        xPoints = new float[pointEnd - pointSt];
+                                                        yPoints = new float[pointEnd - pointSt];
+                                                        for (int k = pointSt; k < pointEnd; k++) {
+                                                            xPoints[k - pointSt] = (float) (borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
+                                                            yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
+                                                        }
+                                                        polyline.moveTo(xPoints[0], yPoints[0]);
+
+                                                        for (int index = 1; index < xPoints.length; index++) {
+                                                            polyline.lineTo(xPoints[index], yPoints[index]);
+                                                        }
+                                                        polyline.closePath();
+                                                    }
+                                                    g2d.setColor(colours[r]);
+                                                    g2d.fill(polyline);
+                                                }
+                                            }
+                                        }
+
+                                        if (layer.isOutlined()) {
+                                            g2d.setColor(lineColour);
+                                            myStroke = new BasicStroke(layer.getLineThickness());
+                                            if (layer.isDashed()) {
+                                                myStroke =
+                                                        new BasicStroke(layer.getLineThickness(),
+                                                        BasicStroke.CAP_BUTT,
+                                                        BasicStroke.JOIN_MITER,
+                                                        10.0f, layer.getDashArray(), 0.0f);
+                                            }
+                                            oldStroke = g2d.getStroke();
+                                            g2d.setStroke(myStroke);
+                                            for (ShapeFileRecord record : records) {
+                                                if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                                                    PolygonM rec = (PolygonM) (record.getData());
+                                                    partStart = rec.getParts();
+                                                    points = rec.getPoints();
+                                                    for (int p = 0; p < rec.getNumParts(); p++) {
+                                                        pointSt = partStart[p];
+                                                        if (p < rec.getNumParts() - 1) {
+                                                            pointEnd = partStart[p + 1];
+                                                        } else {
+                                                            pointEnd = points.length;
+                                                        }
+                                                        xPoints = new float[pointEnd - pointSt];
+                                                        yPoints = new float[pointEnd - pointSt];
+                                                        for (int k = pointSt; k < pointEnd; k++) {
+                                                            xPoints[k - pointSt] = (float) (borderWidth + (points[k][0] - leftCoord) / EWRange * myWidth);
+                                                            yPoints[k - pointSt] = (float) (borderWidth + (topCoord - points[k][1]) / NSRange * myHeight);
+                                                        }
+                                                        polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xPoints.length);
+                                                        polyline.moveTo(xPoints[0], yPoints[0]);
+
+                                                        for (int index = 1; index < xPoints.length; index++) {
+                                                            polyline.lineTo(xPoints[index], yPoints[index]);
+                                                        }
+                                                        g2d.draw(polyline);
+                                                    }
+                                                }
+                                            }
+                                            g2d.setStroke(oldStroke);
+                                        }
+                                        break;
+                                    case MULTIPATCH:
+                                        // this vector type is unsupported
+                                        break;
                                 }
                             }
                         }
@@ -1086,8 +1047,8 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 // draw the corner boxes
                 int leftEdge = borderWidth;
                 int topEdge = borderWidth;
-                int rightEdge = borderWidth + (int)myWidth;
-                int bottomEdge = borderWidth + (int)myHeight;
+                int rightEdge = borderWidth + (int) myWidth;
+                int bottomEdge = borderWidth + (int) myHeight;
 
 
                 // draw the innermost line
@@ -1147,7 +1108,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
 
                 g2d.drawString(label, leftEdge - 3, bottomEdge - 2);
                 g2d.drawString(label, rightEdge + 11, bottomEdge - 2);
-               
+
                 // replace the rotated font.
                 g2d.setFont(oldFont);
 
@@ -1177,11 +1138,11 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                     g2d.setColor(Color.black);
                     g2d.drawLine(startCol - 1, startRow - 1, endCol - 1, endRow - 1);
                     DecimalFormat df2 = new DecimalFormat("###,###,###.##");
-                    
+
                     double dist = Math.sqrt((endCol - startCol) * (endCol - startCol) + (endRow - startRow) * (endRow - startRow)) / scale;
                     status.setMessage("Distance: " + df2.format(dist) + XYUnits);
                 }
-                
+
                 if (modifyingPixels) {
                     if (modifyPixelsX > 0 && modifyPixelsY > 0) {
                         int crosshairlength = 13;
@@ -1190,53 +1151,57 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                         g2d.drawOval(modifyPixelsX - radius - 1, modifyPixelsY - radius - 1, 2 * radius + 2, 2 * radius + 2);
                         g2d.setColor(Color.black);
                         g2d.drawOval(modifyPixelsX - radius, modifyPixelsY - radius, 2 * radius, 2 * radius);
-                        
-                        
+
+
                         g2d.setColor(Color.white);
                         g2d.drawRect(modifyPixelsX - 1, modifyPixelsY - crosshairlength - 1, 2, crosshairlength * 2 + 2);
                         g2d.drawRect(modifyPixelsX - crosshairlength - 1, modifyPixelsY - 1, crosshairlength * 2 + 2, 2);
                         g2d.setColor(Color.black);
                         g2d.drawLine(modifyPixelsX, modifyPixelsY - crosshairlength, modifyPixelsX, modifyPixelsY + crosshairlength);
                         g2d.drawLine(modifyPixelsX - crosshairlength, modifyPixelsY, modifyPixelsX + crosshairlength, modifyPixelsY);
-                        
+
                     }
 
                 }
-                
-                /*if (cursorX > leftEdge && cursorX < rightEdge
-                        && cursorY > topEdge && cursorY < bottomEdge) {
-                    g2d.setColor(Color.RED);
-                    g2d.drawLine(cursorX, topEdge - 2, cursorX, topEdge - innerBorderWidth + 2);
-                    g2d.drawLine(leftEdge - 2, cursorY, leftEdge - innerBorderWidth + 2, cursorY);
-                    g2d.drawLine(cursorX, bottomEdge + 2, cursorX, bottomEdge + innerBorderWidth - 2);
-                    g2d.drawLine(rightEdge + 2, cursorY, rightEdge + innerBorderWidth - 2, cursorY);
-                }*/
+
+                /*
+                 * if (cursorX > leftEdge && cursorX < rightEdge && cursorY >
+                 * topEdge && cursorY < bottomEdge) { g2d.setColor(Color.RED);
+                 * g2d.drawLine(cursorX, topEdge - 2, cursorX, topEdge -
+                 * innerBorderWidth + 2); g2d.drawLine(leftEdge - 2, cursorY,
+                 * leftEdge - innerBorderWidth + 2, cursorY);
+                 * g2d.drawLine(cursorX, bottomEdge + 2, cursorX, bottomEdge +
+                 * innerBorderWidth - 2); g2d.drawLine(rightEdge + 2, cursorY,
+                 * rightEdge + innerBorderWidth - 2, cursorY);
+                }
+                 */
             }
         } catch (Exception e) {
             System.out.println(e);
         }
     }
-    
-    /** Override the ImageObserver imageUpdate method and monitor
-    * the loading of the image. Set a flag when it is loaded.
-   **/
-    @Override
-  public boolean imageUpdate (Image img, int info_flags,
-                             int x, int y, int w, int h) {
-    if (info_flags != ALLBITS) {
-        // Indicates image has not finished loading
-        // Returning true will tell the image loading
-        // thread to keep drawing until image fully
-        // drawn loaded.
-        this.repaint();
-        return true;
-    } else {
-        
-        return false;
-    }
-  } // imageUpdate
 
-    
+    /**
+     * Override the ImageObserver imageUpdate method and monitor the loading of
+     * the image. Set a flag when it is loaded.
+   *
+     */
+    @Override
+    public boolean imageUpdate(Image img, int info_flags,
+            int x, int y, int w, int h) {
+        if (info_flags != ALLBITS) {
+            // Indicates image has not finished loading
+            // Returning true will tell the image loading
+            // thread to keep drawing until image fully
+            // drawn loaded.
+            this.repaint();
+            return true;
+        } else {
+
+            return false;
+        }
+    } // imageUpdate
+
     @Override
     public int print(Graphics g, PageFormat pf, int page)
             throws PrinterException {
@@ -1245,7 +1210,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
         }
 
         int i = pf.getOrientation();
-        
+
         // get the size of the page
         double pageWidth = pf.getImageableWidth();
         double pageHeight = pf.getImageableHeight();
@@ -1254,20 +1219,20 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
         double scaleX = pageWidth / myWidth;
         double scaleY = pageHeight / myHeight;
         double minScale = Math.min(scaleX, scaleY);
-                
+
         Graphics2D g2d = (Graphics2D) g;
         g2d.translate(pf.getImageableX(), pf.getImageableY());
         g2d.scale(minScale, minScale);
-        
+
         drawMapDataView(g);
 
         return PAGE_EXISTS;
     }
-    
+
     public boolean saveToImage(String fileName) {
         try {
-            int width = (int)this.getWidth();
-            int height =(int)this.getHeight();
+            int width = (int) this.getWidth();
+            int height = (int) this.getHeight();
             // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
             // into integer pixels
             BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -1294,8 +1259,8 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
         //this.repaint();
         updateStatus(e);
     }
-
     boolean mouseDragged = false;
+
     @Override
     public void mouseDragged(MouseEvent e) {
         mouseDragged = true;
@@ -1305,7 +1270,6 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             this.repaint();
         }
     }
-
     double startX;
     double startY;
     double endX;
@@ -1324,8 +1288,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             startCol = e.getX();
             startY = mapExtent.getMaxY() - (startRow - borderWidth) / myHeight * (mapExtent.getMaxY() - mapExtent.getMinY());
             startX = mapExtent.getMinX() + (startCol - borderWidth) / myWidth * (mapExtent.getMaxX() - mapExtent.getMinX());
-            
-            if (myMode == MOUSE_MODE_PAN) { this.setCursor(panClosedHandCursor); }
+
+            if (myMode == MOUSE_MODE_PAN) {
+                this.setCursor(panClosedHandCursor);
+            }
         }
         //int clickCount = e.getClickCount();
     }
@@ -1350,7 +1316,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 modifyPixelsX = -1;
                 modifyPixelsY = -1;
                 host.refreshMap(false);
-            }  else if (mouseDragged && myMode == MOUSE_MODE_PAN && !usingDistanceTool) {
+            } else if (mouseDragged && myMode == MOUSE_MODE_PAN && !usingDistanceTool) {
                 // move the current extent such that it is centered on the point
                 BoundingBox db = mapinfo.getCurrentExtent();
                 double deltaY = startY - endY;
@@ -1371,7 +1337,9 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 host.refreshMap(false);
             }
 
-            if (myMode == MOUSE_MODE_PAN) { this.setCursor(panCursor); }
+            if (myMode == MOUSE_MODE_PAN) {
+                this.setCursor(panCursor);
+            }
             mouseDragged = false;
         }
     }
@@ -1400,9 +1368,9 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             GridCell point = mapinfo.getRowAndColumn(x, y);
             if (point.row >= 0) {
                 host.refreshMap(false);
-                RasterLayerInfo rli = (RasterLayerInfo)(mapinfo.getLayer(point.layerNum));
+                RasterLayerInfo rli = (RasterLayerInfo) (mapinfo.getLayer(point.layerNum));
                 String fileName = new File(rli.getHeaderFile()).getName();
-                ModifyPixel mp = new ModifyPixel((Frame)findWindow(this), true, point, fileName);
+                ModifyPixel mp = new ModifyPixel((Frame) findWindow(this), true, point, fileName);
                 if (mp.wasSuccessful()) {
                     point = mp.getValue();
                     rli.setDataValue(point.row, point.col, point.z);
@@ -1460,14 +1428,14 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                     zStr = "NoData";
                 }
                 if (!point.isRGB || point.isValueNoData()) {
-                    status.setMessage("E: " + xStr + "  N: " + yStr + 
-                            "  Row: " + (int)(point.row) + "  Col: " + 
-                            (int)(point.col) + "  Z: " + zStr);
+                    status.setMessage("E: " + xStr + "  N: " + yStr
+                            + "  Row: " + (int) (point.row) + "  Col: "
+                            + (int) (point.col) + "  Z: " + zStr);
                 } else {
-                    String r = String.valueOf((int)point.z & 0xFF);
-                    String g = String.valueOf(((int)point.z >> 8) & 0xFF);
-                    String b = String.valueOf(((int)point.z >> 16) & 0xFF);
-                    String a = String.valueOf(((int)point.z >> 24) & 0xFF);
+                    String r = String.valueOf((int) point.z & 0xFF);
+                    String g = String.valueOf(((int) point.z >> 8) & 0xFF);
+                    String b = String.valueOf(((int) point.z >> 16) & 0xFF);
+                    String a = String.valueOf(((int) point.z >> 24) & 0xFF);
                     if (a.equals("255")) {
                         status.setMessage("E: " + xStr + "  N: " + yStr
                                 + "  Row: " + (int) (point.row) + "  Col: "
@@ -1478,14 +1446,14 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 + "  Row: " + (int) (point.row) + "  Col: "
                                 + (int) (point.col) + "  R: " + r + "  G: " + g
                                 + "  B: " + b + "  A: " + a);
-                    } 
+                    }
                 }
             } else {
                 status.setMessage("E: " + xStr + "  N: " + yStr);
             }
         }
     }
-    
+
     private static Window findWindow(Component c) {
         if (c == null) {
             return JOptionPane.getRootFrame();
@@ -1495,33 +1463,34 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             return findWindow(c.getParent());
         }
     }
-    
+
     class ModifyPixel extends JDialog implements ActionListener {
+
         GridCell point = null;
         JTextField tf = null;
         JTextField tfR = null;
         JTextField tfG = null;
         JTextField tfB = null;
         JTextField tfA = null;
-        
+
         private ModifyPixel(Frame owner, boolean modal, GridCell point, String fileName) {
             super(owner, modal);
             this.setTitle(fileName);
             this.point = point;
-            
+
             createGui();
         }
-        
+
         private void createGui() {
             if (System.getProperty("os.name").contains("Mac")) {
                 this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
             }
-            
-            
+
+
             JPanel mainPane = new JPanel();
             mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
             mainPane.setBorder(BorderFactory.createEmptyBorder(10, 15, 0, 15));
-            
+
             JPanel rowAndColPane = new JPanel();
             rowAndColPane.setLayout(new BoxLayout(rowAndColPane, BoxLayout.X_AXIS));
             rowAndColPane.add(new JLabel("Row: " + point.row));
@@ -1530,7 +1499,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             rowAndColPane.add(Box.createHorizontalGlue());
             mainPane.add(rowAndColPane);
             mainPane.add(Box.createVerticalStrut(5));
-     
+
             tf = new JTextField(15);
             tf.setHorizontalAlignment(JTextField.RIGHT);
             if (!point.isValueNoData()) {
@@ -1548,7 +1517,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 valPane.add(Box.createHorizontalGlue());
                 mainPane.add(valPane);
                 mainPane.add(Box.createVerticalStrut(5));
-                
+
             } else {
                 JPanel valPane = new JPanel();
                 valPane.setLayout(new BoxLayout(valPane, BoxLayout.X_AXIS));
@@ -1557,59 +1526,59 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 valPane.add(Box.createHorizontalGlue());
                 mainPane.add(valPane);
                 mainPane.add(Box.createVerticalStrut(5));
-                
+
                 String r = "";
                 String g = "";
                 String b = "";
                 String a = "";
-                
+
                 if (!point.isValueNoData()) {
-                    r = String.valueOf((int)point.z & 0xFF);
-                    g = String.valueOf(((int)point.z >> 8) & 0xFF);
-                    b = String.valueOf(((int)point.z >> 16) & 0xFF);
-                    a = String.valueOf(((int)point.z >> 24) & 0xFF);
+                    r = String.valueOf((int) point.z & 0xFF);
+                    g = String.valueOf(((int) point.z >> 8) & 0xFF);
+                    b = String.valueOf(((int) point.z >> 16) & 0xFF);
+                    a = String.valueOf(((int) point.z >> 24) & 0xFF);
                 }
-                
+
                 tfR = new JTextField(5);
                 tfG = new JTextField(5);
                 tfB = new JTextField(5);
                 tfA = new JTextField(5);
-                
+
                 tfR.setHorizontalAlignment(JTextField.RIGHT);
                 tfG.setHorizontalAlignment(JTextField.RIGHT);
                 tfB.setHorizontalAlignment(JTextField.RIGHT);
                 tfA.setHorizontalAlignment(JTextField.RIGHT);
-             
+
                 tfR.setText(r);
                 tfG.setText(g);
                 tfB.setText(b);
                 tfA.setText(a);
-                
+
                 JPanel rgbPane = new JPanel();
-                
+
                 rgbPane.setLayout(new BoxLayout(rgbPane, BoxLayout.X_AXIS));
                 rgbPane.add(new JLabel("R: "));
                 rgbPane.add(tfR);
                 rgbPane.add(Box.createHorizontalGlue());
-                
+
                 rgbPane.setLayout(new BoxLayout(rgbPane, BoxLayout.X_AXIS));
                 rgbPane.add(new JLabel(" G: "));
                 rgbPane.add(tfG);
                 rgbPane.add(Box.createHorizontalGlue());
-                
+
                 rgbPane.setLayout(new BoxLayout(rgbPane, BoxLayout.X_AXIS));
                 rgbPane.add(new JLabel(" B: "));
                 rgbPane.add(tfB);
                 rgbPane.add(Box.createHorizontalGlue());
-                
+
                 rgbPane.setLayout(new BoxLayout(rgbPane, BoxLayout.X_AXIS));
                 rgbPane.add(new JLabel(" a: "));
                 rgbPane.add(tfA);
                 rgbPane.add(Box.createHorizontalGlue());
-                
+
                 mainPane.add(rgbPane);
                 mainPane.add(Box.createVerticalStrut(5));
-                
+
             }
 
             // buttons
@@ -1619,7 +1588,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             JButton cancel = new JButton("Cancel");
             cancel.addActionListener(this);
             cancel.setActionCommand("cancel");
-            
+
             JPanel buttonPane = new JPanel();
             buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
             buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
@@ -1628,16 +1597,16 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             buttonPane.add(Box.createHorizontalStrut(5));
             buttonPane.add(cancel);
             buttonPane.add(Box.createHorizontalGlue());
-            
+
             Container contentPane = getContentPane();
             contentPane.add(mainPane, BorderLayout.CENTER);
             contentPane.add(buttonPane, BorderLayout.PAGE_END);
 
             pack();
-            
+
             this.setVisible(true);
         }
-        
+
         private void confirmValue() {
             try {
                 if (!point.isRGB) {
@@ -1666,16 +1635,16 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 successful = false;
             }
         }
-        
         boolean successful = false;
+
         private boolean wasSuccessful() {
             return successful;
         }
-        
+
         private GridCell getValue() {
             return point;
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             Object source = e.getSource();

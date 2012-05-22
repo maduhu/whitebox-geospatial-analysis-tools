@@ -75,6 +75,7 @@ public class VectorLayerInfo implements MapLayer {
     private int[] paletteData = null;
     private double minimumValue = 0;
     private double maximumValue = 0;
+    private double cartographicGeneralizationLevel = 0.5;
 //    private boolean dirty;
     
     public VectorLayerInfo(String fileName, int alpha, int overlayNumber) {
@@ -251,6 +252,16 @@ public class VectorLayerInfo implements MapLayer {
         return attributeTableFields;
     }
     
+    public double getCartographicGeneralizationLevel() {
+        return cartographicGeneralizationLevel;
+    }
+    
+    boolean generalizationLevelDirty = false;
+    public void setCartographicGeneralizationLevel(double generalizeLevel) {
+        cartographicGeneralizationLevel = generalizeLevel;
+        generalizationLevelDirty = true;
+    }
+    
     @Override
     public String getLayerTitle() {
         return layerTitle;
@@ -283,17 +294,15 @@ public class VectorLayerInfo implements MapLayer {
     public final void setCurrentExtent(BoundingBox bb) {
         if (!bb.equals(currentExtent)) {
             currentExtent = bb.clone();
-            //recs = shapefile.getRecordsInBoundingBox(currentExtent);
-//            dirty = true;
         }
     }
     
     public final void setCurrentExtent(BoundingBox bb, double minSize) {
-        if (!bb.equals(currentExtent) || recs == null) {
+        if (!bb.equals(currentExtent) || recs == null || generalizationLevelDirty) {
             currentExtent = bb.clone();
             recs = shapefile.getRecordsInBoundingBox(currentExtent, minSize);
-//            dirty = true;
         }
+        generalizationLevelDirty = false;
     }
     
     @Override
