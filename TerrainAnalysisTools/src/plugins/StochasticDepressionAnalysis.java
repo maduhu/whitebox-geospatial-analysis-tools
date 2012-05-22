@@ -15,17 +15,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package plugins;
-import java.util.Random;
 
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.util.Date;
+import java.util.PriorityQueue;
+import java.util.Random;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
-import java.util.Date;
-import java.util.PriorityQueue;
-import java.io.*;
 
 
 /**
+ * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
  * @author John Lindsay<jlindsay@uoguelph.ca> and Beau Ahrens
  */
@@ -41,32 +43,67 @@ public class StochasticDepressionAnalysis implements WhiteboxPlugin {
     private int numBands = 1000;
     private double noData = -32768;
     
+    /**
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
+     * @return String containing plugin name.
+     */
     @Override
     public String getName() {
         return "StochasticDepressionAnalysis";
     }
 
+    /**
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
+     * @return String containing the plugin descriptive name.
+     */
     @Override
     public String getDescriptiveName() {
     	return "Stochastic Depression Analysis";
     }
 
+    /**
+     * Used to retrieve a short description of what the plugin tool does.
+     *
+     * @return String containing the plugin's description.
+     */
     @Override
     public String getToolDescription() {
     	return "Preforms a stochastic analysis of depressions within a DEM";
     }
 
+    /**
+     * Used to identify which toolboxes this plugin tool should be listed in.
+     *
+     * @return Array of Strings.
+     */
     @Override
     public String[] getToolbox() {
     	String[] ret = { "TerrainAnalysis", "WetlandTools" };
     	return ret;
     }
 
+    /**
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
+     * @param host The WhiteboxPluginHost that called the plugin tool.
+     */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
 
+    /**
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
+     * @param feedback String containing the text to display.
+     */
     private void showFeedback(String message) {
         if (myHost != null) {
             myHost.showFeedback(message);
@@ -75,12 +112,25 @@ public class StochasticDepressionAnalysis implements WhiteboxPlugin {
         }
     }
 
+    /**
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
+     * @return Object, such as an output WhiteboxRaster.
+     */
     private void returnData(Object ret) {
         if (myHost != null) {
             myHost.returnData(ret);
         }
     }
 
+    /**
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
+     * @param progressLabel A String to use for the progress label.
+     * @param progress Float containing the progress value (between 0 and 100).
+     */
     private void updateProgress(String progressLabel, int progress) {
         if (myHost != null) {
             myHost.updateProgress(progressLabel, progress);
@@ -89,6 +139,12 @@ public class StochasticDepressionAnalysis implements WhiteboxPlugin {
         }
     }
 
+    /**
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
+     * @param progress Float containing the progress value (between 0 and 100).
+     */
     private void updateProgress(int progress) {
         if (myHost != null) {
             myHost.updateProgress(progress);
@@ -97,12 +153,23 @@ public class StochasticDepressionAnalysis implements WhiteboxPlugin {
         }
     }
     
+    /**
+     * Sets the arguments (parameters) used by the plugin.
+     *
+     * @param args
+     */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
     
     private boolean cancelOp = false;
+    
+    /**
+     * Used to communicate a cancel operation from the Whitebox GUI.
+     *
+     * @param cancel Set to true if the plugin should be canceled.
+     */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
@@ -114,6 +181,13 @@ public class StochasticDepressionAnalysis implements WhiteboxPlugin {
     }
     
     private boolean amIActive = false;
+    
+    /**
+     * Used by the Whitebox GUI to tell if this plugin is still running.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
+     */
     @Override
     public boolean isActive() {
         return amIActive;
