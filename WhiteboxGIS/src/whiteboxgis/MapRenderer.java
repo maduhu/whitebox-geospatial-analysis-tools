@@ -358,7 +358,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 Color lineColour = new Color(r1, g1, b1, a1);
 
                                 ShapeType shapeType = layer.getShapeType();
-                                //ShapeFileRecord[] records = layer.getData();
+                                //ShapeFileRecord[] records = layer.getGeometry();
                                 ArrayList<ShapeFileRecord> records = layer.getData();
                                 double x1, y1;
                                 //int xInt, yInt, x2Int, y2Int;
@@ -397,7 +397,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                whitebox.geospatialfiles.shapefile.Point rec = (whitebox.geospatialfiles.shapefile.Point) (record.getData());
+                                                whitebox.geospatialfiles.shapefile.Point rec = (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
                                                 x1 = rec.getX();
                                                 y1 = rec.getY();
                                                 if (y1 < bottomCoord || x1 < leftCoord
@@ -442,7 +442,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                PointZ rec = (PointZ) (record.getData());
+                                                PointZ rec = (PointZ) (record.getGeometry());
                                                 x1 = rec.getX();
                                                 y1 = rec.getY();
                                                 if (y1 < bottomCoord || x1 < leftCoord
@@ -487,7 +487,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                PointM rec = (PointM) (record.getData());
+                                                PointM rec = (PointM) (record.getGeometry());
                                                 x1 = rec.getX();
                                                 y1 = rec.getY();
                                                 if (y1 < bottomCoord || x1 < leftCoord
@@ -532,7 +532,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                MultiPoint rec = (MultiPoint) (record.getData());
+                                                MultiPoint rec = (MultiPoint) (record.getGeometry());
                                                 recPoints = rec.getPoints();
                                                 for (int p = 0; p < recPoints.length; p++) {
                                                     x1 = recPoints[p][0];
@@ -579,7 +579,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                MultiPointZ rec = (MultiPointZ) (record.getData());
+                                                MultiPointZ rec = (MultiPointZ) (record.getGeometry());
                                                 recPoints = rec.getPoints();
                                                 for (int p = 0; p < recPoints.length; p++) {
                                                     x1 = recPoints[p][0];
@@ -626,7 +626,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                MultiPointM rec = (MultiPointM) (record.getData());
+                                                MultiPointM rec = (MultiPointM) (record.getGeometry());
                                                 recPoints = rec.getPoints();
                                                 for (int p = 0; p < recPoints.length; p++) {
                                                     x1 = recPoints[p][0];
@@ -680,7 +680,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolyLine rec = (PolyLine) (record.getData());
+                                                PolyLine rec = (PolyLine) (record.getGeometry());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 for (int p = 0; p < rec.getNumParts(); p++) {
@@ -724,7 +724,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolyLineZ rec = (PolyLineZ) (record.getData());
+                                                PolyLineZ rec = (PolyLineZ) (record.getGeometry());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 for (int p = 0; p < rec.getNumParts(); p++) {
@@ -769,7 +769,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                         for (ShapeFileRecord record : records) {
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                PolyLineM rec = (PolyLineM) (record.getData());
+                                                PolyLineM rec = (PolyLineM) (record.getGeometry());
                                                 partStart = rec.getParts();
                                                 points = rec.getPoints();
                                                 for (int p = 0; p < rec.getNumParts(); p++) {
@@ -806,7 +806,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                             for (ShapeFileRecord record : records) {
                                                 r = record.getRecordNumber() - 1;
                                                 if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                    whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getData());
+                                                    whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
                                                     partStart = rec.getParts();
                                                     points = rec.getPoints();
                                                     polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
@@ -850,7 +850,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                             g2d.setStroke(myStroke);
                                             for (ShapeFileRecord record : records) {
                                                 if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                    whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getData());
+                                                    whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
                                                     partStart = rec.getParts();
                                                     points = rec.getPoints();
                                                     for (int p = 0; p < rec.getNumParts(); p++) {
@@ -885,7 +885,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                             for (ShapeFileRecord record : records) {
                                                 r = record.getRecordNumber() - 1;
                                                 if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                    PolygonZ rec = (PolygonZ) (record.getData());
+                                                    PolygonZ rec = (PolygonZ) (record.getGeometry());
                                                     partStart = rec.getParts();
                                                     points = rec.getPoints();
                                                     polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
@@ -929,7 +929,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                             g2d.setStroke(myStroke);
                                             for (ShapeFileRecord record : records) {
                                                 if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                    PolygonZ rec = (PolygonZ) (record.getData());
+                                                    PolygonZ rec = (PolygonZ) (record.getGeometry());
                                                     partStart = rec.getParts();
                                                     points = rec.getPoints();
                                                     for (int p = 0; p < rec.getNumParts(); p++) {
@@ -964,7 +964,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                             for (ShapeFileRecord record : records) {
                                                 r = record.getRecordNumber() - 1;
                                                 if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                    PolygonM rec = (PolygonM) (record.getData());
+                                                    PolygonM rec = (PolygonM) (record.getGeometry());
                                                     partStart = rec.getParts();
                                                     points = rec.getPoints();
                                                     polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length);
@@ -1008,7 +1008,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                             g2d.setStroke(myStroke);
                                             for (ShapeFileRecord record : records) {
                                                 if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                                                    PolygonM rec = (PolygonM) (record.getData());
+                                                    PolygonM rec = (PolygonM) (record.getGeometry());
                                                     partStart = rec.getParts();
                                                     points = rec.getPoints();
                                                     for (int p = 0; p < rec.getNumParts(); p++) {
