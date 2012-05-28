@@ -24,7 +24,7 @@ import whitebox.structures.BoundingBox;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class MultiPatch {
+public class MultiPatch implements Geometry {
    //private double[] box = new double[4];
     private BoundingBox bb;
     private int numParts;
@@ -38,7 +38,7 @@ public class MultiPatch {
     private double zMax;
     private double[] zArray;
     private PartType[] partTypes;
-    
+    private double maxExtent;
     
     public MultiPatch(byte[] rawData) {
         try {
@@ -46,12 +46,9 @@ public class MultiPatch {
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.rewind();
             
-//            box[0] = buf.getDouble(0);
-//            box[1] = buf.getDouble(8);
-//            box[2] = buf.getDouble(16);
-//            box[3] = buf.getDouble(24);
             bb = new BoundingBox(buf.getDouble(0), buf.getDouble(8), 
                     buf.getDouble(16), buf.getDouble(24));
+            maxExtent = bb.getMaxExtent();
             numParts = buf.getInt(32);
             numPoints = buf.getInt(36);
             parts = new int[numParts];
@@ -167,5 +164,86 @@ public class MultiPatch {
       PartType.OUTER_RING, PartType.INNER_RING, PartType.FIRST_RING, PartType.RING};
     private PartType getPartTypeFromInt(int i) {
         return pt[i];
+    }
+    
+    private int getIntFromPartType(PartType pt) {
+        switch (pt) {
+            case TRIANGLE_STRIP:
+                return 0;
+            case TRIANGLE_FAN:
+                return 1;
+            case OUTER_RING:
+                return 2;
+            case INNER_RING:
+                return 3;
+            case FIRST_RING:
+                return 4;
+            case RING:
+                return 5;
+        }
+        return 0; // it should never get here.
+    }
+    
+    @Override
+    public int getLength() {
+        return 32 + 8 + numParts * 4 + numPoints * 16 + 16 + numPoints * 8
+                + 16 + numPoints * 8;
+    }
+    
+    @Override
+    public ByteBuffer toByteBuffer() {
+        ByteBuffer buf = ByteBuffer.allocate(getLength());
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.rewind();
+        // put the bounding box data in.
+        buf.putDouble(bb.getMinX());
+        buf.putDouble(bb.getMinY());
+        buf.putDouble(bb.getMaxX());
+        buf.putDouble(bb.getMaxY());
+        // put the numParts and numPoints in.
+        buf.putInt(numParts);
+        buf.putInt(numPoints);
+        // put the part data in.
+        for (int i = 0; i < numParts; i++) {
+            buf.putInt(parts[i]);
+        }
+        // put in the part types.
+        for (int i = 0; i < numParts; i++) {
+            buf.putInt(getIntFromPartType(partTypes[i]));
+        }
+        // put the point data in.
+        for (int i = 0; i < numPoints; i++) {
+            buf.putDouble(points[i][0]);
+            buf.putDouble(points[i][1]);
+        }
+        // put the min and max z values in
+        buf.putDouble(zMin);
+        buf.putDouble(zMax);
+        // put the z values in
+        for (int i = 0; i < numPoints; i++) {
+            buf.putDouble(zArray[i]);
+        }
+        // put the min and max M values in
+        buf.putDouble(mMin);
+        buf.putDouble(mMax);
+        // put the m values in
+        for (int i = 0; i < numPoints; i++) {
+            buf.putDouble(mArray[i]);
+        }
+        return buf;
+    }
+
+    @Override
+    public ShapeType getShapeType() {
+        return ShapeType.MULTIPATCH;
+    }
+    
+    @Override
+    public boolean isMappable(BoundingBox box, double minSize) {
+        if (box.doesIntersect(bb) && maxExtent > minSize) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

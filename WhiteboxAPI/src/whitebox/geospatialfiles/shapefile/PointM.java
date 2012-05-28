@@ -18,11 +18,12 @@ package whitebox.geospatialfiles.shapefile;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import whitebox.structures.BoundingBox;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class PointM {
+public class PointM implements Geometry {
     private double x;
     private double y;
     private double m;
@@ -42,6 +43,12 @@ public class PointM {
         }
     }
     
+    public PointM(double x, double y, double m) {
+        this.x = x;
+        this.y = y;
+        this.m = m;
+    }
+    
     // properties
 
     public double getM() {
@@ -55,5 +62,34 @@ public class PointM {
     public double getY() {
         return y;
     }
+    
+    @Override
+    public int getLength() {
+        return 24;
+    }
+    
+    @Override
+    public ByteBuffer toByteBuffer() {
+        ByteBuffer buf = ByteBuffer.allocate(24);
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.rewind();
+        buf.putDouble(x);
+        buf.putDouble(y);
+        buf.putDouble(m);
+        return buf;
+    }
 
+    @Override
+    public ShapeType getShapeType() {
+        return ShapeType.POINTM;
+    }
+    
+    @Override
+    public boolean isMappable(BoundingBox box, double minSize) {
+        if (box.isPointInBox(x, y)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

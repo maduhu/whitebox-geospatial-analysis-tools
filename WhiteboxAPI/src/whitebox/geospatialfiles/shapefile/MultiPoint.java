@@ -23,7 +23,7 @@ import whitebox.structures.BoundingBox;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class MultiPoint {
+public class MultiPoint implements Geometry {
    //private double[] box = new double[4];
     private BoundingBox bb;
     private int numPoints;
@@ -35,11 +35,6 @@ public class MultiPoint {
             ByteBuffer buf = ByteBuffer.wrap(rawData);
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.rewind();
-            
-//            box[0] = buf.getDouble(0);
-//            box[1] = buf.getDouble(8);
-//            box[2] = buf.getDouble(16);
-//            box[3] = buf.getDouble(24);
             bb = new BoundingBox(buf.getDouble(0), buf.getDouble(8), 
                     buf.getDouble(16), buf.getDouble(24));
             numPoints = buf.getInt(32);
@@ -81,5 +76,44 @@ public class MultiPoint {
 
     public double[][] getPoints() {
         return points;
+    }
+    
+    @Override
+    public int getLength() {
+        return 32 + 4 + numPoints * 16;
+    }
+    
+    @Override
+    public ByteBuffer toByteBuffer() {
+        ByteBuffer buf = ByteBuffer.allocate(getLength());
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.rewind();
+        // put the bounding box data in.
+        buf.putDouble(bb.getMinX());
+        buf.putDouble(bb.getMinY());
+        buf.putDouble(bb.getMaxX());
+        buf.putDouble(bb.getMaxY());
+        // put the numPoints in.
+        buf.putInt(numPoints);
+        // put the point data in.
+        for (int i = 0; i < numPoints; i++) {
+            buf.putDouble(points[i][0]);
+            buf.putDouble(points[i][1]);
+        }
+        return buf;
+    }
+
+    @Override
+    public ShapeType getShapeType() {
+        return ShapeType.MULTIPOINT;
+    }
+    
+    @Override
+    public boolean isMappable(BoundingBox box, double minSize) {
+        if (box.doesIntersect(bb)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

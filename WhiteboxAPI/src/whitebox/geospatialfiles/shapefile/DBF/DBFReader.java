@@ -15,7 +15,7 @@ $Id: DBFReader.java,v 1.8 2004/03/31 10:54:03 anil Exp $
 package whitebox.geospatialfiles.shapefile.DBF;
 
 import java.io.*;
-import java.util.*;
+import java.util.GregorianCalendar;
 
 /**
 DBFReader class can creates objects to represent DBF data.
@@ -122,7 +122,7 @@ public class DBFReader extends DBFBase {
     @Override
     public String toString() {
 
-        StringBuffer sb = new StringBuffer(this.header.year + "/" + this.header.month + "/" + this.header.day + "\n"
+        StringBuilder sb = new StringBuilder(this.header.year + "/" + this.header.month + "/" + this.header.day + "\n"
                 + "Total records: " + this.header.numberOfRecords
                 + "\nHEader length: " + this.header.headerLength
                 + "");
@@ -226,7 +226,6 @@ public class DBFReader extends DBFBase {
             throws DBFException {
 
         if (isClosed) {
-
             throw new DBFException("Source is not open");
         }
 

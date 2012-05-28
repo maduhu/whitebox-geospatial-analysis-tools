@@ -12,8 +12,12 @@ $Id$
  */
 package whitebox.geospatialfiles.shapefile.DBF;
 
-import java.io.*;
-import java.util.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Vector;
 
 class DBFHeader {
 

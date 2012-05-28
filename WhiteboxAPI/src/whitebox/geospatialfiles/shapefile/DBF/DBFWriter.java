@@ -13,7 +13,10 @@ $Id: DBFWriter.java,v 1.9 2004/03/31 10:57:16 anil Exp $
 package whitebox.geospatialfiles.shapefile.DBF;
 
 import java.io.*;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Vector;
 
 /**
 An object of this class can create a DBF file.

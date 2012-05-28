@@ -23,13 +23,14 @@ import whitebox.structures.BoundingBox;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class PolyLine {
-    //private double[] box = new double[4];
+public class PolyLine implements Geometry {
     private int numParts;
     private int numPoints;
     private int[] parts;
     private double[][] points;
     private BoundingBox bb;
+    private double maxExtent;
+    //private ByteBuffer buf;
     
     //constructors
     public PolyLine(byte[] rawData) {
@@ -40,6 +41,7 @@ public class PolyLine {
             
             bb = new BoundingBox(buf.getDouble(0), buf.getDouble(8), 
                     buf.getDouble(16), buf.getDouble(24));
+            maxExtent = bb.getMaxExtent();
             
             numParts = buf.getInt(32);
             numPoints = buf.getInt(36);
@@ -57,6 +59,27 @@ public class PolyLine {
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
+    }
+    
+    public PolyLine (int[] parts, double[][] points) {
+        numParts = parts.length;
+        numPoints = parts.length;
+        this.parts = (int[])parts.clone();
+        this.points = (double[][])points.clone();
+        
+        double minX = Float.POSITIVE_INFINITY;
+        double minY = Float.POSITIVE_INFINITY;
+        double maxX = Float.NEGATIVE_INFINITY;
+        double maxY = Float.NEGATIVE_INFINITY;
+        
+        for (int i = 0; i < numPoints; i++) {
+            if (points[i][0] < minX) { minX = points[i][0]; }
+            if (points[i][0] > maxX) { maxX = points[i][0]; }
+            if (points[i][1] < minY) { minY = points[i][1]; }
+            if (points[i][1] > maxY) { maxY = points[i][1]; }
+        }
+        
+        bb = new BoundingBox(minX, minY, maxX, maxY);
     }
     
     // properties
@@ -94,5 +117,49 @@ public class PolyLine {
 
     public int[] getParts() {
         return parts;
+    }
+
+    @Override
+    public int getLength() {
+        return 32 + 8 + numParts * 4 + numPoints * 16;
+    }
+    
+    @Override
+    public ByteBuffer toByteBuffer() {
+        ByteBuffer buf = ByteBuffer.allocate(getLength());
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.rewind();
+        // put the bounding box data in.
+        buf.putDouble(bb.getMinX());
+        buf.putDouble(bb.getMinY());
+        buf.putDouble(bb.getMaxX());
+        buf.putDouble(bb.getMaxY());
+        // put the numParts and numPoints in.
+        buf.putInt(numParts);
+        buf.putInt(numPoints);
+        // put the part data in.
+        for (int i = 0; i < numParts; i++) {
+            buf.putInt(parts[i]);
+        }
+        // put the point data in.
+        for (int i = 0; i < numPoints; i++) {
+            buf.putDouble(points[i][0]);
+            buf.putDouble(points[i][1]);
+        }
+        return buf;
+    }
+
+    @Override
+    public ShapeType getShapeType() {
+        return ShapeType.POLYLINE;
+    }
+
+    @Override
+    public boolean isMappable(BoundingBox box, double minSize) {
+        if (box.doesIntersect(bb) && maxExtent > minSize) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

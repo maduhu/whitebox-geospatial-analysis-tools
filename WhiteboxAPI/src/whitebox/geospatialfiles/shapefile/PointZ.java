@@ -18,11 +18,12 @@ package whitebox.geospatialfiles.shapefile;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import whitebox.structures.BoundingBox;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class PointZ {
+public class PointZ implements Geometry {
     private double x;
     private double y;
     private double z;
@@ -44,6 +45,21 @@ public class PointZ {
         }
     }
     
+    public PointZ(double x, double y, double z, double m) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.m = m;
+    }
+    
+    
+    public PointZ(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.m = 0;
+    }
+    
     // properties
 
     public double getM() {
@@ -62,4 +78,34 @@ public class PointZ {
         return z;
     }
     
+    @Override
+    public int getLength() {
+        return 32;
+    }
+    
+    @Override
+    public ByteBuffer toByteBuffer() {
+        ByteBuffer buf = ByteBuffer.allocate(32);
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.rewind();
+        buf.putDouble(x);
+        buf.putDouble(y);
+        buf.putDouble(z);
+        buf.putDouble(m);
+        return buf;
+    }
+
+    @Override
+    public ShapeType getShapeType() {
+        return ShapeType.POINTZ;
+    }
+    
+    @Override
+    public boolean isMappable(BoundingBox box, double minSize) {
+        if (box.isPointInBox(x, y)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

@@ -16,6 +16,10 @@
  */
 package whitebox.geospatialfiles.shapefile;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import whitebox.utilities.ByteSwapper;
+
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
@@ -27,11 +31,11 @@ public class ShapeFileRecord {
     private ShapeType shapeType; // notice that the shape type is not officially part of the
     // record header, but that it is the starting part of each shapeType and as such
     // is effectively a component of the header.
-    private Object data;
+    private Geometry data;
     private boolean pointType;
 
     /**
-     * Constructor.
+     * Constructors.
      */
     public ShapeFileRecord() {
     }
@@ -39,7 +43,7 @@ public class ShapeFileRecord {
     /**
      * Constructor.
      * @param recordNumber
-     * @param contentLength
+     * @param contentLength content length in 16-bit words.
      * @param shapeType
      * @param data 
      */
@@ -102,7 +106,35 @@ public class ShapeFileRecord {
                 break;
         }
     }
+    
+    public ShapeFileRecord(int recordNumber, int contentLength, ShapeType shapeType, Geometry geom) {
+        this.recordNumber = recordNumber;
+        this.contentLength = contentLength;
+        this.shapeType = shapeType;
+        this.data = geom;
+        switch (shapeType) {
+            case POINT:
+            case MULTIPOINT:
+            case POINTZ:
+            case POINTM:
+            case MULTIPOINTM:
+            case MULTIPOINTZ:
+                this.pointType = true;
+                break;
+            case POLYLINE:
+            case POLYLINEZ:
+            case POLYLINEM:
+            case POLYGON:
+            case POLYGONM:
+            case POLYGONZ:
+            case MULTIPATCH:
+            case NULLSHAPE:
+                this.pointType = false;
+                break;
+        }
+    }
 
+    // properties
     public int getContentLength() {
         return contentLength;
     }
@@ -127,7 +159,7 @@ public class ShapeFileRecord {
         this.shapeType = shapeType;
     }
 
-    public Object getData() {
+    public Geometry getGeometry() {
         return data;
     }
 
@@ -135,4 +167,68 @@ public class ShapeFileRecord {
         return pointType;
     }
     
+    // methods
+    
+    /**
+     * This is used by the ShapeFile class to get convert the current data 
+     * contained in this object into a bytebuffer than can then be written to
+     * disc.
+     * @return A ByteBuffer representation of this object. 
+     */
+    public byte[] toBytes() {
+        ByteBuffer geometryByteBuffer = data.toByteBuffer();
+        geometryByteBuffer.rewind();
+        int size = 12 + geometryByteBuffer.capacity();
+        ByteBuffer buf = ByteBuffer.allocate(size);
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.rewind();
+        buf.putInt(ByteSwapper.swap(recordNumber));
+        buf.putInt(ByteSwapper.swap(contentLength));
+        buf.putInt(getIntFromShapeType(shapeType));
+        byte[] bytes = geometryByteBuffer.array();
+        for (int i = 0; i < bytes.length; i++) {
+            buf.put(bytes[i]); //i + 12, 
+        }
+        //buf.put(bytes);
+        return buf.array();
+    }
+    
+    public int getLength() {
+        return 12 + data.getLength(); // 12 is the size of the recordNumber, 
+                                      // contentLength, and shapeType.
+    }
+    
+    private int getIntFromShapeType(ShapeType st) {
+        switch (st) {
+            case NULLSHAPE:
+                return 0;
+            case POINT:
+                return 1;
+            case POLYLINE:
+                return 3;
+            case POLYGON:
+                return 5;
+            case MULTIPOINT:
+                return 8;
+            case POINTZ:
+                return 11;
+            case POLYLINEZ:
+                return 13;
+            case POLYGONZ:
+                return 15;
+            case MULTIPOINTZ:
+                return 18;
+            case POINTM:
+                return 21;
+            case POLYLINEM:
+                return 23;
+            case POLYGONM:
+                return 25;
+            case MULTIPOINTM:
+                return 28;
+            case MULTIPATCH:
+                return 31;
+        }
+        return -1; // it should never reach here.
+    }
 }

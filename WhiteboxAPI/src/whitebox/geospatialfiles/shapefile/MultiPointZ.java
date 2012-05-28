@@ -23,8 +23,7 @@ import whitebox.structures.BoundingBox;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class MultiPointZ {
-   //private double[] box = new double[4];
+public class MultiPointZ implements Geometry {
     private BoundingBox bb;
     private int numPoints;
     private double[][] points;
@@ -42,10 +41,6 @@ public class MultiPointZ {
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.rewind();
             
-//            box[0] = buf.getDouble(0);
-//            box[1] = buf.getDouble(8);
-//            box[2] = buf.getDouble(16);
-//            box[3] = buf.getDouble(24);
             bb = new BoundingBox(buf.getDouble(0), buf.getDouble(8), 
                     buf.getDouble(16), buf.getDouble(24));
             numPoints = buf.getInt(32);
@@ -133,4 +128,57 @@ public class MultiPointZ {
         return mMin;
     }
     
+    @Override
+    public int getLength() {
+        return 32 + 4 + numPoints * 16 + 16 + numPoints * 8
+                + 16 + numPoints * 8;
+    }
+    
+    @Override
+    public ByteBuffer toByteBuffer() {
+        ByteBuffer buf = ByteBuffer.allocate(getLength());
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.rewind();
+        // put the bounding box data in.
+        buf.putDouble(bb.getMinX());
+        buf.putDouble(bb.getMinY());
+        buf.putDouble(bb.getMaxX());
+        buf.putDouble(bb.getMaxY());
+        // put the numPoints in.
+        buf.putInt(numPoints);
+        // put the point data in.
+        for (int i = 0; i < numPoints; i++) {
+            buf.putDouble(points[i][0]);
+            buf.putDouble(points[i][1]);
+        }
+        // put the min and max z values in
+        buf.putDouble(zMin);
+        buf.putDouble(zMax);
+        // put the z values in
+        for (int i = 0; i < numPoints; i++) {
+            buf.putDouble(zArray[i]);
+        }
+        // put the min and max m values in
+        buf.putDouble(mMin);
+        buf.putDouble(mMax);
+        // put the m values in
+        for (int i = 0; i < numPoints; i++) {
+            buf.putDouble(mArray[i]);
+        }
+        return buf;
+    }
+
+    @Override
+    public ShapeType getShapeType() {
+        return ShapeType.MULTIPOINTZ;
+    }
+    
+    @Override
+    public boolean isMappable(BoundingBox box, double minSize) {
+        if (box.doesIntersect(bb)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
