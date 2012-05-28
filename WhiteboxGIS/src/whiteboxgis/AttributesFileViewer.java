@@ -16,15 +16,16 @@
  */
 package whiteboxgis;
 
-import javax.swing.*;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableCellRenderer;
-import java.awt.event.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
-import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
+import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import whitebox.geospatialfiles.shapefile.DBF.DBFException;
 import whitebox.geospatialfiles.shapefile.DBF.DBFField;
+import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
 import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
@@ -93,9 +94,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
             add(box1, BorderLayout.SOUTH);
 
-
             Box mainBox = Box.createVerticalBox();
-        
             
             int numColumns = dbfReader.getFieldCount();
             int numRows = dbfReader.getRecordCount();
