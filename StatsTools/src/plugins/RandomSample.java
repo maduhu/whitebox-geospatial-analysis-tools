@@ -195,11 +195,6 @@ public class RandomSample implements WhiteboxPlugin {
         WhiteboxRaster image;
         WhiteboxRaster output;
         int cols, rows;
-        double imageTotal = 0;
-        long imageN = 0;
-        double imageAverage = 0;
-        double imageTotalDeviation = 0;
-        double stdDeviation = 0;
         int progress = 0;
         int col, row;
         int i;
