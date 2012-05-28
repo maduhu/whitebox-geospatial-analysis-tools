@@ -16,11 +16,13 @@
  */
 package plugins;
 
+import java.io.File;
 import java.util.Date;
 import java.util.PriorityQueue;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.utilities.FileUtilities;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -248,8 +250,16 @@ public class BreachDepressions implements WhiteboxPlugin {
             int cols = DEM.getNumberColumns();
             double noData = DEM.getNoDataValue();
 
-            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
-                    inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
+            // copy the input file to the output file.
+            FileUtilities.copyFile(new File(inputHeader), new File(outputHeader));
+            FileUtilities.copyFile(new File(inputHeader.replace(".dep", ".tas")), 
+                    new File(outputHeader.replace(".dep", ".tas")));
+            
+            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw");
+
+            
+//            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
+//                    inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
 
             // figure out what the value of ASmallNumber should be.
             z = Math.abs(DEM.getMaximumValue());
@@ -289,21 +299,21 @@ public class BreachDepressions implements WhiteboxPlugin {
                 }
             }
 
-            updateProgress("Loop 1 of 3:", 1);
-            // copy the input raster into the output raster and release the input file from memory
-            double[] data;
-            for (row = 0; row < rows; row++) {
-                data = DEM.getRowValues(row);
-                for (col = 0; col < cols; col++) {
-                    output.setValue(row, col, data[col]);
-                }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
-                progress = (int) (100f * row / (rows - 1));
-                updateProgress("Loop 1 of 3:", progress);
-            }
+//            updateProgress("Loop 1 of 3:", 1);
+//            // copy the input raster into the output raster and release the input file from memory
+//            double[] data;
+//            for (row = 0; row < rows; row++) {
+//                data = DEM.getRowValues(row);
+//                for (col = 0; col < cols; col++) {
+//                    output.setValue(row, col, data[col]);
+//                }
+//                if (cancelOp) {
+//                    cancelOperation();
+//                    return;
+//                }
+//                progress = (int) (100f * row / (rows - 1));
+//                updateProgress("Loop 1 of 3:", progress);
+//            }
 
             DEM.close();
 
@@ -313,7 +323,7 @@ public class BreachDepressions implements WhiteboxPlugin {
             //List<GridCell> pq = new List<GridCell>(); // this will serve as a 'priority queue'
             //to hold the no-flow cells.
 
-            updateProgress("Loop 2 of 3:", 1);
+            updateProgress("Loop 1 of 2:", 1);
             for (row = 1; row < (rows - 1); row++) {
                 for (col = 1; col < (cols - 1); col++) {
                     z = output.getValue(row, col);
@@ -338,11 +348,11 @@ public class BreachDepressions implements WhiteboxPlugin {
                     return;
                 }
                 progress = (int) (100f * row / (rows - 1));
-                updateProgress("Loop 2 of 3:", progress);
+                updateProgress("Loop 1 of 2:", progress);
             }
             numNoFlowCells = pq.size();
 
-            updateProgress("Loop 3 of 3:", 1);
+            updateProgress("Loop 2 of 2:", 1);
             DepGridCell cell = new DepGridCell(-1, -1, largeVal);
             solvedCells = 0;
             do {
@@ -423,8 +433,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                                         sourceCells[k][j] = 0;
                                         cost[k][j] = (zn - z) + decrementValue[k][j];
                                         accumulatedcost[k][j] = largeVal;
-                                    } else // noData cell
-                                    {
+                                    } else { // noData cell
                                         sourceCells[k][j] = noData;
                                         cost[k][j] = noData;
                                         accumulatedcost[k][j] = noData;
@@ -605,7 +614,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                 solvedCells++;
                 if (solvedCells % 1000 == 0) {
                     progress = (int) ((solvedCells * 100.0) / numNoFlowCells);
-                    updateProgress("Loop 3 of 3:", progress);
+                    updateProgress("Loop 2 of 2:", progress);
 
                 }
 
@@ -621,6 +630,10 @@ public class BreachDepressions implements WhiteboxPlugin {
             // returning a header file string displays the image.
             returnData(outputHeader);
 
+            String results = "Depression Breaching Results:\n";
+            results += "Solved Depression Cells:\t" + String.valueOf(solvedCells - numUnsolvedCells);
+            results += "\nUnsolved Depression Cells:\t" + numUnsolvedCells;
+            returnData(results);
         } catch (Exception e) {
             showFeedback(e.getMessage());
         } finally {

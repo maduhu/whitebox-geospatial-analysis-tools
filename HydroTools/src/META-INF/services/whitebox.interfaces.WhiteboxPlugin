@@ -1,8 +1,9 @@
 plugins.BreachDepressions
-plugins.BreachPit
+plugins.BreachPits
 plugins.BurnStreams
 plugins.CreateBlankOutletRaster
 plugins.DownslopeFlowpathLength
+plugins.FillPits
 plugins.FillDepressions
 plugins.FindNoFlowCells
 plugins.FlowAccumD8
