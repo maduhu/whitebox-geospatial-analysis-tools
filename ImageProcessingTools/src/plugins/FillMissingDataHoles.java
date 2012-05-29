@@ -159,7 +159,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
         
         String inputHeader = null;
         String outputHeader = null;
-        int row, col;
+        int row, col, x, y;
         int progress = 0;
         double z, val;
         int i;
@@ -188,8 +188,73 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
             int cols = image.getNumberColumns();
             double noData = image.getNoDataValue();
             
-            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
+            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
             
+            // flag the noData cells in the output image
+            for (row = 0; row < rows; row++) {
+                for (col = 0; col < cols; col++) {
+                    z = image.getValue(row, col);
+                    if (z == noData) {
+                        output.setValue(row, col, 1);
+                    }
+                }
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (100f * row / (rows - 1));
+                updateProgress("Loop 1 of 6: ", progress);
+            }
+            
+            int[] scanFilter = new int[]{6, 7, 0, 5};
+            
+            for (row = 0; row < rows; row++) { // west to east
+                for (col = 0; col < cols; col++) {
+                    z = output.getValue(row, col);
+                    if (z == 1) {
+                        for (int a = 0; a < 4; a++) {
+                            x = col + dX[scanFilter[a]];
+                            y = row + dY[scanFilter[a]];
+                            z = output.getValue(y, x);
+                            if (z == -1 || x < 0 || x >= cols || y < 0 || y >= rows) {
+                                output.setValue(row, col, -1);
+                            }
+                        }
+                    }
+                }
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (100f * row / (rows - 1));
+                updateProgress("Loop 2 of 6: ", progress);
+            }
+            
+            scanFilter = new int[]{4, 3, 2, 1};
+            
+            for (row = (rows - 1); row >= 0; row--) { // west to east
+                for (col = 0; col < cols; col++) {
+                    z = output.getValue(row, col);
+                    if (z == 1) {
+                        for (int a = 0; a < 4; a++) {
+                            x = col + dX[scanFilter[a]];
+                            y = row + dY[scanFilter[a]];
+                            z = output.getValue(y, x);
+                            if (z == -1 || x < 0 || x >= cols || y < 0 || y >= rows) {
+                                output.setValue(row, col, -1);
+                            }
+                        }
+                    }
+                }
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (100f * 1 - row / (rows - 1));
+                updateProgress("Loop 3 of 6: ", progress);
+            }
+
+ 
             // Find all cells that border with no-data cells. 
             int k = 0;
             boolean neighboursNoData = false;
@@ -199,7 +264,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                     if (z != noData) {
                         neighboursNoData = false;
                         for (i = 0; i < 8; i++) {
-                            if (image.getValue(row + dY[i], col + dX[i]) == noData) {
+                            if (output.getValue(row + dY[i], col + dX[i]) == 1) {
                                 neighboursNoData = true;
                                 break;
                             }
@@ -216,7 +281,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                     return;
                 }
                 progress = (int) (100f * row / (rows - 1));
-                updateProgress("Loop 1 of 3: ", progress);
+                updateProgress("Loop 4 of 6: ", progress);
             }
             
             KdTree<Double> tree = new KdTree.SqrEuclid<Double>(2, k);
@@ -227,7 +292,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                     if (z != noData) {
                         neighboursNoData = false;
                         for (i = 0; i < 8; i++) {
-                            if (image.getValue(row + dY[i], col + dX[i]) == noData) {
+                            if (output.getValue(row + dY[i], col + dX[i]) == 1) {
                                 neighboursNoData = true;
                                 break;
                             }
@@ -243,7 +308,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                     return;
                 }
                 progress = (int) (100f * row / (rows - 1));
-                updateProgress("Loop 2 of 3: ", progress);
+                updateProgress("Loop 5 of 6: ", progress);
             }
 
             List<KdTree.Entry<Double>> results;
@@ -251,8 +316,8 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
             double sumWeights;
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
-                    z = image.getValue(row, col);
-                    if (z == noData) {
+                    z = output.getValue(row, col);
+                    if (z == 1) {
                         double[] entry = { row, col };
                         results = tree.nearestNeighbor(entry, 6, true);
                         sumWeights = 0;
@@ -265,7 +330,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                         }
                         output.setValue(row, col, val);
                     } else {
-                        output.setValue(row, col, z);
+                        output.setValue(row, col, image.getValue(row, col));
                     }
                 }
                 if (cancelOp) {
@@ -273,7 +338,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                     return;
                 }
                 progress = (int) (100f * row / (rows - 1));
-                updateProgress("Loop 3 of 3: ", progress);
+                updateProgress("Loop 6 of 6: ", progress);
             }
             
             output.addMetadataEntry("Created by the "
