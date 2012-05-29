@@ -133,8 +133,8 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
             if (mapLayer.getLayerType() == MapLayerType.RASTER) {
                 RasterLayerInfo rli = (RasterLayerInfo) mapLayer;
 
-                JLabel maxVal = new JLabel("Max: " + df.format(rli.getDisplayMaxVal()));
-                JLabel minVal = new JLabel("Min: " + df.format(rli.getDisplayMinVal()));
+                JLabel maxVal = new JLabel(df.format(rli.getDisplayMaxVal()));
+                JLabel minVal = new JLabel(df.format(rli.getDisplayMinVal()));
 
                 //if (isVisible && (rli.getDataScale() != WhiteboxRasterInfo.DataScale.RGB)) {
                 if (rli.getDataScale() != WhiteboxRasterInfo.DataScale.RGB) {
