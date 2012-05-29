@@ -16,15 +16,10 @@
  */
 package plugins;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-import java.io.PrintWriter;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -237,7 +232,8 @@ public class ExportGRASSAsciiGrid implements WhiteboxPlugin {
                 // copy the data file.
                 double[] data = null;
                 String line = "";
-                if (wbr.getDataType().equals("double") || wbr.getDataType().equals("float")) {
+                if (wbr.getDataType() == WhiteboxRaster.DataType.FLOAT ||
+                        wbr.getDataType() == WhiteboxRaster.DataType.DOUBLE) {
                     for (row = 0; row < rows; row++) {
                         data = wbr.getRowValues(row);
                         line = "";

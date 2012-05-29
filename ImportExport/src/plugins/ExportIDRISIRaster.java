@@ -21,6 +21,7 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 import java.io.PrintWriter;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
 
@@ -286,9 +287,9 @@ public class ExportIDRISIRaster implements WhiteboxPlugin {
                 bw = new BufferedWriter(fw);
                 out = new PrintWriter(bw, true);
                 
-                if (wbr.getDataType().equals("integer")) {
+                if (wbr.getDataType() == WhiteboxRaster.DataType.INTEGER) {
                     dataType = "integer";
-                } else if (wbr.getDataType().equals("float")) {
+                } else if (wbr.getDataType() == WhiteboxRaster.DataType.FLOAT) {
                     if (wbr.getDataScale() != WhiteboxRaster.DataScale.RGB) {
                         dataType = "real";
                     } else {
