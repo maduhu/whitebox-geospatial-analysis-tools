@@ -16,6 +16,9 @@
  */
 package plugins;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import javax.swing.JPanel;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -23,7 +26,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ChangeDataScale implements WhiteboxPlugin {
+public class CoordinateSystemTransformation implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost;
     private String[] args;
@@ -33,7 +36,7 @@ public class ChangeDataScale implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "ChangeDataScale";
+        return "CoordinateSystemTransformation";
     }
     /**
      * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
@@ -41,7 +44,7 @@ public class ChangeDataScale implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Change Data Scale";
+    	return "Coordinate System Transformation";
     }
     /**
      * Used to retrieve a short description of what the plugin tool does.
@@ -49,7 +52,7 @@ public class ChangeDataScale implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Converts the data scale used for default raster visualization.";
+    	return "Converts an image between coordinate systems.";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
@@ -150,69 +153,9 @@ public class ChangeDataScale implements WhiteboxPlugin {
     public void run() {
         amIActive = true;
 
-        String inputHeader = null;
-        String inputFilesString = null;
-        WhiteboxRaster.DataScale dataScale = WhiteboxRaster.DataScale.CONTINUOUS;
-        String[] imageFiles;
-        int numImages = 0;
-        int i;
-        int progress;
-        
-        if (args.length <= 0) {
-            showFeedback("Plugin parameters have not been set.");
-            return;
-        }
+        JPanel dialog = new JPanel();
+        dialog.setPreferredSize(new Dimension(600, 300));
+        returnData(dialog);
 
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputFilesString = args[i];
-            } else if (i == 1) {
-                if (args[i].toLowerCase().contains("bool")) {
-                    dataScale = WhiteboxRaster.DataScale.BOOLEAN;
-                } else if (args[i].toLowerCase().contains("cat")) {
-                    dataScale = WhiteboxRaster.DataScale.CATEGORICAL;
-                } else if (args[i].toLowerCase().contains("con")) {
-                    dataScale = WhiteboxRaster.DataScale.CONTINUOUS;
-                } else if (args[i].toLowerCase().contains("rgb")) {
-                    dataScale = WhiteboxRaster.DataScale.RGB;
-                }
-            }
-        }
-
-        // check to see that the inputHeader and outputHeader are not null.
-        if (inputFilesString == null) {
-            showFeedback("One or more of the input parameters have not been set properly.");
-            return;
-        }
-
-        try {
-            imageFiles = inputFilesString.split(";");
-            numImages = imageFiles.length;
-            for (i = 0; i < numImages; i++) {
-                progress = (int)(100f * i / (numImages - 1));
-                updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
-                
-                inputHeader = imageFiles[i];
-                WhiteboxRaster wbr = new WhiteboxRaster(inputHeader, "r");
-                if (dataScale == WhiteboxRaster.DataScale.RGB 
-                        && wbr.getDataType() != WhiteboxRaster.DataType.FLOAT) {
-                    showFeedback("Data scale RGB is only compatible with data type 'float'. "
-                            + "This tool will not execute");
-                    return;
-                }
-                wbr.setDataScale(dataScale);
-                wbr.writeHeaderFile();
-                wbr.close();
-            }
-            
-        } catch (Exception e) {
-            showFeedback(e.getMessage());
-            showFeedback(e.getCause().toString());
-        } finally {
-            updateProgress("Progress: ", 0);
-            // tells the main application that this process is completed.
-            amIActive = false;
-            myHost.pluginComplete();
-        }
     }
 }

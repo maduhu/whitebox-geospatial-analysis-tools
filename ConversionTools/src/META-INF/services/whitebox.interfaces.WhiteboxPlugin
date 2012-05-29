@@ -1,5 +1,6 @@
 plugins.ChangeDataScale
 plugins.ChangeDataType
 plugins.ConvertNoDataToZero
+plugins.CoordinateSystemTransformation
 plugins.SetNoData
 plugins.XYZTextToRaster
