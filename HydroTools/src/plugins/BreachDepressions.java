@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -256,11 +256,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                     new File(outputHeader.replace(".dep", ".tas")));
             
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw");
-
             
-//            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
-//                    inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
-
             // figure out what the value of ASmallNumber should be.
             z = Math.abs(DEM.getMaximumValue());
             if (z <= 9) {
@@ -299,22 +295,6 @@ public class BreachDepressions implements WhiteboxPlugin {
                 }
             }
 
-//            updateProgress("Loop 1 of 3:", 1);
-//            // copy the input raster into the output raster and release the input file from memory
-//            double[] data;
-//            for (row = 0; row < rows; row++) {
-//                data = DEM.getRowValues(row);
-//                for (col = 0; col < cols; col++) {
-//                    output.setValue(row, col, data[col]);
-//                }
-//                if (cancelOp) {
-//                    cancelOperation();
-//                    return;
-//                }
-//                progress = (int) (100f * row / (rows - 1));
-//                updateProgress("Loop 1 of 3:", progress);
-//            }
-
             DEM.close();
 
             // find all the cells with no downslope neighbours and put them into the queue
@@ -351,6 +331,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                 updateProgress("Loop 1 of 2:", progress);
             }
             numNoFlowCells = pq.size();
+            int oneHundredthOfNumNoFlowCells = (int)(numNoFlowCells / 100);
 
             updateProgress("Loop 2 of 2:", 1);
             DepGridCell cell = new DepGridCell(-1, -1, largeVal);
@@ -400,7 +381,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                         }
                     }
 
-                    if (cellHasBeenSolved == false) {
+                    if (!cellHasBeenSolved) {
                         foundSolution = false;
                         maxDist = smallNeighbourhoodmaxDist;
                         subgridSize = smallNeighbourhoodsubgridSize;
@@ -449,7 +430,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                             // is there at least one source cell?
 
                             if (atLeastOneSourceCell) {
-                                boolean didSomething = false;
+                                boolean didSomething;
                                 do {
                                     didSomething = false;
                                     for (r = 0; r < subgridSize; r++) {
@@ -612,7 +593,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                 }
 
                 solvedCells++;
-                if (solvedCells % 1000 == 0) {
+                if (solvedCells % oneHundredthOfNumNoFlowCells == 0) {
                     progress = (int) ((solvedCells * 100.0) / numNoFlowCells);
                     updateProgress("Loop 2 of 2:", progress);
 
