@@ -31,6 +31,7 @@ public class MultiPointM implements Geometry {
     private double mMin;
     private double mMax;
     private double[] mArray;
+    private boolean mIncluded = false;
     
     //constructors
     public MultiPointM(byte[] rawData) {
@@ -48,13 +49,17 @@ public class MultiPointM implements Geometry {
             }
             
             int pos = 36 + numPoints * 16;
-            mMin = buf.getDouble(pos);
-            mMax = buf.getDouble(pos + 8);
-            
-            mArray = new double[numPoints];
-            pos += 16;
-            for (int i = 0; i < numPoints; i++) {
-                mArray[i] = buf.getDouble(pos + i * 8); // m value
+            // m data is optional.
+            if (pos < buf.capacity()) {
+                mMin = buf.getDouble(pos);
+                mMax = buf.getDouble(pos + 8);
+
+                mArray = new double[numPoints];
+                pos += 16;
+                for (int i = 0; i < numPoints; i++) {
+                    mArray[i] = buf.getDouble(pos + i * 8); // m value
+                }
+                mIncluded = true;
             }
             
             buf.clear();
@@ -102,6 +107,10 @@ public class MultiPointM implements Geometry {
 
     public double getmMin() {
         return mMin;
+    }
+    
+    public boolean isMDataIncluded() {
+        return mIncluded;
     }
     
     @Override

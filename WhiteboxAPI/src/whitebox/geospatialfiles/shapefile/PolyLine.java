@@ -33,6 +33,13 @@ public class PolyLine implements Geometry {
     //private ByteBuffer buf;
     
     //constructors
+    /**
+     * This constructor is used when the PolyLineM is being created from data
+     * that is read directly from a file.
+     * @param rawData A byte array containing all of the raw data needed to create
+     * the PolyLineM, starting with the bounding box, i.e. leaving out the 
+     * ShapeType data.
+     */
     public PolyLine(byte[] rawData) {
         try {
             ByteBuffer buf = ByteBuffer.wrap(rawData);
@@ -61,11 +68,22 @@ public class PolyLine implements Geometry {
         }
     }
     
+    /**
+     * This is the constructor that is used when creating a new polyline.
+     * @param parts an int array that indicates the zero-base starting byte for
+     * each part.
+     * @param points a double[][] array containing the point data. The first
+     * dimension of the array is the total number of points in the polyline.
+     */
     public PolyLine (int[] parts, double[][] points) {
         numParts = parts.length;
-        numPoints = parts.length;
+        numPoints = points.length;
         this.parts = (int[])parts.clone();
-        this.points = (double[][])points.clone();
+        this.points = new double[numPoints][2];
+        for (int i = 0; i < numPoints; i++) {
+            this.points[i][0] = points[i][0];
+            this.points[i][1] = points[i][1];
+        }
         
         double minX = Float.POSITIVE_INFINITY;
         double minY = Float.POSITIVE_INFINITY;
@@ -80,6 +98,7 @@ public class PolyLine implements Geometry {
         }
         
         bb = new BoundingBox(minX, minY, maxX, maxY);
+        maxExtent = bb.getMaxExtent();
     }
     
     // properties

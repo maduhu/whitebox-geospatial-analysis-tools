@@ -35,6 +35,13 @@ public class Polygon implements Geometry {
     private boolean[] isConvex;
     private double maxExtent;
     
+    /**
+     * This constructor is used when the Polygon is being created from data
+     * that is read directly from a file.
+     * @param rawData A byte array containing all of the raw data needed to create
+     * the Polygon, starting with the bounding box, i.e. leaving out the 
+     * ShapeType data.
+     */
     public Polygon(byte[] rawData) {
         try {
             ByteBuffer buf = ByteBuffer.wrap(rawData);
@@ -63,6 +70,44 @@ public class Polygon implements Geometry {
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
+    }
+    
+    /**
+     * This is the constructor that is used when creating a new polyline. Note
+     * that the vertices for polygon holes must be entered in a counter-clockwise
+     * order as per the ShapeFile specifications.
+     * @param parts an int array that indicates the zero-base starting byte for
+     * each part.
+     * @param points a double[][] array containing the point data. The first
+     * dimension of the array is the total number of points in the polyline.
+     */
+    public Polygon (int[] parts, double[][] points) {
+        numParts = parts.length;
+        numPoints = points.length;
+        this.parts = (int[])parts.clone();
+        this.points = new double[numPoints][2];
+        for (int i = 0; i < numPoints; i++) {
+            this.points[i][0] = points[i][0];
+            this.points[i][1] = points[i][1];
+        }
+        
+        double minX = Float.POSITIVE_INFINITY;
+        double minY = Float.POSITIVE_INFINITY;
+        double maxX = Float.NEGATIVE_INFINITY;
+        double maxY = Float.NEGATIVE_INFINITY;
+        
+        for (int i = 0; i < numPoints; i++) {
+            if (points[i][0] < minX) { minX = points[i][0]; }
+            if (points[i][0] > maxX) { maxX = points[i][0]; }
+            if (points[i][1] < minY) { minY = points[i][1]; }
+            if (points[i][1] > maxY) { maxY = points[i][1]; }
+        }
+        
+        bb = new BoundingBox(minX, minY, maxX, maxY);
+        maxExtent = bb.getMaxExtent();
+        isHole = new boolean[numParts];
+        isConvex = new boolean[numParts];
+        checkForHoles();
     }
     
     // properties

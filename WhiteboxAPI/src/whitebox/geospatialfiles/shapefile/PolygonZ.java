@@ -40,7 +40,15 @@ public class PolygonZ implements Geometry {
     private boolean[] isHole;
     private boolean[] isConvex;
     private double maxExtent;
+    private boolean mIncluded = false;
     
+    /**
+     * This constructor is used when the PolygonZ is being created from data
+     * that is read directly from a file.
+     * @param rawData A byte array containing all of the raw data needed to create
+     * the PolygonZ, starting with the bounding box, i.e. leaving out the 
+     * ShapeType data.
+     */
     public PolygonZ(byte[] rawData) {
         try {
             ByteBuffer buf = ByteBuffer.wrap(rawData);
@@ -74,15 +82,18 @@ public class PolygonZ implements Geometry {
             }
             
             pos += numPoints * 8;
-            mMin = buf.getDouble(pos);
-            mMax = buf.getDouble(pos + 8);
-            
-            mArray = new double[numPoints];
-            pos += 16;
-            for (int i = 0; i < numPoints; i++) {
-                mArray[i] = buf.getDouble(pos + i * 8); // m value
+            // m data is optional.
+            if (pos < buf.capacity()) {
+                mMin = buf.getDouble(pos);
+                mMax = buf.getDouble(pos + 8);
+
+                mArray = new double[numPoints];
+                pos += 16;
+                for (int i = 0; i < numPoints; i++) {
+                    mArray[i] = buf.getDouble(pos + i * 8); // m value
+                }
+                mIncluded = true;
             }
-            
             isHole = new boolean[numParts];
             isConvex = new boolean[numParts];
             checkForHoles();
@@ -92,6 +103,95 @@ public class PolygonZ implements Geometry {
         }
     }
     
+    /**
+     * This is the constructor that does not include the optional measure data.
+     * @param parts an int array that indicates the zero-base starting byte for
+     * each part.
+     * @param points a double[][] array containing the point data. The first
+     * dimension of the array is the total number of points in the polygon.
+     * @param zArray a double[] array containing the z data for each point.
+     */
+    public PolygonZ (int[] parts, double[][] points, double[] zArray) {
+        numParts = parts.length;
+        numPoints = points.length;
+        this.parts = (int[])parts.clone();
+        this.points = new double[numPoints][2];
+        for (int i = 0; i < numPoints; i++) {
+            this.points[i][0] = points[i][0];
+            this.points[i][1] = points[i][1];
+        }
+        this.zArray = (double[])zArray.clone();
+        
+        double minX = Float.POSITIVE_INFINITY;
+        double minY = Float.POSITIVE_INFINITY;
+        double maxX = Float.NEGATIVE_INFINITY;
+        double maxY = Float.NEGATIVE_INFINITY;
+        zMin = Float.POSITIVE_INFINITY;
+        zMax = Float.NEGATIVE_INFINITY;
+        
+        for (int i = 0; i < numPoints; i++) {
+            if (points[i][0] < minX) { minX = points[i][0]; }
+            if (points[i][0] > maxX) { maxX = points[i][0]; }
+            if (points[i][1] < minY) { minY = points[i][1]; }
+            if (points[i][1] > maxY) { maxY = points[i][1]; }
+            if (zArray[i] < zMin) { zMin = zArray[i]; }
+            if (zArray[i] > zMax) { zMax = zArray[i]; }
+        }
+        mIncluded = false;
+        bb = new BoundingBox(minX, minY, maxX, maxY);
+        maxExtent = bb.getMaxExtent();
+        isHole = new boolean[numParts];
+        isConvex = new boolean[numParts];
+        checkForHoles();
+    }
+    
+    /**
+     * This is the constructor that does include the optional measure data.
+     * @param parts an int array that indicates the zero-base starting byte for
+     * each part.
+     * @param points a double[][] array containing the point data. The first
+     * dimension of the array is the total number of points in the polygon.
+     * @param zArray a double[] array containing the z data for each point.
+     * @param mArray a double[] array containing the measure data for each point.
+     */
+    public PolygonZ (int[] parts, double[][] points, double[] zArray, double[] mArray) {
+        numParts = parts.length;
+        numPoints = points.length;
+        this.parts = (int[])parts.clone();
+        this.points = new double[numPoints][2];
+        for (int i = 0; i < numPoints; i++) {
+            this.points[i][0] = points[i][0];
+            this.points[i][1] = points[i][1];
+        }
+        this.zArray = (double[])zArray.clone();
+        this.mArray = (double[])mArray.clone();
+        
+        double minX = Float.POSITIVE_INFINITY;
+        double minY = Float.POSITIVE_INFINITY;
+        double maxX = Float.NEGATIVE_INFINITY;
+        double maxY = Float.NEGATIVE_INFINITY;
+        zMin = Float.POSITIVE_INFINITY;
+        zMax = Float.NEGATIVE_INFINITY;
+        mMin = Float.POSITIVE_INFINITY;
+        mMax = Float.NEGATIVE_INFINITY;
+        
+        for (int i = 0; i < numPoints; i++) {
+            if (points[i][0] < minX) { minX = points[i][0]; }
+            if (points[i][0] > maxX) { maxX = points[i][0]; }
+            if (points[i][1] < minY) { minY = points[i][1]; }
+            if (points[i][1] > maxY) { maxY = points[i][1]; }
+            if (mArray[i] < zMin) { zMin = mArray[i]; }
+            if (mArray[i] > zMax) { zMax = mArray[i]; }
+            if (mArray[i] < mMin) { mMin = mArray[i]; }
+            if (mArray[i] > mMax) { mMax = mArray[i]; }
+        }
+        mIncluded = true;
+        bb = new BoundingBox(minX, minY, maxX, maxY);
+        maxExtent = bb.getMaxExtent();
+        isHole = new boolean[numParts];
+        isConvex = new boolean[numParts];
+        checkForHoles();
+    }
     
     // properties
     public BoundingBox getBox() {
@@ -152,6 +252,10 @@ public class PolygonZ implements Geometry {
 
     public double getmMin() {
         return mMin;
+    }
+    
+    public boolean isMDataIncluded() {
+        return mIncluded;
     }
     
     // methods
@@ -262,8 +366,12 @@ public class PolygonZ implements Geometry {
     
     @Override
     public int getLength() {
-        return 32 + 8 + numParts * 4 + numPoints * 16 + 16 + numPoints * 8
+        if (mIncluded) {
+            return 32 + 8 + numParts * 4 + numPoints * 16 + 16 + numPoints * 8
                 + 16 + numPoints * 8;
+        } else {
+            return 32 + 8 + numParts * 4 + numPoints * 16 + 16 + numPoints * 8;
+        }
     }
     
     @Override
@@ -295,12 +403,14 @@ public class PolygonZ implements Geometry {
         for (int i = 0; i < numPoints; i++) {
             buf.putDouble(zArray[i]);
         }
-        // put the min and max M values in
-        buf.putDouble(mMin);
-        buf.putDouble(mMax);
-        // put the m values in
-        for (int i = 0; i < numPoints; i++) {
-            buf.putDouble(mArray[i]);
+        if (mIncluded) {
+            // put the min and max M values in
+            buf.putDouble(mMin);
+            buf.putDouble(mMax);
+            // put the m values in
+            for (int i = 0; i < numPoints; i++) {
+                buf.putDouble(mArray[i]);
+            }
         }
         return buf;
     }

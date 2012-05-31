@@ -31,12 +31,13 @@ public class PolygonM implements Geometry {
     private int numPoints;
     private int[] parts;
     private double[][] points;
-    private double mMin;
-    private double mMax;
+    private double mMin = 0;
+    private double mMax = 0;
     private double[] mArray;
     private boolean[] isHole;
     private boolean[] isConvex;
     private double maxExtent;
+    private boolean mIncluded = false;
     
     public PolygonM(byte[] rawData) {
         try {
@@ -61,13 +62,17 @@ public class PolygonM implements Geometry {
             }
             
             pos += numPoints * 16;
-            mMin = buf.getDouble(pos);
-            mMax = buf.getDouble(pos + 8);
-            
-            mArray = new double[numPoints];
-            pos += 16;
-            for (int i = 0; i < numPoints; i++) {
-                mArray[i] = buf.getDouble(pos + i * 8); // m value
+            // m data is optional.
+            if (pos < buf.capacity()) {
+                mMin = buf.getDouble(pos);
+                mMax = buf.getDouble(pos + 8);
+
+                mArray = new double[numPoints];
+                pos += 16;
+                for (int i = 0; i < numPoints; i++) {
+                    mArray[i] = buf.getDouble(pos + i * 8); // m value
+                }
+                mIncluded = true;
             }
             
             isHole = new boolean[numParts];
@@ -77,6 +82,88 @@ public class PolygonM implements Geometry {
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
+    }
+    
+    
+    /**
+     * This is the constructor that does not include the optional measure data. Note
+     * that the vertices for polygon holes must be entered in a counter-clockwise
+     * order as per the ShapeFile specifications.
+     * @param parts an int array that indicates the zero-base starting byte for
+     * each part.
+     * @param points a double[][] array containing the point data. The first
+     * dimension of the array is the total number of points in the polygon.
+     */
+    public PolygonM (int[] parts, double[][] points) {
+        numParts = parts.length;
+        numPoints = points.length;
+        this.parts = (int[])parts.clone();
+        this.points = new double[numPoints][2];
+        for (int i = 0; i < numPoints; i++) {
+            this.points[i][0] = points[i][0];
+            this.points[i][1] = points[i][1];
+        }
+        
+        double minX = Float.POSITIVE_INFINITY;
+        double minY = Float.POSITIVE_INFINITY;
+        double maxX = Float.NEGATIVE_INFINITY;
+        double maxY = Float.NEGATIVE_INFINITY;
+        
+        for (int i = 0; i < numPoints; i++) {
+            if (points[i][0] < minX) { minX = points[i][0]; }
+            if (points[i][0] > maxX) { maxX = points[i][0]; }
+            if (points[i][1] < minY) { minY = points[i][1]; }
+            if (points[i][1] > maxY) { maxY = points[i][1]; }
+        }
+        mIncluded = false;
+        bb = new BoundingBox(minX, minY, maxX, maxY);
+        maxExtent = bb.getMaxExtent();
+        isHole = new boolean[numParts];
+        isConvex = new boolean[numParts];
+        checkForHoles();
+    }
+    
+    /**
+     * This is the constructor that does include the optional measure data. Note
+     * that the vertices for polygon holes must be entered in a counter-clockwise
+     * order as per the ShapeFile specifications.
+     * @param parts an int array that indicates the zero-base starting byte for
+     * each part.
+     * @param points a double[][] array containing the point data. The first
+     * dimension of the array is the total number of points in the polygon.
+     */
+    public PolygonM (int[] parts, double[][] points, double[] mArray) {
+        numParts = parts.length;
+        numPoints = points.length;
+        this.parts = (int[])parts.clone();
+        this.points = new double[numPoints][2];
+        for (int i = 0; i < numPoints; i++) {
+            this.points[i][0] = points[i][0];
+            this.points[i][1] = points[i][1];
+        }
+        this.mArray = (double[])mArray.clone();
+        
+        double minX = Float.POSITIVE_INFINITY;
+        double minY = Float.POSITIVE_INFINITY;
+        double maxX = Float.NEGATIVE_INFINITY;
+        double maxY = Float.NEGATIVE_INFINITY;
+        mMin = Float.POSITIVE_INFINITY;
+        mMax = Float.NEGATIVE_INFINITY;
+        
+        for (int i = 0; i < numPoints; i++) {
+            if (points[i][0] < minX) { minX = points[i][0]; }
+            if (points[i][0] > maxX) { maxX = points[i][0]; }
+            if (points[i][1] < minY) { minY = points[i][1]; }
+            if (points[i][1] > maxY) { maxY = points[i][1]; }
+            if (mArray[i] < mMin) { mMin = mArray[i]; }
+            if (mArray[i] > mMax) { mMax = mArray[i]; }
+        }
+        mIncluded = true;
+        bb = new BoundingBox(minX, minY, maxX, maxY);
+        maxExtent = bb.getMaxExtent();
+        isHole = new boolean[numParts];
+        isConvex = new boolean[numParts];
+        checkForHoles();
     }
     
     // properties
@@ -126,6 +213,10 @@ public class PolygonM implements Geometry {
 
     public double getmMin() {
         return mMin;
+    }
+    
+    public boolean isMDataIncluded() {
+        return mIncluded;
     }
     
     // methods
@@ -236,7 +327,11 @@ public class PolygonM implements Geometry {
     
     @Override
     public int getLength() {
-        return 32 + 8 + numParts * 4 + numPoints * 16 + 16 + numPoints * 8;
+        if (mIncluded) {
+            return 32 + 8 + numParts * 4 + numPoints * 16 + 16 + numPoints * 8;
+        } else {
+            return 32 + 8 + numParts * 4 + numPoints * 16;
+        }
     }
     
     @Override
@@ -262,11 +357,13 @@ public class PolygonM implements Geometry {
             buf.putDouble(points[i][1]);
         }
         // put the min and max M values in
-        buf.putDouble(mMin);
-        buf.putDouble(mMax);
-        // put the m values in.
-        for (int i = 0; i < numPoints; i++) {
-            buf.putDouble(mArray[i]);
+        if (mIncluded) {
+            buf.putDouble(mMin);
+            buf.putDouble(mMax);
+            // put the m values in.
+            for (int i = 0; i < numPoints; i++) {
+                buf.putDouble(mArray[i]);
+            }
         }
         return buf;
     }

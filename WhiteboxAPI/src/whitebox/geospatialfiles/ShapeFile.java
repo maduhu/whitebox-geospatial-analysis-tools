@@ -424,6 +424,7 @@ public class ShapeFile {
             
                 output = new BufferedOutputStream(new FileOutputStream(fileName));
                 output.write(buf.array());
+                output.close();
                 
                 // now save the index file
                 size = 100 + 8 * numRecs;
@@ -1038,37 +1039,38 @@ public class ShapeFile {
 
     }
     
-//    // this is only used for debugging the tool
-//    public static void main(String[] args) {
+    // this is only used for debugging the tool
+    public static void main(String[] args) {
+        
+        // reading shapefiles test
+        
+//        //String fileName = "/Users/johnlindsay/Documents/Data/Marvin-UofG-20111005-Order2133/SWOOP 2010/DEM - Masspoints and Breaklines - 400km_ZIP_UTM17_50cm_XXbands_0bits/20km174000471002010MAPCON/20km17400047100_masspoints.shp";
+//        //String fileName = "/Users/johnlindsay/Documents/Data/ShapeFiles/NTDB_roads_rmow.shp";
+//        String fileName = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Body_rmow.shp";
 //        
-//        // reading shapefiles test
+//        ShapeFile shp = new ShapeFile(fileName);
 //        
-////        //String fileName = "/Users/johnlindsay/Documents/Data/Marvin-UofG-20111005-Order2133/SWOOP 2010/DEM - Masspoints and Breaklines - 400km_ZIP_UTM17_50cm_XXbands_0bits/20km174000471002010MAPCON/20km17400047100_masspoints.shp";
-////        //String fileName = "/Users/johnlindsay/Documents/Data/ShapeFiles/NTDB_roads_rmow.shp";
-////        String fileName = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Body_rmow.shp";
-////        
-////        ShapeFile shp = new ShapeFile(fileName);
-////        
-////        System.out.println("ShapeFile info");
-////        System.out.println("Number of records: " + shp.getNumberOfRecords());
-////        ShapeFileRecord rec = shp.getRecord(0);
-////        System.out.println("Record number: " + rec.getRecordNumber());
-////        System.out.println("Shape Type: " + rec.getShapeType() + ", Length: " + rec.getContentLength());
-////        System.out.println(rec.getGeometry().getClass());    
-////        if (rec.getShapeType() == ShapeType.POINTZ) {
-////            PointZ pt = (PointZ)(rec.getGeometry());
-////            System.out.println(rec.getGeometry().getClass());
-////            System.out.println(pt.getZ());
-////        } else if (rec.getShapeType() == ShapeType.POLYLINE) {
-////            PolyLine pl = (PolyLine)(rec.getGeometry());
-////            System.out.println("First point x: " + pl.getPoints()[0][0] + " First point y: " + pl.getPoints()[0][1]);
-////        }
-//        
-//        // writing shapefiles test
-//        String fileName = "/Users/johnlindsay/Documents/Data/tmp1.shp";
-//        ShapeFile shp = new ShapeFile(fileName, ShapeType.POINT);
-//        shp.deleteFiles();
-//        ArrayList<Geometry> pnts = new ArrayList<Geometry>();
+//        System.out.println("ShapeFile info");
+//        System.out.println("Number of records: " + shp.getNumberOfRecords());
+//        ShapeFileRecord rec = shp.getRecord(0);
+//        System.out.println("Record number: " + rec.getRecordNumber());
+//        System.out.println("Shape Type: " + rec.getShapeType() + ", Length: " + rec.getContentLength());
+//        System.out.println(rec.getGeometry().getClass());    
+//        if (rec.getShapeType() == ShapeType.POINTZ) {
+//            PointZ pt = (PointZ)(rec.getGeometry());
+//            System.out.println(rec.getGeometry().getClass());
+//            System.out.println(pt.getZ());
+//        } else if (rec.getShapeType() == ShapeType.POLYLINE) {
+//            PolyLine pl = (PolyLine)(rec.getGeometry());
+//            System.out.println("First point x: " + pl.getPoints()[0][0] + " First point y: " + pl.getPoints()[0][1]);
+//        }
+        
+        // writing shapefiles test
+        String fileName = "/Users/johnlindsay/Documents/Data/tmp2.shp";
+        //ShapeFile shp = new ShapeFile(fileName, ShapeType.POINT);
+        ShapeFile shp = new ShapeFile(fileName, ShapeType.POLYGONZ);
+        shp.deleteFiles();
+//        ArrayList<Geometry> pnts = new ArrayList<Geometry>(); 
 //        Random generator = new Random();
 //        double x, y;
 //        
@@ -1078,12 +1080,57 @@ public class ShapeFile {
 //            pnts.add(new Point(x, y));
 //        }
 //        shp.addRecords(pnts);
-//        try {
-//            shp.writeShapeFile();
-//        } catch (IOException ioe) {
-//            
-//        }
-//        // now read it in
-//        ShapeFile shp2 = new ShapeFile(fileName);
-//    }
+        
+        ArrayList<Geometry> lines = new ArrayList<Geometry>();
+        int[] parts = {0, 6};
+        double[][] points = new double[11][2];
+        // pentagon
+        points[0][0] = 50;
+        points[0][1] = 100;
+        
+        points[1][0] = 100;
+        points[1][1] = 75;
+        
+        points[2][0] = 75;
+        points[2][1] = 0;
+        
+        points[3][0] = 25;
+        points[3][1] = 0;
+        
+        points[4][0] = 0;
+        points[4][1] = 75;
+        
+        points[5][0] = 50;
+        points[5][1] = 100;
+        
+        // square
+        points[6][0] = 25;
+        points[6][1] = 75;
+        
+        points[9][0] = 25;
+        points[9][1] = 25;
+        
+        points[8][0] = 75;
+        points[8][1] = 25;
+        
+        points[7][0] = 75;
+        points[7][1] = 75;
+        
+        points[10][0] = 25;
+        points[10][1] = 75;
+        
+        double[] mArray = {3.4, 2.3, 11.9, 4.2, 4.3, 4.5, 8.7, 9.2, 8.5, 2.9, 11.0};
+        double[] zArray = {3.4, 2.3, 11.9, 4.2, 4.3, 4.5, 8.7, 9.2, 8.5, 2.9, 11.0};
+        
+        lines.add(new PolygonZ(parts, points, zArray));
+        
+        shp.addRecords(lines);
+        try {
+            shp.writeShapeFile();
+        } catch (IOException ioe) {
+            
+        }
+        // now read it in
+        ShapeFile shp2 = new ShapeFile(fileName);
+    }
 }

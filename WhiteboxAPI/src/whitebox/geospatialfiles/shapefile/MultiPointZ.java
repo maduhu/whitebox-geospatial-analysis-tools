@@ -33,6 +33,7 @@ public class MultiPointZ implements Geometry {
     private double mMin;
     private double mMax;
     private double[] mArray;
+    private boolean mIncluded = false;
     
     //constructors
     public MultiPointZ(byte[] rawData) {
@@ -60,13 +61,18 @@ public class MultiPointZ implements Geometry {
             }
             
             pos += numPoints * 8;
-            mMin = buf.getDouble(pos);
-            mMax = buf.getDouble(pos + 8);
-            
-            mArray = new double[numPoints];
-            pos += 16;
-            for (int i = 0; i < numPoints; i++) {
-                mArray[i] = buf.getDouble(pos + i * 8); // m value
+            // m data is optional.
+            if (pos < buf.capacity()) {
+                mMin = buf.getDouble(pos);
+                mMax = buf.getDouble(pos + 8);
+
+                mArray = new double[numPoints];
+                pos += 16;
+                for (int i = 0; i < numPoints; i++) {
+                    mArray[i] = buf.getDouble(pos + i * 8); // m value
+                }
+                
+                mIncluded = true;
             }
             
             buf.clear();
@@ -126,6 +132,10 @@ public class MultiPointZ implements Geometry {
 
     public double getmMin() {
         return mMin;
+    }
+    
+    public boolean isMDataIncluded() {
+        return mIncluded;
     }
     
     @Override
