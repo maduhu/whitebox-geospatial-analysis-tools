@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 John Lindsay
+ *  Copyright (C) 2011-2012 John Lindsay
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -112,8 +112,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JCheckBoxMenuItem wordWrap = null;
     private JMenuItem menuItemHisto = null;
     private JMenuItem menuItemAttributeTable = null;
-//    private JCheckBoxMenuItem cartographicView = null;
-//    private JCheckBoxMenuItem dataView = null;
     private JTextField searchText = new JTextField();
     private JMenuItem menuChangePalette = null;
     private JMenuItem menuReversePalette = null;
@@ -1305,6 +1303,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JSplitPane wbTools = getToolbox();
             tabs.insertTab("Tools", null, wbTools, "", 0);
             layersPanel = new JPanel(new BorderLayout());
+            layersPanel.setBackground(Color.white);
             updateLayersTab();
             tabs.insertTab("Layers", null, layersPanel, "", 1);
             return tabs;
@@ -1338,7 +1337,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         
         JPanel legend = new JPanel();
         legend.setLayout(new BoxLayout(legend, BoxLayout.Y_AXIS));
-        legend.setOpaque(false);
+        legend.setOpaque(true);
         
         // add the legend nodes
         for (LegendEntryPanel lep : legendEntries) {
@@ -1387,7 +1386,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
         
         legend.add(Box.createVerticalGlue());
-        
+        legend.setBackground(Color.white);
         scrollView = new JScrollPane(legend);
         layersPanel.add(scrollView, BorderLayout.CENTER);
         layersPanel.validate();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -183,7 +183,6 @@ public class Subtract implements WhiteboxPlugin {
 
                 WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader1, WhiteboxRaster.DataType.FLOAT, noData);
                 outputFile.setPreferredPalette(inputFile1.getPreferredPalette());
-
                 for (row = 0; row < rows; row++) {
                     data1 = inputFile1.getRowValues(row);
                     data2 = inputFile2.getRowValues(row);

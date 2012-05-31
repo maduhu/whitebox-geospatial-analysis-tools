@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -177,7 +177,11 @@ public class OR implements WhiteboxPlugin {
                     if ((z1 != noData) && (z2 != noData)) {
                         if (z1 != 0) { z1 = 1; }
                         if (z2 != 0) { z2 = 1; }
-                        outputFile.setValue(row, col, z1 + z2);
+                        if ((z1 + z2) > 0) {
+                            outputFile.setValue(row, col, 1);
+                        } else {
+                            outputFile.setValue(row, col, 0);
+                        }
                     }
                 }
                 if (cancelOp) {

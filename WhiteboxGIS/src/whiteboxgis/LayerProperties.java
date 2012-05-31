@@ -272,6 +272,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             reversePaletteBox.add(label);
             reversePaletteBox.add(Box.createHorizontalGlue());
             checkReversePalette = new JCheckBox("");
+            checkReversePalette.setOpaque(false);
             checkReversePalette.setSelected(rli.isPaletteReversed());
             checkReversePalette.addActionListener(this);
             checkReversePalette.setActionCommand("reversePalette");
@@ -287,6 +288,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             scalePaletteBox.add(label);
             scalePaletteBox.add(Box.createHorizontalGlue());
             checkScalePalette = new JCheckBox("");
+            checkScalePalette.setOpaque(false);
             if (rli.getDataScale() == WhiteboxRaster.DataScale.CONTINUOUS) {
                 checkScalePalette.setSelected(true);
             } else {
@@ -323,6 +325,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             visibleBox.add(label);
             visibleBox.add(Box.createHorizontalGlue());
             checkVisible = new JCheckBox("");
+            checkVisible.setOpaque(false);
             checkVisible.setSelected(rli.isVisible());
             visibleBox.add(checkVisible);
             visibleBox.add(Box.createHorizontalStrut(10));
@@ -402,6 +405,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             visibleBox.add(label);
             visibleBox.add(Box.createHorizontalGlue());
             checkVisible = new JCheckBox("");
+            checkVisible.setOpaque(false);
             checkVisible.setSelected(vli.isVisible());
             visibleBox.add(checkVisible);
             visibleBox.add(Box.createHorizontalStrut(10));
@@ -419,6 +423,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             filledBox.add(label);
             filledBox.add(Box.createHorizontalGlue());
             checkFilled = new JCheckBox("");
+            checkFilled.setOpaque(false);
             checkFilled.setSelected(vli.isFilled());
             filledBox.add(checkFilled);
             filledBox.add(Box.createHorizontalStrut(10));
@@ -436,6 +441,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             outlinedBox.add(label);
             outlinedBox.add(Box.createHorizontalGlue());
             checkOutlined = new JCheckBox("");
+            checkOutlined.setOpaque(false);
             checkOutlined.setSelected(vli.isOutlined());
             outlinedBox.add(checkOutlined);
             outlinedBox.add(Box.createHorizontalStrut(10));
@@ -515,11 +521,13 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             sampleColourPanelFill.setToolTipText("Click to select new color.");
             sampleColourPanelFill.addMouseListener(this);
             uniqueFillColour = new JRadioButton("Use a unique colour", true);
+            uniqueFillColour.setOpaque(false);
             fillColourBox.add(uniqueFillColour);
             fillColourBox.add(Box.createHorizontalStrut(5));
             fillColourBox.add(sampleColourPanelFill);
             fillColourBox.add(Box.createHorizontalStrut(10));
             fieldBasedFillColour = new JRadioButton("Fill based on an attribute", false);
+            fieldBasedFillColour.setOpaque(false);
             fillColourBox.add(fieldBasedFillColour);
             fillColourBox.add(Box.createHorizontalStrut(10));
             
@@ -593,11 +601,13 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             sampleColourPanelLine2.setToolTipText("Click to select new color.");
             sampleColourPanelLine2.addMouseListener(this);
             uniqueLineColour = new JRadioButton("Use a unique colour", true);
+            uniqueLineColour.setOpaque(false);
             lineColourBox2.add(uniqueLineColour);
             lineColourBox2.add(Box.createHorizontalStrut(5));
             lineColourBox2.add(sampleColourPanelLine2);
             lineColourBox2.add(Box.createHorizontalStrut(10));
             fieldBasedLineColour = new JRadioButton("Colour based on an attribute", false);
+            fieldBasedLineColour.setOpaque(false);
             lineColourBox2.add(fieldBasedLineColour);
             lineColourBox2.add(Box.createHorizontalStrut(10));
             
@@ -634,6 +644,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             scalePaletteBox.add(label);
             scalePaletteBox.add(Box.createHorizontalGlue());
             checkScalePalette = new JCheckBox("");
+            checkScalePalette.setOpaque(false);
             if (vli.isPaletteScaled()) {
                 checkScalePalette.setSelected(true);
             } else {

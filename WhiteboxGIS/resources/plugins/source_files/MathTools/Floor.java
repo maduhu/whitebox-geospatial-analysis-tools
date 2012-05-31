@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,7 +116,6 @@ public class Floor implements WhiteboxPlugin {
         amIActive = true;
 
         String inputHeader1 = null;
-        String inputHeader2 = null;
         String outputHeader = null;
         
         if (args.length <= 0) {
@@ -135,7 +134,7 @@ public class Floor implements WhiteboxPlugin {
         }
 
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader1 == null) || (inputHeader2 == null) || (outputHeader == null)) {
+        if ((inputHeader1 == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }

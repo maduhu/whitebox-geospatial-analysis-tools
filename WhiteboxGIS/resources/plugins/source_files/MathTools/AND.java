@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,10 @@ public class AND implements WhiteboxPlugin {
     private WhiteboxPluginHost myHost = null;
     private String[] args;
 
+    /**
+     * Returns the plugin's name.
+     * @return String containing the plugin name.
+     */
     @Override
     public String getName() {
         return "AND";

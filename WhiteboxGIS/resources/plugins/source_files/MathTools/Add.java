@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,15 +18,19 @@ package plugins;
 
 import java.io.File;
 import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.ThreadListener;
+import whitebox.interfaces.NotifyingThread;
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class Add implements WhiteboxPlugin {
+public class Add implements WhiteboxPlugin, NotifyingThread {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -110,10 +114,41 @@ public class Add implements WhiteboxPlugin {
     public boolean isActive() {
         return amIActive;
     }
+    
+    private final Set<ThreadListener> listeners = new CopyOnWriteArraySet<ThreadListener>();
+
+    @Override
+    public final void addListener(final ThreadListener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public final void removeListener(final ThreadListener listener) {
+        listeners.remove(listener);
+    }
+    
+    @Override
+    public final void cancel() {
+        cancelOp = true;
+    }
+
+    private void notifyListenersOfCompletion() {
+        for (ThreadListener listener : listeners) {
+            listener.notifyOfThreadComplete(this);
+        }
+    }
 
     @Override
     public void run() {
-        amIActive = true;
+        try {
+            doRun();
+        } finally {
+            notifyListenersOfCompletion();
+        }
+    }
+    
+    private void doRun() {
+        //amIActive = true;
         
         String inputHeader1 = null;
         String inputHeader2 = null;
@@ -186,7 +221,7 @@ public class Add implements WhiteboxPlugin {
                 WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", 
                         inputHeader1, WhiteboxRaster.DataType.FLOAT, noData);
                 outputFile.setPreferredPalette(inputFile1.getPreferredPalette());
-
+                
                 for (row = 0; row < rows; row++) {
                     data1 = inputFile1.getRowValues(row);
                     data2 = inputFile2.getRowValues(row);
@@ -297,8 +332,8 @@ public class Add implements WhiteboxPlugin {
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.
-            amIActive = false;
-            myHost.pluginComplete();
+            //amIActive = false;
+            //myHost.pluginComplete();
         }
     }
 }

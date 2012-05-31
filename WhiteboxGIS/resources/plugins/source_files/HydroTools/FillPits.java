@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,44 +18,63 @@ package plugins;
 
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
- *
+ * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class BreachPit implements WhiteboxPlugin {
+public class FillPits implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
-
+    /**
+     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * @return String containing plugin name.
+     */
     @Override
     public String getName() {
-        return "BreachPit";
+        return "FillPits";
     }
-
+    /**
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * @return String containing the plugin descriptive name.
+     */
     @Override
     public String getDescriptiveName() {
-    	return "Breach Pits";
+    	return "Fill Single-Cell Pits";
     }
-
+    /**
+     * Used to retrieve a short description of what the plugin tool does.
+     * @return String containing the plugin's description.
+     */
     @Override
     public String getToolDescription() {
-    	return "Breach single-cell pits.";
+    	return "Fill single-cell pits.";
     }
-
+    /**
+     * Used to identify which toolboxes this plugin tool should be listed in.
+     * @return Array of Strings.
+     */
     @Override
     public String[] getToolbox() {
     	String[] ret = { "DEMPreprocessing" };
     	return ret;
     }
-
+    /**
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
+     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * @param host The WhiteboxPluginHost that called the plugin tool.
+     */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
-
+    /**
+     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * @param feedback String containing the text to display.
+     */
     private void showFeedback(String message) {
         if (myHost != null) {
             myHost.showFeedback(message);
@@ -63,7 +82,10 @@ public class BreachPit implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
-
+    /**
+     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * @return Object, such as an output WhiteboxRaster.
+     */
     private void returnData(Object ret) {
         if (myHost != null) {
             myHost.returnData(ret);
@@ -72,6 +94,11 @@ public class BreachPit implements WhiteboxPlugin {
 
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+    /**
+     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * @param progressLabel A String to use for the progress label.
+     * @param progress Float containing the progress value (between 0 and 100).
+     */
     private void updateProgress(String progressLabel, int progress) {
         if (myHost != null && ((progress != previousProgress) || 
                 (!progressLabel.equals(previousProgressLabel)))) {
@@ -80,19 +107,28 @@ public class BreachPit implements WhiteboxPlugin {
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
-
+    /**
+     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * @param progress Float containing the progress value (between 0 and 100).
+     */
     private void updateProgress(int progress) {
         if (myHost != null && progress != previousProgress) {
             myHost.updateProgress(progress);
         }
         previousProgress = progress;
     }
-    
+    /**
+     * Sets the arguments (parameters) used by the plugin.
+     * @param args 
+     */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
+    /**
+     * Used to communicate a cancel operation from the Whitebox GUI.
+     * @param cancel Set to true if the plugin should be canceled.
+     */
     private boolean cancelOp = false;
     @Override
     public void setCancelOp(boolean cancel) {
@@ -105,6 +141,10 @@ public class BreachPit implements WhiteboxPlugin {
     }
     
     private boolean amIActive = false;
+    /**
+     * Used by the Whitebox GUI to tell if this plugin is still running.
+     * @return a boolean describing whether or not the plugin is actively being used.
+     */
     @Override
     public boolean isActive() {
         return amIActive;
@@ -116,19 +156,14 @@ public class BreachPit implements WhiteboxPlugin {
         
         String inputHeader = null;
         String outputHeader = null;
-        int row, col, x, y;
+        int row, col;
         int progress = 0;
-        double slope;
-        double z, z2;
-        int i, n;
+        double z, z2, lowestNeighbour;
+        int i;
         int[] dX = {1, 1, 1, 0, -1, -1, -1, 0};
         int[] dY = {-1, 0, 1, 1, 1, 0, -1, -1};
-        int[] dX2 = {2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2, -2, -1, 0, 1};
-        int[] dY2 = {-2, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2};
-        int[] breachcell = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 0};
-       
-        double dist;
-        double gridRes;
+        boolean isPit;
+        double aSmallValue;
         
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -149,44 +184,50 @@ public class BreachPit implements WhiteboxPlugin {
             int rows = DEM.getNumberRows();
             int cols = DEM.getNumberColumns();
             double noData = DEM.getNoDataValue();
-                    
+            
+            z = Math.abs(DEM.getMaximumValue());
+            if (z <= 9) {
+                aSmallValue = 0.00001F;
+            } else if (z <= 99) {
+                aSmallValue = 0.0001F;
+            } else if (z <= 999) {
+                aSmallValue = 0.001F;
+            } else if (z <= 9999) {
+                aSmallValue = 0.001F;
+            } else if (z <= 99999) {
+                aSmallValue = 0.01F;
+            } else {
+                aSmallValue = 1F;
+            }
+            
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", 
                     inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
-           
-            // copy the data into the output file.
-            double[] data = null;
-            for (row = 0; row < rows; row++) {
-                data = DEM.getRowValues(row);
-                for (col = 0; col < cols; col++) {
-                    output.setValue(row, col, data[col]);
-                }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
-                progress = (int) (100f * row / (rows - 1));
-                updateProgress("Loop 1 of 2:", progress);
-            }
-
+            
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     z = DEM.getValue(row, col);
                     if (z != noData) {
-                        n = 0;
+                        // is it a pit?
+                        isPit = true;
+                        lowestNeighbour = Float.POSITIVE_INFINITY;
                         for (i = 0; i < 8; i++) {
                             z2 = DEM.getValue(row + dY[i], col + dX[i]);
-                            if (z2 < z) {
-                                n++;
-                            }
-                        }
-                        if (n == 0) {
-                            for (i = 0; i < 16; i++) {
-                                z2 = DEM.getValue(row + dY2[i], col + dX2[i]);
-                                if (z2 < z && z2 != noData) {
-                                    output.setValue(row + dY[breachcell[i]], 
-                                            col + dX[breachcell[i]], (z + z2) / 2);
+                            if (z2 != noData) {
+                                if (z2 < lowestNeighbour) {
+                                    lowestNeighbour = z2;
+                                }
+                                if (z2 < z) {
+                                    isPit = false;
                                 }
                             }
+                        }
+                        
+                        if (isPit && lowestNeighbour < Float.POSITIVE_INFINITY) {
+                            // fill it so that it is in between the lowest and
+                            // second lowest neighbour.
+                            output.setValue(row, col, lowestNeighbour + aSmallValue);
+                        } else {
+                            output.setValue(row, col, z);
                         }
                     }
                 }
@@ -195,7 +236,7 @@ public class BreachPit implements WhiteboxPlugin {
                     return;
                 }
                 progress = (int) (100f * row / (rows - 1));
-                updateProgress("Loop 2 of 2:", progress);
+                updateProgress(progress);
             }
 
             output.addMetadataEntry("Created by the "
