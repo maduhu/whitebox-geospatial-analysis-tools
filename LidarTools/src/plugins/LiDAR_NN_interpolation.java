@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -609,7 +609,7 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
 
 
 ///*
-// * Copyright (C) 2011 Dr. John Lindsay <jlindsay@uoguelph.ca>
+// * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
 // *
 // * This program is free software: you can redistribute it and/or modify
 // * it under the terms of the GNU General Public License as published by
