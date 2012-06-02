@@ -17,10 +17,13 @@
 package plugins;
 
 import java.util.Date;
+import java.util.Iterator;
+import java.util.PriorityQueue;
 import java.util.Random;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -205,16 +208,10 @@ public class RandomSample implements WhiteboxPlugin {
             return;
         }
 
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                numSamplePoints = Integer.parseInt(args[i]);
-            }
-        }
-
+        inputHeader = args[0];
+        outputHeader = args[1];
+        numSamplePoints = Integer.parseInt(args[2]);
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -237,19 +234,36 @@ public class RandomSample implements WhiteboxPlugin {
 
             image.close();
             
+            // A priority gueue is used so that we can later add each of the
+            // points to the grid sorted by row value. Otherwise we will end up
+            // reading and writing to disc a lot as we enter values to the grid
+            // in random locations.
+            NonDuplicatingPriorityQueue queue = new NonDuplicatingPriorityQueue(numSamplePoints);
             Random generator = new Random();
-            
+            GridCell gc;
             i = 0;
             do {
                 row = generator.nextInt(rows);
                 col = generator.nextInt(cols);
-                if (output.getValue(row, col) == 0) {
-                    i++;
-                    output.setValue(row, col, i);
-                    progress = (int)(100f * i / numSamplePoints);
-                    updateProgress(progress);
+                gc = new GridCell(row, col);
+                if (queue.add(gc)) {
+                   i++; 
+                   progress = (int)(100f * i / numSamplePoints);
+                   updateProgress("Loop 1 of 2:", progress);
                 }
             } while (i < numSamplePoints);
+            
+            Iterator<GridCell> it = queue.iterator();
+            i = 1;
+            do  {
+                // Returns an iterator over the elements in this queue.
+                gc = queue.poll();
+                output.setValue(gc.row, gc.col, i);
+                i++;
+                progress = (int)(100f * i / numSamplePoints);
+                updateProgress("Loop 2 of 2:", progress);
+            } while (i < numSamplePoints);
+            
             
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
@@ -270,4 +284,73 @@ public class RandomSample implements WhiteboxPlugin {
             myHost.pluginComplete();
         }
     }
+    
+    class NonDuplicatingPriorityQueue extends PriorityQueue<GridCell> {
+        public NonDuplicatingPriorityQueue(int initialCapacity) {
+            super(initialCapacity);
+        }
+        
+        @Override
+        public boolean add(GridCell gc) {
+            try {
+                // This will only add the gridcell if it's not already in the queue.
+                Iterator<GridCell> i = this.iterator();
+                while (i.hasNext()) {
+                    // Returns an iterator over the elements in this queue.
+                    GridCell gc2 = i.next();
+                    if (gc.compareTo(gc2) == 0) {
+                        return false;
+                    }
+                }
+                super.add(gc);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+    
+    class GridCell implements Comparable<GridCell> {
+
+        public int row;
+        public int col;
+        
+        public GridCell(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        @Override
+        public int compareTo(GridCell cell) {
+            final int BEFORE = -1;
+            final int EQUAL = 0;
+            final int AFTER = 1;
+
+            if (this.row < cell.row) {
+                return BEFORE;
+            } else if (this.row > cell.row) {
+                return AFTER;
+            }
+
+            if (this.col < cell.col) {
+                return BEFORE;
+            } else if (this.col > cell.col) {
+                return AFTER;
+            }
+
+            return EQUAL;
+        }
+    }
+    
+//    // This method is only used during testing.
+//    public static void main(String[] args) {
+//        args = new String[3];
+//        args[0] = "/Users/johnlindsay/Documents/Data/Waterloo streams.dep";
+//        args[1] = "/Users/johnlindsay/Documents/Data/tmp2.dep";
+//        args[2] = "1000";
+//        
+//        RandomSample rs = new RandomSample();
+//        rs.setArgs(args);
+//        rs.run();
+//    }
 }
