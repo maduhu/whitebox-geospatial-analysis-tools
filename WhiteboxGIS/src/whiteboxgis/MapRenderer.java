@@ -301,7 +301,6 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 y = (int) (top + (currentExtent.getMaxY() - layerCE.getMaxY()) * scale);
                                 int layerHeight = (int) ((Math.abs(layerCE.getMaxY() - layerCE.getMinY())) * scale);
 
-
                                 int startR = (int) (Math.abs(layer.fullExtent.getMaxY() - layerCE.getMaxY()) / layer.getCellSizeY());
                                 int endR = (int) (layer.getNumberRows() - (Math.abs(layer.fullExtent.getMinY() - layerCE.getMinY()) / layer.getCellSizeY()));
                                 int startC = (int) (Math.abs(layer.fullExtent.getMinX() - layerCE.getMinX()) / layer.getCellSizeX());
@@ -320,7 +319,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 width = layer.getImageWidth();
                                 height = layer.getImageHeight();
                                 Image image = createImage(new MemoryImageSource(width, height, layer.getPixelData(), 0, width));
-                                if (!g2d.drawImage(image, x, y, layerWidth + 1, layerHeight + 1, this)) {
+                                if (!g2d.drawImage(image, x, y, layerWidth, layerHeight, this)) {
                                     // do nothing
                                 }
 

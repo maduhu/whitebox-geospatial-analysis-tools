@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <toolbox name="topmost" label="Available Tools">
-    <toolbox name="ConversionTools" label="Conversion Tools"></toolbox>
+    <toolbox name="ConversionTools" label="Conversion Tools">
+        <toolbox name="RasterVectorConversions" label="Raster/Vector Conversions"></toolbox>
+    </toolbox>
 
     <toolbox name="IOTools" label="Data Import/Export"></toolbox>
 

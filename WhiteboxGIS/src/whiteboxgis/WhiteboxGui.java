@@ -117,6 +117,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JMenuItem menuReversePalette = null;
     private HashMap<String, ImageIcon> icons = new HashMap<String, ImageIcon>();
     private HashMap<String, Font> fonts = new HashMap<String, Font>();
+    private JCheckBoxMenuItem dataView = null;
+    private JCheckBoxMenuItem cartographicView = null;
     
     public WhiteboxGui() {
         super("Whitebox GAT v." + versionNumber);
@@ -291,6 +293,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         if (ret instanceof String) {
             String retStr = ret.toString();
             if (retStr.endsWith(".dep") && retStr.contains(pathSep)) {
+                if (automaticallyDisplayReturns) {
+                    displayLayer(retStr);
+                }
+            } else if (retStr.endsWith(".shp") && retStr.contains(pathSep)) {
                 if (automaticallyDisplayReturns) {
                     displayLayer(retStr);
                 }
@@ -746,42 +752,42 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             menubar.add(LayersMenu);
 
 
-//            // Cartographic menu
-//            JMenu cartoMenu = new JMenu("Cartographic");
-//            JMenuItem pageProps = new JMenuItem("Page Properties", new ImageIcon(graphicsDirectory + "page.png"));
-//            cartoMenu.add(pageProps);
-//            pageProps.addActionListener(this);
-//            pageProps.setActionCommand("pageProps");
-//
-//            cartoMenu.addSeparator();
-//
-//            JMenuItem insertTitle = new JMenuItem("Insert Map Title");
-//            cartoMenu.add(insertTitle);
-//            insertTitle.addActionListener(this);
-//            insertTitle.setActionCommand("insertTitle");
-//
-//            JMenuItem insertNorthArrow = new JMenuItem("Insert North Arrow");
-//            cartoMenu.add(insertNorthArrow);
-//            insertNorthArrow.addActionListener(this);
-//            insertNorthArrow.setActionCommand("insertNorthArrow");
-//
-//            JMenuItem insertScale = new JMenuItem("Insert Scale");
-//            cartoMenu.add(insertScale);
-//            insertScale.addActionListener(this);
-//            insertScale.setActionCommand("insertScale");
-//
-//            JMenuItem insertLegend = new JMenuItem("Insert Legend");
-//            cartoMenu.add(insertLegend);
-//            insertLegend.addActionListener(this);
-//            insertLegend.setActionCommand("insertLegend");
-//
-//            JCheckBoxMenuItem showNeatline = new JCheckBoxMenuItem("Show Neatline");
-//            cartoMenu.add(showNeatline);
-//            showNeatline.setState(true);
-//            showNeatline.addActionListener(this);
-//            showNeatline.setActionCommand("showNeatline");
-//
-//            menubar.add(cartoMenu);
+            // Cartographic menu
+            JMenu cartoMenu = new JMenu("Cartographic");
+            JMenuItem pageProps = new JMenuItem("Page Properties", new ImageIcon(graphicsDirectory + "page.png"));
+            cartoMenu.add(pageProps);
+            pageProps.addActionListener(this);
+            pageProps.setActionCommand("pageProps");
+
+            cartoMenu.addSeparator();
+
+            JMenuItem insertTitle = new JMenuItem("Insert Map Title");
+            cartoMenu.add(insertTitle);
+            insertTitle.addActionListener(this);
+            insertTitle.setActionCommand("insertTitle");
+
+            JMenuItem insertNorthArrow = new JMenuItem("Insert North Arrow");
+            cartoMenu.add(insertNorthArrow);
+            insertNorthArrow.addActionListener(this);
+            insertNorthArrow.setActionCommand("insertNorthArrow");
+
+            JMenuItem insertScale = new JMenuItem("Insert Scale");
+            cartoMenu.add(insertScale);
+            insertScale.addActionListener(this);
+            insertScale.setActionCommand("insertScale");
+
+            JMenuItem insertLegend = new JMenuItem("Insert Legend");
+            cartoMenu.add(insertLegend);
+            insertLegend.addActionListener(this);
+            insertLegend.setActionCommand("insertLegend");
+
+            JCheckBoxMenuItem showNeatline = new JCheckBoxMenuItem("Show Neatline");
+            cartoMenu.add(showNeatline);
+            showNeatline.setState(true);
+            showNeatline.addActionListener(this);
+            showNeatline.setActionCommand("showNeatline");
+
+            //menubar.add(cartoMenu);
 
             
             
@@ -1872,6 +1878,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 String[] defaultPalettes = {defaultQuantPalette, defaultQualPalette, "rgb.pal"};
                 RasterLayerInfo newLayer = new RasterLayerInfo(file, paletteDirectory,
                         defaultPalettes, 255, openMaps.get(activeMap).getNumLayers());
+                openMaps.get(activeMap).addLayer(newLayer);
+                newLayer.setOverlayNumber(openMaps.get(activeMap).getNumLayers() - 1);
+                openMaps.get(activeMap).setActiveLayer(openMaps.get(activeMap).getNumLayers() - 1);
+                refreshMap(true);
+            } else if (file.contains(".shp")) {
+                VectorLayerInfo newLayer = new VectorLayerInfo(file, 255, openMaps.get(activeMap).getNumLayers());
                 openMaps.get(activeMap).addLayer(newLayer);
                 newLayer.setOverlayNumber(openMaps.get(activeMap).getNumLayers() - 1);
                 openMaps.get(activeMap).setActiveLayer(openMaps.get(activeMap).getNumLayers() - 1);
@@ -3161,27 +3173,27 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-//    private void toggleDataAndCartoView(boolean cartoView) {
-//        if (selectedMapAndLayer[0] == - 1) {
-//            selectedMapAndLayer[0] = activeMap;
-//        }
-//        // all open maps should be updated.
-//        for (MapInfo map : openMaps) {
-//            map.setCartoView(cartoView);
-//        }
-//        //openMaps.get(selectedMapAndLayer[0]).setCartoView(cartoView);
-//        if (cartoView) {
-//            dataView.setState(false);
-//            cartographicView.setState(true);
-//        } else {
-//            dataView.setState(true);
-//            cartographicView.setState(false);
-//        }
-//        
-//        refreshMap(false);
-//        selectedMapAndLayer[0] = -1;
-//        selectedMapAndLayer[1] = -1;
-//    }
+    private void toggleDataAndCartoView(boolean cartoView) {
+        if (selectedMapAndLayer[0] == - 1) {
+            selectedMapAndLayer[0] = activeMap;
+        }
+        // all open maps should be updated.
+        for (MapInfo map : openMaps) {
+            map.setCartoView(cartoView);
+        }
+        //openMaps.get(selectedMapAndLayer[0]).setCartoView(cartoView);
+        if (cartoView) {
+            dataView.setState(false);
+            cartographicView.setState(true);
+        } else {
+            dataView.setState(true);
+            cartographicView.setState(false);
+        }
+        
+        refreshMap(false);
+        selectedMapAndLayer[0] = -1;
+        selectedMapAndLayer[1] = -1;
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -3350,13 +3362,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("mapProperties")) {
             //showFeedback("This feature is under development.");
             showMapProperties();
-        } //else if (actionCommand.equals("cartoView")) {
-//            toggleDataAndCartoView(true);
-//        } else if (actionCommand.equals("dataView")) {
-//            toggleDataAndCartoView(false);
-//        } else if (actionCommand.equals("pageProps")) {
-//            showMapProperties();
-//        }
+        } else if (actionCommand.equals("cartoView")) {
+            toggleDataAndCartoView(true);
+        } else if (actionCommand.equals("dataView")) {
+            toggleDataAndCartoView(false);
+        } else if (actionCommand.equals("pageProps")) {
+            showMapProperties();
+        }
 
     }
 
