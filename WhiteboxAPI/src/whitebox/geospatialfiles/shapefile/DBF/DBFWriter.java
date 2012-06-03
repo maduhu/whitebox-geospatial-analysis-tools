@@ -41,7 +41,6 @@ public class DBFWriter extends DBFBase {
     Creates an empty Object.
      */
     public DBFWriter() {
-
         this.header = new DBFHeader();
     }
 
@@ -83,7 +82,7 @@ public class DBFWriter extends DBFBase {
     }
 
     /**
-    Sets fields.
+     * Sets fields.
      */
     public void setFields(DBFField[] fields)
             throws DBFException {
@@ -112,8 +111,9 @@ public class DBFWriter extends DBFBase {
 
             if (this.raf != null && this.raf.length() == 0) {
 
-                /* 
-                this is a new/non-existent file. So write header before proceeding
+                /*
+                 * this is a new/non-existent file. So write header before
+                 * proceeding
                  */
                 this.header.write(this.raf);
             }

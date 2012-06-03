@@ -151,6 +151,38 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         setBlockData();
 
     }
+    
+    
+    public WhiteboxRaster(String HeaderFile, double north, double south, double east, double west, int rows, int cols, DataScale dataScale, DataType dataType, double initialValue, double noData)
+    {
+        // set the header file and data file.
+        headerFile = HeaderFile;
+        dataFile = headerFile.replace(".dep", ".tas");
+        statsFile = headerFile.replace(".dep", ".wstat");
+        File f1 = new File(this.headerFile);
+        f1.delete();
+        f1 = new File(this.dataFile);
+        f1.delete();
+        f1 = new File(this.statsFile);
+        f1.delete();
+        
+        this.north = north;
+        this.south = south;
+        this.east = east;
+        this.west = west;
+        this.numberRows = rows;
+        this.numberColumns = cols;
+        this.dataScale = dataScale;
+        setDataType(dataType);
+        this.noDataValue = noData;
+        writeHeaderFile();
+        
+        this.initialValue = initialValue;
+        setFileAccess("rw");
+        setBlockData();
+        //createNewDataFile();
+        
+    }
 
 
     // ***********************************

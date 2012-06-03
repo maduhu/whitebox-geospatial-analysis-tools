@@ -92,6 +92,7 @@ public class ShapeFile {
         this.mMin = Float.POSITIVE_INFINITY;
         this.mMax = Float.NEGATIVE_INFINITY;
         this.numRecs = 0;
+        deleteFiles();
     }
 
     // Properties
@@ -298,7 +299,7 @@ public class ShapeFile {
     }
     
     // Methods
-    public boolean deleteFiles() {
+    public final boolean deleteFiles() {
         try {
             File file = new File(fileName);
             file.delete();
@@ -377,7 +378,7 @@ public class ShapeFile {
         }
     }
     
-    public boolean writeShapeFile() throws IOException {
+    public boolean write() throws IOException {
         ByteBuffer buf;
         
         try {
@@ -450,9 +451,6 @@ public class ShapeFile {
                 for (ShapeFileRecord sfr : records) {
                     buf.putInt(pos, indexData[a]);
                     a++;
-                    if (a == 500) {
-                        a = 500;
-                    }
                     buf.putInt(pos + 4, sfr.getContentLength());
                     pos += 8;
                 }
@@ -478,9 +476,9 @@ public class ShapeFile {
     public boolean addRecord(Geometry recordGeometry) {
         if (recordGeometry.getShapeType() == shapeType) {
             numRecs++;
-            int contentLength = 4 + recordGeometry.getLength();
-            ShapeFileRecord sfr = new ShapeFileRecord(numRecs, contentLength, 
-                    shapeType, recordGeometry);
+            int contentLength = (4 + recordGeometry.getLength()) / 2;
+            ShapeFileRecord sfr = new ShapeFileRecord(numRecs, contentLength,
+                  shapeType, recordGeometry);
             records.add(sfr);
             
             // update the min and max coordinates
@@ -611,12 +609,12 @@ public class ShapeFile {
             
             if (recXMin < xMin) { xMin = recXMin; }
             if (recYMin < yMin) { yMin = recYMin; }
-            if (recXMax < xMax) { xMax = recXMax; }
-            if (recYMax < yMax) { yMax = recYMax; }
+            if (recXMax > xMax) { xMax = recXMax; }
+            if (recYMax > yMax) { yMax = recYMax; }
             if (recZMin < zMin) { zMin = recZMin; }
-            if (recZMax < zMax) { zMax = recZMax; }
+            if (recZMax > zMax) { zMax = recZMax; }
             if (recMMin < mMin) { mMin = recMMin; }
-            if (recMMax < mMax) { mMax = recMMax; }
+            if (recMMax > mMax) { mMax = recMMax; }
             
             return true;
         } else {
@@ -1068,7 +1066,7 @@ public class ShapeFile {
 //        // writing shapefiles test
 //        String fileName = "/Users/johnlindsay/Documents/Data/tmp2.shp";
 //        //ShapeFile shp = new ShapeFile(fileName, ShapeType.POINT);
-//        ShapeFile shp = new ShapeFile(fileName, ShapeType.POLYGONZ);
+//        ShapeFile shp = new ShapeFile(fileName, ShapeType.POLYLINE);
 //        shp.deleteFiles();
 ////        ArrayList<Geometry> pnts = new ArrayList<Geometry>(); 
 ////        Random generator = new Random();
@@ -1083,54 +1081,31 @@ public class ShapeFile {
 //        
 //        ArrayList<Geometry> lines = new ArrayList<Geometry>();
 //        int[] parts = {0, 6};
-//        double[][] points = new double[11][2];
+//        //double[][] points = new double[11][2];
+//        PointsList pl = new PointsList();
 //        // pentagon
-//        points[0][0] = 50;
-//        points[0][1] = 100;
+//        pl.addPoint(50, 100);
+//        pl.addPoint(100, 75);
+//        pl.addPoint(75, 0);
+//        pl.addPoint(25, 0);
+//        pl.addPoint(0, 75);
+//        pl.addPoint(50, 100);
+//        //square
+//        pl.addPoint(25, 75);
+//        pl.addPoint(25, 25);
+//        pl.addPoint(75, 25);
+//        pl.addPoint(75, 75);
+//        pl.addPoint(25, 75);
 //        
-//        points[1][0] = 100;
-//        points[1][1] = 75;
-//        
-//        points[2][0] = 75;
-//        points[2][1] = 0;
-//        
-//        points[3][0] = 25;
-//        points[3][1] = 0;
-//        
-//        points[4][0] = 0;
-//        points[4][1] = 75;
-//        
-//        points[5][0] = 50;
-//        points[5][1] = 100;
-//        
-//        // square
-//        points[6][0] = 25;
-//        points[6][1] = 75;
-//        
-//        points[9][0] = 25;
-//        points[9][1] = 25;
-//        
-//        points[8][0] = 75;
-//        points[8][1] = 25;
-//        
-//        points[7][0] = 75;
-//        points[7][1] = 75;
-//        
-//        points[10][0] = 25;
-//        points[10][1] = 75;
-//        
-//        double[] mArray = {3.4, 2.3, 11.9, 4.2, 4.3, 4.5, 8.7, 9.2, 8.5, 2.9, 11.0};
-//        double[] zArray = {3.4, 2.3, 11.9, 4.2, 4.3, 4.5, 8.7, 9.2, 8.5, 2.9, 11.0};
-//        
-//        lines.add(new PolygonZ(parts, points, zArray));
-//        
+//        lines.add(new PolyLine(parts, pl.getPointsArray()));
+//
 //        shp.addRecords(lines);
 //        try {
-//            shp.writeShapeFile();
+//            shp.write();
 //        } catch (IOException ioe) {
 //            
 //        }
 //        // now read it in
-//        ShapeFile shp2 = new ShapeFile(fileName);
+//        //ShapeFile shp2 = new ShapeFile(fileName);
 //    }
 }

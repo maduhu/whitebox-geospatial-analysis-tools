@@ -16,21 +16,9 @@
  */
 package whitebox.geospatialfiles;
 
-import java.io.File;
-import java.nio.ByteOrder;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
-import java.nio.ByteBuffer;
+import java.io.*;
+import java.nio.*;
 import java.nio.channels.FileChannel;
-import java.io.BufferedWriter;
 import java.util.ArrayList;
 /**
  * The abstract base class serving the WhiteboxRaster and WhiteboxRasterInfo 
@@ -1357,6 +1345,61 @@ public abstract class WhiteboxRasterBase {
         } else {
             numberOfBins = 256;
         }
+    }
+    
+    private double halfCellSizeX = -1;
+    private double EWRange = -1;
+    public int getColumnFromXCoordinate(double x) {
+        if (halfCellSizeX < 0 || EWRange < 0) {
+            getCellSizeX();
+            halfCellSizeX = cellSizeX / 2.0;
+            EWRange = east - west - cellSizeX;
+        }
+        return (int)(Math.round((numberColumns - 1) * (x - west - halfCellSizeX) / EWRange));
+    }
+    
+    
+    private double halfCellSizeY = -1;
+    private double NSRange = -1;
+    public int getRowFromYCoordinate(double y) {
+        if (halfCellSizeY < 0 || NSRange < 0) {
+            getCellSizeY();
+            halfCellSizeY = cellSizeY / 2.0;
+            NSRange = north - south - cellSizeY;
+        }
+        return (int)(Math.round((numberRows - 1) * (north - halfCellSizeY - y) / NSRange));
+    }
+    
+    private double[] xCoordsByColumn;
+    public double getXCoordinateFromColumn(int column) {
+        if (halfCellSizeX < 0 || EWRange < 0) {
+            getCellSizeX();
+            halfCellSizeX = cellSizeX / 2.0;
+            EWRange = east - west - cellSizeX;
+        }
+        if (xCoordsByColumn == null) {
+            xCoordsByColumn = new double[numberColumns];
+            for (int i = 0; i < numberColumns; i++) {
+                xCoordsByColumn[i] = west + halfCellSizeX + i * cellSizeX;
+            }
+        }
+        return xCoordsByColumn[column];
+    }
+    
+    private double[] yCoordsByRow;
+    public double getYCoordinateFromRow(int row) {
+        if (halfCellSizeY < 0 || NSRange < 0) {
+            getCellSizeY();
+            halfCellSizeY = cellSizeY / 2.0;
+            NSRange = north - south - cellSizeY;
+        }
+        if (yCoordsByRow == null) {
+            yCoordsByRow = new double[numberRows];
+            for (int i = 0; i < numberRows; i++) {
+                yCoordsByRow[i] = north - halfCellSizeY - i * cellSizeY;
+            }
+        }
+        return yCoordsByRow[row];
     }
     
     public abstract void close();
