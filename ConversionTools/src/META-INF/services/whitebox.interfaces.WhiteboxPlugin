@@ -2,5 +2,7 @@ plugins.ChangeDataScale
 plugins.ChangeDataType
 plugins.ConvertNoDataToZero
 plugins.CoordinateSystemTransformation
+plugins.RasterToVectorPoints
 plugins.SetNoData
+plugins.VectorPointsToRaster
 plugins.XYZTextToRaster
