@@ -25,4 +25,25 @@ public enum ShapeType {
     MULTIPOINT, UNUSED5, UNUSED6, POINTZ, UNUSED7, POLYLINEZ, UNUSED8, POLYGONZ,
     UNUSED9, UNUSED10, MULTIPOINTZ, UNUSED11, UNUSED12, POINTM, UNUSED13, POLYLINEM,
     UNUSED14, POLYGONM, UNUSED15, UNUSED16, MULTIPOINTM, UNUSED17, UNUSED18, MULTIPATCH;
+    
+    public ShapeType getBaseType() {
+        switch (this) {
+            case POINT:
+            case POINTZ:
+            case POINTM:
+                return POINT;
+            
+            case POLYLINE:
+            case POLYLINEZ:
+            case POLYLINEM:
+                return POLYLINE;
+                
+            case POLYGON:
+            case POLYGONZ:
+            case POLYGONM:
+                return POLYGON;
+            default:
+                return this;
+        }
+    }
 }

@@ -23,7 +23,10 @@ package whitebox.structures;
 public class BoundingBox implements Comparable<BoundingBox>  {
     
     public BoundingBox() {
-        
+        this.maxY = Float.NEGATIVE_INFINITY;
+        this.maxX = Float.NEGATIVE_INFINITY;
+        this.minY = Float.POSITIVE_INFINITY;
+        this.minX = Float.POSITIVE_INFINITY;
     }
     
     public BoundingBox(Double minX, Double minY, Double maxX, Double maxY) {

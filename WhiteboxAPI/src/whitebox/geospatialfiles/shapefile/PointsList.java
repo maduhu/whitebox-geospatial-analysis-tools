@@ -23,24 +23,29 @@ import java.util.ArrayList;
  */
 public class PointsList {
     private ArrayList<ShapeFilePoint> myList = new ArrayList<ShapeFilePoint>();
+    boolean isClosedForAdding = false;
     
     public void addPoint(double x, double y) {
+        if (isClosedForAdding) { return; }
         ShapeFilePoint sfp = new ShapeFilePoint(x, y);
         myList.add(sfp);
     }
     
     public void addMPoint(double x, double y, double m) {
+        if (isClosedForAdding) { return; }
         ShapeFilePoint sfp = new ShapeFilePoint(x, y);
         sfp.m = m;
         myList.add(sfp);
     }
     
     public void addMPoint(double x, double y) {
+        if (isClosedForAdding) { return; }
         ShapeFilePoint sfp = new ShapeFilePoint(x, y);
         myList.add(sfp);
     }
     
     public void addZPoint(double x, double y, double z, double m) {
+        if (isClosedForAdding) { return; }
         ShapeFilePoint sfp = new ShapeFilePoint(x, y);
         sfp.z = z;
         sfp.m = m;
@@ -48,6 +53,7 @@ public class PointsList {
     }
     
     public void addZPoint(double x, double y, double z) {
+        if (isClosedForAdding) { return; }
         ShapeFilePoint sfp = new ShapeFilePoint(x, y);
         sfp.z = z;
         myList.add(sfp);
@@ -55,6 +61,10 @@ public class PointsList {
     
     public void removePoint(int i) {
         myList.remove(i);
+    }
+    
+    public ShapeFilePoint getPoint(int i) {
+        return myList.get(i);
     }
     
     public double[][] getPointsArray() {
@@ -86,6 +96,13 @@ public class PointsList {
             i++;
         }
         return ret;
+    }
+    
+    public void closePolygon() {
+        ShapeFilePoint firstPoint = myList.get(0);
+        ShapeFilePoint sfp = new ShapeFilePoint(firstPoint.x, firstPoint.y);
+        myList.add(sfp);
+        isClosedForAdding = true;
     }
     
     private class ShapeFilePoint {

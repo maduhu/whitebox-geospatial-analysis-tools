@@ -241,6 +241,10 @@ public class Polygon implements Geometry {
         }
     }
     
+    public boolean[] getPartHoleData() {
+        return isHole;
+    }
+    
     public boolean isPartAHole(int partNum) {
         if (partNum < 0) { return false; }
         if (partNum >= numParts) { return false; }
