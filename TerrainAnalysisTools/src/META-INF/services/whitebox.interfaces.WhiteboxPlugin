@@ -2,6 +2,7 @@ plugins.Aspect
 plugins.AverageSlopeToDivide
 plugins.AverageUpslopeFlowpathLength
 plugins.BranchLength
+plugins.Contour
 plugins.DifferenceFromMeanElevation
 plugins.DirectionalRelief
 plugins.ElevAbovePit
