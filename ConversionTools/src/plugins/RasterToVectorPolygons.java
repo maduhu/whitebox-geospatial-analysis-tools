@@ -191,25 +191,6 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
     @Override
     public void run() {
 
-        /*
-         * Diagram 1: Cell Numbering _____________ | | | | 0 | 1 | |_____|_____|
-         * | | | | 2 | 3 | |_____|_____|
-         *
-         */
-
-        /*
-         * Diagram 2: Edge Numbering (shared edges between cells) _____________
-         * | | | | 3 | |__2__|__0__| | | | | 1 | |_____|_____|
-         *
-         */
-
-        /*
-         * Diagram 3: Cell Edge Numbering
-         *
-         * ___0___ | | | | 3 1 | | |___2___|
-         *
-         */
-
         amIActive = true;
         String inputFile;
         String outputFile;
@@ -260,7 +241,7 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
             // create a temporary raster image.
             String tempHeader1 = inputFile.replace(".dep", "_temp1.dep");
             WhiteboxRaster temp1 = new WhiteboxRaster(tempHeader1, "rw", inputFile, WhiteboxRaster.DataType.INTEGER, 0);
-            //temp1.isTemporaryFile = true;
+            temp1.isTemporaryFile = true;
 
             // set up the output files of the shapefile and the dbf
             ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON);
