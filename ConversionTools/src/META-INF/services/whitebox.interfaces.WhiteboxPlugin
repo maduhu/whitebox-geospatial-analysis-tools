@@ -1,8 +1,10 @@
 plugins.ChangeDataScale
 plugins.ChangeDataType
 plugins.ConvertNoDataToZero
-plugins.CoordinateSystemTransformation
 plugins.RasterToVectorPoints
+plugins.RasterToVectorPolygons
 plugins.SetNoData
+plugins.VectorLinesToRaster
 plugins.VectorPointsToRaster
+plugins.VectorPolygonsToRaster
 plugins.XYZTextToRaster

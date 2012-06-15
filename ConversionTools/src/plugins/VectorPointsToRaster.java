@@ -75,7 +75,7 @@ public class VectorPointsToRaster implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "RasterVectorConversions" };
+    	String[] ret = { "RasterVectorConversions", "RasterCreation" };
     	return ret;
     }
 
@@ -211,9 +211,10 @@ public class VectorPointsToRaster implements WhiteboxPlugin {
         double west;
         double north;
         double south;
-        DataType dataType = WhiteboxRasterBase.DataType.FLOAT;
+        DataType dataType = WhiteboxRasterBase.DataType.INTEGER;
         Object[] data;
-            
+        boolean useRecID = false;
+        
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
@@ -244,6 +245,16 @@ public class VectorPointsToRaster implements WhiteboxPlugin {
             // initialize the shapefile input
             ShapeFile input = new ShapeFile(inputFile);
             
+            if (input.getShapeType() != ShapeType.POINT && 
+                    input.getShapeType() != ShapeType.POINTZ && 
+                    input.getShapeType() != ShapeType.POINTM && 
+                    input.getShapeType() != ShapeType.MULTIPOINT && 
+                    input.getShapeType() != ShapeType.MULTIPOINTZ && 
+                    input.getShapeType() != ShapeType.MULTIPOINTM) {
+                showFeedback("The input shapefile must be of a 'point' data type.");
+                return;
+            }
+            
             // what type of data is contained in fieldName?
             DBFReader reader = new DBFReader(input.getDatabaseFile());
             int numberOfFields = reader.getFieldCount();
@@ -261,11 +272,13 @@ public class VectorPointsToRaster implements WhiteboxPlugin {
                             dataType = WhiteboxRasterBase.DataType.FLOAT;
                         }
                     } else {
-                        showFeedback("The type of data contained in the field "
-                                + "can not be mapped into grid cells. Choose a "
-                                + "numerical field.");
+                        useRecID = true;
                     }
                 }
+            }
+            
+            if (fieldNum < 0) {
+                useRecID = true;
             }
             
             // initialize the output raster
@@ -340,7 +353,11 @@ public class VectorPointsToRaster implements WhiteboxPlugin {
                             // find the row and column number
                             row = output.getRowFromYCoordinate(yCoord);
                             col = output.getColumnFromXCoordinate(xCoord);
-                            value = Double.valueOf(data[fieldNum].toString());
+                            if (!useRecID) {
+                                value = Double.valueOf(data[fieldNum].toString());
+                            } else {
+                                value = record.getRecordNumber();
+                            }
                             z = output.getValue(row, col);
                             if (z == backgroundValue || z > value) {
                                 output.setValue(row, col, value);
@@ -368,7 +385,11 @@ public class VectorPointsToRaster implements WhiteboxPlugin {
                             // find the row and column number
                             row = output.getRowFromYCoordinate(yCoord);
                             col = output.getColumnFromXCoordinate(xCoord);
-                            value = Double.valueOf(data[fieldNum].toString());
+                            if (!useRecID) {
+                                value = Double.valueOf(data[fieldNum].toString());
+                            } else {
+                                value = record.getRecordNumber();
+                            }
                             z = output.getValue(row, col);
                             if (z == backgroundValue) {
                                 output.setValue(row, col, value);
@@ -398,7 +419,11 @@ public class VectorPointsToRaster implements WhiteboxPlugin {
                             // find the row and column number
                             row = output.getRowFromYCoordinate(yCoord);
                             col = output.getColumnFromXCoordinate(xCoord);
-                            value = Double.valueOf(data[fieldNum].toString());
+                            if (!useRecID) {
+                                value = Double.valueOf(data[fieldNum].toString());
+                            } else {
+                                value = record.getRecordNumber();
+                            }
                             z = output.getValue(row, col);
                             if (z == backgroundValue) {
                                 output.setValue(row, col, value);
@@ -426,7 +451,11 @@ public class VectorPointsToRaster implements WhiteboxPlugin {
                             // find the row and column number
                             row = output.getRowFromYCoordinate(yCoord);
                             col = output.getColumnFromXCoordinate(xCoord);
-                            value = Double.valueOf(data[fieldNum].toString());
+                            if (!useRecID) {
+                                value = Double.valueOf(data[fieldNum].toString());
+                            } else {
+                                value = record.getRecordNumber();
+                            }
                             output.setValue(row, col, value);
                         }
                     }

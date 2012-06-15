@@ -44,7 +44,7 @@ public class XYZTextToRaster implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Convert X,Y,Z text file to a raster";
+        return "Convert X,Y,Z Text File To Raster";
     }
     /**
      * Used to retrieve a short description of what the plugin tool does.
