@@ -1,4 +1,4 @@
-<Dialog Name="VectorPointsToRaster" HelpFile="VectorPointsToRaster.html">
+<Dialog Name="VectorLinesToRaster" HelpFile="VectorLinesToRaster.html">
 	<DialogComponent type="DialogFile">
 		<Name>inputFile</Name>
 		<Description>Enter the name of the input shapefile here</Description>
@@ -28,14 +28,6 @@
 		<NumericalInputOnly>False</NumericalInputOnly>
 		<MakeOptional>True</MakeOptional>
 		<Width>60</Width>
-	</DialogComponent>
-        <DialogComponent type="DialogComboBox">
-		<Name>assignmentType</Name>
-		<Description>Assignment operation type.</Description>
-		<LabelText>Assignment Operation:</LabelText>
-		<IsVisible>True</IsVisible>
-		<ListItems>minimum, maximum, sum, first, last</ListItems>
-		<DefaultItem>0</DefaultItem>		
 	</DialogComponent>
         <DialogComponent type="DialogDataInput">
 		<Name>backgroundValue</Name>

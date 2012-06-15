@@ -223,10 +223,11 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
 
                         PaletteImage paletteImage = null;
                         paletteImage = new PaletteImage(18, 50, vli.getPaletteFile(), false, PaletteImage.VERTICAL_ORIENTATION);
+                        box2.add(Box.createHorizontalStrut(5));
                         box2.add(paletteImage);
 
-                        JLabel maxVal = new JLabel("Max: " + df.format(vli.getMaximumValue()));
-                        JLabel minVal = new JLabel("Min: " + df.format(vli.getMinimumValue()));
+                        JLabel maxVal = new JLabel(df.format(vli.getMaximumValue()));
+                        JLabel minVal = new JLabel(df.format(vli.getMinimumValue()));
 
                         Box box3 = Box.createVerticalBox();
                         box3.add(maxVal);

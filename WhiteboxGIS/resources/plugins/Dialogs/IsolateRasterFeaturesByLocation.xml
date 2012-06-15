@@ -38,7 +38,7 @@
 	<DialogComponent type="DialogFile">
 		<Name>outputHeader</Name>
 		<Description>Enter the name of the output file here</Description>
-		<LabelText>and call the output raster:</LabelText>
+		<LabelText>and name the output raster:</LabelText>
 		<DialogMode>Save File</DialogMode>
 		<Filter>Raster Files (*.dep), DEP</Filter>
 		<IsVisible>True</IsVisible>

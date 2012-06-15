@@ -1464,7 +1464,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                                 + "  B: " + b + "  A: " + a);
                     }
                 }
-            } else {
+            } else if (!Double.isNaN(x) && !Double.isNaN(y)) {
                 status.setMessage("E: " + xStr + "  N: " + yStr);
             }
         }

@@ -142,6 +142,7 @@ public class VectorLayerInfo implements MapLayer {
             value = 255;
         }
         alpha = value;
+        setRecordsColourData();
     }
 
     public String getFileName() {
@@ -202,6 +203,7 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setFillColour(Color fillColour) {
         this.fillColour = fillColour;
+        setRecordsColourData();
     }
 
     public ShapeFile getShapefile() {
@@ -214,6 +216,7 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setLineColour(Color lineColour) {
         this.lineColour = lineColour;
+        setRecordsColourData();
     }
 
     public boolean isFilled() {
@@ -426,6 +429,7 @@ public class VectorLayerInfo implements MapLayer {
         }
         
         if (singleColour) {
+            clr = new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), a1);
             for (i = 0; i < numRecords; i++) {
                 colourData[i] = clr;
             }
@@ -591,7 +595,8 @@ public class VectorLayerInfo implements MapLayer {
                             for (i = 0; i < numRecords; i++) {
                                 value  = (Double)data[i][1];
                                 entryNum = (int) (((value - minValue) / range) * (numPaletteEntries - 1));
-                                colourData[i] = new Color(paletteData[entryNum]);
+                                clr = new Color(paletteData[entryNum]);
+                                colourData[i] = new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), a1);
                             }
                             
                             minimumValue = minValue;

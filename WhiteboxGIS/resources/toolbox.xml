@@ -83,4 +83,5 @@
 
 	<toolbox name="WindRelatedTAs" label="Wind-Related Terrain Attributes"></toolbox>
     </toolbox>
+    <toolbox name="VectorTools" label="Vector Analysis"></toolbox>
 </toolbox>

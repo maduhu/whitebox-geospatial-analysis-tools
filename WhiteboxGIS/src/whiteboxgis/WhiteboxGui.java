@@ -60,7 +60,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     StatusBar status = new StatusBar(this);
     // common variables
-    static private String versionNumber = "2.0.1";
+    static private String versionNumber = "2.0.2";
     private String applicationDirectory;
     private String resourcesDirectory;
     private String graphicsDirectory;
@@ -640,6 +640,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             this.setMinimumSize(new Dimension(700, 500));
             this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
 
+            // set the message indicating the number of plugins that were located.
+            status.setMessage(" " + plugInfo.size() + " plugins were located");
         } catch (Exception e) {
             showFeedback(e.getMessage());
         }
