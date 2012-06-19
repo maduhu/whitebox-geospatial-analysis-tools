@@ -16,8 +16,12 @@
  */
 package whitebox.geospatialfiles.shapefile;
 
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LinearRing;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import whitebox.structures.BoundingBox;
 
 /**
@@ -323,6 +327,16 @@ public class PolygonM implements Geometry {
         return isHole[partNum];
     }
     
+    public int getNumberOfHoles() {
+        int ret = 0;
+        for (int i = 0; i < numParts; i++) {
+            if (isHole[i]) {
+                ret++;
+            }
+        }
+        return ret;
+    }
+    
     public boolean isPartConvex(int partNum) {
         if (partNum < 0) { return false; }
         if (partNum >= numParts) { return false; }
@@ -384,5 +398,96 @@ public class PolygonM implements Geometry {
         } else {
             return false;
         }
+    }
+    
+    @Override
+    public com.vividsolutions.jts.geom.Geometry[] getJTSGeometries() {
+        GeometryFactory factory = new GeometryFactory();
+        int part;
+        int j, i, a;
+        int startingPointInPart, endingPointInPart;
+        int numPointsInPart;
+        int numHoles = this.getNumberOfHoles();
+        int numNonHoles = numParts - numHoles; // this is the number of shells
+        CoordinateArraySequence coordArray;
+        ArrayList<com.vividsolutions.jts.geom.Polygon> polyList = new ArrayList<com.vividsolutions.jts.geom.Polygon>();
+        
+        // read the polygon shells into an array of Geometry
+        //com.vividsolutions.jts.geom.Geometry[] shells = new com.vividsolutions.jts.geom.Geometry[numNonHoles];
+        LinearRing[] shells = new LinearRing[numNonHoles];
+        int shellNum;
+        shellNum = 0;
+        for (part = 0; part < numParts; part++) {
+            if (!isHole[part]) {
+                startingPointInPart = parts[part];
+
+                if (part < numParts - 1) {
+                    endingPointInPart = parts[part + 1];
+                } else {
+                    endingPointInPart = numPoints;
+                }
+                numPointsInPart = endingPointInPart - startingPointInPart;
+
+                coordArray = new CoordinateArraySequence(numPointsInPart);
+                j = 0;
+                for (i = startingPointInPart; i < endingPointInPart; i++) {
+                    coordArray.setOrdinate(j, 0, points[i][0]);
+                    coordArray.setOrdinate(j, 1, points[i][1]);
+                    coordArray.setOrdinate(j, 2, mArray[i]);
+                    j++;
+                }
+                shells[shellNum] = factory.createLinearRing(coordArray);
+                shellNum++;
+            }
+        }
+
+        for (a = 0; a < numNonHoles; a++) {
+            com.vividsolutions.jts.geom.Polygon p = factory.createPolygon(shells[a], new LinearRing[0]);
+            // how many holes do each of the shells have?
+            ArrayList<LinearRing> holesLR = new ArrayList<LinearRing>();
+            for (part = 0; part < numParts; part++) {
+                if (isHole[part]) {
+                    startingPointInPart = parts[part];
+
+                    if (part < numParts - 1) {
+                        endingPointInPart = parts[part + 1];
+                    } else {
+                        endingPointInPart = numPoints;
+                    }
+                    numPointsInPart = endingPointInPart - startingPointInPart;
+
+                    coordArray = new CoordinateArraySequence(numPointsInPart);
+                    j = 0;
+                    for (i = startingPointInPart; i < endingPointInPart; i++) {
+                        coordArray.setOrdinate(j, 0, points[i][0]);
+                        coordArray.setOrdinate(j, 1, points[i][1]);
+                        coordArray.setOrdinate(j, 2, mArray[i]);
+                        j++;
+                    }
+                    com.vividsolutions.jts.geom.Geometry hole = factory.createLineString(coordArray);
+                    if (p.contains(hole)) {
+                        holesLR.add(factory.createLinearRing(coordArray));
+                        break;
+                    }
+                }
+            }
+            LinearRing[] holes = new LinearRing[0];
+            if (holesLR.size() > 0) {
+                holes = new LinearRing[holesLR.size()];
+                for (int b = 0; b < holesLR.size(); b++) {
+                    holes[b] = holesLR.get(b);
+                }
+            }
+            holesLR.clear();
+            p = factory.createPolygon(shells[a], holes);
+            polyList.add(p);
+        }
+        
+        com.vividsolutions.jts.geom.Polygon[] polyArray = new com.vividsolutions.jts.geom.Polygon[polyList.size()];
+        for (a = 0; a < polyList.size(); a++) {
+            polyArray[a] = polyList.get(a);
+        }
+        
+        return polyArray;
     }
 }

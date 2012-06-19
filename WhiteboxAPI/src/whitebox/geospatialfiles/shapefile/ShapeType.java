@@ -33,6 +33,11 @@ public enum ShapeType {
             case POINTM:
                 return POINT;
             
+            case MULTIPOINT:
+            case MULTIPOINTZ:
+            case MULTIPOINTM:
+                return MULTIPOINT;
+                
             case POLYLINE:
             case POLYLINEZ:
             case POLYLINEM:

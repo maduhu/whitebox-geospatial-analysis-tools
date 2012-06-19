@@ -851,18 +851,23 @@ public class ShapeFile {
      
             numRecs = records.size();
             
+            try {
+                rIn.close();
+            } catch (Exception e) {
+            }
+
             return true;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return false;
-        } finally {
-            if (rIn != null) {
-                try {
-                    rIn.close();
-                } catch (Exception e) {
-                }
-            }
-        }
+        }// finally {
+            //if (rIn != null) {
+//                try {
+//                    rIn.close();
+//                } catch (Exception e) {
+//                }
+            //}
+        //}
     }
     
     /**

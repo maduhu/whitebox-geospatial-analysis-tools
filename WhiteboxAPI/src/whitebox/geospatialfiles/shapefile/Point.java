@@ -16,6 +16,8 @@
  */
 package whitebox.geospatialfiles.shapefile;
 
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import whitebox.structures.BoundingBox;
@@ -83,5 +85,16 @@ public class Point implements Geometry {
         } else {
             return false;
         }
+    }
+    
+    @Override
+    public com.vividsolutions.jts.geom.Geometry[] getJTSGeometries() {
+        GeometryFactory factory = new GeometryFactory();
+        CoordinateArraySequence coordArray = new CoordinateArraySequence(1);
+        coordArray.setOrdinate(0, 0, x);
+        coordArray.setOrdinate(0, 1, y);
+        com.vividsolutions.jts.geom.Point[] retArray = new com.vividsolutions.jts.geom.Point[1];
+        retArray[0] = factory.createPoint(coordArray);
+        return retArray;
     }
 }

@@ -16,25 +16,39 @@
  */
 package whitebox.geospatialfiles.shapefile;
 
-import java.nio.ByteBuffer;
-import whitebox.structures.BoundingBox;
-
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public interface Geometry {
-    /**
-     * Gets the length of this object in bytes.
-     * @return length as integer.
-     */
-    int getLength();
-    
-    ShapeType getShapeType();
-    
-    boolean isMappable(BoundingBox box, double minSize);
-    
-    ByteBuffer toByteBuffer();
-    
-    com.vividsolutions.jts.geom.Geometry[] getJTSGeometries();
+public class ShapefilePoint implements Comparable<ShapefilePoint> {
+    public double x = 0.0;
+    public double y = 0.0;
+    public double z = 0.0;
+    public double m = 0.0;
+
+    public ShapefilePoint(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public int compareTo(ShapefilePoint t) {
+        final int BEFORE = -1;
+        final int EQUAL = 0;
+        final int AFTER = 1;
+        
+        if (this.x > t.x) {
+            return AFTER;
+        } else if (this.x < t.x) {
+            return BEFORE;
+        } else {
+            if (this.y > t.y) {
+                return BEFORE;
+            } else if (this.y < t.y) {
+                return AFTER;
+            } else {
+                return EQUAL;
+            }
+        }
+    }
 }

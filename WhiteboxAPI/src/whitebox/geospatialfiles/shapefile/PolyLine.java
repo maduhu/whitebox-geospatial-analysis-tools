@@ -16,6 +16,8 @@
  */
 package whitebox.geospatialfiles.shapefile;
 
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import whitebox.structures.BoundingBox;
@@ -180,5 +182,38 @@ public class PolyLine implements Geometry {
         } else {
             return false;
         }
+    }
+    
+    @Override
+    public com.vividsolutions.jts.geom.Geometry[] getJTSGeometries() {
+        GeometryFactory factory = new GeometryFactory();
+        int part;
+        int j, i;
+        int startingPointInPart, endingPointInPart;
+        int numPointsInPart;
+        CoordinateArraySequence coordArray;
+        com.vividsolutions.jts.geom.LineString[] polyArray = new com.vividsolutions.jts.geom.LineString[numParts];
+        
+        for (part = 0; part < numParts; part++) {
+            startingPointInPart = parts[part];
+
+            if (part < numParts - 1) {
+                endingPointInPart = parts[part + 1];
+            } else {
+                endingPointInPart = numPoints;
+            }
+            numPointsInPart = endingPointInPart - startingPointInPart;
+
+            coordArray = new CoordinateArraySequence(numPointsInPart);
+            j = 0;
+            for (i = startingPointInPart; i < endingPointInPart; i++) {
+                coordArray.setOrdinate(j, 0, points[i][0]);
+                coordArray.setOrdinate(j, 1, points[i][1]);
+                j++;
+            }
+            polyArray[part] = factory.createLineString(coordArray);
+        }
+        
+        return polyArray;
     }
 }

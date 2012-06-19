@@ -22,31 +22,41 @@ import java.util.ArrayList;
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class PointsList {
-    private ArrayList<ShapeFilePoint> myList = new ArrayList<ShapeFilePoint>();
+    private ArrayList<ShapefilePoint> myList = new ArrayList<ShapefilePoint>();
     boolean isClosedForAdding = false;
+    
+    public PointsList() {
+        
+    }
+ 
+    public PointsList(ArrayList<ShapefilePoint> list) {
+        for (ShapefilePoint sfp: list) {
+            myList.add(sfp);
+        }
+    }
     
     public void addPoint(double x, double y) {
         if (isClosedForAdding) { return; }
-        ShapeFilePoint sfp = new ShapeFilePoint(x, y);
+        ShapefilePoint sfp = new ShapefilePoint(x, y);
         myList.add(sfp);
     }
     
     public void addMPoint(double x, double y, double m) {
         if (isClosedForAdding) { return; }
-        ShapeFilePoint sfp = new ShapeFilePoint(x, y);
+        ShapefilePoint sfp = new ShapefilePoint(x, y);
         sfp.m = m;
         myList.add(sfp);
     }
     
     public void addMPoint(double x, double y) {
         if (isClosedForAdding) { return; }
-        ShapeFilePoint sfp = new ShapeFilePoint(x, y);
+        ShapefilePoint sfp = new ShapefilePoint(x, y);
         myList.add(sfp);
     }
     
     public void addZPoint(double x, double y, double z, double m) {
         if (isClosedForAdding) { return; }
-        ShapeFilePoint sfp = new ShapeFilePoint(x, y);
+        ShapefilePoint sfp = new ShapefilePoint(x, y);
         sfp.z = z;
         sfp.m = m;
         myList.add(sfp);
@@ -54,7 +64,7 @@ public class PointsList {
     
     public void addZPoint(double x, double y, double z) {
         if (isClosedForAdding) { return; }
-        ShapeFilePoint sfp = new ShapeFilePoint(x, y);
+        ShapefilePoint sfp = new ShapefilePoint(x, y);
         sfp.z = z;
         myList.add(sfp);
     }
@@ -63,14 +73,14 @@ public class PointsList {
         myList.remove(i);
     }
     
-    public ShapeFilePoint getPoint(int i) {
+    public ShapefilePoint getPoint(int i) {
         return myList.get(i);
     }
     
     public double[][] getPointsArray() {
         double[][] ret = new double[myList.size()][2];
         int i = 0;
-        for (ShapeFilePoint sfp : myList) {
+        for (ShapefilePoint sfp : myList) {
             ret[i][0] = sfp.x;
             ret[i][1] = sfp.y;
             i++;
@@ -81,7 +91,7 @@ public class PointsList {
     public double[] getZArray() {
         double[] ret = new double[myList.size()];
         int i = 0;
-        for (ShapeFilePoint sfp : myList) {
+        for (ShapefilePoint sfp : myList) {
             ret[i] = sfp.z;
             i++;
         }
@@ -91,7 +101,7 @@ public class PointsList {
     public double[] getMArray() {
         double[] ret = new double[myList.size()];
         int i = 0;
-        for (ShapeFilePoint sfp : myList) {
+        for (ShapefilePoint sfp : myList) {
             ret[i] = sfp.m;
             i++;
         }
@@ -99,21 +109,9 @@ public class PointsList {
     }
     
     public void closePolygon() {
-        ShapeFilePoint firstPoint = myList.get(0);
-        ShapeFilePoint sfp = new ShapeFilePoint(firstPoint.x, firstPoint.y);
+        ShapefilePoint firstPoint = myList.get(0);
+        ShapefilePoint sfp = new ShapefilePoint(firstPoint.x, firstPoint.y);
         myList.add(sfp);
         isClosedForAdding = true;
-    }
-    
-    private class ShapeFilePoint {
-        double x;
-        double y;
-        double z = 0.0;
-        double m = 0.0;
-        
-        private ShapeFilePoint(double x, double y) {
-            this.x = x;
-            this.y = y;
-        }
     }
 }

@@ -246,4 +246,9 @@ public class MultiPatch implements Geometry {
             return false;
         }
     }
+
+    @Override
+    public com.vividsolutions.jts.geom.Geometry[] getJTSGeometries() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

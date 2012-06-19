@@ -16,6 +16,8 @@
  */
 package whitebox.geospatialfiles.shapefile;
 
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import whitebox.structures.BoundingBox;
@@ -190,5 +192,23 @@ public class MultiPointZ implements Geometry {
         } else {
             return false;
         }
+    }
+    
+    @Override
+    public com.vividsolutions.jts.geom.Geometry[] getJTSGeometries() {
+        GeometryFactory factory = new GeometryFactory();
+        int a;
+        CoordinateArraySequence coordArray;
+        com.vividsolutions.jts.geom.Point[] pointArray = new com.vividsolutions.jts.geom.Point[numPoints];
+        
+        for (a = 0; a < numPoints; a++) {
+            coordArray = new CoordinateArraySequence(1);
+            coordArray.setOrdinate(0, 0, points[a][0]);
+            coordArray.setOrdinate(0, 1, points[a][1]);
+            coordArray.setOrdinate(0, 2, zArray[a]);
+            pointArray[a] = factory.createPoint(coordArray);
+        }
+        
+        return pointArray;
     }
 }

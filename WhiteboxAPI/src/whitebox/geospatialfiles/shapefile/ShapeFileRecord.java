@@ -231,4 +231,54 @@ public class ShapeFileRecord {
         }
         return -1; // it should never reach here.
     }
+    
+//    public int[] getPartDataFromRecord() {
+//        
+//    }
+//    
+//    public double[][] getXYGeometryFromRecord() {
+//        if (data == null) { return null; }
+//        double[][] ret;
+//        ShapeType shapeType = this.getShapeType();
+//        switch (shapeType) {
+//            case POLYLINE:
+//                whitebox.geospatialfiles.shapefile.PolyLine recPolyLine =
+//                        (whitebox.geospatialfiles.shapefile.PolyLine) (data);
+//                ret = recPolyLine.getPoints();
+//                partData = recPolyLine.getParts();
+//                break;
+//            case POLYLINEZ:
+//                PolyLineZ recPolyLineZ = (PolyLineZ) (data);
+//                ret = recPolyLineZ.getPoints();
+//                partData = recPolyLineZ.getParts();
+//                break;
+//            case POLYLINEM:
+//                PolyLineM recPolyLineM = (PolyLineM) (data);
+//                ret = recPolyLineM.getPoints();
+//                partData = recPolyLineM.getParts();
+//                break;
+//            case POLYGON:
+//                Polygon recPolygon = (Polygon) (data);
+//                ret = recPolygon.getPoints();
+//                partData = recPolygon.getParts();
+//                break;
+//            case POLYGONZ:
+//                PolygonZ recPolygonZ = (PolygonZ) (data);
+//                ret = recPolygonZ.getPoints();
+//                partData = recPolygonZ.getParts();
+//                break;
+//            case POLYGONM:
+//                PolygonM recPolygonM = (PolygonM) (data);
+//                ret = recPolygonM.getPoints();
+//                partData = recPolygonM.getParts();
+//                break;
+//            default:
+//                ret = new double[1][2];
+//                ret[1][0] = -1;
+//                ret[1][1] = -1;
+//                break;
+//        }
+//
+//        return ret;
+//    }
 }
