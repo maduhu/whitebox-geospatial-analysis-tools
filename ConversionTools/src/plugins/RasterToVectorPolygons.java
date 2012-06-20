@@ -461,9 +461,8 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
             }
 
             input.close();
-            temp1.close();
             output.write();
-            writer.write();
+            //writer.write();
 
             // returning a header file string displays the image.
             returnData(outputFile);
