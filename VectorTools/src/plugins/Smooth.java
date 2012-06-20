@@ -195,6 +195,7 @@ public class Smooth implements WhiteboxPlugin {
         double x, y;
         int progress;
         int i, j, k;
+        int featureNum, numFeatures;
         int filterSize, halfFilterSize;
         double[][] geometry;
         double[][] outputGeometry;
@@ -243,7 +244,10 @@ public class Smooth implements WhiteboxPlugin {
             ShapeFile output = new ShapeFile(outputFile, shapeType);
             FileUtilities.copyFile(new File(input.getDatabaseFile()), new File(output.getDatabaseFile()));
             
+            numFeatures = input.getNumberOfRecords();
+            featureNum = 0;
             for (ShapeFileRecord record : input.records) {
+                featureNum++;
                 PointsList points = new PointsList();
                 geometry = getXYFromShapefileRecord(record);
                 numPoints = geometry.length;
@@ -300,6 +304,7 @@ public class Smooth implements WhiteboxPlugin {
                         }
                     }
                 }
+                
                 switch (shapeType) {
                     case POLYLINE:
                         PolyLine line = new PolyLine(partData, points.getPointsArray());
@@ -330,7 +335,12 @@ public class Smooth implements WhiteboxPlugin {
                         output.addRecord(polym);
                         break;
                 }
-                
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (featureNum * 100.0 / numFeatures);
+                updateProgress(progress);
             }
             
             output.write();
