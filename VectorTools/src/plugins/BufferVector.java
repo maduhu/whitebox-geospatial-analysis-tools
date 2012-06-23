@@ -29,6 +29,7 @@ import whitebox.geospatialfiles.shapefile.DBF.DBFWriter;
 import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.utilities.Topology;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -204,7 +205,6 @@ public class BufferVector implements WhiteboxPlugin {
         int oneHundredthTotal;
         int numRecs;
         ShapeType shapeType;
-        ArrayList<ShapefilePoint> points = new ArrayList<ShapefilePoint>();
         double bufferSize = 0;
         GeometryFactory factory = new GeometryFactory();
         com.vividsolutions.jts.geom.Geometry geometriesToBuffer = null;
@@ -259,16 +259,7 @@ public class BufferVector implements WhiteboxPlugin {
                 n = 0;
                 for (ShapeFileRecord record : input.records) {
                     if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                        if (shapeType == ShapeType.POLYGON) {
-                            whitebox.geospatialfiles.shapefile.Polygon poly = (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
-                            recJTSPoly = poly.getJTSGeometries();
-                        } else if (shapeType == ShapeType.POLYGONZ) {
-                            PolygonZ poly = (PolygonZ) (record.getGeometry());
-                            recJTSPoly = poly.getJTSGeometries();
-                        } else if (shapeType == ShapeType.POLYGONM) {
-                            PolygonM poly = (PolygonM) (record.getGeometry());
-                            recJTSPoly = poly.getJTSGeometries();
-                        }
+                        recJTSPoly = record.getGeometry().getJTSGeometries();
                         for (int a = 0; a < recJTSPoly.length; a++) {
                             polygons.add((com.vividsolutions.jts.geom.Polygon) recJTSPoly[a]);
                         }
@@ -300,16 +291,7 @@ public class BufferVector implements WhiteboxPlugin {
                 n = 0;
                 for (ShapeFileRecord record : input.records) {
                     if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                        if (shapeType == ShapeType.POLYLINE) {
-                            whitebox.geospatialfiles.shapefile.PolyLine poly = (whitebox.geospatialfiles.shapefile.PolyLine) (record.getGeometry());
-                            recJTSPoly = poly.getJTSGeometries();
-                        } else if (shapeType == ShapeType.POLYLINEZ) {
-                            PolyLineZ poly = (PolyLineZ) (record.getGeometry());
-                            recJTSPoly = poly.getJTSGeometries();
-                        } else if (shapeType == ShapeType.POLYLINEM) {
-                            PolyLineM poly = (PolyLineM) (record.getGeometry());
-                            recJTSPoly = poly.getJTSGeometries();
-                        }
+                        recJTSPoly = record.getGeometry().getJTSGeometries();
                         for (int a = 0; a < recJTSPoly.length; a++) {
                             lineStringList.add((com.vividsolutions.jts.geom.LineString) recJTSPoly[a]);
                         }
@@ -342,25 +324,7 @@ public class BufferVector implements WhiteboxPlugin {
                 progress = 0;
                 for (ShapeFileRecord record : input.records) {
                     if (record.getShapeType() != ShapeType.NULLSHAPE) {
-                        if (shapeType == ShapeType.POINT) {
-                            whitebox.geospatialfiles.shapefile.Point point = (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
-                            recJTSPoly = point.getJTSGeometries();
-                        } else if (shapeType == ShapeType.POINTZ) {
-                            PointZ point = (PointZ) (record.getGeometry());
-                            recJTSPoly = point.getJTSGeometries();
-                        } else if (shapeType == ShapeType.POINTM) {
-                            PointM point = (PointM) (record.getGeometry());
-                            recJTSPoly = point.getJTSGeometries();
-                        } else if (shapeType == ShapeType.MULTIPOINT) {
-                            whitebox.geospatialfiles.shapefile.MultiPoint multipoint = (whitebox.geospatialfiles.shapefile.MultiPoint) (record.getGeometry());
-                            recJTSPoly = multipoint.getJTSGeometries();
-                        } else if (shapeType == ShapeType.MULTIPOINTZ) {
-                            MultiPointZ multipoint = (MultiPointZ) (record.getGeometry());
-                            recJTSPoly = multipoint.getJTSGeometries();
-                        } else if (shapeType == ShapeType.MULTIPOINTM) {
-                            MultiPointM multipoint = (MultiPointM) (record.getGeometry());
-                            recJTSPoly = multipoint.getJTSGeometries();
-                        }
+                        recJTSPoly = record.getGeometry().getJTSGeometries();
                         for (int a = 0; a < recJTSPoly.length; a++) {
                             pointList.add((com.vividsolutions.jts.geom.Point) recJTSPoly[a]);
                         }
@@ -400,21 +364,35 @@ public class BufferVector implements WhiteboxPlugin {
                     com.vividsolutions.jts.geom.Geometry g = mpBuffer.getGeometryN(a);
                     if (g instanceof com.vividsolutions.jts.geom.Polygon) {
                         com.vividsolutions.jts.geom.Polygon bufferPoly = (com.vividsolutions.jts.geom.Polygon) g;
-                        points.clear();
                         ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
-
                         int[] parts = new int[bufferPoly.getNumInteriorRing() + 1];
 
                         Coordinate[] buffCoords = bufferPoly.getExteriorRing().getCoordinates();
-                        for (i = 0; i < buffCoords.length; i++) {
-                            pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                        if (!Topology.isLineClosed(buffCoords)) {
+                            System.out.println("Exterior ring not closed.");
+                        }
+                        if (Topology.isClockwisePolygon(buffCoords)) {
+                            for (i = 0; i < buffCoords.length; i++) {
+                                pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                            }
+                        } else {
+                            System.out.print("I'm here!");
                         }
 
                         for (int b = 0; b < bufferPoly.getNumInteriorRing(); b++) {
                             parts[b + 1] = pnts.size();
                             buffCoords = bufferPoly.getInteriorRingN(b).getCoordinates();
-                            for (i = buffCoords.length - 1; i >= 0; i--) {
-                                pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                            if (!Topology.isLineClosed(buffCoords)) {
+                                System.out.println("Interior ring not closed.");
+                            }
+                            if (Topology.isClockwisePolygon(buffCoords)) {
+                                for (i = buffCoords.length - 1; i >= 0; i--) {
+                                    pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                                }
+                            } else {
+                                for (i = 0; i < buffCoords.length; i++) {
+                                    pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                                }
                             }
                         }
 
@@ -444,21 +422,32 @@ public class BufferVector implements WhiteboxPlugin {
                 com.vividsolutions.jts.geom.Polygon pBuffer = (com.vividsolutions.jts.geom.Polygon) buffer;
                 com.vividsolutions.jts.geom.Geometry g = pBuffer.getGeometryN(0);
                 if (g instanceof com.vividsolutions.jts.geom.Polygon) {
-                    points.clear();
                     ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
 
                     int[] parts = new int[pBuffer.getNumInteriorRing() + 1];
 
                     Coordinate[] buffCoords = pBuffer.getExteriorRing().getCoordinates();
-                    for (i = 0; i < buffCoords.length; i++) {
-                        pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                    if (Topology.isClockwisePolygon(buffCoords)) {
+                        for (i = 0; i < buffCoords.length; i++) {
+                            pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                        }
+                    } else {
+                        for (i = 0; i < buffCoords.length - 1; i++) {
+                            pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                        }
                     }
 
                     for (int b = 0; b < pBuffer.getNumInteriorRing(); b++) {
                         parts[b + 1] = pnts.size();
                         buffCoords = pBuffer.getInteriorRingN(b).getCoordinates();
-                        for (i = buffCoords.length - 1; i >= 0; i--) {
-                            pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                        if (Topology.isClockwisePolygon(buffCoords)) {
+                            for (i = buffCoords.length - 1; i >= 0; i--) {
+                                pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                            }
+                        } else {
+                            for (i = 0; i < buffCoords.length; i++) {
+                                pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                            }
                         }
                     }
 
@@ -493,7 +482,7 @@ public class BufferVector implements WhiteboxPlugin {
         }
        
     }
-    
+//    
 //    // This method is only used during testing.
 //    public static void main(String[] args) {
 //        args = new String[3];
@@ -504,17 +493,20 @@ public class BufferVector implements WhiteboxPlugin {
 ////        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp4.shp";
 //        
 ////        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Body_rmow.shp";
-////        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp3.shp";
+////        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp2.shp";
 //        
-//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/NTDB_roads_rmow.shp";
-//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp1.shp";
+//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Line_rmow.shp";
+//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp2.shp";
 //        
+////        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/NTDB_roads_rmow.shp";
+////        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp1.shp";
+////        
 //        //args[0] = "/Users/johnlindsay/Documents/Data/Marvin-UofG-20111005-Order2133/SWOOP 2010/DEM - Masspoints and Breaklines - 400km_ZIP_UTM17_50cm_XXbands_0bits/20km173400463002010MAPCON/20km17340046300_masspoints.shp";
 //        //args[1] = "/Users/johnlindsay/Documents/Data/Marvin-UofG-20111005-Order2133/SWOOP 2010/DEM - Masspoints and Breaklines - 400km_ZIP_UTM17_50cm_XXbands_0bits/20km173400463002010MAPCON/tmp1.shp";
 //        //args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp1.shp";
 //        //args[0] = "/Users/johnlindsay/Documents/Research/Conference Presentations and Guest Talks/2012 CGU/Data/ontario roads.shp";
 //        //args[1] = "/Users/johnlindsay/Documents/Research/Conference Presentations and Guest Talks/2012 CGU/Data/tmp1.shp";
-//        args[2] = "250";
+//        args[2] = "550";
 //        
 //        BufferVector bv = new BufferVector();
 //        bv.setArgs(args);

@@ -19,16 +19,18 @@ package plugins;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Polygon;
 import java.io.File;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.DBF.DBFField;
 import whitebox.geospatialfiles.shapefile.DBF.DBFWriter;
-import whitebox.geospatialfiles.shapefile.*;
+import whitebox.geospatialfiles.shapefile.PointsList;
+import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
+import whitebox.geospatialfiles.shapefile.ShapeType;
+import whitebox.geospatialfiles.shapefile.ShapefilePoint;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.utilities.Topology;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -202,11 +204,9 @@ public class MinimumConvexHull implements WhiteboxPlugin {
         int progress;
         int i, n, FID;
         int oneHundredthTotal;
-        double[][] geometry;
         int numRecs;
         ShapeType shapeType;
         boolean convexHullAroundEachFeature = true;
-        ArrayList<ShapefilePoint> points = new ArrayList<ShapefilePoint>();
         
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -267,7 +267,6 @@ public class MinimumConvexHull implements WhiteboxPlugin {
                                 
                                 com.vividsolutions.jts.geom.Polygon chPoly = (com.vividsolutions.jts.geom.Polygon) ch;
                                 
-                                points.clear();
                                 ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
 
                                 int[] parts = new int[chPoly.getNumInteriorRing() + 1];
@@ -352,21 +351,32 @@ public class MinimumConvexHull implements WhiteboxPlugin {
 
                     com.vividsolutions.jts.geom.Polygon chPoly = (com.vividsolutions.jts.geom.Polygon) ch;
 
-                    points.clear();
                     ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
 
                     int[] parts = new int[chPoly.getNumInteriorRing() + 1];
 
                     Coordinate[] buffCoords = chPoly.getExteriorRing().getCoordinates();
-                    for (i = 0; i < buffCoords.length; i++) {
-                        pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                    if (Topology.isClockwisePolygon(coords)) {
+                        for (i = coords.length - 1; i >= 0; i--) {
+                            pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
+                        }
+                    } else {
+                        for (i = 0; i < coords.length; i++) {
+                            pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
+                        }
                     }
 
                     for (int b = 0; b < chPoly.getNumInteriorRing(); b++) {
                         parts[b + 1] = pnts.size();
                         buffCoords = chPoly.getInteriorRingN(b).getCoordinates();
-                        for (i = buffCoords.length - 1; i >= 0; i--) {
-                            pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                        if (Topology.isClockwisePolygon(coords)) {
+                            for (i = coords.length - 1; i >= 0; i--) {
+                                pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
+                            }
+                        } else {
+                            for (i = 0; i < coords.length; i++) {
+                                pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
+                            }
                         }
                     }
 

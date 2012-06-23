@@ -1,3 +1,8 @@
 plugins.BufferVector
+plugins.Difference
+plugins.Fuse
+plugins.Intersect
 plugins.MinimumConvexHull
 plugins.Smooth
+plugins.SymmetricDifference
+plugins.Union
