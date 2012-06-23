@@ -30,11 +30,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.lobobrowser.gui.FramePanel;
+//import org.lobobrowser.gui.FramePanel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -47,15 +50,15 @@ import whitebox.utilities.FileUtilities;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ToolDialog extends JDialog implements Communicator, ActionListener { //, HyperlinkListener {
+public class ToolDialog extends JDialog implements Communicator, ActionListener, HyperlinkListener {
     private JButton ok = new JButton("OK");
     private JButton close = new JButton("Close");
     private JButton viewCode = new JButton("View Code");
     private JButton back = new JButton();
     private JButton forward = new JButton();
     private JButton newHelp = new JButton("Create New Help Entry");
-    //private JEditorPane helpPane = new JEditorPane();
-    private FramePanel helpPane = new FramePanel();
+    private JEditorPane helpPane = new JEditorPane();
+    //private FramePanel helpPane = new FramePanel();
     private JScrollPane mainScrollPane = null; //new JScrollPane();
     private JPanel mainPanel = new JPanel();
     private String helpFile = "";
@@ -103,8 +106,8 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener 
         
         createPopupMenus();
         
-        //helpPane.addHyperlinkListener(this);
-        //helpPane.setContentType("text/html");
+        helpPane.addHyperlinkListener(this);
+        helpPane.setContentType("text/html");
         drawMainPanel();
         //mainScrollPane.setMinimumSize(new Dimension(380, 100));
         
@@ -169,14 +172,16 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener 
         box2.add(forward);
         box2.add(Box.createHorizontalStrut(10));
         
-        JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainScrollPane, helpPane); // helpScroll); //mainScrollPane, helpScroll);
+        JScrollPane helpScroll = new JScrollPane(helpPane);
+        JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainScrollPane, helpScroll); // helpScroll); //mainScrollPane, helpScroll);
         splitter.setDividerLocation(365);
         splitter.setResizeWeight(0.0);
         splitter.setDividerSize(4);
         
-        //Box box3 = Box.createHorizontalBox();
-        //box3.add(mainScrollPane);
-        //box3.add(helpScroll);
+//        Box box3 = Box.createHorizontalBox();
+//        box3.add(mainScrollPane);
+//        JScrollPane helpScroll = new JScrollPane(helpPane);
+//        box3.add(helpScroll);
         this.getContentPane().add(splitter, BorderLayout.CENTER);
         //this.getContentPane().add(box3, BorderLayout.CENTER);
         this.getContentPane().add(box2, BorderLayout.SOUTH);
@@ -190,12 +195,12 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener 
             newHelp.setVisible(true);
         }
         
-        //helpPane.setEditable(false);
+        helpPane.setEditable(false);
         try {
             //URL helpURL = getClass().getResource(helpFile);
             //helpPane.setPage(helpURL);
-            //helpPane.setPage("file:" + helpFile);
-            helpPane.navigate(helpFile);
+            helpPane.setPage(new URL("file:///" + helpFile));
+            //helpPane.navigate(helpFile);
         } catch (IOException e) {
             System.err.println(e.getMessage());
         }
@@ -498,26 +503,26 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener 
     }
     
     private void back() {
-        helpPane.back();
-//        if (helpHistoryIndex == 0) { return; }
-//        helpHistoryIndex--;
-//        try {
-//            helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
-//        } catch (IOException e) {
-//            System.err.println(e.getStackTrace());
-//        } 
+//        helpPane.back();
+        if (helpHistoryIndex == 0) { return; }
+        helpHistoryIndex--;
+        try {
+            helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
+        } catch (IOException e) {
+            System.err.println(e.getStackTrace());
+        } 
         
     }
     
     private void forward() {
-        helpPane.forward();
-//        if (helpHistoryIndex == helpHistory.size() - 1) { return; }
-//        helpHistoryIndex++;
-//        try {
-//            helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
-//        } catch (IOException e) {
-//            System.err.println(e.getStackTrace());
-//        } 
+//        helpPane.forward();
+        if (helpHistoryIndex == helpHistory.size() - 1) { return; }
+        helpHistoryIndex++;
+        try {
+            helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
+        } catch (IOException e) {
+            System.err.println(e.getStackTrace());
+        } 
         
     }
     
@@ -607,26 +612,26 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener 
         }
     }
     
-//    @Override
-//    public void hyperlinkUpdate(HyperlinkEvent event) {
-//        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-//            try {
-//                if (helpHistoryIndex == helpHistory.size() - 1) {
-//                    helpHistory.add(event.getURL().getFile());
-//                    helpHistoryIndex = helpHistory.size() - 1;
-//                } else {
-//                    for (int i = helpHistory.size() - 1; i > helpHistoryIndex; i--) {
-//                        helpHistory.remove(i);
-//                    }
-//                    helpHistory.add(event.getURL().getFile());
-//                    helpHistoryIndex = helpHistory.size() - 1;
-//                }
-//                helpPane.setPage(event.getURL());
-//            } catch (IOException ioe) {
-//                // Some warning to user
-//            }
-//        }
-//    }
+    @Override
+    public void hyperlinkUpdate(HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            try {
+                if (helpHistoryIndex == helpHistory.size() - 1) {
+                    helpHistory.add(event.getURL().getFile());
+                    helpHistoryIndex = helpHistory.size() - 1;
+                } else {
+                    for (int i = helpHistory.size() - 1; i > helpHistoryIndex; i--) {
+                        helpHistory.remove(i);
+                    }
+                    helpHistory.add(event.getURL().getFile());
+                    helpHistoryIndex = helpHistory.size() - 1;
+                }
+                helpPane.setPage(event.getURL());
+            } catch (IOException ioe) {
+                // Some warning to user
+            }
+        }
+    }
     
     @Override
     public void dispose() {

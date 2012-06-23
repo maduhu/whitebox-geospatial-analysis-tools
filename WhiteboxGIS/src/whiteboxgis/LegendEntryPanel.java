@@ -205,16 +205,6 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
                 VectorLayerInfo vli = (VectorLayerInfo)mapLayer;
                 ShapeType st = vli.getShapeType();
 
-//                if (!isVisible) {
-//                    layerBox.add(Box.createVerticalStrut(2));
-//                    Box box4 = Box.createHorizontalBox();
-//                    JLabel notShownLabel = new JLabel("(Not shown)");
-//                    notShownLabel.setFont(new Font("SanSerif", Font.ITALIC, 12));
-//                    box4.add(notShownLabel);
-//                    box4.add(Box.createHorizontalGlue());
-//                    layerBox.add(box4);
-//                }
-//                if (isVisible) {
                     LegendEntry[] le = vli.getLegendEntries();
                     if (le != null && le[0].getLegendLabel().equals("continuous numerical variable") && le[0].getLegendColour().equals(Color.black)) {
                         // it's a continuous, scaled, numerical variable

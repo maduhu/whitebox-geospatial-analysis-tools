@@ -16,6 +16,8 @@
             <toolbox name="PatchShapeTools" label="Patch Shape Tools"></toolbox>
 
 	    <toolbox name="ReclassTools" label="Reclass Tools"></toolbox>
+            
+            <toolbox name="VectorTools" label="Vector Tools"></toolbox>
     </toolbox>
 
     <toolbox name="HydroTools" label="Hydrolgical Tools">
@@ -83,5 +85,4 @@
 
 	<toolbox name="WindRelatedTAs" label="Wind-Related Terrain Attributes"></toolbox>
     </toolbox>
-    <toolbox name="VectorTools" label="Vector Analysis"></toolbox>
 </toolbox>
