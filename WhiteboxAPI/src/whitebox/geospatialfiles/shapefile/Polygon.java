@@ -402,7 +402,6 @@ public class Polygon implements Geometry {
                     com.vividsolutions.jts.geom.Geometry hole = factory.createLineString(coordArray);
                     if (p.contains(hole)) {
                         holesLR.add(factory.createLinearRing(coordArray));
-                        break;
                     }
                 }
             }
