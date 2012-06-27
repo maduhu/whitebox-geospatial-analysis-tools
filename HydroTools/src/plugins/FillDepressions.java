@@ -181,7 +181,7 @@ public class FillDepressions implements WhiteboxPlugin {
        }
 
         try {
-            updateProgress("Initializing: ", 1);
+            updateProgress("Initializing: ", -1);
             int row_n, col_n;
             int row, col;
             double z_n;
@@ -224,7 +224,7 @@ public class FillDepressions implements WhiteboxPlugin {
             image.close();
             data = new double[0];
             // initialize and fill the priority queue.
-            updateProgress("Loop 1: ", 1);
+            updateProgress("Loop 1: ", -1);
 
             PriorityQueue<GridCell> queue = new PriorityQueue<GridCell>((2 * rows + 2 * cols) * 2);
 
