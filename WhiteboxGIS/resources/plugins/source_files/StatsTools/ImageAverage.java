@@ -236,7 +236,7 @@ public class ImageAverage implements WhiteboxPlugin {
             // check that each of the input images has the same number of rows and columns
             // and calculate the image averages.
             for (a = 0; a < numImages; a++) {
-                updateProgress("Image " + (a + 1) + ", Calculating image averages:", 1);
+                updateProgress("Image " + (a + 1) + ", Calculating image averages:", -1);
             
                 image = new WhiteboxRaster(imageFiles[a], "r");
                 noData = image.getNoDataValue();

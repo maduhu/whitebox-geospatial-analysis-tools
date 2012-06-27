@@ -1353,6 +1353,7 @@ public class SettingsDialog extends JDialog implements ActionListener, Adjustmen
                 vli.setPaletteScaled(checkScalePalette.isSelected());
                 if (!uniqueLineColour.isSelected()) {
                     vli.setLineAttribute(String.valueOf(valueFieldCombo.getSelectedItem()));
+                    vli.setRecordsColourData();
                 } else {
                     vli.setLineAttribute("");
                 }
@@ -1362,6 +1363,7 @@ public class SettingsDialog extends JDialog implements ActionListener, Adjustmen
                 vli.setPaletteScaled(checkScalePalette.isSelected());
                 if (!uniqueFillColour.isSelected()) {
                     vli.setFillAttribute(String.valueOf(valueFieldCombo.getSelectedItem()));
+                    vli.setRecordsColourData();
                 } else {
                     vli.setFillAttribute("");
                 }

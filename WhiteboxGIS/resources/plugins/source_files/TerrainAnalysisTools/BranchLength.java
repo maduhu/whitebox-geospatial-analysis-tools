@@ -257,7 +257,7 @@ public class BranchLength implements WhiteboxPlugin {
             output.setDataScale(WhiteboxRasterBase.DataScale.CONTINUOUS);
 
             // Perform the Branch Length calculation
-            updateProgress("Loop 1 of 2:", 1);
+            updateProgress("Loop 1 of 2:", -1);
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     z = pntr1.getValue(row, col);
@@ -440,7 +440,7 @@ public class BranchLength implements WhiteboxPlugin {
                 updateProgress("Loop 1 of 2:", progress);
             }
 
-            updateProgress("Loop 2 of 2:", 1);
+            updateProgress("Loop 2 of 2:", -1);
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     if (output.getValue(row, col) != noData) {

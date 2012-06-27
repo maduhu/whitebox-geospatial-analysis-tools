@@ -1900,7 +1900,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     @Override
     public void updateProgress(String progressLabel, int progress) {
-        if (progressLabel.equals(progressString) || progress != progressValue) {
+        if (!progressLabel.equals(progressString) || progress != progressValue) {
+            if (progress < 0) { progress = 0; }
+            if (progress > 100) { progress = 100; }
             status.setProgress(progress);
             status.setProgressLabel(progressLabel);
             progressValue = progress;
@@ -1911,6 +1913,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     @Override
     public void updateProgress(int progress) {
         if (progress != progressValue) {
+            if (progress < 0) { progress = 0; }
+            if (progress > 100) { progress = 100; }
             status.setProgress(progress);
             progressValue = progress;
         }
@@ -2277,7 +2281,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     break;
                 }
                 openMaps.add(map);
-                int k = map.getNumLayers();
+                //int k = map.getNumLayers();
             }
 //            openMaps.get(openMaps.size() - 1).setCartoView(cartographicView.getState());
             activeMap = openMaps.size() - 1;

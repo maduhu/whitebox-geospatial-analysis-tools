@@ -144,7 +144,7 @@ public class VectorLayerInfo implements MapLayer {
             value = 255;
         }
         alpha = value;
-        setRecordsColourData();
+        //setRecordsColourData();
     }
 
     public String getFileName() {
@@ -205,7 +205,7 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setFillColour(Color fillColour) {
         this.fillColour = fillColour;
-        setRecordsColourData();
+        //setRecordsColourData();
     }
 
     public ShapeFile getShapefile() {
@@ -376,7 +376,7 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setFillAttribute(String fillAttribute) {
         this.colouringAttribute = fillAttribute;
-        setRecordsColourData();
+        //setRecordsColourData();
     }
     
     public String getLineAttribute() {
@@ -385,7 +385,7 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setLineAttribute(String lineAttribute) {
         this.colouringAttribute = lineAttribute;
-        setRecordsColourData();
+        //setRecordsColourData();
     }
     
     private Color[] colourData;
@@ -411,7 +411,7 @@ public class VectorLayerInfo implements MapLayer {
     
     // methods
     private LegendEntry[] legendEntries;
-    private void setRecordsColourData() {
+    public void setRecordsColourData() {
         int numRecords = shapefile.getNumberOfRecords();
         int entryNum, a, i;
         int r1, g1, b1;

@@ -1405,6 +1405,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 vli.setPaletteScaled(checkScalePalette.isSelected());
                 if (!uniqueLineColour.isSelected()) {
                     vli.setLineAttribute(String.valueOf(valueFieldCombo.getSelectedItem()));
+                    
                 } else {
                     vli.setLineAttribute("");
                 }
@@ -1414,11 +1415,14 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 vli.setPaletteScaled(checkScalePalette.isSelected());
                 if (!uniqueFillColour.isSelected()) {
                     vli.setFillAttribute(String.valueOf(valueFieldCombo.getSelectedItem()));
+                    
                 } else {
                     vli.setFillAttribute("");
                 }
             }
-
+            
+            vli.setRecordsColourData();
+            
             host.refreshMap(true);
         }
     }

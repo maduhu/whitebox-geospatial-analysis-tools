@@ -209,14 +209,14 @@ public class MapInfo {
     
     private void addToExtentHistory(BoundingBox extent) {
         if (listOfExtentsIndex == listOfExtents.size() - 1) {
-            listOfExtents.add(extent);
+            listOfExtents.add(extent.clone());
             listOfExtentsIndex = listOfExtents.size() - 1;
         } else {
             // delete all forward extents.
             for (int i = listOfExtents.size() - 1; i > listOfExtentsIndex; i--) {
                 listOfExtents.remove(i);
             }
-            listOfExtents.add(extent);
+            listOfExtents.add(extent.clone());
             listOfExtentsIndex = listOfExtents.size() - 1;
         }
     }
@@ -1048,6 +1048,7 @@ public class MapInfo {
                         vli.setPaletteScaled(isPaletteScaled);
                         vli.setPaletteFile(paletteFile);
                         vli.setFillAttribute(colouringAttribute);
+                        vli.setRecordsColourData();
                         
                         layers.add(vli);
                         numLayers = layers.size();

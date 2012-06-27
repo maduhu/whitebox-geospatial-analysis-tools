@@ -299,7 +299,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                 }
             }
 
-//            updateProgress("Loop 1 of 3:", 1);
+//            updateProgress("Loop 1 of 3:", -1);
 //            // copy the input raster into the output raster and release the input file from memory
 //            double[] data;
 //            for (row = 0; row < rows; row++) {
@@ -323,7 +323,7 @@ public class BreachDepressions implements WhiteboxPlugin {
             //List<GridCell> pq = new List<GridCell>(); // this will serve as a 'priority queue'
             //to hold the no-flow cells.
 
-            updateProgress("Loop 1 of 2:", 1);
+            updateProgress("Loop 1 of 2:", -1);
             for (row = 1; row < (rows - 1); row++) {
                 for (col = 1; col < (cols - 1); col++) {
                     z = output.getValue(row, col);
@@ -352,7 +352,7 @@ public class BreachDepressions implements WhiteboxPlugin {
             }
             numNoFlowCells = pq.size();
 
-            updateProgress("Loop 2 of 2:", 1);
+            updateProgress("Loop 2 of 2:", -1);
             DepGridCell cell = new DepGridCell(-1, -1, largeVal);
             solvedCells = 0;
             do {
