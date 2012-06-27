@@ -43,7 +43,7 @@ public class Buffer implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Buffer";
+    	return "Buffer (Raster)";
     }
     /**
      * Used to retrieve a short description of what the plugin tool does.

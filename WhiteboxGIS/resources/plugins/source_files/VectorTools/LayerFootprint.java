@@ -16,22 +16,24 @@
  */
 package plugins;
 
-import java.util.Date;
-import java.util.Iterator;
-import java.util.PriorityQueue;
-import java.util.Random;
+import java.io.File;
+import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.shapefile.DBF.DBFField;
+import whitebox.geospatialfiles.shapefile.DBF.DBFWriter;
+import whitebox.geospatialfiles.shapefile.PointsList;
+import whitebox.geospatialfiles.shapefile.Polygon;
+import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
-
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class RandomSample implements WhiteboxPlugin {
-    
+public class LayerFootprint implements WhiteboxPlugin {
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
 
@@ -43,7 +45,7 @@ public class RandomSample implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "RandomSample";
+        return "LayerFootprint";
     }
 
     /**
@@ -54,7 +56,7 @@ public class RandomSample implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Random Sample";
+        return "Layer Footprint";
     }
 
     /**
@@ -64,7 +66,7 @@ public class RandomSample implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Creates an image containing randomly located sample grid cells.";
+        return "Creates a vector polygon footprint of the area covered by a raster grid or vector layer";
     }
 
     /**
@@ -74,8 +76,8 @@ public class RandomSample implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "StatisticalTools" };
-    	return ret;
+        String[] ret = {"VectorTools"};
+        return ret;
     }
 
     /**
@@ -115,10 +117,9 @@ public class RandomSample implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
-
     private int previousProgress = 0;
     private String previousProgressLabel = "";
-   
+
     /**
      * Used to communicate a progress update between a plugin tool and the main
      * Whitebox user interface.
@@ -127,8 +128,8 @@ public class RandomSample implements WhiteboxPlugin {
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
@@ -147,8 +148,8 @@ public class RandomSample implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
-    
-     /**
+
+    /**
      * Sets the arguments (parameters) used by the plugin.
      *
      * @param args
@@ -157,9 +158,8 @@ public class RandomSample implements WhiteboxPlugin {
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
     private boolean cancelOp = false;
-  
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
      *
@@ -169,14 +169,13 @@ public class RandomSample implements WhiteboxPlugin {
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
     private boolean amIActive = false;
-   
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
      *
@@ -190,91 +189,103 @@ public class RandomSample implements WhiteboxPlugin {
 
     @Override
     public void run() {
+
         amIActive = true;
-        
-        String inputHeader = null;
-        String outputHeader = null;
-    	
-        WhiteboxRaster image;
-        WhiteboxRaster output;
-        int cols, rows;
-        int progress = 0;
-        int col, row;
+        String inputFile;
+        String outputFile;
+        boolean flag;
+        int row, col;
+        double xCoord, yCoord;
+        int progress;
         int i;
-        int numSamplePoints = 0;
-                
+        double value, z, zN1, zN2;
+        int FID = 0;
+        int[] rowVals = new int[2];
+        int[] colVals = new int[2];
+        int traceDirection = 0;
+        int previousTraceDirection = 0;
+        double currentHalfRow = 0, currentHalfCol = 0;
+        double[] inputValueData = new double[4];
+        long numPoints;
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
 
-        inputHeader = args[0];
-        outputHeader = args[1];
-        numSamplePoints = Integer.parseInt(args[2]);
-        
+        inputFile = args[0];
+        outputFile = args[1];
+
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader == null) || (outputHeader == null)) {
+        if ((inputFile == null) || (outputFile == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
 
         try {
-            image = new WhiteboxRaster(inputHeader, "r");
-            rows = image.getNumberRows();
-            cols = image.getNumberColumns();
             
-            if (rows * cols < numSamplePoints) {
-                showFeedback("The number of samples cannot exceed the number of cells.");
+            double east = 0, west = 0, north = 0, south = 0;
+            
+            if (inputFile.toLowerCase().endsWith(".dep")) {
+                WhiteboxRaster input = new WhiteboxRaster(inputFile, "r");
+                double gridResX = input.getCellSizeX();
+                double gridResY = input.getCellSizeY();
+
+                east = input.getEast();// - gridResX / 2.0;
+                west = input.getWest();// + gridResX / 2.0;
+                north = input.getNorth();// - gridResY / 2.0;
+                south = input.getSouth();// + gridResY / 2.0;
+                input.close();
+            } else if (inputFile.toLowerCase().endsWith(".shp")) {
+                ShapeFile input = new ShapeFile(inputFile);
+                east = input.getxMax();
+                west = input.getxMin();
+                north = input.getyMax();
+                south = input.getyMin();
+            } else {
+                showFeedback("There was a problem reading the input file.");
                 return;
             }
 
-            output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
-            output.setPreferredPalette("qual.pal");
-            output.setDataScale(WhiteboxRaster.DataScale.CATEGORICAL);
 
-            image.close();
-            
-            // A priority gueue is used so that we can later add each of the
-            // points to the grid sorted by row value. Otherwise we will end up
-            // reading and writing to disc a lot as we enter values to the grid
-            // in random locations.
-            NonDuplicatingPriorityQueue queue = new NonDuplicatingPriorityQueue(numSamplePoints);
-            Random generator = new Random();
-            GridCell gc;
-            i = 0;
-            do {
-                row = generator.nextInt(rows);
-                col = generator.nextInt(cols);
-                gc = new GridCell(row, col);
-                if (queue.add(gc)) {
-                   i++; 
-                   progress = (int)(100f * i / numSamplePoints);
-                   updateProgress("Loop 1 of 2:", progress);
-                }
-            } while (i < numSamplePoints);
-            
-            Iterator<GridCell> it = queue.iterator();
-            i = 1;
-            do  {
-                // Returns an iterator over the elements in this queue.
-                gc = queue.poll();
-                output.setValue(gc.row, gc.col, i);
-                i++;
-                progress = (int)(100f * i / numSamplePoints);
-                updateProgress("Loop 2 of 2:", progress);
-            } while (i < numSamplePoints);
-            
-            
-            output.addMetadataEntry("Created by the "
-                    + getDescriptiveName() + " tool.");
-            output.addMetadataEntry("Created on " + new Date());
-            
-            output.close();
+            // set up the output files of the shapefile and the dbf
+            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON);
 
+            DBFField fields[] = new DBFField[1];
+
+            fields[0] = new DBFField();
+            fields[0].setName("FID");
+            fields[0].setDataType(DBFField.FIELD_TYPE_N);
+            fields[0].setFieldLength(10);
+            fields[0].setDecimalCount(0);
+
+            String DBFName = output.getDatabaseFile();
+            DBFWriter writer = new DBFWriter(new File(DBFName));
+
+            writer.setFields(fields);
+
+            int[] parts = {0};
+
+            PointsList points = new PointsList();
+            
+
+            points.addPoint(west, north);
+            points.addPoint(east, north);
+            points.addPoint(east, south);
+            points.addPoint(west, south);
+            points.addPoint(west, north);
+            
+            Polygon poly = new Polygon(parts, points.getPointsArray());
+            output.addRecord(poly);
+            Object rowData[] = new Object[1];
+            rowData[0] = new Double(1);
+            writer.addRecord(rowData);
+            
+            output.write();
+            
             // returning a header file string displays the image.
-            returnData(outputHeader);
-            
-            
+            returnData(outputFile);
+
         } catch (Exception e) {
             showFeedback(e.getMessage());
         } finally {
@@ -284,73 +295,15 @@ public class RandomSample implements WhiteboxPlugin {
             myHost.pluginComplete();
         }
     }
-    
-    class NonDuplicatingPriorityQueue extends PriorityQueue<GridCell> {
-        public NonDuplicatingPriorityQueue(int initialCapacity) {
-            super(initialCapacity);
-        }
-        
-        @Override
-        public boolean add(GridCell gc) {
-            try {
-                // This will only add the gridcell if it's not already in the queue.
-                Iterator<GridCell> i = this.iterator();
-                while (i.hasNext()) {
-                    // Returns an iterator over the elements in this queue.
-                    GridCell gc2 = i.next();
-                    if (gc.compareTo(gc2) == 0) {
-                        return false;
-                    }
-                }
-                super.add(gc);
-                return true;
-            } catch (Exception e) {
-                return false;
-            }
-        }
-    }
-    
-    class GridCell implements Comparable<GridCell> {
 
-        public int row;
-        public int col;
-        
-        public GridCell(int row, int col) {
-            this.row = row;
-            this.col = col;
-        }
-
-        @Override
-        public int compareTo(GridCell cell) {
-            final int BEFORE = -1;
-            final int EQUAL = 0;
-            final int AFTER = 1;
-
-            if (this.row < cell.row) {
-                return BEFORE;
-            } else if (this.row > cell.row) {
-                return AFTER;
-            }
-
-            if (this.col < cell.col) {
-                return BEFORE;
-            } else if (this.col > cell.col) {
-                return AFTER;
-            }
-
-            return EQUAL;
-        }
-    }
-    
 //    // This method is only used during testing.
 //    public static void main(String[] args) {
 //        args = new String[3];
-//        args[0] = "/Users/johnlindsay/Documents/Data/Waterloo streams.dep";
-//        args[1] = "/Users/johnlindsay/Documents/Data/tmp2.dep";
-//        args[2] = "1000";
-//        
-//        RandomSample rs = new RandomSample();
-//        rs.setArgs(args);
-//        rs.run();
+//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/someLakes.dep";
+//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp4.shp";
+//
+//        LayerFootprint lfp = new LayerFootprint();
+//        lfp.setArgs(args);
+//        lfp.run();
 //    }
 }

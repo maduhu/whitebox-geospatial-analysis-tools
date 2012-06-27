@@ -54,7 +54,7 @@ public class RasterToVectorPoints implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Raster to Vector Points";
+    	return "Raster To Vector Points";
     }
 
     /**
