@@ -305,7 +305,7 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                                 //flag = true;
                                 do {
 
-                                    // Get the reclassed elevation data for the 2 x 2 
+                                    // Get the data for the 2 x 2 
                                     // window, i.e. the window in Diagram 1 above.
                                     rowVals[0] = (int) Math.floor(currentHalfRow);
                                     rowVals[1] = (int) Math.ceil(currentHalfRow);
