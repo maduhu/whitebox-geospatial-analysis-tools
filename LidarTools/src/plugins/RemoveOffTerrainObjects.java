@@ -283,7 +283,7 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
                     
                     cumulativeChange = 0;
 
-                    updateProgress("DEM " + (j + 1) + " Loop number " + loopNum + ":", 1);
+                    updateProgress("DEM " + (j + 1) + " Loop number " + loopNum + ":", -1);
                     
                     //***********************************************************************
                     // If this is the first time around, trim the peaks that intersect the
