@@ -326,7 +326,7 @@ public class SymmetricDifference implements WhiteboxPlugin {
             
             
             
-            updateProgress("Performing operation (progress will not be updated):", 1);
+            updateProgress("Performing operation (progress will not be updated):", -1);
             try {
                 outputGeometry = g1.symDifference(g2);
             } catch (Exception ex) {

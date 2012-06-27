@@ -2,7 +2,9 @@ plugins.BufferVector
 plugins.Difference
 plugins.Fuse
 plugins.Intersect
+plugins.LayerFootprint
 plugins.MinimumConvexHull
 plugins.Smooth
 plugins.SymmetricDifference
 plugins.Union
+plugins.VoronoiDiagram

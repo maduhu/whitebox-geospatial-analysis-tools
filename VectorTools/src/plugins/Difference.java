@@ -326,7 +326,7 @@ public class Difference implements WhiteboxPlugin {
             
             
             
-            updateProgress("Performing operation (progress will not be updated):", 1);
+            updateProgress("Performing operation (progress will not be updated):", -1);
             try {
                 outputGeometry = g1.difference(g2);
             } catch (Exception ex) {

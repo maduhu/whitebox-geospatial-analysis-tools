@@ -344,7 +344,7 @@ public class MinimumConvexHull implements WhiteboxPlugin {
                 GeometryFactory factory = new GeometryFactory();
                 com.vividsolutions.jts.geom.MultiPoint mp = factory.createMultiPoint(coords);
                 
-                updateProgress("Calculating convex hull:", 1);
+                updateProgress("Calculating convex hull:", -1);
                 com.vividsolutions.jts.geom.Geometry ch = mp.convexHull();
 
                 if (ch instanceof com.vividsolutions.jts.geom.Polygon) {

@@ -325,7 +325,7 @@ public class Fuse implements WhiteboxPlugin {
 
 
 
-            updateProgress("Performing operation (progress will not be updated):", 1);
+            updateProgress("Performing operation (progress will not be updated):", -1);
             try {
                 outputGeometry = g1.difference(g2);
             } catch (Exception ex) {
@@ -548,7 +548,7 @@ public class Fuse implements WhiteboxPlugin {
             }
 
 
-            updateProgress("Performing operation (progress will not be updated):", 1);
+            updateProgress("Performing operation (progress will not be updated):", -1);
             try {
                 outputGeometry = g2.difference(g1);
             } catch (Exception ex) {
@@ -720,7 +720,7 @@ public class Fuse implements WhiteboxPlugin {
             if (outputShapeType == ShapeType.POLYGON) {
                 // Intersection
 
-                updateProgress("Performing operation (progress will not be updated):", 1);
+                updateProgress("Performing operation (progress will not be updated):", -1);
                 try {
                     outputGeometry = g1.intersection(g2);
                 } catch (Exception ex) {

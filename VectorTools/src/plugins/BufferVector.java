@@ -351,11 +351,11 @@ public class BufferVector implements WhiteboxPlugin {
                 
             }
             
-            updateProgress("Buffering data (progress will not be updated):", 1);
+            updateProgress("Buffering data (progress will not be updated):", -1);
             com.vividsolutions.jts.geom.Geometry buffer = geometriesToBuffer.buffer(bufferSize);
 
             progress = 0;
-            updateProgress("Creating new shapefile:", 1);
+            updateProgress("Creating new shapefile:", -1);
             if (buffer instanceof com.vividsolutions.jts.geom.MultiPolygon) {
                 MultiPolygon mpBuffer = (MultiPolygon) buffer;
                 FID = 0;
@@ -376,7 +376,9 @@ public class BufferVector implements WhiteboxPlugin {
                                 pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
                             }
                         } else {
-                            System.out.print("I'm here!");
+                            for (i = buffCoords.length - 1; i >= 0; i--) {
+                                pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
+                            }
                         }
 
                         for (int b = 0; b < bufferPoly.getNumInteriorRing(); b++) {

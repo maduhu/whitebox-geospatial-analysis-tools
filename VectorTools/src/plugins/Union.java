@@ -292,7 +292,7 @@ public class Union implements WhiteboxPlugin {
                     inputGeometryList.clear();
                 } else {
                     g2 = factory.buildGeometry(inputGeometryList);
-                    updateProgress("Performing operation (progress will not be updated):", 1);
+                    updateProgress("Performing operation (progress will not be updated):", -1);
                     try {
                         outputGeometry = g1.union(g2);
                     } catch (Exception ex) {
