@@ -39,7 +39,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.lobobrowser.main.PlatformInit;
+//import org.lobobrowser.main.PlatformInit;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -60,7 +60,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     StatusBar status = new StatusBar(this);
     // common variables
-    static private String versionNumber = "2.0.2";
+    static private String versionNumber = "2.0.3";
     private String applicationDirectory;
     private String resourcesDirectory;
     private String graphicsDirectory;
@@ -190,16 +190,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             this.createGui();
 
 
-            // These lines initialize the lobo web browser used in the help and
-            // displaying HTML output.
-
-            // This optional step initializes logging so only warnings
-            // are printed out.
-            PlatformInit.getInstance().initLogging(false);
-
-            // This step is necessary for extensions to work:
-            PlatformInit.getInstance().init(false, false);
-
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -308,6 +298,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     frame.setSize(600, 600);
                     frame.setVisible(true);
                 } catch (Exception e) {
+                    System.err.println(e.getMessage());
                 }
 //            } else if (retStr.contains("DOCTYPE html")) {
 //                // display this markup in a webbrowser component

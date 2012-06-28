@@ -17,16 +17,29 @@
 
 package whiteboxgis;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
-import org.lobobrowser.gui.FramePanel;
+import javax.swing.JScrollPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+//import org.lobobrowser.gui.FramePanel;
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class HTMLViewer extends JFrame {
+public class HTMLViewer extends JFrame implements HyperlinkListener {
 
+    private ArrayList<String> helpHistory = new ArrayList<String>();
+    private int helpHistoryIndex = 0;
+    JEditorPane helpPane = new JEditorPane();
+    
     public HTMLViewer(String fileOrURL) throws Exception {
 
         if (System.getProperty("os.name").contains("Mac")) {
@@ -38,9 +51,28 @@ public class HTMLViewer extends JFrame {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
         }
         
-        FramePanel framePanel = new FramePanel();
-        this.getContentPane().add(framePanel);
+        helpPane.addHyperlinkListener(this);
+        helpPane.setContentType("text/html");
         
+        JScrollPane helpScroll = new JScrollPane(helpPane);
+        this.getContentPane().add(helpScroll);
+        
+        if (helpHistoryIndex == helpHistory.size() - 1) {
+            helpHistory.add(fileOrURL);
+            helpHistoryIndex = helpHistory.size() - 1;
+        } else {
+            for (int i = helpHistory.size() - 1; i > helpHistoryIndex; i--) {
+                helpHistory.remove(i);
+            }
+            helpHistory.add(fileOrURL);
+            helpHistoryIndex = helpHistory.size() - 1;
+        }
+        try {
+            helpPane.setPage(new URL("file:///" + fileOrURL));
+        } catch (IOException e) {
+            System.err.println(e.getStackTrace());
+        } 
+
         // first off, is it a file or string?
 //        if (fileOrURL.toLowerCase().endsWith(".html")) {
             this.setTitle("HTML Viewer: " + (new File(fileOrURL)).getName());
@@ -52,10 +84,32 @@ public class HTMLViewer extends JFrame {
 //        // This step is necessary for extensions to work:
 //        PlatformInit.getInstance().init(false, false);
 
-            framePanel.navigate(fileOrURL);
 //        } else {
 //            this.setTitle("HTML Viewer");
 //
 //        }
     }
+    
+    
+    @Override
+    public void hyperlinkUpdate(HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            try {
+                if (helpHistoryIndex == helpHistory.size() - 1) {
+                    helpHistory.add(event.getURL().getFile());
+                    helpHistoryIndex = helpHistory.size() - 1;
+                } else {
+                    for (int i = helpHistory.size() - 1; i > helpHistoryIndex; i--) {
+                        helpHistory.remove(i);
+                    }
+                    helpHistory.add(event.getURL().getFile());
+                    helpHistoryIndex = helpHistory.size() - 1;
+                }
+                helpPane.setPage(event.getURL());
+            } catch (IOException ioe) {
+                // Some warning to user
+            }
+        }
+    }
+
 }

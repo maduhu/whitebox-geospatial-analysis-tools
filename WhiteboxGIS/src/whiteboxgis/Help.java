@@ -16,34 +16,40 @@
  */
 package whiteboxgis;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import org.lobobrowser.gui.*;
-import whitebox.utilities.FileUtilities;
-import whitebox.interfaces.Communicator;
-import java.text.DecimalFormat;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import whitebox.interfaces.Communicator;
+import whitebox.utilities.FileUtilities;
 
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class Help extends JDialog implements ActionListener {
+public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
     private JButton viewSource = new JButton("View HTML Source");
     private JButton close = new JButton("Close");
     private JButton back = new JButton();
     private JButton forward = new JButton();
     private String helpFile = "";
-    private FramePanel helpPane;
+    //private FramePanel helpPane;
+    private JEditorPane helpPane = new JEditorPane();
     private String graphicsDirectory = "";
     private String helpDirectory = "";
     private String resourcesDirectory = "";
@@ -57,6 +63,8 @@ public class Help extends JDialog implements ActionListener {
     private String[][] helpFiles;
     private int[][] searchCounts;
     private String activeTab = "index";
+    private ArrayList<String> helpHistory = new ArrayList<String>();
+    private int helpHistoryIndex = 0;
     
     public Help(Frame owner, boolean modal, String startMode) {
         super(owner, modal);
@@ -94,7 +102,11 @@ public class Help extends JDialog implements ActionListener {
             String imgLocation = null;
             ImageIcon image = null;
 
-            helpPane = new FramePanel();
+            helpPane.addHyperlinkListener(this);
+            helpPane.setContentType("text/html");
+            JScrollPane helpScroll = new JScrollPane(helpPane);
+        
+            //helpPane = new FramePanel();
 
             Box box2 = Box.createHorizontalBox();
             box2.add(Box.createRigidArea(new Dimension(10, 30)));
@@ -136,7 +148,7 @@ public class Help extends JDialog implements ActionListener {
             box2.add(forward);
             box2.add(Box.createHorizontalStrut(10));
 
-            JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sidebarPane, helpPane);
+            JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sidebarPane, helpScroll);
             splitter.setDividerLocation(270);
             splitter.setResizeWeight(0.0);
             splitter.setDividerSize(1);
@@ -151,8 +163,18 @@ public class Help extends JDialog implements ActionListener {
                 // use the NoHelp.html file.
                 helpFile = resourcesDirectory + "Help" + pathSep + "NoHelp.html";
             }
-
-            helpPane.navigate(helpFile);
+            if (helpHistoryIndex == helpHistory.size() - 1) {
+                helpHistory.add(helpFile);
+                helpHistoryIndex = helpHistory.size() - 1;
+            } else {
+                for (int i = helpHistory.size() - 1; i > helpHistoryIndex; i--) {
+                    helpHistory.remove(i);
+                }
+                helpHistory.add(helpFile);
+                helpHistoryIndex = helpHistory.size() - 1;
+            }
+            helpPane.setPage(new URL("file:///" + helpFile));
+            //helpPane.navigate(helpFile);
 
             createPopupMenus();
 //            helpPane.addMouseListener(new MouseAdapter() {
@@ -202,8 +224,21 @@ public class Help extends JDialog implements ActionListener {
                     if (e.getClickCount() == 1 && e.getButton() == 1) {
                         try {
                             helpFile = helpFiles[index][0];
-                            helpPane.navigate(helpFile);
+                            if (helpHistoryIndex == helpHistory.size() - 1) {
+                                helpHistory.add(helpFile);
+                                helpHistoryIndex = helpHistory.size() - 1;
+                            } else {
+                                for (int i = helpHistory.size() - 1; i > helpHistoryIndex; i--) {
+                                    helpHistory.remove(i);
+                                }
+                                helpHistory.add(helpFile);
+                                helpHistoryIndex = helpHistory.size() - 1;
+                            }
+                            helpPane.setPage(new URL("file:///" + helpFile));
+                            //helpPane.navigate(helpFile);
                         } catch (MalformedURLException me) {
+                        } catch (IOException ioe) {
+                            
                         }
                     }
                 }
@@ -281,6 +316,28 @@ public class Help extends JDialog implements ActionListener {
             System.out.println(e.getMessage());
         }
     }
+    
+    private void back() {
+        if (helpHistoryIndex == 0) { return; }
+        helpHistoryIndex--;
+        try {
+            helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
+        } catch (IOException e) {
+            System.err.println(e.getStackTrace());
+        } 
+        
+    }
+    
+    private void forward() {
+        if (helpHistoryIndex == helpHistory.size() - 1) { return; }
+        helpHistoryIndex++;
+        try {
+            helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
+        } catch (IOException e) {
+            System.err.println(e.getStackTrace());
+        } 
+        
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -289,9 +346,9 @@ public class Help extends JDialog implements ActionListener {
         if (actionCommand.equals("close")) {
             this.dispose();
         } else if (actionCommand.equals("back")) {
-            helpPane.back();
+            back();
         } else if (actionCommand.equals("forward")) {
-            helpPane.forward();
+            forward();
         } else if (actionCommand.equals("viewSource")) {
             ViewCodeDialog vcd = new ViewCodeDialog((Frame)host, new File(helpFile), true);
             vcd.setSize(new Dimension(800, 600));
@@ -305,8 +362,10 @@ public class Help extends JDialog implements ActionListener {
         public void actionPerformed(ActionEvent evt) {
             try {
                 helpFile = helpFiles[availableHelpFiles.getSelectedIndex()][0];
-                helpPane.navigate(helpFile);
+                helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
             } catch (MalformedURLException me) {
+            } catch (IOException ioe) {
+                
             }
         }
     };
@@ -433,9 +492,23 @@ public class Help extends JDialog implements ActionListener {
                     }
                     if (e.getClickCount() == 1  && e.getButton() == 1) {
                         try {
+                            
                             helpFile = helpFiles[searchCounts[index][1]][0];
-                            helpPane.navigate(helpFile);
+                            if (helpHistoryIndex == helpHistory.size() - 1) {
+                                helpHistory.add(helpFile);
+                                helpHistoryIndex = helpHistory.size() - 1;
+                            } else {
+                                for (int i = helpHistory.size() - 1; i > helpHistoryIndex; i--) {
+                                    helpHistory.remove(i);
+                                }
+                                helpHistory.add(helpFile);
+                                helpHistoryIndex = helpHistory.size() - 1;
+                            }
+                            
+                            helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
                         } catch (MalformedURLException me) {
+                        } catch (IOException ioe) {
+                            
                         }
                     }
                 }
@@ -444,6 +517,28 @@ public class Help extends JDialog implements ActionListener {
 
         } catch (IOException ioe) {
             
+        }
+    }
+    
+    
+    @Override
+    public void hyperlinkUpdate(HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            try {
+                if (helpHistoryIndex == helpHistory.size() - 1) {
+                    helpHistory.add(event.getURL().getFile());
+                    helpHistoryIndex = helpHistory.size() - 1;
+                } else {
+                    for (int i = helpHistory.size() - 1; i > helpHistoryIndex; i--) {
+                        helpHistory.remove(i);
+                    }
+                    helpHistory.add(event.getURL().getFile());
+                    helpHistoryIndex = helpHistory.size() - 1;
+                }
+                helpPane.setPage(event.getURL());
+            } catch (IOException ioe) {
+                // Some warning to user
+            }
         }
     }
 
