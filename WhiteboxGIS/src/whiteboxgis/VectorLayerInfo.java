@@ -416,7 +416,7 @@ public class VectorLayerInfo implements MapLayer {
         int entryNum, a, i;
         int r1, g1, b1;
         int a1 = this.getAlpha();
-        double nullDataFlag = Integer.MIN_VALUE;
+        //double nullDataFlag = Integer.MIN_VALUE;
         Color legendColour;
         colourData = new Color[numRecords];
         
@@ -466,7 +466,7 @@ public class VectorLayerInfo implements MapLayer {
                     if (rec[fieldNum] != null) {
                         data[a][1] = rec[fieldNum];
                     } else {
-                        data[a][1] = new Double(nullDataFlag);
+                        data[a][1] = null; //new Double(nullDataFlag);
                     }
                     a++;
                 }
@@ -522,10 +522,10 @@ public class VectorLayerInfo implements MapLayer {
                     // figure out the legend entries.
                     legendEntries = new LegendEntry[clrNumber + 1];
                     entryNum = (Integer) (data[0][2]) % numPaletteEntries;
-                    if ((Double) data[0][1] != nullDataFlag) {
-                        legendEntries[0] = new LegendEntry(String.valueOf(data[0][1]), new Color(paletteData[entryNum]));
-                    } else {
+                    if (data[0][1] == null) {
                         legendEntries[0] = new LegendEntry("Null", new Color(255, 255, 255, 0));
+                    } else {
+                        legendEntries[0] = new LegendEntry(String.valueOf(data[0][1]), new Color(paletteData[entryNum]));
                     }
                     int legendEntryNum = 1;
                     double maxValue = legendEntries.length - 1;
@@ -537,10 +537,11 @@ public class VectorLayerInfo implements MapLayer {
                                 } else {
                                     entryNum = (int) (((Integer)data[i][2] / maxValue) * (numPaletteEntries - 1));
                                 }
-                                if ((Double)data[i][1] != nullDataFlag) {
-                                    legendEntries[legendEntryNum] = new LegendEntry(String.valueOf(data[i][1]), new Color(paletteData[entryNum]));
-                                } else {
+                                if (data[i][1] == null) {
                                     legendEntries[legendEntryNum] = new LegendEntry("Null", new Color(255, 255, 255, 0));
+                                    
+                                } else {
+                                    legendEntries[legendEntryNum] = new LegendEntry(String.valueOf(data[i][1]), new Color(paletteData[entryNum]));
                                 }
                                 legendEntryNum++;
                             }
@@ -562,7 +563,9 @@ public class VectorLayerInfo implements MapLayer {
                         
                     if (!paletteScaled) {
                         for (i = 0; i < numRecords; i++) {
-                            if ((Double) data[i][1] != nullDataFlag) {
+                            if (data[i][1] == null) {
+                                colourData[i] = new Color(255, 255, 255, 0);
+                            } else {
                                 clrNumber = (Integer) (data[i][2]);
                                 entryNum = clrNumber % numPaletteEntries;
                                 legendColour = new Color(paletteData[entryNum]);
@@ -570,15 +573,15 @@ public class VectorLayerInfo implements MapLayer {
                                 g1 = legendColour.getGreen();
                                 b1 = legendColour.getBlue();
                                 colourData[i] = new Color(r1, g1, b1, a1);
-                            } else {
-                                colourData[i] = new Color(255, 255, 255, 0);
                             }
                         }
                     } else { // the palette is scaled
                         int value = 0;
                         //double maxValue = legendEntries.length - 1;
                         for (i = 0; i < numRecords; i++) {
-                            if ((Double) data[i][1] != nullDataFlag) {
+                            if (data[i][1] == null) {
+                                colourData[i] = new Color(255, 255, 255, 0);
+                            } else {
                                 value = (Integer) data[i][2];
                                 entryNum = (int) ((value / maxValue) * (numPaletteEntries - 1));
                                 legendColour = new Color(paletteData[entryNum]);
@@ -586,8 +589,6 @@ public class VectorLayerInfo implements MapLayer {
                                 g1 = legendColour.getGreen();
                                 b1 = legendColour.getBlue();
                                 colourData[i] = new Color(r1, g1, b1, a1);
-                            } else {
-                                colourData[i] = new Color(255, 255, 255, 0);
                             }
                         }
                     }
@@ -602,25 +603,31 @@ public class VectorLayerInfo implements MapLayer {
                         double maxValue = Float.NEGATIVE_INFINITY;
                         if (numRecords > 1) {
                             for (i = 0; i < numRecords; i++) {
-                                if ((Double)data[i][1] > maxValue &&
-                                        (Double)data[i][1] != nullDataFlag) {
-                                    maxValue = (Double)data[i][1];
+                                if (data[i][1] == null) {
+                                    // do nothing
+                                } else {
+                                    if ((Double)data[i][1] > maxValue) {
+                                        maxValue = (Double)data[i][1];
+                                    }
                                 }
-                                if ((Double)data[i][1] < minValue &&
-                                        (Double)data[i][1] != nullDataFlag) {
-                                    minValue = (Double)data[i][1];
+                                if (data[i][1] == null) {
+                                    // do nothing
+                                } else {
+                                    if ((Double)data[i][1] < minValue) {
+                                        minValue = (Double)data[i][1];
+                                    }
                                 }
                             }
                             double range = maxValue - minValue;
                             double value;
                             for (i = 0; i < numRecords; i++) {
-                                if ((Double) data[i][1] != nullDataFlag) {
+                                if (data[i][1] == null) {
+                                    colourData[i] = new Color(255, 255, 255, 0);
+                                } else {
                                     value = (Double) data[i][1];
                                     entryNum = (int) (((value - minValue) / range) * (numPaletteEntries - 1));
                                     clr = new Color(paletteData[entryNum]);
                                     colourData[i] = new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), a1);
-                                } else {
-                                    colourData[i] = new Color(255, 255, 255, 0);
                                 }
                             }
                             
@@ -685,20 +692,20 @@ public class VectorLayerInfo implements MapLayer {
                         // figure out the legend entries.
                         legendEntries = new LegendEntry[clrNumber + 1];
                         entryNum = (Integer) (data[0][2]) % numPaletteEntries;
-                        if ((Double) data[0][1] != nullDataFlag) {
-                            legendEntries[0] = new LegendEntry(String.valueOf(data[0][1]), new Color(paletteData[entryNum]));
-                        } else {
+                        if (data[0][1] == null) {
                             legendEntries[0] = new LegendEntry("Null", new Color(255, 255, 255, 0));
+                        } else {
+                            legendEntries[0] = new LegendEntry(String.valueOf(data[0][1]), new Color(paletteData[entryNum]));
                         }
                         int legendEntryNum = 1;
                         if (numRecords > 1) {
                             for (i = 1; i < numRecords; i++) {
                                 if (!data[i][1].equals(data[i - 1][1])) {
                                     entryNum = (Integer) (data[i][2]) % numPaletteEntries;
-                                    if ((Double)data[i][1] != nullDataFlag) {
-                                        legendEntries[legendEntryNum] = new LegendEntry(String.valueOf(data[i][1]), new Color(paletteData[entryNum]));
-                                    } else {
+                                    if (data[i][1] == null) {
                                         legendEntries[legendEntryNum] = new LegendEntry("Null", new Color(255, 255, 255, 0));
+                                    } else {
+                                        legendEntries[legendEntryNum] = new LegendEntry(String.valueOf(data[i][1]), new Color(paletteData[entryNum]));
                                     }
                                     legendEntryNum++;
                                 }
@@ -718,7 +725,9 @@ public class VectorLayerInfo implements MapLayer {
 
                         // fill the colourData array.
                         for (i = 0; i < numRecords; i++) {
-                            if ((Double)data[i][1] != nullDataFlag) {
+                            if (data[i][1] == null) {
+                                colourData[i] = new Color(255, 255, 255, 0);
+                            } else {
                                 clrNumber = (Integer) (data[i][2]);
                                 entryNum = clrNumber % numPaletteEntries;
                                 legendColour = new Color(paletteData[entryNum]);
@@ -726,8 +735,6 @@ public class VectorLayerInfo implements MapLayer {
                                 g1 = legendColour.getGreen();
                                 b1 = legendColour.getBlue();
                                 colourData[i] = new Color(r1, g1, b1, a1);
-                            } else {
-                                colourData[i] = new Color(255, 255, 255, 0);
                             }
                         }
 
