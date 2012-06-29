@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
+    <title>GAT Help</title><link rel="stylesheet" type="text/css" href="Help.css">
+</head>
+<body>
+<h1>Fill depressions by size</h1>
+
+<p>
+This tool can be used to fill topographic depressions, up to a maximum user-specified size, in a digital elevation model (DEM). It also removes the associated flat areas. This is a common pre-processing step required by many flow-path analysis tools to ensure continuous flow from each grid cell to some outlet point. The depression filling algorithm is essentially the same as the algorithm implemented in the <a href="FillDeps.html"><i><b>Fill Depressions</b></i></a> tool. Unlike the <i><b>Fill Depressions</b></i> tool, however, this tool only ever applies the filling algorithm on a series of small, overlapping sub-sections of the input DEM, the size of which is determined by the maximum user-specified size. As such, this tool is generally quicker for filling depressions in datasets containing only small-sized depressions. It can also be used in combination with the <a href="BreachDeps.html"><b><i>Depression Breaching</i></b></a> tool.</p>
+<p>
+If the input DEM has gaps, or missing-data holes, that contain <i><b>NoData</i></b> values, it is better to use the <i><b><a href="FillMissingDataHoles.html">Fill Missing Data Holes tool</a></i></b> to repair these gaps. <b><i>Fill Missing Data Holes tool</i></b> will interpolate values across the gaps and produce a more natural-looking surface than the flat areas that are produced by depression filling.</p>
+
+
+<br><h2 class="SeeAlso">See Also:</h2>
+<ul>
+
+<li><a href="FlowTools.html">Other flow modelling tools</a></li>
+
+<li><a href="FillMissingDataHoles.html">Fill Missing Data Holes tool</a></li>
+
+</ul>
+
+<br><h2 class="SeeAlso">Credits:</h2>
+<ul>
+<li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
+
+</ul>
+</body>
+</html>
