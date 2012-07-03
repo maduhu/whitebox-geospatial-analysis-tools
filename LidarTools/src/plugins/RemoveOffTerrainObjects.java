@@ -553,10 +553,6 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
                         }
                     } while (flag);
 
-//                    output.addMetadataEntry("Created by the "
-//                            + getDescriptiveName() + " tool.");
-//                    output.addMetadataEntry("Created on " + new Date());
-
                     DEMGrid.close();
                     output.close();
 
