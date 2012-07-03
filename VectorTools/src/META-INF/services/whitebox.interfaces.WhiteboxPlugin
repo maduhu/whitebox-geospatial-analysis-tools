@@ -4,6 +4,7 @@ plugins.Fuse
 plugins.Intersect
 plugins.LayerFootprint
 plugins.MinimumConvexHull
+plugins.PolygonsToLines
 plugins.Smooth
 plugins.SymmetricDifference
 plugins.Union
