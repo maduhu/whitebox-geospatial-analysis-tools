@@ -1,3 +1,0 @@
-<Dialog Name="CoordinateSystemTransformation" HelpFile="CoordinateSystemTransformation.html">
-	<DialogComponent type="CustomDialogProvidedByPlugin"></DialogComponent>
-</Dialog>
