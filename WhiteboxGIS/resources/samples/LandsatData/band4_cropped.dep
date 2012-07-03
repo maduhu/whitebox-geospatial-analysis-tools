@@ -1,0 +1,24 @@
+Min:	0.0
+Max:	255.0
+North:	4829250.0
+South:	4812150.0
+East:	568800.0
+West:	552180.0
+Cols:	555
+Rows:	571
+Data Type:	float
+Z Units:	unspecified
+XY Units:	not specified
+Projection:	not specified
+Data Scale:	continuous
+Display Min:	0.0
+Display Max:	224.3192138671875
+Preferred Palette:	RGB_red.pal
+NoData:	-32768.0
+Byte Order:	LITTLE_ENDIAN
+Metadata Entry:	Created by the ImportIDRISIBinary tool
+Metadata Entry:	Created on September-22-10 1;11;01 PM
+Metadata Entry:	Created by the ImportIDRISIBinary tool
+Metadata Entry:	Created on September-22-10 1;11;01 PM
+Metadata Entry:	Created by the ImportIDRISIBinary tool
+Metadata Entry:	Created on September-22-10 1;11;01 PM
