@@ -17,7 +17,8 @@
 
 package whiteboxgis;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.UIManager;
 
 /**
  *
@@ -30,6 +31,16 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
+            
+            if (System.getProperty("os.name").contains("Mac")) {
+                System.setProperty("apple.laf.useScreenMenuBar", "true");
+                System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
+                System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
+                System.setProperty("Xdock:name", "Whitebox");
+                System.setProperty("Xdock:icon", "wbGAT.png");
+                System.setProperty("apple.awt.fileDialogForDirectories", "true");
+            }
+            
             //setLookAndFeel("Nimbus");
             setLookAndFeel("systemLAF");
 
@@ -43,15 +54,7 @@ public class Main {
     
     private static void setLookAndFeel(String lafName) {
         try {
-            if (System.getProperty("os.name").contains("Mac")) {
-                System.setProperty("apple.laf.useScreenMenuBar", "true");
-                System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
-                System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
-                System.setProperty("Xdock:name", "Whitebox");
-                System.setProperty("Xdock:icon", "wbGAT.png");
-                System.setProperty("apple.awt.fileDialogForDirectories", "true");
-            }
-
+            
             if (lafName.equals("systemLAF")) {
                 lafName = getSystemLookAndFeelName();
             }
@@ -62,6 +65,7 @@ public class Main {
                     break;
                 }
             }
+
 
         } catch (Exception e) {
             System.err.println(e.getMessage());

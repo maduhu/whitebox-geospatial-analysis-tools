@@ -16,29 +16,25 @@
  */
 package whiteboxgis;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import javax.script.ScriptEngineFactory;
-import javax.swing.*;
-import java.util.List;
-import java.awt.Dimension;
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import java.awt.event.*;
-import java.awt.Frame;
-import java.awt.Container;
-import java.awt.BorderLayout;
-import java.awt.Toolkit;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.*;
-import whitebox.interfaces.Communicator;
-import whitebox.interfaces.WhiteboxPluginHost;
-import jsyntaxpane.DefaultSyntaxKit;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jsyntaxpane.actions.ActionUtils;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import jsyntaxpane.DefaultSyntaxKit;
+import jsyntaxpane.actions.ActionUtils;
+import whitebox.interfaces.Communicator;
+import whitebox.interfaces.WhiteboxPluginHost;
 
 //import whitebox.utilities.Console;
 

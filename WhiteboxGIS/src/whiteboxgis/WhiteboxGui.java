@@ -39,7 +39,6 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-//import org.lobobrowser.main.PlatformInit;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -188,7 +187,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
 
             this.createGui();
-
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
