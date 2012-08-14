@@ -176,7 +176,7 @@ public class Polygon implements Geometry {
         for (int i = 0; i < numParts; i++) {
             stPoint = parts[i];
             if (i < numParts - 1) {
-                // remember, the last point in each part is the same as the first...it's not a legitamate point.
+                // remember, the last point in each part is the same as the first...it's not a legitemate point.
                 endPoint = parts[i + 1] - 2;
             } else {
                 endPoint = numPoints - 2;
@@ -186,7 +186,7 @@ public class Polygon implements Geometry {
                 return;
             } // something's wrong! 
             // first see if it is a convex or concave polygon
-            // calculate the cros product for each adjacent edge.
+            // calculate the cross product for each adjacent edge.
             double[] crossproducts = new double[numPointsInPart];
             for (int j = 0; j < numPointsInPart; j++) {
                 n2 = stPoint + j;

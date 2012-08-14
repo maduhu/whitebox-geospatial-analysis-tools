@@ -703,7 +703,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             // mind that it is always stored as doubles.
             System.gc();
             long availableMemory = Runtime.getRuntime().freeMemory();
-            long gridMemoryRequirements = numberRows * numberColumns * 8;
+            long gridMemoryRequirements = (long)numberRows * (long)numberColumns * 8L;
             if ((availableMemory / 3) > gridMemoryRequirements) {
                 // store the entire grid in memory.
                 blockSize = numberRows * numberColumns;

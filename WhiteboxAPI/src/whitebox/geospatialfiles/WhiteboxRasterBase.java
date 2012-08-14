@@ -1383,7 +1383,11 @@ public abstract class WhiteboxRasterBase {
                 xCoordsByColumn[i] = west + halfCellSizeX + i * cellSizeX;
             }
         }
-        return xCoordsByColumn[column];
+        if (column >= 0 && column < numberColumns) {
+            return xCoordsByColumn[column];
+        } else {
+            return west + halfCellSizeX + column * cellSizeX;
+        }
     }
     
     private double[] yCoordsByRow;
@@ -1399,7 +1403,11 @@ public abstract class WhiteboxRasterBase {
                 yCoordsByRow[i] = north - halfCellSizeY - i * cellSizeY;
             }
         }
-        return yCoordsByRow[row];
+        if (row >= 0 && row < numberRows) {
+            return yCoordsByRow[row];
+        } else {
+            return north - halfCellSizeY - row * cellSizeY;
+        }
     }
     
     public abstract void close();

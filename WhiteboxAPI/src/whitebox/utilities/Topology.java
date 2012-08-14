@@ -31,15 +31,30 @@ public class Topology {
     }
     
     public static boolean isClockwisePolygon(Coordinate[] coords) {
+        // Note: holes are polygons that have verticies in counter-clockwise order
+
+        // This approach is based on the method described by Paul Bourke, March 1998
+        // http://paulbourke.net/geometry/clockwise/index.html
+
         double x0, y0, x1, y1, x2, y2;
         int n1 = 0, n2 = 0, n3 = 0;
         int numPoints = coords.length;
+        
+        // are the first and last points the same? If so, remove the last point.
+        if ((coords[0].x == coords[numPoints - 1].x) && (coords[0].y == coords[numPoints - 1].y)) {
+            Coordinate[] coords2 = new Coordinate[numPoints - 1];
+            System.arraycopy(coords, 0, coords2, 0, numPoints - 1);
+            coords = new Coordinate[numPoints - 1];
+            System.arraycopy(coords2, 0, coords, 0, numPoints - 1);
+            numPoints--;
+        }
+        
         if (numPoints < 3) {
             throw new IllegalArgumentException("Degenerate polygon with less than three points.");
         }
 
         // first see if it is a convex or concave polygon
-        // calculate the cros product for each adjacent edge.
+        // calculate the cross product for each adjacent edge.
         double[] crossproducts = new double[numPoints];
 
         for (int j = 0; j < numPoints; j++) {
@@ -114,15 +129,30 @@ public class Topology {
     
     
     public static boolean isPolygonConvex(Coordinate[] coords) {
+        // Note: holes are polygons that have verticies in counter-clockwise order
+
+        // This approach is based on the method described by Paul Bourke, March 1998
+        // http://paulbourke.net/geometry/clockwise/index.html
+
         double x0, y0, x1, y1, x2, y2;
         int n1 = 0, n2 = 0, n3 = 0;
         int numPoints = coords.length;
+        
+        // are the first and last points the same? If so, remove the last point.
+        if ((coords[0].x == coords[numPoints - 1].x) && (coords[0].y == coords[numPoints - 1].y)) {
+            Coordinate[] coords2 = new Coordinate[numPoints - 1];
+            System.arraycopy(coords, 0, coords2, 0, numPoints - 1);
+            coords = new Coordinate[numPoints - 1];
+            System.arraycopy(coords2, 0, coords, 0, numPoints - 1);
+            numPoints--;
+        }
+        
         if (numPoints < 3) {
             throw new IllegalArgumentException("Degenerate polygon with less than three points.");
         }
 
         // first see if it is a convex or concave polygon
-        // calculate the cros product for each adjacent edge.
+        // calculate the cross product for each adjacent edge.
         double[] crossproducts = new double[numPoints];
 
         for (int j = 0; j < numPoints; j++) {
