@@ -5,6 +5,7 @@ plugins.CreateBlankOutletRaster
 plugins.DownslopeFlowpathLength
 plugins.FillPits
 plugins.FillDepressions
+plugins.FillDepressionsPandD
 plugins.FindNoFlowCells
 plugins.FlowAccumD8
 plugins.FlowAccumDinf
