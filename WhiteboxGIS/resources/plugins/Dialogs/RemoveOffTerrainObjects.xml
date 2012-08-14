@@ -33,4 +33,11 @@
 		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
+        <DialogComponent type="DialogCheckBox">
+		<Name>iterateRemoveOTOs</Name>
+		<Description>Iterate algorithm until no further changes?</Description>
+		<LabelText>Iterate algorithm until no further changes?</LabelText>
+		<InitialState>True</InitialState>
+		<IsVisible>True</IsVisible>
+	</DialogComponent>
 </Dialog>

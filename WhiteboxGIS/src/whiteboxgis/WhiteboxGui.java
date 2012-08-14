@@ -49,7 +49,7 @@ import whitebox.interfaces.*;
 import whitebox.structures.BoundingBox;
 import whitebox.structures.ExtensionFileFilter;
 import whitebox.utilities.FileUtilities;
-
+import java.lang.reflect.Method;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
@@ -625,6 +625,22 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             if (System.getProperty("os.name").contains("Mac")) {
                 this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+                try {
+                    Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
+                    Class params[] = new Class[2];
+                    params[0] = Window.class;
+                    params[1] = Boolean.TYPE;
+                    Method method = util.getMethod("setWindowCanFullScreen", params);
+                    method.invoke(util, this, true);
+                } catch (ClassNotFoundException e) {
+                    // log exception
+                } catch (NoSuchMethodException e) {
+                    // log exception
+                //} catch (InvocationTargetException e) {
+                    // log exception
+                } catch (IllegalAccessException e) {
+                    // log exception
+                }
             }
             this.setMinimumSize(new Dimension(700, 500));
             this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
@@ -3077,6 +3093,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             layer.clipLayerToExtent(openMaps.get(mapNum).getCurrentExtent(), fileName);
 
+        } else {
+            showFeedback("This function is not currently available for vector layers.");
         }
     }
 

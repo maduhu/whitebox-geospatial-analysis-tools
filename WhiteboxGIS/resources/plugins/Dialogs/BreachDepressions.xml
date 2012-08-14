@@ -29,4 +29,14 @@
 		<MakeOptional>False</MakeOptional>
 		<Width>60</Width>
 	</DialogComponent>
+        <DialogComponent type="DialogDataInput">
+		<Name>maxCost</Name>
+		<Description>Enter the Maximum allowable elevation decrement here</Description>
+		<LabelText>Maximum elevation decrement value (Optional):</LabelText>
+		<IsVisible>True</IsVisible>
+		<InitialText></InitialText>
+		<NumericalInputOnly>True</NumericalInputOnly>
+		<MakeOptional>True</MakeOptional>
+		<Width>60</Width>
+	</DialogComponent>
 </Dialog>
