@@ -16,8 +16,10 @@
  */
 package plugins;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.PriorityQueue;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
@@ -219,6 +221,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
         int startingPointInPart, endingPointInPart;
         double x1, y1, x2, y2, xPrime, yPrime;
         boolean useRecID = false;
+        DecimalFormat df = new DecimalFormat("###,###,###,###");
         
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -329,7 +332,11 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
             }
 
             Collections.sort(myList);
-
+            long heapSize = Runtime.getRuntime().totalMemory();
+            int flushSize = (int)(heapSize / 32); //150000;
+            int j, numCellsToWrite;
+            PriorityQueue<GridCell> pq = new PriorityQueue<GridCell>(flushSize);
+            GridCell cell;
             int numRecords = input.getNumberOfRecords();
             int count = 0;
             int progressCount = (int) (numRecords / 100.0);
@@ -394,7 +401,8 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                                     // calculate the intersection point
                                     xPrime = x1 + (rowYCoord - y1) / (y2 - y1) * (x2 - x1);
                                     col = output.getColumnFromXCoordinate(xPrime);
-                                    output.setValue(row, col, value);
+                                    //output.setValue(row, col, value);
+                                    pq.add(new GridCell(row, col, value));
                                 }
                             }
                         }
@@ -415,13 +423,29 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                                     yPrime = y1 + (colXCoord - x1) / (x2 - x1) * (y2 - y1);
                                     
                                     row = output.getRowFromYCoordinate(yPrime);
-                                    output.setValue(row, col, value);
+                                    //output.setValue(row, col, value);
+                                    pq.add(new GridCell(row, col, value));
                                 }
                             }
                         }
                     }
                 }
-
+                if (pq.size() >= flushSize) {
+                    j = 0;
+                    numCellsToWrite = pq.size();
+                    do {
+                        cell = pq.poll();
+                        output.setValue(cell.row, cell.col, cell.z);
+                        j++;
+                        if (j % 1000 == 0) {
+                            if (cancelOp) {
+                                cancelOperation();
+                                return;
+                            }
+                            updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                        }
+                    } while (pq.size() > 0);
+                }
                 if (cancelOp) {
                     cancelOperation();
                     return;
@@ -432,6 +456,21 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                     updateProgress(progress);
                 }
             }
+            
+            j = 0;
+            numCellsToWrite = pq.size();
+            do {
+                cell = pq.poll();
+                output.setValue(cell.row, cell.col, cell.z);
+                j++;
+                if (j % 1000 == 0) {
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                }
+            } while (pq.size() > 0);
 
             output.flush();
             output.close();
@@ -562,6 +601,46 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
             return true;
         }
         return threshold2 > threshold1 ? val > threshold1 && val < threshold2 : val > threshold2 && val < threshold1;
+    }
+    
+    class GridCell implements Comparable<GridCell> {
+
+        public int row;
+        public int col;
+        public double z;
+
+        public GridCell(int row, int col, double z) {
+            this.row = row;
+            this.col = col;
+            this.z = z;
+        }
+
+        @Override
+        public int compareTo(GridCell cell) {
+            final int BEFORE = -1;
+            final int EQUAL = 0;
+            final int AFTER = 1;
+
+            if (this.row < cell.row) {
+                return BEFORE;
+            } else if (this.row > cell.row) {
+                return AFTER;
+            }
+
+            if (this.col < cell.col) {
+                return BEFORE;
+            } else if (this.col > cell.col) {
+                return AFTER;
+            }
+            
+            if (this.z < cell.z) {
+                return BEFORE;
+            } else if (this.z > cell.z) {
+                return AFTER;
+            }
+            
+            return EQUAL;
+        }
     }
 
 //    // This method is only used during testing.
