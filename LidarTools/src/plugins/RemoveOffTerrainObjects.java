@@ -16,15 +16,14 @@
  */
 package plugins;
 
-import java.util.Date;
-import java.util.List;
 import java.io.File;
+import java.util.List;
+import java.util.PriorityQueue;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.KdTree;
 import whitebox.utilities.FileUtilities;
-import java.util.PriorityQueue;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -216,10 +215,11 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
         boolean[] activeTile = new boolean[1];
         int[][] tileCorners = new int[2][1];
         boolean didSomethingHappen = false;
-        int currentTile, numTiles;
+        int currentTile, numTiles = 0;
         long numValidCells = 0;
         double cumulativeChange = 0;
-
+        boolean iterateRemoveOTOs = false;
+        
         try {
             // read the input parameters 
             if (args.length <= 0) {
@@ -232,6 +232,7 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
             int halfOTOMaxSize = OTOMaxSize / 2;
             double[] data = new double[OTOMaxSize + 2];
             minEdgeSlope = Double.valueOf(args[3]);
+            iterateRemoveOTOs = Boolean.parseBoolean(args[4]);
 
             if (suffix.equals("")) {
                 suffix = "no OTOs";
@@ -465,8 +466,10 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
                     // Find all of the peaks in each tile
                     //**************************************************
 
-                    colOffset = -1; //Why minus one? It's because if we don't create sub-grids that are just beyond the edge of 
-                    //the DEM, then we won't be able to find any OTOs that intersect top and left edges of the DEM.
+                    colOffset = -1; //Why minus one? It's because if we don't 
+                    //create sub-grids that are just beyond the edge of 
+                    //the DEM, then we won't be able to find any OTOs that 
+                    //intersect top and left edges of the DEM.
                     rowOffset = -1;
                     flag = true;
                     currentTile = -1;
@@ -548,9 +551,11 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
                                 cancelOperation();
                                 return;
                             }
-                            progress = (int) (rowOffset * 100d / (rows - 1));
-                            updateProgress((int) progress);
+                            //progress = (int)(rowOffset * 100d / (rows - 1));
+                            //updateProgress((int) progress);
                         }
+                        progress = (int) (currentTile * 100d / (numTiles - 1d)); //(rowOffset * 100d / (rows - 1));
+                        updateProgress((int) progress);
                     } while (flag);
 
                     DEMGrid.close();
@@ -562,7 +567,7 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
                     }
 
                 } while ((numCellsChanged > 0) && (numCellsChanged != prevNumCellsChanged)
-                        && (loopNum < 501) && (cumulativeChange > 0.5));
+                        && (loopNum < 501) && (cumulativeChange > 0.5) && iterateRemoveOTOs);
 
                 if ((new File(tempHeaderFile)).exists()) {
                     (new File(tempHeaderFile)).delete();
