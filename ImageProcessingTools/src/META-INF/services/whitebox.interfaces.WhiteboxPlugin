@@ -14,11 +14,11 @@ plugins.FilterKNearestMean
 plugins.FilterLaplacian
 plugins.FilterLineDetection
 plugins.FilterLoG
+plugins.FilterMajority
 plugins.FilterMaximum
 plugins.FilterMean
 plugins.FilterMedian
 plugins.FilterMinimum
-plugins.FilterMode
 plugins.FilterOlympic
 plugins.FilterPercentile
 plugins.FilterPrewitt

@@ -27,7 +27,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author johnlindsay
  */
-public class FilterMode implements WhiteboxPlugin {
+public class FilterMajority implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -37,7 +37,7 @@ public class FilterMode implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "FilterMode";
+        return "FilterMajority";
     }
     /**
      * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
@@ -45,7 +45,7 @@ public class FilterMode implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Mode Filter";
+    	return "Majority Filter (Modal)";
     }
     /**
      * Used to retrieve a short description of what the plugin tool does.
@@ -53,7 +53,7 @@ public class FilterMode implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Performs a mode filter on an image.";
+    	return "Performs a majority filter, or modal filter, on an image.";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
