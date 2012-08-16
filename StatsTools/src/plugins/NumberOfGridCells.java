@@ -16,7 +16,6 @@
  */
 package plugins;
 
-import java.io.File;
 import java.text.DecimalFormat;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
@@ -27,7 +26,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImageCorrelation implements WhiteboxPlugin {
+public class NumberOfGridCells implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -40,7 +39,7 @@ public class ImageCorrelation implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "ImageCorrelation";
+        return "NumberOfGridCells";
     }
 
     /**
@@ -51,7 +50,7 @@ public class ImageCorrelation implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Image Correlation";
+    	return "Number Of Grid Cells";
     }
 
     /**
@@ -61,7 +60,7 @@ public class ImageCorrelation implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Performs image correlation on two or more input images.";
+    	return "Counts the number of grid cells in a raster.";
     }
 
     /**
@@ -190,26 +189,13 @@ public class ImageCorrelation implements WhiteboxPlugin {
         amIActive = true;
         
         WhiteboxRaster image;
-        WhiteboxRaster image2;
-        int cols = 0;
-        int rows = 0;
-        double noData = -32768;
-        double noDataImage2 = -32768;
-        int numImages;
-        double z;
-        float progress = 0;
-        int col, row;
-        int a, b, i;
-        String inputFilesString = null;
+        int cols, rows, col, row, a, numImages,loopNum, progress;
+        double noData;
+        String inputFilesString;
         String[] imageFiles;
-        Object[] images;
-        double[] imageTotals;
+        String[] shortNames;
         long[] imageNs;
-        double[] imageAverages;
-        double image1TotalDeviation = 0;
-        double image2TotalDeviation = 0;
-        double totalProductDeviations = 0;
-        double[][] correlationMatrix;
+        boolean isZeroBackground;
                 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -217,153 +203,71 @@ public class ImageCorrelation implements WhiteboxPlugin {
         }
 
         inputFilesString = args[0];
-        
         imageFiles = inputFilesString.split(";");
-
         numImages = imageFiles.length;
+        isZeroBackground = Boolean.parseBoolean(args[1]);
         
-        // check to see that the inputHeader and outputHeader are not null.
-        if (numImages < 2) {
-            showFeedback("At least two images must be specified for an image correlation.");
-            return;
-        }
-
         try {
             
-            //initialize the image data arrays
-            imageTotals = new double[numImages];
             imageNs = new long[numImages];
-            imageAverages = new double[numImages];
-            correlationMatrix = new double[numImages][numImages];
-            // initialize the matrix with -99's
-            for (a = 0; a < numImages; a++) {
-                for (b = 0; b < numImages; b++) {
-                    correlationMatrix[a][b] = -99;
-                }
-            }
-
+            shortNames = new String[numImages];
             double[] data;
-            double[] data2;
-            // check that each of the input images has the same number of rows and columns
-            // and calculate the image averages.
-            updateProgress("Calculating image averages:", 0);
+            
+            loopNum = 0;
             for (a = 0; a < numImages; a++) {
+                loopNum++;
+                updateProgress("Loop " + loopNum + " of " + numImages + ":", 0);
                 image = new WhiteboxRaster(imageFiles[a], "r");
                 noData = image.getNoDataValue();
-                if (a == 0) {
-                    rows = image.getNumberRows();
-                    cols = image.getNumberColumns();
+                rows = image.getNumberRows();
+                cols = image.getNumberColumns();
+                shortNames[a] = image.getShortHeaderFile();
+                
+                if (isZeroBackground) {
+                    for (row = 0; row < rows; row++) {
+                        data = image.getRowValues(row);
+                        for (col = 0; col < cols; col++) {
+                            if (data[col] != noData && data[col] != 0) {
+                                imageNs[a]++;
+                            }
+                        }
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
+                        progress = (int)(row * 100.0 / rows);
+                        updateProgress("Loop " + loopNum + " of " + numImages + ":", progress);
+                    }
                 } else {
-                    if (image.getNumberColumns() != cols || 
-                            image.getNumberRows() != rows) {
-                        showFeedback("All input images must have the same dimensions (rows and columns).");
-                        return;
-                    }
-                }
-                for (row = 0; row < rows; row++) {
-                    data = image.getRowValues(row);
-                    for (col = 0; col < cols; col++) {
-                        if (data[col] != noData) {
-                            imageTotals[a] += data[col];
-                            imageNs[a]++;
-                        }
-                    }
-                    if (cancelOp) { cancelOperation(); return; }
-                }
-                image.close();
-                imageAverages[a] = imageTotals[a] / imageNs[a];
-                progress = a / (numImages - 1) * 100;
-                updateProgress("Calculating image average:", (int)progress);
-            }
-
-            updateProgress("Calculating the correlation matrix:", 0);
-            i = 0;
-            for (a = 0; a < numImages; a++) {
-                image = new WhiteboxRaster(imageFiles[a], "r");
-                noData = image.getNoDataValue();
-                for (b = 0; b <= i; b++) {
-                    if (a == b) {
-                        correlationMatrix[a][b] = 1.0;
-                    } else {
-                        image1TotalDeviation = 0;
-                        image2TotalDeviation = 0;
-                        totalProductDeviations = 0;
-                        image2 = new WhiteboxRaster(imageFiles[b], "r");
-                        noDataImage2 = image2.getNoDataValue();
-                        for (row = 0; row < rows; row++) {
-                            data = image.getRowValues(row);
-                            data2 = image2.getRowValues(row);
-                            for (col = 0; col < cols; col++) {
-                                if (data[col] != noData && data2[col] != noDataImage2) {
-                                    image1TotalDeviation += (data[col] - imageAverages[a]) * (data[col] - imageAverages[a]);
-                                    image2TotalDeviation += (data2[col] - imageAverages[b]) * (data2[col] - imageAverages[b]);
-                                    totalProductDeviations += (data[col] - imageAverages[a]) * (data2[col] - imageAverages[b]);
-                                }
-                            }
-                            if (cancelOp) {
-                                cancelOperation();
-                                return;
+                    for (row = 0; row < rows; row++) {
+                        data = image.getRowValues(row);
+                        for (col = 0; col < cols; col++) {
+                            if (data[col] != noData) {
+                                imageNs[a]++;
                             }
                         }
-
-                        image2.close();
-                        correlationMatrix[a][b] = totalProductDeviations / (Math.sqrt(image1TotalDeviation * image2TotalDeviation));
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
+                        progress = (int)(row * 100.0 / rows);
+                        updateProgress("Loop " + loopNum + " of " + numImages + ":", progress);
                     }
                 }
-                i++;
+                
                 image.close();
                 
-                progress = a / (numImages - 1) * 100;
-                updateProgress("Calculating the correlation matrix:", (int)progress);
             }
             
+            String retstr;
+            DecimalFormat df = new DecimalFormat("###,###,###,###");
             
-            String retstr = null;
-            retstr = "IMAGE CORRELATION MATRIX\n\n";
-            
-            String headers = "\t";
-            for (a = 0; a < numImages; a++) {
-                headers = headers + "Image" + (a + 1) + "\t";
-            }
-            
-//            int lineLength = headers.length();
-//            String ruledLine = "";
-//            for (a = 0; a < lineLength; a++) {
-//                ruledLine += "\u2014";
-//            }
-//            ruledLine += "\n";
-//            retstr += ruledLine;
-            retstr += headers;
-//            retstr += ruledLine;
-            
-            DecimalFormat df = new DecimalFormat("0.0000");
+            retstr = "Number of Grid Cells:\n\n";
             
             for (a = 0; a < numImages; a++) {
-                retstr = retstr + "\nImage" + (a + 1) + "\t";
-                for (b = 0; b < numImages; b++) {
-                    if (correlationMatrix[a][b] != -99) {
-                        if (correlationMatrix[a][b] >= 0) {
-                            retstr = retstr + "  " + df.format(correlationMatrix[a][b]) + "\t";
-                        } else {
-                            retstr = retstr + df.format(correlationMatrix[a][b]) + "\t";
-                        }
-                    } else {
-                        retstr = retstr + "\t";
-                    }
-                }
+                retstr += shortNames[a] + ":\t" + df.format(imageNs[a]) + "\n";
             }
-//            retstr += ruledLine;
             
-            retstr = retstr + "\n\n";
-            String shortFileName;
-            int j, k;
-            for (a = 0; a < numImages; a++) {
-                j = imageFiles[a].toString().lastIndexOf(File.separator);
-                k = imageFiles[a].toString().lastIndexOf(".");
-                shortFileName = imageFiles[a].toString().substring(j + 1, k);
-                retstr = retstr + "Image" + (a + 1) + " = " + shortFileName + "\n";
-            }
-                   
             returnData(retstr);
             
         } catch (Exception e) {

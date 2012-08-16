@@ -10,7 +10,9 @@ plugins.ImageAverage
 plugins.ImageCorrelation
 plugins.ImageRegression
 plugins.ImageStandardDeviation
+plugins.ImageTotal
 plugins.KappaIndex
+plugins.NumberOfGridCells
 plugins.TestForNormality
 plugins.TurningBands
 plugins.RandomSample
