@@ -607,7 +607,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             splitPane3 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, drawingArea, scrollText);
             //splitPane3.setDividerLocation(splitterLocTextArea);
             splitPane3.setResizeWeight(1.0);
-            splitPane3.setDividerSize(3);
+            //splitPane3.setDividerSize(6);
+            splitPane3.setOneTouchExpandable(true);
             splitPane3.setDividerLocation(1.0);
 
             tb = createTabbedPane();
