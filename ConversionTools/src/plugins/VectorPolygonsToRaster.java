@@ -16,19 +16,25 @@
  */
 package plugins;
 
-import java.util.Collections;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.PriorityQueue;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataType;
 import whitebox.geospatialfiles.shapefile.DBF.DBFField;
 import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
-import whitebox.geospatialfiles.shapefile.*;
+import whitebox.geospatialfiles.shapefile.PolygonM;
+import whitebox.geospatialfiles.shapefile.PolygonZ;
+import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
+import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.BoundingBox;
+import whitebox.structures.RowPriorityGridCell;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -222,6 +228,10 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
         boolean foundIntersection;
         ArrayList<Integer> edgeList = new ArrayList<Integer>();
         boolean useRecID = false;
+        DecimalFormat df = new DecimalFormat("###,###,###,###");
+        double smallNumber = Float.NEGATIVE_INFINITY; // this value will be used
+        // to ensure that when there is a hole in a polygon, the cell containing
+        // the background value will be retreived from the priority queue second.
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -325,6 +335,11 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
             
             Collections.sort(myList);
             
+            long heapSize = Runtime.getRuntime().totalMemory();
+            int flushSize = (int)(heapSize / 32);
+            int j, numCellsToWrite;
+            PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<RowPriorityGridCell>(flushSize);
+            RowPriorityGridCell cell;
             int numRecords = input.getNumberOfRecords();
             int count = 0;
             int progressCount = (int)(numRecords / 100.0);
@@ -393,7 +408,8 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
                                     stCol = Math.min(edgeList.get(0), edgeList.get(1));
                                     endCol = Math.max(edgeList.get(0), edgeList.get(1));
                                     for (col = stCol; col <= endCol; col++) {
-                                        output.setValue(row, col, value);
+                                        //output.setValue(row, col, value);
+                                        pq.add(new RowPriorityGridCell(row, col, value));
                                     }
                                 } else {
                                     //sort the edges.
@@ -407,7 +423,8 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
                                         endCol = edgeArray[i + 1];
                                         if (fillFlag) {
                                             for (col = stCol; col <= endCol; col++) {
-                                                output.setValue(row, col, value);
+                                                //output.setValue(row, col, value);
+                                                pq.add(new RowPriorityGridCell(row, col, value));
                                             }
                                         }
                                         fillFlag = !fillFlag;
@@ -470,7 +487,8 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
                                     stCol = Math.min(edgeList.get(0), edgeList.get(1));
                                     endCol = Math.max(edgeList.get(0), edgeList.get(1));
                                     for (col = stCol; col <= endCol; col++) {
-                                        output.setValue(row, col, backgroundValue);
+                                        //output.setValue(row, col, backgroundValue);
+                                        pq.add(new RowPriorityGridCell(row, col, smallNumber));
                                     }
                                 } else {
                                     //sort the edges.
@@ -488,7 +506,8 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
                                                 if (z == value) { // this line should allow 
                                                     // other polygons to still be visible in the
                                                     // donut holes of overlying polygons.
-                                                    output.setValue(row, col, backgroundValue);
+                                                    //output.setValue(row, col, backgroundValue);
+                                                    pq.add(new RowPriorityGridCell(row, col, smallNumber));
                                                 }
                                             }
                                         }
@@ -500,6 +519,27 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
                     }
                 }
 
+                if (pq.size() >= flushSize) {
+                    j = 0;
+                    numCellsToWrite = pq.size();
+                    do {
+                        cell = pq.poll();
+                        if (cell.z == smallNumber) {
+                            output.setValue(cell.row, cell.col, backgroundValue);
+                        } else {
+                            output.setValue(cell.row, cell.col, cell.z);
+                        }
+                        j++;
+                        if (j % 1000 == 0) {
+                            if (cancelOp) {
+                                cancelOperation();
+                                return;
+                            }
+                            updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                        }
+                    } while (pq.size() > 0);
+                }
+                
                 if (cancelOp) {
                     cancelOperation();
                     return;
@@ -510,6 +550,25 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
                     updateProgress(progress);
                 }
             }
+            
+            j = 0;
+            numCellsToWrite = pq.size();
+            do {
+                cell = pq.poll();
+                if (cell.z == smallNumber) {
+                    output.setValue(cell.row, cell.col, backgroundValue);
+                } else {
+                    output.setValue(cell.row, cell.col, cell.z);
+                }
+                j++;
+                if (j % 1000 == 0) {
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                }
+            } while (pq.size() > 0);
 
             output.flush();
             output.close();
@@ -626,7 +685,6 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
         }
         return threshold2 > threshold1 ? val > threshold1 && val < threshold2 : val > threshold2 && val < threshold1;
     }
-    
 //    // This method is only used during testing.
 //    public static void main(String[] args) {
 //        args = new String[6];

@@ -30,6 +30,7 @@ import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.BoundingBox;
+import whitebox.structures.RowPriorityGridCell;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -333,10 +334,10 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
 
             Collections.sort(myList);
             long heapSize = Runtime.getRuntime().totalMemory();
-            int flushSize = (int)(heapSize / 32); //150000;
+            int flushSize = (int)(heapSize / 32);
             int j, numCellsToWrite;
-            PriorityQueue<GridCell> pq = new PriorityQueue<GridCell>(flushSize);
-            GridCell cell;
+            PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<RowPriorityGridCell>(flushSize);
+            RowPriorityGridCell cell;
             int numRecords = input.getNumberOfRecords();
             int count = 0;
             int progressCount = (int) (numRecords / 100.0);
@@ -402,7 +403,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                                     xPrime = x1 + (rowYCoord - y1) / (y2 - y1) * (x2 - x1);
                                     col = output.getColumnFromXCoordinate(xPrime);
                                     //output.setValue(row, col, value);
-                                    pq.add(new GridCell(row, col, value));
+                                    pq.add(new RowPriorityGridCell(row, col, value));
                                 }
                             }
                         }
@@ -424,7 +425,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                                     
                                     row = output.getRowFromYCoordinate(yPrime);
                                     //output.setValue(row, col, value);
-                                    pq.add(new GridCell(row, col, value));
+                                    pq.add(new RowPriorityGridCell(row, col, value));
                                 }
                             }
                         }
@@ -603,46 +604,6 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
         return threshold2 > threshold1 ? val > threshold1 && val < threshold2 : val > threshold2 && val < threshold1;
     }
     
-    class GridCell implements Comparable<GridCell> {
-
-        public int row;
-        public int col;
-        public double z;
-
-        public GridCell(int row, int col, double z) {
-            this.row = row;
-            this.col = col;
-            this.z = z;
-        }
-
-        @Override
-        public int compareTo(GridCell cell) {
-            final int BEFORE = -1;
-            final int EQUAL = 0;
-            final int AFTER = 1;
-
-            if (this.row < cell.row) {
-                return BEFORE;
-            } else if (this.row > cell.row) {
-                return AFTER;
-            }
-
-            if (this.col < cell.col) {
-                return BEFORE;
-            } else if (this.col > cell.col) {
-                return AFTER;
-            }
-            
-            if (this.z < cell.z) {
-                return BEFORE;
-            } else if (this.z > cell.z) {
-                return AFTER;
-            }
-            
-            return EQUAL;
-        }
-    }
-
 //    // This method is only used during testing.
 //    public static void main(String[] args) {
 //        args = new String[6];
