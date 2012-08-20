@@ -22,6 +22,7 @@ plugins.PatchOrientation
 plugins.Perimeter
 plugins.RadiusOfGyration
 plugins.Reclass
+plugins.ReclassEqualInterval
 plugins.ReclassFromFile
 plugins.RelatedCircumscribingCircle
 plugins.ShapeComplexityIndex
