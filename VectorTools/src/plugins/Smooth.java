@@ -200,7 +200,7 @@ public class Smooth implements WhiteboxPlugin {
         double[][] geometry;
         double[][] outputGeometry;
         int numPoints, numParts, part, startingPointInPart, endingPointInPart;
-        int numPointsInPart, numPointsInFilter;
+        int numPointsInFilter;
         ShapeType shapeType;
         ShapeFileRecord outputRecord;
         double sumX, sumY;
@@ -260,7 +260,6 @@ public class Smooth implements WhiteboxPlugin {
                     } else {
                         endingPointInPart = numPoints;
                     }
-                    numPointsInPart = endingPointInPart - startingPointInPart + 1;
                     // is the line a closed polygon?
                     if (geometry[startingPointInPart][0] == geometry[endingPointInPart - 1][0]
                             && geometry[startingPointInPart][1] == geometry[endingPointInPart - 1][1]) {

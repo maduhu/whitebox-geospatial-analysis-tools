@@ -402,7 +402,7 @@ public class Intersect implements WhiteboxPlugin {
                             && outputShapeType == ShapeType.POLYGON) {
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon)gN;
                         ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
-
+                        
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
                         Coordinate[] coords = p.getExteriorRing().getCoordinates();

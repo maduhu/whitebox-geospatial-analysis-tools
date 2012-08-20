@@ -1,7 +1,9 @@
+plugins.Append
 plugins.BufferVector
 plugins.Difference
 plugins.Fuse
 plugins.Intersect
+plugins.IsolateVectorFeaturesByLocation
 plugins.LayerFootprint
 plugins.MinimumConvexHull
 plugins.PolygonsToLines
