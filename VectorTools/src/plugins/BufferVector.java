@@ -437,7 +437,7 @@ public class BufferVector implements WhiteboxPlugin {
                             pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
                         }
                     } else {
-                        for (i = 0; i < buffCoords.length - 1; i++) {
+                        for (i = buffCoords.length - 1; i >= 0; i--) {
                             pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
                         }
                     }

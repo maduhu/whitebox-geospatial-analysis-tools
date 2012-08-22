@@ -197,6 +197,7 @@ public class Append implements WhiteboxPlugin {
         String[] shapefiles;
         int numFiles;
         String outputFile;
+        String shortFileName;
         int progress;
         int i, n, FID;
         int oneHundredthTotal;
@@ -237,12 +238,18 @@ public class Append implements WhiteboxPlugin {
                 ShapeFile input = new ShapeFile(shapefiles[k]);
                 shapeType = input.getShapeType();
                 numRecs = input.getNumberOfRecords();
+                shortFileName = input.getShortName(); 
+                //shortFileName cannot be longer than 25 characters
+                if (shortFileName.length() > 25) {
+                    String tempString = shortFileName.substring(0, 24);
+                    shortFileName = tempString;
+                }
                 
                 if (k == 0) {
                     outputShapeType = shapeType;
                     output = new ShapeFile(outputFile, outputShapeType);
 
-                    DBFField fields[] = new DBFField[2];
+                    DBFField fields[] = new DBFField[3];
 
                     fields[0] = new DBFField();
                     fields[0].setName("FID");
@@ -252,10 +259,15 @@ public class Append implements WhiteboxPlugin {
                     
                     fields[1] = new DBFField();
                     fields[1].setName("PARENTFILE");
-                    fields[1].setDataType(DBFField.FIELD_TYPE_N);
-                    fields[1].setFieldLength(10);
-                    fields[1].setDecimalCount(0);
-
+                    fields[1].setDataType(DBFField.FIELD_TYPE_C);
+                    fields[1].setFieldLength(25);
+                    
+                    fields[2] = new DBFField();
+                    fields[2].setName("PFILE_ID");
+                    fields[2].setDataType(DBFField.FIELD_TYPE_N);
+                    fields[2].setFieldLength(10);
+                    fields[2].setDecimalCount(0);
+                    
                     String DBFName = output.getDatabaseFile();
                     writer = new DBFWriter(new File(DBFName));
 
@@ -275,9 +287,10 @@ public class Append implements WhiteboxPlugin {
                     output.addRecord(record.getGeometry());
                     
                     FID++;
-                    Object rowData[] = new Object[2];
+                    Object rowData[] = new Object[3];
                     rowData[0] = new Double(FID);
-                    rowData[1] = new Double(k + 1);
+                    rowData[1] = shortFileName;
+                    rowData[2] = new Double(k + 1);
                     writer.addRecord(rowData);
                     
                     n++;

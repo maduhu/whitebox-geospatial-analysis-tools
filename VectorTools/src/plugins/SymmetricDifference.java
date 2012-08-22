@@ -517,7 +517,7 @@ public class SymmetricDifference implements WhiteboxPlugin {
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
                         Coordinate[] coords = p.getExteriorRing().getCoordinates();
-                        if (Topology.isClockwisePolygon(coords)) {
+                        if (!Topology.isClockwisePolygon(coords)) {
                             for (i = coords.length - 1; i >= 0; i--) {
                                 pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
                             }
@@ -571,7 +571,7 @@ public class SymmetricDifference implements WhiteboxPlugin {
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
                         Coordinate[] coords = p.getExteriorRing().getCoordinates();
-                        if (Topology.isClockwisePolygon(coords)) {
+                        if (!Topology.isClockwisePolygon(coords)) {
                             for (i = coords.length - 1; i >= 0; i--) {
                                 pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
                             }
