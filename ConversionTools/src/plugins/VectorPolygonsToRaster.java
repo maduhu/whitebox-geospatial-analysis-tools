@@ -25,6 +25,7 @@ import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataType;
+import whitebox.geospatialfiles.shapefile.DBF.DBFException;
 import whitebox.geospatialfiles.shapefile.DBF.DBFField;
 import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
 import whitebox.geospatialfiles.shapefile.PolygonM;
@@ -219,6 +220,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
         double south;
         DataType dataType = WhiteboxRasterBase.DataType.INTEGER;
         Object[] data;
+        Object[][] allRecords = null;
         BoundingBox box;
         double[][] geometry;
         int numPoints, numParts, i, part, numEdges;
@@ -261,7 +263,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
 
             // initialize the shapefile input
             ShapeFile input = new ShapeFile(inputFile);
-
+            int numRecs = input.getNumberOfRecords();
 
             if (input.getShapeType() != ShapeType.POLYGON
                     && input.getShapeType() != ShapeType.POLYGONZ
@@ -335,6 +337,15 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
             
             Collections.sort(myList);
             
+            if (!useRecID) {
+                allRecords = new Object[numRecs][numberOfFields];
+                int a = 0;
+                while ((data = reader.nextRecord()) != null) {
+                    System.arraycopy(data, 0, allRecords[a], 0, numberOfFields);
+                    a++;
+                }
+            }
+            
             long heapSize = Runtime.getRuntime().totalMemory();
             int flushSize = (int)(heapSize / 32);
             int j, numCellsToWrite;
@@ -348,8 +359,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
             for (RecordInfo ri : myList) {
                 record = input.getRecord(ri.recNumber - 1);
                 if (!useRecID) {
-                    data = reader.nextRecord();
-                    value = Double.valueOf(data[assignmentFieldNum].toString());
+                    value = Double.valueOf(allRecords[record.getRecordNumber() - 1][assignmentFieldNum].toString());
                 } else {
                     value = record.getRecordNumber();
                 }
@@ -576,7 +586,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
             // returning a header file string displays the image.
             returnData(outputHeader);
 
-        } catch (Exception e) {
+        } catch (DBFException | NumberFormatException e) {
             showFeedback(e.getMessage());
         } finally {
             updateProgress("Progress: ", 0);

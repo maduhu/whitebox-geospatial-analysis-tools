@@ -215,6 +215,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
         double south;
         DataType dataType = WhiteboxRasterBase.DataType.INTEGER;
         Object[] data;
+        Object[][] allRecords = null;
         BoundingBox box;
         double[][] geometry;
         int numPoints, numParts, i, part;
@@ -252,7 +253,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
 
             // initialize the shapefile input
             ShapeFile input = new ShapeFile(inputFile);
-
+            int numRecs = input.getNumberOfRecords();
 
             if (input.getShapeType() != ShapeType.POLYLINE
                     && input.getShapeType() != ShapeType.POLYLINEZ
@@ -333,6 +334,16 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
             }
 
             Collections.sort(myList);
+            
+            if (!useRecID) {
+                allRecords = new Object[numRecs][numberOfFields];
+                int a = 0;
+                while ((data = reader.nextRecord()) != null) {
+                    System.arraycopy(data, 0, allRecords[a], 0, numberOfFields);
+                    a++;
+                }
+            }
+            
             long heapSize = Runtime.getRuntime().totalMemory();
             int flushSize = (int)(heapSize / 32);
             int j, numCellsToWrite;
