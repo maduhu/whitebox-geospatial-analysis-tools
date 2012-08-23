@@ -1,5 +1,6 @@
 plugins.Append
 plugins.BufferVector
+plugins.CentroidVector
 plugins.Difference
 plugins.Fuse
 plugins.Intersect
