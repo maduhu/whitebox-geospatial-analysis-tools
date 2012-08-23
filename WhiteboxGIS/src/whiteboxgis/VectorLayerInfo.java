@@ -92,13 +92,20 @@ public class VectorLayerInfo implements MapLayer {
 
         fullExtent = currentExtent.clone();
         shapeType = shapefile.getShapeType();
-        if (shapeType == ShapeType.POLYLINE && layerTitle.toLowerCase().contains("roads")) {
+        if (shapeType == ShapeType.POLYLINE && (layerTitle.toLowerCase().contains("roads") ||
+                layerTitle.toLowerCase().contains("transportation"))) {
             lineColour = Color.black;
-        } else if (shapeType == ShapeType.POLYLINE || shapeType == ShapeType.POLYLINEM
-                || shapeType == ShapeType.POLYLINEZ) {
-            lineColour = Color.RED; // new Color(153, 204, 255);
-        } else if (shapeType == ShapeType.POLYGON || shapeType == ShapeType.POLYGONM
-                || shapeType == ShapeType.POLYGONZ) {
+        } else if (shapeType == ShapeType.POLYLINE && (layerTitle.toLowerCase().contains("stream") ||
+                layerTitle.toLowerCase().contains("river"))) {
+            lineColour = Color.blue;
+        } else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
+            //lineColour = Color.RED; // new Color(153, 204, 255);
+            Random generator = new Random();
+            int r = (int)(50 + 205 * generator.nextFloat());
+            int g = (int)(50 + 205 * generator.nextFloat());
+            int b = (int)(50 + 205 * generator.nextFloat());
+            lineColour = new Color(r, g, b);
+        } else if (shapeType.getBaseType() == ShapeType.POLYGON) {
             lineColour = Color.black;
             //fillColour = new Color(153, 204, 255);
             // set the fill colour to a random light colour
@@ -106,6 +113,13 @@ public class VectorLayerInfo implements MapLayer {
             int r = (int)(100 + 155 * generator.nextFloat());
             int g = (int)(100 + 155 * generator.nextFloat());
             int b = (int)(100 + 155 * generator.nextFloat());
+            fillColour = new Color(r, g, b);
+        } else if (shapeType.getBaseType() == ShapeType.POINT ||
+                shapeType.getBaseType() == ShapeType.MULTIPOINT) {
+            Random generator = new Random();
+            int r = (int)(255 * generator.nextFloat());
+            int g = (int)(255 * generator.nextFloat());
+            int b = (int)(255 * generator.nextFloat());
             fillColour = new Color(r, g, b);
         }
         this.xyUnits = shapefile.getXYUnits();
