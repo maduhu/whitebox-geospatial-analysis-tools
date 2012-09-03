@@ -118,6 +118,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private HashMap<String, Font> fonts = new HashMap<String, Font>();
     private JCheckBoxMenuItem dataView = null;
     private JCheckBoxMenuItem cartographicView = null;
+    private JTextField scaleText = new JTextField();
     
     public WhiteboxGui() {
         super("Whitebox GAT v." + versionNumber);
@@ -589,6 +590,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             activeMap = 0;
             drawingArea.setMapInfo(mapinfo);
             drawingArea.setStatusBar(status);
+            drawingArea.setScaleText(scaleText);
             drawingArea.setHost(this);
 
 
@@ -762,13 +764,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // Cartographic menu
             JMenu cartoMenu = new JMenu("Cartographic");
-            JMenuItem pageProps = new JMenuItem("Page Properties", new ImageIcon(graphicsDirectory + "page.png"));
-            cartoMenu.add(pageProps);
-            pageProps.addActionListener(this);
-            pageProps.setActionCommand("pageProps");
-
-            cartoMenu.addSeparator();
-
+            
             JMenuItem insertTitle = new JMenuItem("Insert Map Title");
             cartoMenu.add(insertTitle);
             insertTitle.addActionListener(this);
@@ -795,7 +791,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             showNeatline.addActionListener(this);
             showNeatline.setActionCommand("showNeatline");
 
-            //menubar.add(cartoMenu);
+            cartoMenu.addSeparator();
+            
+            JMenuItem pageProps = new JMenuItem("Page Properties", new ImageIcon(graphicsDirectory + "page.png"));
+            cartoMenu.add(pageProps);
+            pageProps.addActionListener(this);
+            pageProps.setActionCommand("pageProps");
+
+            menubar.add(cartoMenu);
 
             
             
@@ -1280,7 +1283,20 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.addSeparator();
             JButton help = makeToolBarButton("Help.png", "helpIndex", "Help", "Help");
             toolbar.add(help);
-
+            
+            toolbar.addSeparator();
+            toolbar.add(Box.createHorizontalGlue());
+            JPanel scalePanel = new JPanel();
+            scalePanel.setLayout(new BoxLayout(scalePanel, BoxLayout.X_AXIS));
+            JLabel scaleLabel = new JLabel("1:");
+            scalePanel.add(scaleLabel);
+            scalePanel.add(scaleText);
+            scalePanel.setMinimumSize(new Dimension(120, 22));
+            scalePanel.setPreferredSize(new Dimension(120, 22));
+            scalePanel.setMaximumSize(new Dimension(120, 22));
+            toolbar.add(scalePanel);
+            toolbar.add(Box.createHorizontalStrut(15));
+           
             this.getContentPane().add(toolbar, BorderLayout.PAGE_START);
 
         } catch (Exception e) {
@@ -2168,12 +2184,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         if (selectedMapAndLayer[0] == - 1) {
             selectedMapAndLayer[0] = activeMap;
         }
-        String str = JOptionPane.showInputDialog("Enter the new name: ",
-                openMaps.get(selectedMapAndLayer[0]).getMapTitle());
-        if (str != null) {
-            openMaps.get(selectedMapAndLayer[0]).setMapTitle(str);
-            updateLayersTab();
-        }
+        showMapProperties("title");
+//        String str = JOptionPane.showInputDialog("Enter the new name: ",
+//                openMaps.get(selectedMapAndLayer[0]).getMapTitle());
+//        if (str != null) {
+//            openMaps.get(selectedMapAndLayer[0]).setMapTitle(str);
+//            updateLayersTab();
+//        }
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
     }
@@ -2830,7 +2847,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void showMapProperties() {
+    public void showMapProperties(String activeTab) {
         int mapNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
@@ -2840,7 +2857,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             // use the active map
             mapNum = activeMap;
         }
-        MapProperties mp = new MapProperties(this, false, openMaps.get(mapNum));
+        MapProperties mp = new MapProperties(this, false, openMaps.get(mapNum), activeTab);
         mp.setSize(640, 420);
         mp.setVisible(true);
     }
@@ -3247,7 +3264,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("setAsActiveMap")) {
             setAsActiveMap();
         } else if (actionCommand.equals("renameMap")) {
-            renameMap();
+            showMapProperties("title");
         } else if (actionCommand.equals("changeLayerTitle")) {
             changeLayerTitle();
         } else if (actionCommand.equals("layerToTop")) {
@@ -3374,14 +3391,23 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("newHelp")) {
             newHelp();
         } else if (actionCommand.equals("mapProperties")) {
-            //showFeedback("This feature is under development.");
-            showMapProperties();
+            showMapProperties("");
         } else if (actionCommand.equals("cartoView")) {
             toggleDataAndCartoView(true);
         } else if (actionCommand.equals("dataView")) {
             toggleDataAndCartoView(false);
         } else if (actionCommand.equals("pageProps")) {
-            showMapProperties();
+            showMapProperties("page");
+        } else if (actionCommand.equals("insertTitle")) {
+            renameMap();
+        } else if (actionCommand.equals("insertScale")) {
+            showMapProperties("scale");
+        } else if (actionCommand.equals("insertNorthArrow")) {
+            showMapProperties("north arrow");
+        } else if (actionCommand.equals("insertLegend")) {
+            showMapProperties("legend");
+        } else if (actionCommand.equals("showNeatLine")) {
+            showMapProperties("neatline");
         }
 
     }

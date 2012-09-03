@@ -101,9 +101,9 @@ public class VectorLayerInfo implements MapLayer {
         } else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
             //lineColour = Color.RED; // new Color(153, 204, 255);
             Random generator = new Random();
-            int r = (int)(50 + 205 * generator.nextFloat());
-            int g = (int)(50 + 205 * generator.nextFloat());
-            int b = (int)(50 + 205 * generator.nextFloat());
+            int r = (int)(255 * generator.nextFloat());
+            int g = (int)(255 * generator.nextFloat());
+            int b = (int)(255 * generator.nextFloat());
             lineColour = new Color(r, g, b);
         } else if (shapeType.getBaseType() == ShapeType.POLYGON) {
             lineColour = Color.black;

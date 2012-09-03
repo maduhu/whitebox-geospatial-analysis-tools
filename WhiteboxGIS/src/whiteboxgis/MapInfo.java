@@ -20,17 +20,8 @@ package whiteboxgis;
 import java.awt.Color;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
-//import javax.print.attribute.Attribute;
-//import javax.print.attribute.standard.*;
-import java.util.ArrayList;
-import whitebox.geospatialfiles.WhiteboxRasterInfo;
-import whitebox.structures.GridCell;
-import whitebox.structures.BoundingBox;
-import whitebox.interfaces.MapLayer;
-import whitebox.interfaces.MapLayer.MapLayerType;
-import whitebox.cartographic.PointMarkers.MarkerStyle;
-import whitebox.cartographic.PointMarkers;
 import java.io.File;
+import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -43,6 +34,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import whitebox.cartographic.PointMarkers;
+import whitebox.cartographic.PointMarkers.MarkerStyle;
+import whitebox.cartographic.MapScale;
+import whitebox.cartographic.NorthArrow;
+import whitebox.cartographic.MapTitle;
+import whitebox.geospatialfiles.WhiteboxRasterInfo;
+import whitebox.interfaces.MapLayer;
+import whitebox.interfaces.MapLayer.MapLayerType;
+import whitebox.structures.BoundingBox;
+import whitebox.structures.GridCell;
 
 /**
  * This class is used to manage the layers and properties of maps. The actual 
@@ -56,7 +57,7 @@ public class MapInfo {
     private MapLayer activeLayer = null;
     private int activeLayerOverlayNumber = -1;
     private int activeLayerIndex = -1;
-    private String mapTitle = "New Map";
+    //private String mapTitle = "New Map";
     private boolean dirty = false; 
     private ArrayList<BoundingBox> listOfExtents = new ArrayList<BoundingBox>();
     private String fileName = "";
@@ -70,6 +71,11 @@ public class MapInfo {
     private boolean cartoView = false;
     private PageFormat pageFormat = new PageFormat();
     private double margin = 0.25;
+    
+    // Public Fields
+    public MapScale mapScale = new MapScale();
+    public NorthArrow northArrow = new NorthArrow();
+    public MapTitle mapTitle = new MapTitle("New Map");
             
     /**
      * MapInfo constructor
@@ -88,6 +94,8 @@ public class MapInfo {
             paper.setImageableArea(marginInPoints, marginInPoints, 
                     width - 2 * marginInPoints, height - 2 * marginInPoints);
             pageFormat.setPaper(paper);
+            
+            mapScale.setUnits("metres");
         } catch (Exception ex) {
             System.out.println(ex);
         }
@@ -115,11 +123,11 @@ public class MapInfo {
     }
     
     public String getMapTitle() {
-        return mapTitle;
+        return mapTitle.getLabel();
     }
     
     public void setMapTitle(String title) {
-        mapTitle = title;
+        mapTitle.setLabel(title);
         dirty = true;
     }
     
@@ -661,7 +669,7 @@ public class MapInfo {
             rootElement.appendChild(mapElements);
 
             Element title = doc.createElement("MapTitle");
-            title.appendChild(doc.createTextNode(mapTitle));
+            title.appendChild(doc.createTextNode(mapTitle.getLabel()));
             mapElements.appendChild(title);
 
             if (fullExtent == null) {
@@ -900,7 +908,7 @@ public class MapInfo {
             Document doc = db.parse(file);
             doc.getDocumentElement().normalize();
             
-            mapTitle = doc.getElementsByTagName("MapTitle").item(0).getTextContent();
+            mapTitle.setLabel(doc.getElementsByTagName("MapTitle").item(0).getTextContent());
             int activeLayerNum = Integer.parseInt(doc.getElementsByTagName("ActiveLayerNum").item(0).getTextContent());
             
             // get the current extent

@@ -52,11 +52,13 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
     private BoundingBox mapExtent = new BoundingBox();
     public MapInfo mapinfo = null;
     private StatusBar status = null;
+    private JTextField scaleText = null;
     private WhiteboxPluginHost host = null;
     public static final int MOUSE_MODE_ZOOM = 0;
     public static final int MOUSE_MODE_PAN = 1;
     public static final int MOUSE_MODE_GETINFO = 2;
     public static final int MOUSE_MODE_SELECT = 3;
+    public static final int MOUSE_MODE_CARTO_ELEMENT = 4;
     private int myMode = 0;
     private boolean modifyingPixels = false;
     private int modifyPixelsX = -1;
@@ -67,7 +69,14 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
     private Cursor panClosedHandCursor = null;
     private Cursor selectCursor = null;
     private String graphicsDirectory;
-
+    
+    private int whichCartoElement = -1;
+    public static final int CARTO_ELEMENT_SCALE = 0;
+    public static final int CARTO_ELEMENT_NORTH_ARROW = 1;
+    public static final int CARTO_ELEMENT_LEGEND = 2;
+    public static final int CARTO_ELEMENT_TITLE = 3;
+    private String[] cartoElementName = {"scale", "north arrow", "legend", "title", "neatline"};
+    
     public MapRenderer() {
         init();
     }
@@ -121,6 +130,10 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
         this.status = status;
     }
 
+    public void setScaleText(JTextField scaleText) {
+        this.scaleText = scaleText;
+    }
+    
     public int getMouseMode() {
         return myMode;
     }
@@ -260,11 +273,12 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 double scale;
                 int x, y;
 
+                
                 BoundingBox currentExtent = mapinfo.getCurrentExtent();
                 double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
                 double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
                 scale = Math.min((myWidth / xRange), (myHeight / yRange));
-
+                
                 int left = (int) (borderWidth + ((myWidth - xRange * scale) / 2));
                 int top = (int) (borderWidth + ((myHeight - yRange * scale) / 2));
 
@@ -1127,7 +1141,220 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
 
                 // replace the rotated font.
                 g2d.setFont(oldFont);
+                
+                
+                //***************************
+                // Draw cartographic elements
+                //***************************
+                
+                double ppm = java.awt.Toolkit.getDefaultToolkit().getScreenResolution() * 39.3701; 
+                mapinfo.mapScale.setScale(1 / Math.min(((myWidth / ppm) / xRange), ((myHeight / ppm) / yRange)));
+                if (scaleText != null) {
+                    scaleText.setText(df.format(mapinfo.mapScale.getScale()));
+                }
+                
+                // Map scale
+                if (mapinfo.mapScale.isVisible()) {
+                    if (mapinfo.mapScale.getUpperLeftY() < 0) {
+                        mapinfo.mapScale.setUpperLeftY(bottomEdge - mapinfo.mapScale.getHeight() - 2);
+                        mapinfo.mapScale.setUpperLeftX(leftEdge + 2);
+                    }
+                    
+                    // set the stroke
+                    BasicStroke myStroke = new BasicStroke(1);
+                    Stroke oldStroke = g2d.getStroke();
+                    g2d.setStroke(myStroke);
+                    
+                    // draw the scale's box
+                    if (mapinfo.mapScale.isBackgroundVisible()) {
+                        g2d.setColor(mapinfo.mapScale.getBackColour());
 
+                        g2d.fillRect(mapinfo.mapScale.getUpperLeftX(),
+                                mapinfo.mapScale.getUpperLeftY(),
+                                mapinfo.mapScale.getWidth(),
+                                mapinfo.mapScale.getHeight());
+                    }
+                    
+                    g2d.setColor(mapinfo.mapScale.getLegendColour());
+                    
+                    if (mapinfo.mapScale.isBorderVisible()) {
+                        g2d.setColor(mapinfo.mapScale.getOutlineColour());
+                        g2d.drawRect(mapinfo.mapScale.getUpperLeftX(),
+                                mapinfo.mapScale.getUpperLeftY(),
+                                mapinfo.mapScale.getWidth(),
+                                mapinfo.mapScale.getHeight());
+                    }
+                    
+                    // set up the font
+                    font = new Font("SanSerif", Font.PLAIN, 11);
+                    g2d.setFont(font);
+                    metrics = g.getFontMetrics(font);
+                    
+                    // what is the content height?
+                    int contentHeight = 0;
+                    int spacingBetweenElements = 4;
+                    int barHeight = 6;
+                    int spacingBetweenBarAndLabels = 3;
+                    int fontHeight = metrics.getHeight() - metrics.getDescent();
+                    if (mapinfo.mapScale.isRepresentativeFractionVisible()) {
+                        contentHeight = fontHeight * 3 + 
+                                spacingBetweenElements * 2 + barHeight + 
+                                spacingBetweenBarAndLabels;
+                    } else {
+                        contentHeight = fontHeight * 2 +
+                                spacingBetweenElements + barHeight +
+                                spacingBetweenBarAndLabels;
+                    }
+                    
+                    // make sure that the scale box's height is large enough for the content
+                    if (contentHeight > (mapinfo.mapScale.getHeight() + 2 * mapinfo.mapScale.getMargin())) {
+                        mapinfo.mapScale.setHeight(contentHeight + 2 * mapinfo.mapScale.getMargin());
+                    }
+                    
+                    // calculate the bottom for all the content
+                    int contentBottomY = (int)(mapinfo.mapScale.getUpperLeftY() +
+                            (mapinfo.mapScale.getHeight() - contentHeight) / 2.0 +
+                            contentHeight);
+                    
+                    // draw the units label to the scale
+                    label = mapinfo.mapScale.getUnits();
+                    adv = metrics.stringWidth(label);
+                    x = mapinfo.mapScale.getUpperLeftX() + ((mapinfo.mapScale.getWidth() - adv) / 2);
+                    y = contentBottomY;
+                    g2d.drawString(label, x, y);
+                    
+                    // draw the scale bar to the scale
+                    double barLengthInMapUnits = mapinfo.mapScale.getBarLength() * mapinfo.mapScale.getConversionToMetres() / 
+                            mapinfo.mapScale.getScale() * ppm / mapinfo.mapScale.getNumberDivisions();
+                    double barStartingX = mapinfo.mapScale.getUpperLeftX() + ((mapinfo.mapScale.getWidth() - (mapinfo.mapScale.getBarLength() * mapinfo.mapScale.getConversionToMetres() / 
+                            mapinfo.mapScale.getScale() * ppm)) / 2);
+                    
+                    y = contentBottomY - fontHeight - spacingBetweenElements - barHeight;
+                    for (int k = 0; k < mapinfo.mapScale.getNumberDivisions(); k++) {
+                        x = (int)(k * barLengthInMapUnits + barStartingX);
+                        if (k % 2.0 == 0.0) {
+                            g2d.drawRect(x, y, (int)barLengthInMapUnits, barHeight);
+                        } else {
+                            g2d.drawRect(x, y, (int)barLengthInMapUnits, barHeight);
+                            g2d.fillRect(x, y, (int)barLengthInMapUnits, barHeight);
+                        }
+                    }
+                    
+                    // label the scale bar
+                    adv = metrics.stringWidth(mapinfo.mapScale.getLowerLabel());
+                    x = (int) (barStartingX - adv / 2.0);
+                    y = contentBottomY - fontHeight - spacingBetweenElements - 
+                            barHeight - spacingBetweenBarAndLabels;
+                    g2d.drawString(mapinfo.mapScale.getLowerLabel(), x, y);
+                    
+                    adv = metrics.stringWidth(mapinfo.mapScale.getUpperLabel());
+                    x = (int) (barStartingX + barLengthInMapUnits * mapinfo.mapScale.getNumberDivisions() - adv / 2.0);
+                    g2d.drawString(mapinfo.mapScale.getUpperLabel(), x, y);
+                    
+                    // label the representative fraction
+                    if (mapinfo.mapScale.isRepresentativeFractionVisible()) {
+                        label = mapinfo.mapScale.getRepresentativeFraction();
+                        adv = metrics.stringWidth(label);
+                        x = mapinfo.mapScale.getUpperLeftX() + ((mapinfo.mapScale.getWidth() - adv) / 2);
+                        y = contentBottomY - fontHeight - spacingBetweenElements - 
+                            barHeight - spacingBetweenBarAndLabels - fontHeight - 
+                                spacingBetweenElements;
+                        g2d.drawString(label, x, y);
+
+                    }
+                    
+                    g2d.setStroke(oldStroke);
+                }
+
+                // north arrow
+                if (mapinfo.northArrow.isVisible()) {
+                    if (mapinfo.northArrow.getX() < 0) {
+                        mapinfo.northArrow.setX(rightEdge - mapinfo.northArrow.getMarkerSize() / 2 - 2);
+                        mapinfo.northArrow.setY(bottomEdge - mapinfo.northArrow.getMarkerSize()/ 2 - 2);
+                    }
+                    
+                    if (mapinfo.northArrow.isBackgroundVisible()) {
+                        g2d.setColor(mapinfo.northArrow.getBackColour());
+
+                        g2d.fillRect(mapinfo.northArrow.getUpperLeftX(),
+                                mapinfo.northArrow.getUpperLeftY(),
+                                mapinfo.northArrow.getWidth(),
+                                mapinfo.northArrow.getHeight());
+                    }
+                    
+                    if (mapinfo.northArrow.isBorderVisible()) {
+                        g2d.setColor(mapinfo.northArrow.getBorderColour());
+
+                        g2d.drawRect(mapinfo.northArrow.getUpperLeftX(),
+                                mapinfo.northArrow.getUpperLeftY(),
+                                mapinfo.northArrow.getWidth(),
+                                mapinfo.northArrow.getHeight());
+                    }
+                    
+                    g2d.setColor(mapinfo.northArrow.getOutlineColour());
+                    BasicStroke myStroke = new BasicStroke(1);
+                    Stroke oldStroke = g2d.getStroke();
+                    g2d.setStroke(myStroke);
+                    ArrayList<GeneralPath> gpList = mapinfo.northArrow.getMarkerData();
+                    ArrayList<Integer> gpInstructions = mapinfo.northArrow.getMarkerDrawingInstructions();
+                    for (int a = 0; a < gpList.size(); a++) {
+                        GeneralPath gp = gpList.get(a);
+                        Integer instruction = gpInstructions.get(a);
+                        if (instruction.equals(0)) {
+                            g2d.draw(gp);
+                        } else {
+                            g2d.fill(gp);
+                            g2d.draw(gp);
+                        }
+                    }
+                    g2d.setStroke(oldStroke);
+                }
+
+                // Map title
+                if (mapinfo.mapTitle.isVisible()) {
+                    if (mapinfo.mapTitle.getWidth() < 0) {
+                        
+                        font = mapinfo.mapTitle.getLabelFont();
+                        g2d.setFont(font);
+                        metrics = g.getFontMetrics(font);
+                        adv = metrics.stringWidth(mapinfo.mapTitle.getLabel());
+                        mapinfo.mapTitle.setWidth(adv + 2 * mapinfo.mapTitle.getMargin());
+                        mapinfo.mapTitle.setHeight(metrics.getHeight() + 2 * mapinfo.mapTitle.getMargin());
+                        
+                        if (mapinfo.mapTitle.getUpperLeftX() == -9999) {
+                            mapinfo.mapTitle.setUpperLeftX((int)(leftEdge + ((rightEdge - leftEdge) - mapinfo.mapTitle.getWidth()) / 2.0));
+                            mapinfo.mapTitle.setUpperLeftY(topEdge + 2);
+                        }
+                    }
+                    if (mapinfo.mapTitle.isBackgroundVisible()) {
+                        g2d.setColor(mapinfo.mapTitle.getBackColour());
+
+                        g2d.fillRect(mapinfo.mapTitle.getUpperLeftX(),
+                                mapinfo.mapTitle.getUpperLeftY(),
+                                mapinfo.mapTitle.getWidth(),
+                                mapinfo.mapTitle.getHeight());
+                    }
+                    
+                    if (mapinfo.mapTitle.isBorderVisible()) {
+                        g2d.setColor(mapinfo.mapTitle.getBorderColour());
+
+                        g2d.drawRect(mapinfo.mapTitle.getUpperLeftX(),
+                                mapinfo.mapTitle.getUpperLeftY(),
+                                mapinfo.mapTitle.getWidth(),
+                                mapinfo.mapTitle.getHeight());
+                    }
+                    font = mapinfo.mapTitle.getLabelFont();
+                    g2d.setColor(mapinfo.mapTitle.getFontColour());
+                    oldFont = g2d.getFont();
+                    g2d.setFont(font);
+                    metrics = g.getFontMetrics(font);
+                    int fontHeight = metrics.getHeight() - metrics.getDescent();
+                    x = mapinfo.mapTitle.getUpperLeftX() + mapinfo.mapTitle.getMargin();
+                    y = (int)(mapinfo.mapTitle.getUpperLeftY() + mapinfo.mapTitle.getMargin() + fontHeight);
+                    g2d.drawString(mapinfo.mapTitle.getLabel(), x, y);
+                    g2d.setFont(oldFont);
+                }
+                
                 if (mouseDragged && myMode == MOUSE_MODE_ZOOM && !usingDistanceTool) {
                     g2d.setColor(Color.black);
                     int boxWidth = (int) (Math.abs(startCol - endCol));
@@ -1158,7 +1385,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                     double dist = Math.sqrt((endCol - startCol) * (endCol - startCol) + (endRow - startRow) * (endRow - startRow)) / scale;
                     status.setMessage("Distance: " + df2.format(dist) + XYUnits);
                 }
-
+                
                 if (modifyingPixels) {
                     if (modifyPixelsX > 0 && modifyPixelsY > 0) {
                         int crosshairlength = 13;
@@ -1179,7 +1406,8 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                     }
 
                 }
-
+                
+                
                 /*
                  * if (cursorX > leftEdge && cursorX < rightEdge && cursorY >
                  * topEdge && cursorY < bottomEdge) { g2d.setColor(Color.RED);
@@ -1266,15 +1494,70 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
         }
     }
 
-    //int cursorY;
-    //int cursorX;
+    int mapElementX, mapElementY;
+    
     @Override
     public void mouseMoved(MouseEvent e) {
-        //cursorY = e.getY();
-        //cursorX = e.getX();
-        //this.repaint();
         updateStatus(e);
+        int x = e.getX();
+        int y = e.getY();
+        if (isBetween(x, mapinfo.mapScale.getUpperLeftX(), 
+                mapinfo.mapScale.getUpperLeftX() + mapinfo.mapScale.getWidth()) &&
+                isBetween(y, mapinfo.mapScale.getUpperLeftY(), 
+                mapinfo.mapScale.getUpperLeftY() + mapinfo.mapScale.getHeight()) &&
+                mapinfo.mapScale.isVisible()) {
+            if (myMode != MOUSE_MODE_CARTO_ELEMENT) {
+                this.setCursor(panCursor);
+                oldMouseMode = myMode;
+                myMode = MOUSE_MODE_CARTO_ELEMENT;
+            }
+            whichCartoElement = CARTO_ELEMENT_SCALE;
+            mapElementX = x - mapinfo.mapScale.getUpperLeftX();
+            mapElementY = y - mapinfo.mapScale.getUpperLeftY();
+        } else if (isBetween(x, mapinfo.northArrow.getUpperLeftX(), mapinfo.northArrow.getLowerRightX()) &&
+                isBetween(y, mapinfo.northArrow.getUpperLeftY(), mapinfo.northArrow.getLowerRightY()) &&
+                mapinfo.northArrow.isVisible()) {
+            if (myMode != MOUSE_MODE_CARTO_ELEMENT) {
+                this.setCursor(panCursor);
+                oldMouseMode = myMode;
+                myMode = MOUSE_MODE_CARTO_ELEMENT;
+            }
+            whichCartoElement = CARTO_ELEMENT_NORTH_ARROW;
+            mapElementX = x - mapinfo.northArrow.getX();
+            mapElementY = y - mapinfo.northArrow.getY();
+        } else if (isBetween(x, mapinfo.mapTitle.getUpperLeftX(), mapinfo.mapTitle.getLowerRightX()) &&
+                isBetween(y, mapinfo.mapTitle.getUpperLeftY(), mapinfo.mapTitle.getLowerRightY()) &&
+                mapinfo.mapTitle.isVisible()) {
+            if (myMode != MOUSE_MODE_CARTO_ELEMENT) {
+                this.setCursor(panCursor);
+                oldMouseMode = myMode;
+                myMode = MOUSE_MODE_CARTO_ELEMENT;
+            }
+            whichCartoElement = CARTO_ELEMENT_TITLE;
+            mapElementX = x - mapinfo.mapTitle.getUpperLeftX();
+            mapElementY = y - mapinfo.mapTitle.getUpperLeftY();
+        } else {
+            if (myMode == MOUSE_MODE_CARTO_ELEMENT) {
+                if (oldMouseMode == MOUSE_MODE_ZOOM) {
+                    myMode = MOUSE_MODE_ZOOM;
+                    this.setCursor(zoomCursor);
+                } else if (oldMouseMode == MOUSE_MODE_PAN) {
+                    myMode = MOUSE_MODE_PAN;
+                    this.setCursor(panCursor);
+                }
+                whichCartoElement = -1;
+            }
+        }
     }
+    
+    // Return true if val is between theshold1 and theshold2.
+    private static boolean isBetween(double val, double threshold1, double threshold2) {
+        if (val == threshold1 || val == threshold2) {
+            return true;
+        }
+        return threshold2 > threshold1 ? val > threshold1 && val < threshold2 : val > threshold2 && val < threshold1;
+    }
+    
     boolean mouseDragged = false;
 
     @Override
@@ -1284,6 +1567,25 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             endRow = e.getY();
             endCol = e.getX();
             this.repaint();
+        } else if (myMode == MOUSE_MODE_CARTO_ELEMENT) {
+            switch (whichCartoElement) {
+                case CARTO_ELEMENT_SCALE:
+                    mapinfo.mapScale.setUpperLeftX(e.getX() - mapElementX);
+                    mapinfo.mapScale.setUpperLeftY(e.getY() - mapElementY);
+                    this.repaint();
+                    break;
+                case CARTO_ELEMENT_NORTH_ARROW:
+                    mapinfo.northArrow.setX(e.getX() - mapElementX);
+                    mapinfo.northArrow.setY(e.getY() - mapElementY);
+                    this.repaint();
+                    break;
+                case CARTO_ELEMENT_TITLE:
+                    mapinfo.mapTitle.setUpperLeftX(e.getX() - mapElementX);
+                    mapinfo.mapTitle.setUpperLeftY(e.getY() - mapElementY);
+                    this.repaint();
+                    break;
+            }
+            
         }
     }
     double startX;
@@ -1294,7 +1596,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
     int startRow;
     int endCol;
     int endRow;
-
+    int oldMouseMode = 0;
     @Override
     public void mousePressed(MouseEvent e) {
         if (status != null && mapExtent.getMinY() != mapExtent.getMaxY()) {
@@ -1307,9 +1609,11 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
 
             if (myMode == MOUSE_MODE_PAN) {
                 this.setCursor(panClosedHandCursor);
+            } else if (myMode == MOUSE_MODE_CARTO_ELEMENT) {
+                this.setCursor(panClosedHandCursor);
             }
+            
         }
-        //int clickCount = e.getClickCount();
     }
 
     @Override
@@ -1352,6 +1656,11 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
             } else if (usingDistanceTool) {
                 host.refreshMap(false);
             }
+            
+            if (myMode == MOUSE_MODE_CARTO_ELEMENT) {
+                //myMode = oldMouseMode;
+                this.setCursor(panCursor);
+            }
 
             if (myMode == MOUSE_MODE_PAN) {
                 this.setCursor(panCursor);
@@ -1374,7 +1683,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
     @Override
     public void mouseClicked(MouseEvent e) {
         int clickCount = e.getClickCount();
-        if (clickCount == 1 && modifyingPixels) {
+        if (clickCount == 1 && modifyingPixels && myMode != MOUSE_MODE_CARTO_ELEMENT) {
             modifyPixelsX = e.getX();
             modifyPixelsY = e.getY();
             double myWidth = this.getWidth() - borderWidth * 2;
@@ -1399,7 +1708,7 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 modifyPixelsY = -1;
                 host.refreshMap(false);
             }
-        } else if (clickCount == 1) {
+        } else if (clickCount == 1 && myMode != MOUSE_MODE_CARTO_ELEMENT) {
             // move the current extent such that it is centered on the point
             BoundingBox db = mapinfo.getCurrentExtent();
             double halfYRange = Math.abs(db.getMaxY() - db.getMinY()) / 2;
@@ -1416,6 +1725,12 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 mapinfo.zoomOut();
                 host.refreshMap(false);
             }
+        } else if (clickCount == 2 && myMode == MOUSE_MODE_CARTO_ELEMENT) {
+            if (SwingUtilities.getRoot(this) instanceof WhiteboxGui) {
+                WhiteboxGui wbg = (WhiteboxGui)SwingUtilities.getRoot(this);
+                wbg.showMapProperties(cartoElementName[whichCartoElement]);
+            }
+            
         } else if ((clickCount == 2) && (e.getButton() == 3)) {
             mapinfo.setCurrentExtent(mapinfo.getFullExtent());
             host.refreshMap(false);
