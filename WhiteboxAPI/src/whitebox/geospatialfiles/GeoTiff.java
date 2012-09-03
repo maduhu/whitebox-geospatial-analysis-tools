@@ -501,7 +501,7 @@ public class GeoTiff {
         if (ModelTiepointTag != null && ModelPixelScaleTag != null) {
             double[] modelTiepoint = ModelTiepointTag.valueD.clone();
             double[] modelPixelScale = ModelPixelScaleTag.valueD.clone();
-            return modelTiepoint[3] - modelTiepoint[0] * modelPixelScale[1];
+            return modelTiepoint[3] - modelTiepoint[0] * modelPixelScale[0];
         } else {
             return 0;
         }
@@ -513,7 +513,7 @@ public class GeoTiff {
         if (ModelTiepointTag != null && ModelPixelScaleTag != null) {
             double[] modelTiepoint = ModelTiepointTag.valueD.clone();
             double[] modelPixelScale = ModelPixelScaleTag.valueD.clone();
-            return modelTiepoint[3] + (getNumberColumns() - modelTiepoint[1]) * modelPixelScale[1];
+            return modelTiepoint[3] + (getNumberColumns() - modelTiepoint[0]) * modelPixelScale[0];
         } else {
             return getNumberColumns();
         }

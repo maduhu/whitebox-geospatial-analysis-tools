@@ -980,7 +980,7 @@ public class ShapeFile {
     private void readProjectionFile() {
         
         // this method still needs work to enable parsing of a WKT file.
-        
+        boolean wktFormat = false;
         DataInputStream in = null;
         BufferedReader br = null;
         try {
@@ -1002,9 +1002,14 @@ public class ShapeFile {
                 //Read File Line By Line
                 while ((line = br.readLine()) != null) {
                     // is it in WKT format?
+                    if (line.toLowerCase().contains("unit")) {
+                        int j = line.toLowerCase().indexOf("unit");
+                        int k = line.toLowerCase().indexOf("[", j);
+                        System.out.println(line);
+                    }
                     if (line.contains("[") || line.contains("(")) {
                         // it is in WKT format
-                        
+                        wktFormat = true;
                         // first make sure that it contains square and not round brackets
                         line = line.replace("(", "[");
                         line = line.replace(")", "]");

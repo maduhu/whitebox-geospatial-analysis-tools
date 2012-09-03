@@ -114,4 +114,8 @@ public class PointsList {
         myList.add(sfp);
         isClosedForAdding = true;
     }
+    
+    public int size() {
+        return myList.size();
+    }
 }
