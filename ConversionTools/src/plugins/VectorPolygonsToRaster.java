@@ -586,7 +586,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
             // returning a header file string displays the image.
             returnData(outputHeader);
 
-        } catch (DBFException | NumberFormatException e) {
+        } catch (Exception e) {
             showFeedback(e.getMessage());
         } finally {
             updateProgress("Progress: ", 0);

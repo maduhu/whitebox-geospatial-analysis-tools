@@ -1,6 +1,7 @@
 plugins.ChangeDataScale
 plugins.ChangeDataType
 plugins.ConvertNoDataToZero
+plugins.RasterToVectorLines
 plugins.RasterToVectorPoints
 plugins.RasterToVectorPolygons
 plugins.SetNoData
