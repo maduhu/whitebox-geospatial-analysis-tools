@@ -306,6 +306,16 @@ public class Intersect implements WhiteboxPlugin {
             ShapeFile output = null;
             DBFWriter writer = null;
             if (outputGeometry instanceof GeometryCollection) {
+                // see if the collection is a collection of points
+                com.vividsolutions.jts.geom.Geometry gN0 = outputGeometry.getGeometryN(0);
+                if (gN0 instanceof com.vividsolutions.jts.geom.Point 
+                            && outputShapeType == ShapeType.POLYLINE) {
+                    // this happens when the input files are line segments (not
+                    // closed rings) and the intersection results in points.
+                    outputShapeType = ShapeType.POINT;
+                }
+                        
+                
                 // set up the output files of the shapefile and the dbf
                 output = new ShapeFile(outputFile, outputShapeType);
 
@@ -356,7 +366,7 @@ public class Intersect implements WhiteboxPlugin {
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
                         Coordinate[] coords = p.getExteriorRing().getCoordinates();
-                        if (Topology.isClockwisePolygon(coords)) {
+                        if (!Topology.isClockwisePolygon(coords)) {
                             for (i = coords.length - 1; i >= 0; i--) {
                                 pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
                             }
@@ -392,11 +402,11 @@ public class Intersect implements WhiteboxPlugin {
                             && outputShapeType == ShapeType.POLYGON) {
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon)gN;
                         ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
-
+                        
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
                         Coordinate[] coords = p.getExteriorRing().getCoordinates();
-                        if (Topology.isClockwisePolygon(coords)) {
+                        if (!Topology.isClockwisePolygon(coords)) {
                             for (i = coords.length - 1; i >= 0; i--) {
                                 pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
                             }
@@ -422,6 +432,16 @@ public class Intersect implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.Polygon wbGeometry = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
+                        output.addRecord(wbGeometry);
+
+                        FID++;
+                        Object rowData[] = new Object[1];
+                        rowData[0] = new Double(FID);
+                        writer.addRecord(rowData);
+                    } else if (gN instanceof com.vividsolutions.jts.geom.Point 
+                            && outputShapeType == ShapeType.POINT) {
+                        com.vividsolutions.jts.geom.Point p = (com.vividsolutions.jts.geom.Point)gN;
+                        whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(p.getX(), p.getY());
                         output.addRecord(wbGeometry);
 
                         FID++;
@@ -472,7 +492,7 @@ public class Intersect implements WhiteboxPlugin {
     
 //    // This method is only used during testing.
 //    public static void main(String[] args) {
-//        args = new String[3];
+//        args = new String[2];
 ////        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/NTDB_roads_rmow.shp"
 ////                + ";/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Line_rmow.shp"
 ////                + ";/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Body_rmow.shp";

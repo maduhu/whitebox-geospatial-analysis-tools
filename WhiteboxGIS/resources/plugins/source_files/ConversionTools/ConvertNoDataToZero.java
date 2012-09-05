@@ -205,7 +205,7 @@ public class ConvertNoDataToZero implements WhiteboxPlugin {
                     return;
                 }
                 progress = (int) (100f * row / (numRows - 1));
-                updateProgress("Finding patch min row and columns:", progress);
+                updateProgress(progress);
             }
             
             output.addMetadataEntry("Created by the "

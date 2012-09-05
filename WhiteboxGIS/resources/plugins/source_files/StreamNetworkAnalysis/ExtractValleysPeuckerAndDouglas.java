@@ -16,8 +16,6 @@
  */
 package plugins;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
@@ -25,9 +23,9 @@ import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
- * @author johnlindsay
+ * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class FilterMode implements WhiteboxPlugin {
+public class ExtractValleysPeuckerAndDouglas implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -37,7 +35,7 @@ public class FilterMode implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "FilterMode";
+        return "ExtractValleysPeuckerAndDouglas";
     }
     /**
      * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
@@ -45,7 +43,7 @@ public class FilterMode implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Mode Filter";
+    	return "Extract Valleys (Peucker And Douglas)";
     }
     /**
      * Used to retrieve a short description of what the plugin tool does.
@@ -53,7 +51,7 @@ public class FilterMode implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Performs a mode filter on an image.";
+    	return "Identifies potential valley bottom grid cells.";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
@@ -61,14 +59,14 @@ public class FilterMode implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "Filters" };
+    	String[] ret = { "StreamAnalysis" };
     	return ret;
     }
     /**
      * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
      * that the plugin will send all feedback messages, progress updates, and return objects.
      * @param host The WhiteboxPluginHost that called the plugin tool.
-     */  
+     */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
@@ -159,47 +157,23 @@ public class FilterMode implements WhiteboxPlugin {
         
         String inputHeader = null;
         String outputHeader = null;
-        int row, col, x, y;
-        double z;
-        float progress = 0;
-        int a;
-        int filterSizeX = 3;
-        int filterSizeY = 3;
-        int dX[];
-        int dY[];
-        int midPointX;
-        int midPointY;
-        int numPixelsInFilter;
-        int dataSize;
-        int count;
-        int modeCount;
-        double mode;
-        boolean filterRounded = false;
-        double[] filterShape;
-        boolean reflectAtBorders = false;
-        ArrayList<Double> data = new ArrayList<Double>();
-    
+        int row, col, rows, cols;
+        int progress = 0;
+        double z, maxZ, noData, outputNoData;
+        int i, whichCell;
+        int[] dX = new int[]{-1, 0, -1, 0};
+        int[] dY = new int[]{-1, -1, 0, 0};
+        int numScanCells = dX.length;
+        
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
         
-        for (int i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                filterSizeX = Integer.parseInt(args[i]);
-            } else if (i == 3) {
-                filterSizeY = Integer.parseInt(args[i]);
-            } else if (i == 4) {
-                filterRounded = Boolean.parseBoolean(args[i]);
-            } else if (i == 5) {
-                reflectAtBorders = Boolean.parseBoolean(args[i]);
-            }
-        }
-
+        inputHeader = args[0];
+        outputHeader = args[1];
+        boolean performLineThinning = Boolean.parseBoolean(args[2]);
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -207,125 +181,115 @@ public class FilterMode implements WhiteboxPlugin {
         }
 
         try {
-            WhiteboxRaster inputFile = new WhiteboxRaster(inputHeader, "r");
-            inputFile.isReflectedAtEdges = reflectAtBorders;
-
-            int rows = inputFile.getNumberRows();
-            int cols = inputFile.getNumberColumns();
-            double noData = inputFile.getNoDataValue();
-
-            WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
-            outputFile.setPreferredPalette(inputFile.getPreferredPalette());
+            WhiteboxRaster DEM = new WhiteboxRaster(inputHeader, "r");
             
-            //the filter dimensions must be odd numbers such that there is a middle pixel
-            if (Math.floor(filterSizeX / 2d) == (filterSizeX / 2d)) {
-                showFeedback("Filter dimensions must be odd numbers. The specified filter x-dimension" + 
-                        " has been modified.");
-                
-                filterSizeX++;
-            }
-            if (Math.floor(filterSizeY / 2d) == (filterSizeY / 2d)) {
-                showFeedback("Filter dimensions must be odd numbers. The specified filter y-dimension" + 
-                        " has been modified.");
-                filterSizeY++;
-            }
-
-            numPixelsInFilter = filterSizeX * filterSizeY;
-            dX = new int[numPixelsInFilter];
-            dY = new int[numPixelsInFilter];
-            filterShape = new double[numPixelsInFilter];
-
-            //fill the filter DX and DY values
-            midPointX = (int)Math.floor(filterSizeX / 2);
-            midPointY = (int)Math.floor(filterSizeY / 2);
-            if (!filterRounded) {
-                a = 0;
-                for (row = 0; row < filterSizeY; row++) {
-                    for (col = 0; col < filterSizeX; col++) {
-                        dX[a] = col - midPointX;
-                        dY[a] = row - midPointY;
-                        filterShape[a] = 1;
-                        a++;
-                     }
-                }
-            } else {
-                //see which pixels in the filter lie within the largest ellipse 
-                //that fits in the filter box 
-                double aSqr = midPointX * midPointX;
-                double bSqr = midPointY * midPointY;
-                a = 0;
-                for (row = 0; row < filterSizeY; row++) {
-                    for (col = 0; col < filterSizeX; col++) {
-                        dX[a] = col - midPointX;
-                        dY[a] = row - midPointY;
-                        z = (dX[a] * dX[a]) / aSqr + (dY[a] * dY[a]) / bSqr;
-                        if (z > 1) {
-                            filterShape[a] = 0;
-                        } else {
-                            filterShape[a] = 1;
-                        }
-                        a++;
-                    }
-                }
-            }
+            rows = DEM.getNumberRows();
+            cols = DEM.getNumberColumns();
+            noData = DEM.getNoDataValue();
+            outputNoData = -32768;
+                    
+            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", 
+                    inputHeader, WhiteboxRaster.DataType.INTEGER, 1);
+            output.setNoDataValue(outputNoData);
+            output.setPreferredPalette("qual.pal");
+            output.setDataScale(WhiteboxRaster.DataScale.CATEGORICAL);
+            output.setZUnits("dimensionless");
             
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
-                    z = inputFile.getValue(row, col);
+                    z = DEM.getValue(row, col);
                     if (z != noData) {
-                        data.clear();
-                        for (a = 0; a < numPixelsInFilter; a++) {
-                            x = col + dX[a];
-                            y = row + dY[a];
-                            z = inputFile.getValue(y, x);
-                            if (z != noData && filterShape[a] == 1) {
-                                data.add(z);
-                            }
-                        }
-                        
-                        Collections.sort(data);
-                        dataSize = data.size();
-                        z = data.get(0);
-                        mode = z;
-                        modeCount = 1;
-                        count = 1;
-                        for (a = 1; a < dataSize; a++) {
-                            if (data.get(a) == z) {
-                                count++;
-                            } else {
-                                if (count > modeCount) {
-                                    mode = z;
-                                    modeCount = count;
+                        maxZ = z;
+                        whichCell = 3;
+                        for (i = 0; i < (numScanCells - 1); i++) {
+                            z = DEM.getValue(row + dY[i], col + dX[i]);
+                            if (z != noData) {
+                                if (z > maxZ) {
+                                    maxZ = z;
+                                    whichCell = i;
                                 }
-                                count = 1;
-                                z = data.get(a);
                             }
                         }
-                       
-                        if (count > modeCount) {
-                            mode = z;
-                        }
+                        output.setValue(row + dY[whichCell], col + dX[whichCell], 0);
                         
-                        outputFile.setValue(row, col, mode);       
                     } else {
-                        outputFile.setValue(row, col, noData);
+                        output.setValue(row, col, outputNoData);
                     }
-
                 }
                 if (cancelOp) {
                     cancelOperation();
                     return;
                 }
-                progress = (float) (100f * row / (rows - 1));
-                updateProgress((int) progress);
+                progress = (int) (100f * row / (rows - 1));
+                updateProgress(progress);
+            }
+            
+            if (performLineThinning) {
+                long counter = 0;
+                int loopNum = 0;
+                int a;
+                dX = new int[]{1, 1, 1, 0, -1, -1, -1, 0};
+                dY = new int[]{-1, 0, 1, 1, 1, 0, -1, -1};
+                int[][] elements = {{6, 7, 0, 4, 3, 2}, {7, 0, 1, 3, 5},
+                    {0, 1, 2, 4, 5, 6}, {1, 2, 3, 5, 7},
+                    {2, 3, 4, 6, 7, 0}, {3, 4, 5, 7, 1},
+                    {4, 5, 6, 0, 1, 2}, {5, 6, 7, 1, 3}};
+                double[][] vals = {{0, 0, 0, 1, 1, 1}, {0, 0, 0, 1, 1},
+                    {0, 0, 0, 1, 1, 1}, {0, 0, 0, 1, 1},
+                    {0, 0, 0, 1, 1, 1}, {0, 0, 0, 1, 1},
+                    {0, 0, 0, 1, 1, 1}, {0, 0, 0, 1, 1}};
+
+                double[] neighbours = new double[8];
+                boolean patternMatch = false;
+
+                do {
+                    loopNum++;
+                    updateProgress("Loop Number " + loopNum + ":", 0);
+                    counter = 0;
+                    for (row = 0; row < rows; row++) {
+                        for (col = 0; col < cols; col++) {
+                            z = output.getValue(row, col);
+                            if (z > 0 && z != noData) {
+                                // fill the neighbours array
+                                for (i = 0; i < 8; i++) {
+                                    neighbours[i] = output.getValue(row + dY[i], col + dX[i]);
+                                }
+
+                                for (a = 0; a < 8; a++) {
+                                    // scan through element
+                                    patternMatch = true;
+                                    for (i = 0; i < elements[a].length; i++) {
+                                        if (neighbours[elements[a][i]] != vals[a][i]) {
+                                            patternMatch = false;
+                                        }
+                                    }
+                                    if (patternMatch) {
+                                        output.setValue(row, col, 0);
+                                        counter++;
+                                    }
+                                }
+                            }
+
+                        }
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
+                        progress = (int) (100f * row / (rows - 1));
+                        updateProgress(progress);
+                    }
+
+
+                } while (counter > 0);
+
             }
 
-            outputFile.addMetadataEntry("Created by the "
+            output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
-            outputFile.addMetadataEntry("Created on " + new Date());
+            output.addMetadataEntry("Created on " + new Date());
             
-            inputFile.close();
-            outputFile.close();
+            DEM.close();
+            output.close();
 
             // returning a header file string displays the image.
             returnData(outputHeader);

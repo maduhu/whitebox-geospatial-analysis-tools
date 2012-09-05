@@ -22,12 +22,12 @@ import java.awt.event.*;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.*;
 import javax.swing.*;
+import whitebox.cartographic.*;
+import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
@@ -50,6 +50,10 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     private JComboBox paperNameCombo;
     private JTextField marginText = null;
     private static double margin;
+    
+    private ArrayList<CartographicElement> listOfCartographicElements;
+    
+    private JList mapElementsList;
     
     private JCheckBox checkScaleVisible = new JCheckBox();
     private JCheckBox checkScaleBorderVisible = new JCheckBox();
@@ -146,6 +150,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         tabs.addTab("Title", getTitleBox());
         tabs.addTab("Neatline", getNeatlineBox());
         tabs.addTab("Page", getPageBox());
+        tabs.addTab("Map Elements", getMapElementsListing());
         
         if (activeTab.length() > 0) {
             if (activeTab.equals("scale")) {
@@ -160,12 +165,98 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
                 tabs.setSelectedIndex(4);
             } else if (activeTab.equals("page")) {
                 tabs.setSelectedIndex(5);
+            } else if (activeTab.equals("map elements")) {
+                tabs.setSelectedIndex(6);
             }
         }
         
         getContentPane().add(tabs, BorderLayout.CENTER);
         
         pack();
+    }
+    
+    private JPanel getMapElementsListing() {
+        JPanel panel = new JPanel();
+        try {
+            JLabel label = null;
+            Box mainBox = Box.createVerticalBox();
+            JScrollPane scroll = new JScrollPane(mainBox);
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            panel.add(scroll);
+            
+            
+            MouseListener ml = new MouseAdapter() {
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    JList theList = (JList) e.getSource();
+                    String label = null;
+                    int index = theList.locationToIndex(e.getPoint());
+                    if (index >= 0) {
+                        Object o = theList.getModel().getElementAt(index);
+                        label = o.toString();
+                    }
+                    if (e.getClickCount() == 1) {
+                        //showToolDescription(label);
+                    } else if (e.getClickCount() == 2) {
+                        CartographicElement ce = listOfCartographicElements.get(index);
+                        if (ce instanceof MapTitle) {
+                            tabs.setSelectedIndex(3);
+                        }
+                    }
+
+                }
+            };
+
+
+            JPanel mapElementsBox = new JPanel();
+            mapElementsBox.setLayout(new BoxLayout(mapElementsBox, BoxLayout.X_AXIS));
+            mapElementsBox.setBackground(Color.WHITE);
+            mapElementsBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("The map contains these cartographic elements:");
+            //Font f = label.getFont();
+            //label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
+            mapElementsBox.add(label);
+            mapElementsBox.add(Box.createHorizontalGlue());
+            mapElementsBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(mapElementsBox);
+
+            populateElementsList();
+            
+            mapElementsList.addMouseListener(ml);
+            
+            JScrollPane scroller1 = new JScrollPane(mapElementsList);
+            
+            mainBox.add(scroller1);
+            
+            mainBox.add(Box.createVerticalStrut(330));
+            
+        } catch (Exception e) {
+            host.showFeedback(e.getMessage());
+        } finally {
+            return panel;
+        }
+    }
+    
+    private void populateElementsList() {
+        mapElementsList = new JList();
+            
+            int maxIndex;
+            listOfCartographicElements = map.getCartographicElementList();
+            if (listOfCartographicElements.size() <= 10) {
+                maxIndex = listOfCartographicElements.size();
+            } else {
+                maxIndex = 10;
+            }
+            mapElementsList.removeAll();
+            DefaultListModel model = new DefaultListModel();
+            int i = 0;
+            for (CartographicElement ce : listOfCartographicElements) {
+                model.add(i, ce.getName());
+                i++;
+            }
+            mapElementsList.setModel(model);
+            
     }
     
     private JPanel getTitleBox() {
@@ -664,27 +755,10 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             scaleVisibleBox.add(Box.createHorizontalStrut(10));
             mainBox.add(scaleVisibleBox);
             
-            // scale border visibility
-            JPanel scaleBorderVisibleBox = new JPanel();
-            scaleBorderVisibleBox.setLayout(new BoxLayout(scaleBorderVisibleBox, BoxLayout.X_AXIS));
-            scaleBorderVisibleBox.setBackground(backColour);
-            scaleBorderVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is the scale border visible?");
-            label.setPreferredSize(new Dimension(180, 24));
-            scaleBorderVisibleBox.add(label);
-            scaleBorderVisibleBox.add(Box.createHorizontalGlue());
-            checkScaleBorderVisible.setSelected(map.mapScale.isBorderVisible());
-            checkScaleBorderVisible.addActionListener(this);
-            checkScaleBorderVisible.setActionCommand("checkScaleBorderVisible");
-            scaleBorderVisibleBox.add(checkScaleBorderVisible);
-            scaleBorderVisibleBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(scaleBorderVisibleBox);
-            
-            
             // scale background visibility
             JPanel scaleBackgroundVisibleBox = new JPanel();
             scaleBackgroundVisibleBox.setLayout(new BoxLayout(scaleBackgroundVisibleBox, BoxLayout.X_AXIS));
-            scaleBackgroundVisibleBox.setBackground(Color.WHITE);
+            scaleBackgroundVisibleBox.setBackground(backColour);
             scaleBackgroundVisibleBox.add(Box.createHorizontalStrut(10));
             label = new JLabel("Is the scale background visible?");
             label.setPreferredSize(new Dimension(200, 24));
@@ -696,6 +770,22 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             scaleBackgroundVisibleBox.add(checkScaleBackgroundVisible);
             scaleBackgroundVisibleBox.add(Box.createHorizontalStrut(10));
             mainBox.add(scaleBackgroundVisibleBox);
+            
+            // scale border visibility
+            JPanel scaleBorderVisibleBox = new JPanel();
+            scaleBorderVisibleBox.setLayout(new BoxLayout(scaleBorderVisibleBox, BoxLayout.X_AXIS));
+            scaleBorderVisibleBox.setBackground(Color.WHITE);
+            scaleBorderVisibleBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Is the scale border visible?");
+            label.setPreferredSize(new Dimension(180, 24));
+            scaleBorderVisibleBox.add(label);
+            scaleBorderVisibleBox.add(Box.createHorizontalGlue());
+            checkScaleBorderVisible.setSelected(map.mapScale.isBorderVisible());
+            checkScaleBorderVisible.addActionListener(this);
+            checkScaleBorderVisible.setActionCommand("checkScaleBorderVisible");
+            scaleBorderVisibleBox.add(checkScaleBorderVisible);
+            scaleBorderVisibleBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(scaleBorderVisibleBox);
             
             // scale units
             JPanel scaleUnitBox = new JPanel();

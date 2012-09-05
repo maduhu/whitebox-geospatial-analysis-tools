@@ -42,7 +42,7 @@ public class Centroid implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Centroid";
+    	return "Centroid (Raster)";
     }
     /**
      * Used to retrieve a short description of what the plugin tool does.
@@ -50,8 +50,8 @@ public class Centroid implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "The Centroid tool can be used to find the centroid, or average "
-                + "location, of polygon objects.";
+    	return "Used to find the centroid, or average "
+                + "location, of raster polygon objects.";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.

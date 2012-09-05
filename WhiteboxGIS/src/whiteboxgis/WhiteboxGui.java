@@ -584,7 +584,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             createPopupMenus();
             createToolbar();
 
-            MapInfo mapinfo = new MapInfo(); //"New Map 1");
+            MapInfo mapinfo = new MapInfo("New Map 1"); //"New Map 1");
             mapinfo.setMapTitle("New Map 1");
             openMaps.add(mapinfo);
             activeMap = 0;
@@ -1888,7 +1888,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (numOpenMaps <= 0) {
                 // add a new map
                 numOpenMaps++;
-                MapInfo mapinfo = new MapInfo();
+                MapInfo mapinfo = new MapInfo("New Map");
                 mapinfo.setMapTitle("New Map");
                 mapinfo.setWorkingDirectory(workingDirectory);
                 openMaps.add(mapinfo); //new MapInfo(str));
@@ -2039,7 +2039,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (openMaps.isEmpty()) {
                 // create a new map to overlay the layer onto.
                 numOpenMaps = 1;
-                MapInfo mapinfo = new MapInfo();
+                MapInfo mapinfo = new MapInfo("New Map 1");
                 mapinfo.setMapTitle("New Map 1");
                 openMaps.add(mapinfo); //new MapInfo("New Map 1"));
                 drawingArea.setMapInfo(openMaps.get(0));
@@ -2095,7 +2095,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         if (str != null) {
             numOpenMaps++;
-            MapInfo mapinfo = new MapInfo();
+            MapInfo mapinfo = new MapInfo(str);
             mapinfo.setMapTitle(str);
             mapinfo.setWorkingDirectory(workingDirectory);
             openMaps.add(mapinfo); //new MapInfo(str));
@@ -2126,7 +2126,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (numOpenMaps > 0) {
                     drawingArea.setMapInfo(openMaps.get(activeMap));
                 } else {
-                    drawingArea.setMapInfo(new MapInfo());
+                    drawingArea.setMapInfo(new MapInfo("New Map"));
                 }
                 drawingArea.repaint();
             } else {
@@ -2142,7 +2142,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (numOpenMaps > 0) {
                     drawingArea.setMapInfo(openMaps.get(activeMap));
                 } else {
-                    drawingArea.setMapInfo(new MapInfo());
+                    drawingArea.setMapInfo(new MapInfo("New Map"));
                 }
                 drawingArea.repaint();
 
@@ -2298,7 +2298,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 workingDirectory = fileDirectory;
             }
             for (int i = 0; i < files.length; i++) {
-                MapInfo map = new MapInfo();
+                MapInfo map = new MapInfo("");
                 if (!map.openMap(files[i].toString())) {
                     showFeedback("Map file " + files[i].toString() + " not read properly.");
                     break;

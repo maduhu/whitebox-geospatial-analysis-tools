@@ -1147,6 +1147,8 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 // Draw cartographic elements
                 //***************************
                 
+                Color selectedColour = Color.GRAY;
+                
                 double ppm = java.awt.Toolkit.getDefaultToolkit().getScreenResolution() * 39.3701; 
                 mapinfo.mapScale.setScale(1 / Math.min(((myWidth / ppm) / xRange), ((myHeight / ppm) / yRange)));
                 if (scaleText != null) {
@@ -1177,13 +1179,19 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                     
                     g2d.setColor(mapinfo.mapScale.getLegendColour());
                     
-                    if (mapinfo.mapScale.isBorderVisible()) {
-                        g2d.setColor(mapinfo.mapScale.getOutlineColour());
+                    if (mapinfo.mapScale.isBorderVisible() || mapinfo.mapScale.isSelected()) {
+                        if (!mapinfo.mapScale.isSelected()) {
+                            g2d.setColor(mapinfo.mapScale.getBorderColour());
+                        } else {
+                            g2d.setColor(selectedColour);
+                        }
                         g2d.drawRect(mapinfo.mapScale.getUpperLeftX(),
                                 mapinfo.mapScale.getUpperLeftY(),
                                 mapinfo.mapScale.getWidth(),
                                 mapinfo.mapScale.getHeight());
                     }
+                    
+                    g2d.setColor(mapinfo.mapScale.getOutlineColour());
                     
                     // set up the font
                     font = new Font("SanSerif", Font.PLAIN, 11);
@@ -1510,6 +1518,9 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                 this.setCursor(panCursor);
                 oldMouseMode = myMode;
                 myMode = MOUSE_MODE_CARTO_ELEMENT;
+                mapinfo.mapScale.setSelected(true);
+                this.repaint();
+                
             }
             whichCartoElement = CARTO_ELEMENT_SCALE;
             mapElementX = x - mapinfo.mapScale.getUpperLeftX();
@@ -1545,7 +1556,9 @@ public class MapRenderer extends JPanel implements Printable, MouseMotionListene
                     myMode = MOUSE_MODE_PAN;
                     this.setCursor(panCursor);
                 }
+                mapinfo.mapScale.setSelected(false);
                 whichCartoElement = -1;
+                this.repaint();
             }
         }
     }

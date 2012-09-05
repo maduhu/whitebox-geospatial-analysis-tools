@@ -16,11 +16,12 @@
  */
 package plugins;
 
+import java.text.DecimalFormat;
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.geospatialfiles.WhiteboxRasterInfo;
 import whitebox.interfaces.WhiteboxPlugin;
-import java.text.DecimalFormat;
+import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -193,8 +194,8 @@ public class ExtractStatistics implements WhiteboxPlugin {
         String featureImageHeader = null;
         String outputHeader = null;
     	
-        WhiteboxRaster dataImage;
-        WhiteboxRaster featureImage;
+        WhiteboxRasterInfo dataImage;
+        WhiteboxRasterInfo featureImage;
         WhiteboxRaster output;
         int cols, rows;
         double imageTotal = 0;
@@ -234,17 +235,18 @@ public class ExtractStatistics implements WhiteboxPlugin {
         }
 
         try {
-            dataImage = new WhiteboxRaster(dataImageHeader, "r");
+            dataImage = new WhiteboxRasterInfo(dataImageHeader);
             rows = dataImage.getNumberRows();
             cols = dataImage.getNumberColumns();
             double noData = dataImage.getNoDataValue();
 
-            featureImage = new WhiteboxRaster(featureImageHeader, "r");
+            featureImage = new WhiteboxRasterInfo(featureImageHeader);
             if (featureImage.getNumberColumns() != cols || 
                     featureImage.getNumberRows() != rows) {
                 showFeedback("Input images must have the same dimensions (i.e. rows and columns).");
                 return;
             }
+            double featureNoData = featureImage.getNoDataValue();
             
             String featureImageShortName = featureImage.getShortHeaderFile();
             String dataImageShortName = dataImage.getShortHeaderFile();
@@ -253,13 +255,12 @@ public class ExtractStatistics implements WhiteboxPlugin {
             int numFeatures = 0;
             double[] featureData;
             double[] data;
-            double zFeature;
             int minFeatureID = 99999999;
             int maxFeatureID = -99999999;
             for (row = 0; row < rows; row++) {
                 featureData = featureImage.getRowValues(row);
                 for (col = 0; col < cols; col++) {
-                    if (featureData[col] != noData) {
+                    if (featureData[col] != featureNoData) {
                         //make sure that the feature ID is an integer value
                         if (Math.rint(featureData[col]) != featureData[col]) {
                             showFeedback("The feature definition image should "
@@ -290,6 +291,7 @@ public class ExtractStatistics implements WhiteboxPlugin {
             double[] featureStdDeviation = new double[numFeatures];
             double[] featureMins = new double[numFeatures];
             double[] featureMaxs = new double[numFeatures];
+            boolean[] featurePresent = new boolean[numFeatures];
 
             for (i = 0; i < numFeatures; i++) {
                 featureMins[i] = 99999999;
@@ -301,20 +303,23 @@ public class ExtractStatistics implements WhiteboxPlugin {
                 data = dataImage.getRowValues(row);
                 featureData = featureImage.getRowValues(row);
                 for (col = 0; col < cols; col++) {
-                    if (featureData[col] != noData && data[col] != noData) {
-                        i = (int)(featureData[col] - minFeatureID);
-                        featureTotal[i] += data[col];
-                        featureN[i]++;
-                        if (data[col] < featureMins[i]) {
-                            featureMins[i] = data[col];
+                    if (featureData[col] != featureNoData) {
+                        i = (int) (featureData[col] - minFeatureID);
+                        featurePresent[i] = true;
+                        if (data[col] != noData) {
+                            featureTotal[i] += data[col];
+                            featureN[i]++;
+                            if (data[col] < featureMins[i]) {
+                                featureMins[i] = data[col];
+                            }
+                            if (data[col] > featureMaxs[i]) {
+                                featureMaxs[i] = data[col];
+                            }
                         }
-                        if (data[col] > featureMaxs[i]) {
-                            featureMaxs[i] = data[col];
-                        }
-                        
                     }
                 }
-                if (cancelOp) { cancelOperation(); return; }
+                if (cancelOp) {
+                    cancelOperation(); return; }
                 progress = (float) (100f * row / (rows - 1));
                 updateProgress("Loop 1 of 2:", (int)progress);
             }
@@ -330,7 +335,7 @@ public class ExtractStatistics implements WhiteboxPlugin {
                 data = dataImage.getRowValues(row);
                 featureData = featureImage.getRowValues(row);
                 for (col = 0; col < cols; col++) {
-                    if (featureData[col] != noData && data[col] != noData) {
+                    if (featureData[col] != featureNoData && data[col] != noData) {
                         i = (int)(featureData[col] - minFeatureID);
                         featureTotalDeviation[i] += (data[col] - featureAverage[i]) * 
                              (data[col] - featureAverage[i]);
@@ -359,7 +364,7 @@ public class ExtractStatistics implements WhiteboxPlugin {
                     for (row = 0; row < rows; row++) {
                         featureData = featureImage.getRowValues(row);
                         for (col = 0; col < cols; col++) {
-                            if (featureData[col] != noData) {
+                            if (featureData[col] != featureNoData) {
                                 i = (int) (featureData[col] - minFeatureID);
                                 output.setValue(row, col, featureAverage[i]);
                             }
@@ -375,7 +380,7 @@ public class ExtractStatistics implements WhiteboxPlugin {
                     for (row = 0; row < rows; row++) {
                         featureData = featureImage.getRowValues(row);
                         for (col = 0; col < cols; col++) {
-                            if (featureData[col] != noData) {
+                            if (featureData[col] != featureNoData) {
                                 i = (int) (featureData[col] - minFeatureID);
                                 output.setValue(row, col, featureMins[i]);
                             }
@@ -391,7 +396,7 @@ public class ExtractStatistics implements WhiteboxPlugin {
                     for (row = 0; row < rows; row++) {
                         featureData = featureImage.getRowValues(row);
                         for (col = 0; col < cols; col++) {
-                            if (featureData[col] != noData) {
+                            if (featureData[col] != featureNoData) {
                                 i = (int) (featureData[col] - minFeatureID);
                                 output.setValue(row, col, featureMaxs[i]);
                             }
@@ -407,7 +412,7 @@ public class ExtractStatistics implements WhiteboxPlugin {
                     for (row = 0; row < rows; row++) {
                         featureData = featureImage.getRowValues(row);
                         for (col = 0; col < cols; col++) {
-                            if (featureData[col] != noData) {
+                            if (featureData[col] != featureNoData) {
                                 i = (int) (featureData[col] - minFeatureID);
                                 output.setValue(row, col, featureMaxs[i] - featureMins[i]);
                             }
@@ -423,7 +428,7 @@ public class ExtractStatistics implements WhiteboxPlugin {
                     for (row = 0; row < rows; row++) {
                         featureData = featureImage.getRowValues(row);
                         for (col = 0; col < cols; col++) {
-                            if (featureData[col] != noData) {
+                            if (featureData[col] != featureNoData) {
                                 i = (int) (featureData[col] - minFeatureID);
                                 output.setValue(row, col, featureStdDeviation[i]);
                             }
@@ -439,7 +444,7 @@ public class ExtractStatistics implements WhiteboxPlugin {
                     for (row = 0; row < rows; row++) {
                         featureData = featureImage.getRowValues(row);
                         for (col = 0; col < cols; col++) {
-                            if (featureData[col] != noData) {
+                            if (featureData[col] != featureNoData) {
                                 i = (int) (featureData[col] - minFeatureID);
                                 output.setValue(row, col, featureTotal[i]);
                             }
@@ -474,6 +479,7 @@ public class ExtractStatistics implements WhiteboxPlugin {
                 retstr = "EXTRACT STATISTICS\n\n";
                 retstr += "Data Image:\t" + dataImageShortName + "\n";
                 retstr += "Feature Image:\t" + featureImageShortName + "\n";
+                retstr += "NoData Value:\t" + noData + "\n";
                 retstr += "Output Stat:\t" + statType + "\n\n";
                 retstr += "ID\t" + "Value" + "\n";
                 
@@ -481,36 +487,48 @@ public class ExtractStatistics implements WhiteboxPlugin {
                     for (i = 0; i < numFeatures; i++) {
                         if (featureN[i] > 0) {
                             retstr += (i + minFeatureID) + "\t" + df.format(featureAverage[i]) + "\n";
+                        } else if (featurePresent[i]) {
+                            retstr += (i + minFeatureID) + "\t" + df.format(noData) + "\n";
                         }
                     }
                 } else if (statType.equals("minimum")) {
                     for (i = 0; i < numFeatures; i++) {
                         if (featureN[i] > 0) {
                             retstr += (i + minFeatureID) + "\t" + df.format(featureMins[i]) + "\n";
+                        } else if (featurePresent[i]) {
+                            retstr += (i + minFeatureID) + "\t" + df.format(noData) + "\n";
                         }
                     }
                 } else if (statType.equals("maximum")) {
                     for (i = 0; i < numFeatures; i++) {
                         if (featureN[i] > 0) {
                             retstr += (i + minFeatureID) + "\t" + df.format(featureMaxs[i]) + "\n";
+                        } else if (featurePresent[i]) {
+                            retstr += (i + minFeatureID) + "\t" + df.format(noData) + "\n";
                         }
                     }
                 } else if (statType.equals("range")) {
                     for (i = 0; i < numFeatures; i++) {
                         if (featureN[i] > 0) {
                             retstr += (i + minFeatureID) + "\t" + df.format((featureMaxs[i] - featureMins[i])) + "\n";
+                        } else if (featurePresent[i]) {
+                            retstr += (i + minFeatureID) + "\t" + df.format(noData) + "\n";
                         }
                     }
                 } else if (statType.equals("standard deviation")) {
                     for (i = 0; i < numFeatures; i++) {
                         if (featureN[i] > 0) {
                             retstr += (i + minFeatureID) + "\t" + df.format(featureStdDeviation[i]) + "\n";
+                        } else if (featurePresent[i]) {
+                            retstr += (i + minFeatureID) + "\t" + df.format(noData) + "\n";
                         }
                     }
                 } else if (statType.equals("total")) {
                     for (i = 0; i < numFeatures; i++) {
                         if (featureN[i] > 0) {
                             retstr += (i + minFeatureID) + "\t" + df.format(featureTotal[i]) + "\n";
+                        } else if (featurePresent[i]) {
+                            retstr += (i + minFeatureID) + "\t" + df.format(noData) + "\n";
                         }
                     }
                 } else {

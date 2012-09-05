@@ -22,6 +22,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,7 +40,10 @@ import whitebox.cartographic.PointMarkers.MarkerStyle;
 import whitebox.cartographic.MapScale;
 import whitebox.cartographic.NorthArrow;
 import whitebox.cartographic.MapTitle;
+import whitebox.cartographic.MapDataView;
+import whitebox.cartographic.Legend;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
+import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.MapLayer;
 import whitebox.interfaces.MapLayer.MapLayerType;
 import whitebox.structures.BoundingBox;
@@ -75,14 +79,15 @@ public class MapInfo {
     // Public Fields
     public MapScale mapScale = new MapScale();
     public NorthArrow northArrow = new NorthArrow();
-    public MapTitle mapTitle = new MapTitle("New Map");
+    public MapTitle mapTitle = new MapTitle("New Map", "default title");
+    
+    private ArrayList<CartographicElement> listOfCartographicElements = new ArrayList<CartographicElement>();
             
     /**
      * MapInfo constructor
      */
-    public MapInfo() { //String mapTitle) {
+    public MapInfo(String mapTitle) {
         try {
-            //this.mapTitle = mapTitle;
             pathSep = File.separator;
             applicationDirectory = java.net.URLDecoder.decode(getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
             paletteDirectory = applicationDirectory + pathSep + "resources" + pathSep + "palettes" + pathSep;
@@ -96,9 +101,26 @@ public class MapInfo {
             pageFormat.setPaper(paper);
             
             mapScale.setUnits("metres");
+            
+            CartographicElement ce = new MapDataView("default map data view");
+            addNewCartographicElement(ce); // the default MapDataView;
+            ce = new MapTitle(mapTitle, "default title"); // the default map title
+            addNewCartographicElement(ce);
+            
+            
         } catch (Exception ex) {
             System.out.println(ex);
         }
+    }
+    
+    public final void addNewCartographicElement(CartographicElement ce) {
+        ce.setElementNumber(listOfCartographicElements.size());
+        listOfCartographicElements.add(ce);
+    }
+    
+    public ArrayList<CartographicElement> getCartographicElementList() {
+        Collections.sort(listOfCartographicElements);
+        return listOfCartographicElements;
     }
     
     

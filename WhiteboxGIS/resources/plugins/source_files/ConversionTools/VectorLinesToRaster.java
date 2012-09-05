@@ -16,8 +16,10 @@
  */
 package plugins;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.PriorityQueue;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
@@ -28,6 +30,7 @@ import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.BoundingBox;
+import whitebox.structures.RowPriorityGridCell;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -212,6 +215,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
         double south;
         DataType dataType = WhiteboxRasterBase.DataType.INTEGER;
         Object[] data;
+        Object[][] allRecords = null;
         BoundingBox box;
         double[][] geometry;
         int numPoints, numParts, i, part;
@@ -219,6 +223,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
         int startingPointInPart, endingPointInPart;
         double x1, y1, x2, y2, xPrime, yPrime;
         boolean useRecID = false;
+        DecimalFormat df = new DecimalFormat("###,###,###,###");
         
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -248,7 +253,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
 
             // initialize the shapefile input
             ShapeFile input = new ShapeFile(inputFile);
-
+            int numRecs = input.getNumberOfRecords();
 
             if (input.getShapeType() != ShapeType.POLYLINE
                     && input.getShapeType() != ShapeType.POLYLINEZ
@@ -329,7 +334,21 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
             }
 
             Collections.sort(myList);
-
+            
+            if (!useRecID) {
+                allRecords = new Object[numRecs][numberOfFields];
+                int a = 0;
+                while ((data = reader.nextRecord()) != null) {
+                    System.arraycopy(data, 0, allRecords[a], 0, numberOfFields);
+                    a++;
+                }
+            }
+            
+            long heapSize = Runtime.getRuntime().totalMemory();
+            int flushSize = (int)(heapSize / 32);
+            int j, numCellsToWrite;
+            PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<RowPriorityGridCell>(flushSize);
+            RowPriorityGridCell cell;
             int numRecords = input.getNumberOfRecords();
             int count = 0;
             int progressCount = (int) (numRecords / 100.0);
@@ -394,7 +413,8 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                                     // calculate the intersection point
                                     xPrime = x1 + (rowYCoord - y1) / (y2 - y1) * (x2 - x1);
                                     col = output.getColumnFromXCoordinate(xPrime);
-                                    output.setValue(row, col, value);
+                                    //output.setValue(row, col, value);
+                                    pq.add(new RowPriorityGridCell(row, col, value));
                                 }
                             }
                         }
@@ -415,13 +435,29 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                                     yPrime = y1 + (colXCoord - x1) / (x2 - x1) * (y2 - y1);
                                     
                                     row = output.getRowFromYCoordinate(yPrime);
-                                    output.setValue(row, col, value);
+                                    //output.setValue(row, col, value);
+                                    pq.add(new RowPriorityGridCell(row, col, value));
                                 }
                             }
                         }
                     }
                 }
-
+                if (pq.size() >= flushSize) {
+                    j = 0;
+                    numCellsToWrite = pq.size();
+                    do {
+                        cell = pq.poll();
+                        output.setValue(cell.row, cell.col, cell.z);
+                        j++;
+                        if (j % 1000 == 0) {
+                            if (cancelOp) {
+                                cancelOperation();
+                                return;
+                            }
+                            updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                        }
+                    } while (pq.size() > 0);
+                }
                 if (cancelOp) {
                     cancelOperation();
                     return;
@@ -432,6 +468,21 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                     updateProgress(progress);
                 }
             }
+            
+            j = 0;
+            numCellsToWrite = pq.size();
+            do {
+                cell = pq.poll();
+                output.setValue(cell.row, cell.col, cell.z);
+                j++;
+                if (j % 1000 == 0) {
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                }
+            } while (pq.size() > 0);
 
             output.flush();
             output.close();
@@ -563,7 +614,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
         }
         return threshold2 > threshold1 ? val > threshold1 && val < threshold2 : val > threshold2 && val < threshold1;
     }
-
+    
 //    // This method is only used during testing.
 //    public static void main(String[] args) {
 //        args = new String[6];

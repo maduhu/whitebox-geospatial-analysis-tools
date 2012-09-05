@@ -385,7 +385,6 @@ public class Fuse implements WhiteboxPlugin {
 
             if (outputGeometry instanceof GeometryCollection) {
 
-
                 int numGeometries = outputGeometry.getNumGeometries();
                 oneHundredthTotal = (int) (numGeometries / 100.0);
                 progress = 0;

@@ -16,16 +16,12 @@
  */
 package plugins;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.Date;
-import java.io.IOException;
-import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.geospatialfiles.GeoTiff;
+import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.WhiteboxPluginHost;
 //import whitebox.utilities.BitOps;
 
 /**
@@ -264,7 +260,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 double[] data = null;
                 for (int row = 0; row < nRows; row++) {
                     data = gt.getRowData(row);
-                    if (data == null) {
+                    if (!(data != null)) {
                         showFeedback("The GeoTIFF reader cannot read this type of file.");
                         return;
                     }

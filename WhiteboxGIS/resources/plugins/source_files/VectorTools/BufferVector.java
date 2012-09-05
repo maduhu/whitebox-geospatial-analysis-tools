@@ -26,7 +26,10 @@ import java.util.ArrayList;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.DBF.DBFField;
 import whitebox.geospatialfiles.shapefile.DBF.DBFWriter;
-import whitebox.geospatialfiles.shapefile.*;
+import whitebox.geospatialfiles.shapefile.PointsList;
+import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
+import whitebox.geospatialfiles.shapefile.ShapeType;
+import whitebox.geospatialfiles.shapefile.ShapefilePoint;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.utilities.Topology;
@@ -434,7 +437,7 @@ public class BufferVector implements WhiteboxPlugin {
                             pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
                         }
                     } else {
-                        for (i = 0; i < buffCoords.length - 1; i++) {
+                        for (i = buffCoords.length - 1; i >= 0; i--) {
                             pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
                         }
                     }

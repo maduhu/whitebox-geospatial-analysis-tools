@@ -17,6 +17,8 @@
 package plugins;
 
 import java.io.File;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.PriorityQueue;
 import whitebox.geospatialfiles.WhiteboxRaster;
@@ -155,7 +157,6 @@ public class BreachDepressions implements WhiteboxPlugin {
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
     private boolean cancelOp = false;
 
     /**
@@ -191,42 +192,34 @@ public class BreachDepressions implements WhiteboxPlugin {
 
         String inputHeader;
         String outputHeader;
-        int row, col, x, y;
+        int row, col;
         int progress;
         double z, zn, previousZ;
         int[] dX = {1, 1, 1, 0, -1, -1, -1, 0};
         int[] dY = {-1, 0, 1, 1, 1, 0, -1, -1};
-        int[] dX5 = {2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2, -2, -1, 0, 1};
-        int[] dY5 = {-2, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2};
-        int[] breachCell = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 0};
         int maxDist = 0;
         int subgridSize = 0;
-        int smallNeighbourhoodmaxDist = 5;
-        int smallNeighbourhoodsubgridSize = 11;
-        int largeNeighbourhoodmaxDist = 0;
-        int largeNeighbourhoodsubgridSize = 0;
+        int neighbourhoodMaxDist = 0;
+        int neighbourhoodSubgridSize = 0;
         boolean isLowest;
-        double gridRes;
         double aSmallValue;
         int a, r, c, i, j, k, n, cn, rn;
         int numNoFlowCells;
         double largeVal = Float.MAX_VALUE;
-        int solvedCells;
-        boolean cellHasBeenSolved;
-        boolean foundSolution;
+        int visitedCells;
         boolean atLeastOneSourceCell;
         boolean flag;
-        double zMin;
-        int minCell;
         int b = 0;
-        double[][] decrementValue;
         double costAccumVal;
         double cost1, cost2;
         double newcostVal;
-        double diagdist = Math.sqrt(2);
-        double[] dist = {1, diagdist, 1, diagdist, 1, diagdist, 1, diagdist};
+        double maxCost = largeVal;
+        boolean useMaxCost = false;
+        boolean solutionFound;
+        double[] dist = new double[8];
         int[] backLinkDir = {4, 5, 6, 7, 0, 1, 2, 3};
-        int numLarge = 0, numUnsolvedCells = 0;
+        int numUnsolvedCells = 0;
+        DecimalFormat df = new DecimalFormat("###,###,###,###");
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -235,28 +228,49 @@ public class BreachDepressions implements WhiteboxPlugin {
 
         inputHeader = args[0];
         outputHeader = args[1];
-        largeNeighbourhoodmaxDist = Integer.parseInt(args[2]);
-        largeNeighbourhoodsubgridSize = 2 * largeNeighbourhoodmaxDist + 1;
+        neighbourhoodMaxDist = Integer.parseInt(args[2]);
+        neighbourhoodSubgridSize = 2 * neighbourhoodMaxDist + 1;
+        if (!args[3].toLowerCase().equals("not specified")) {
+            maxCost = Double.parseDouble(args[3]);
+            useMaxCost = true;
+        }
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
+        
+        Long startTime = System.currentTimeMillis(); 
 
         try {
             WhiteboxRaster DEM = new WhiteboxRaster(inputHeader, "r");
             int rows = DEM.getNumberRows();
             int cols = DEM.getNumberColumns();
             double noData = DEM.getNoDataValue();
-
+            String shortName = DEM.getShortHeaderFile();
+            
+            double cellSizeX = DEM.getCellSizeX();
+            double cellSizeY = DEM.getCellSizeY();
+            double minCellSize = Math.min(cellSizeX, cellSizeY);
+            double diagCellSize = Math.sqrt(cellSizeX * cellSizeX + cellSizeY * cellSizeY);
+            
+            dist[0] = diagCellSize / minCellSize;
+            dist[1] = cellSizeX / minCellSize;
+            dist[2] = diagCellSize / minCellSize;
+            dist[3] = cellSizeY  / minCellSize;
+            dist[4] = diagCellSize / minCellSize;
+            dist[5] = cellSizeX / minCellSize;
+            dist[6] = diagCellSize / minCellSize;
+            dist[7] = cellSizeY / minCellSize;
+            
             // copy the input file to the output file.
             FileUtilities.copyFile(new File(inputHeader), new File(outputHeader));
-            FileUtilities.copyFile(new File(inputHeader.replace(".dep", ".tas")), 
+            FileUtilities.copyFile(new File(inputHeader.replace(".dep", ".tas")),
                     new File(outputHeader.replace(".dep", ".tas")));
-            
+
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw");
-            
+
             // figure out what the value of ASmallNumber should be.
             z = Math.abs(DEM.getMaximumValue());
             if (z <= 9) {
@@ -273,24 +287,12 @@ public class BreachDepressions implements WhiteboxPlugin {
                 aSmallValue = 1F;
             }
 
-            // calculate the additional decrement value needed to create a descending pathway of 
-            // lower elevation values along a breach path.
-            double[][] SNDecrementValue =
-                    new double[smallNeighbourhoodsubgridSize][smallNeighbourhoodsubgridSize];
-            for (r = 0; r < smallNeighbourhoodsubgridSize; r++) {
-                for (c = 0; c < smallNeighbourhoodsubgridSize; c++) {
-                    j = Math.abs(c - smallNeighbourhoodmaxDist);
-                    k = Math.abs(r - smallNeighbourhoodmaxDist);
-                    SNDecrementValue[r][c] = (j + k) * aSmallValue;
-                }
-            }
-
             double[][] LNDecrementValue =
-                    new double[largeNeighbourhoodsubgridSize][largeNeighbourhoodsubgridSize];
-            for (r = 0; r < largeNeighbourhoodsubgridSize; r++) {
-                for (c = 0; c < largeNeighbourhoodsubgridSize; c++) {
-                    j = Math.abs(c - largeNeighbourhoodmaxDist);
-                    k = Math.abs(r - largeNeighbourhoodmaxDist);
+                    new double[neighbourhoodSubgridSize][neighbourhoodSubgridSize];
+            for (r = 0; r < neighbourhoodSubgridSize; r++) {
+                for (c = 0; c < neighbourhoodSubgridSize; c++) {
+                    j = Math.abs(c - neighbourhoodMaxDist);
+                    k = Math.abs(r - neighbourhoodMaxDist);
                     LNDecrementValue[r][c] = (j + k) * aSmallValue;
                 }
             }
@@ -298,10 +300,8 @@ public class BreachDepressions implements WhiteboxPlugin {
             DEM.close();
 
             // find all the cells with no downslope neighbours and put them into the queue
-            PriorityQueue<DepGridCell> pq = new PriorityQueue<DepGridCell>((2 * rows + 2 * cols) * 2);
-
-            //List<GridCell> pq = new List<GridCell>(); // this will serve as a 'priority queue'
-            //to hold the no-flow cells.
+            //PriorityQueue<DepGridCell> pq = new PriorityQueue<DepGridCell>((2 * rows + 2 * cols) * 2);
+            ArrayList<DepGridCell> pq2 = new ArrayList<DepGridCell>();
 
             updateProgress("Loop 1 of 2:", -1);
             for (row = 1; row < (rows - 1); row++) {
@@ -319,7 +319,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                             }
                         }
                         if (isLowest) {
-                            pq.add(new DepGridCell(row, col, z));
+                            pq2.add(new DepGridCell(row, col, z));
                         }
                     }
                 }
@@ -330,17 +330,20 @@ public class BreachDepressions implements WhiteboxPlugin {
                 progress = (int) (100f * row / (rows - 1));
                 updateProgress("Loop 1 of 2:", progress);
             }
-            numNoFlowCells = pq.size();
-            int oneHundredthOfNumNoFlowCells = (int)(numNoFlowCells / 100);
+            numNoFlowCells = pq2.size();
+            int oneHundredthOfNumNoFlowCells = (int) (numNoFlowCells / 100);
 
             updateProgress("Loop 2 of 2:", -1);
+            Long startTimeLoop2 = System.currentTimeMillis(); 
             DepGridCell cell = new DepGridCell(-1, -1, largeVal);
-            solvedCells = 0;
+            visitedCells = 0;
+            n = 0;
+            progress = 0;
             do {
-                cell = pq.poll();
+                cell = pq2.get(visitedCells);
                 col = cell.col;
                 row = cell.row;
-                z = output.getValue(row, col);
+                z = cell.z;
 
                 // see if it's still a no-flow cell. It can be modified to have a downslope neighbour
                 // during the processing of other cells prior.
@@ -355,200 +358,128 @@ public class BreachDepressions implements WhiteboxPlugin {
                     }
                 }
                 if (isLowest) {
-                    // scan the 2nd order neighbours to see if one is lower.
-                    cellHasBeenSolved = false;
-                    zMin = largeVal;
-                    minCell = -1;
-                    for (a = 0; a < 16; a++) {
-                        cn = col + dX5[a];
-                        rn = row + dY5[a];
-                        zn = output.getValue(rn, cn);
+                    maxDist = neighbourhoodMaxDist;
+                    subgridSize = neighbourhoodSubgridSize;
+                    double[][] cost = new double[subgridSize][subgridSize];
+                    double[][] accumulatedcost = new double[subgridSize][subgridSize];
+                    int[][] backLink = new int[subgridSize][subgridSize];
 
-                        if (zn < zMin && zn != noData) {
-                            zMin = zn;
-                            minCell = a;
-                        }
-                    }
-
-                    if (zMin < (z - aSmallValue)) {
-                        cn = col + dX[breachCell[minCell]];
-                        rn = row + dY[breachCell[minCell]];
-                        zn = output.getValue(rn, cn);
-                        if (((z + zMin) / 2) < zn) {
-                            output.setValue(rn, cn, (z - aSmallValue));
-                            cellHasBeenSolved = true;
-                            b++;
-                        }
-                    }
-
-                    if (!cellHasBeenSolved) {
-                        foundSolution = false;
-                        maxDist = smallNeighbourhoodmaxDist;
-                        subgridSize = smallNeighbourhoodsubgridSize;
-                        do {
-
-                            double[][] sourceCells = new double[subgridSize][subgridSize];
-                            double[][] cost = new double[subgridSize][subgridSize];
-                            double[][] accumulatedcost = new double[subgridSize][subgridSize];
-                            int[][] backLink = new int[subgridSize][subgridSize];
-
-                            decrementValue = new double[subgridSize][subgridSize];
-                            if (maxDist == smallNeighbourhoodmaxDist) {
-                                System.arraycopy(SNDecrementValue, 0, decrementValue, 0, SNDecrementValue.length);
-                            } else {
-                                System.arraycopy(LNDecrementValue, 0, decrementValue, 0, LNDecrementValue.length);
+                    atLeastOneSourceCell = false;
+                    for (r = -maxDist; r <= maxDist; r++) {
+                        for (c = -maxDist; c <= maxDist; c++) {
+                            zn = output.getValue(row + r, col + c);
+                            j = c + maxDist;
+                            k = r + maxDist;
+                            if ((zn + LNDecrementValue[k][j]) < z && zn != noData) {
+                                cost[k][j] = 0;
+                                accumulatedcost[k][j] = 0;
+                                atLeastOneSourceCell = true;
+                            } else if ((zn + LNDecrementValue[k][j]) >= z) {
+                                cost1 = (zn - z) + LNDecrementValue[k][j];
+                                if (cost1 <= maxCost) {
+                                    cost[k][j] = cost1;
+                                } else {
+                                    cost[k][j] = largeVal; // this effectively makes
+                                    // any cell with a cost that is greater than the
+                                    // user-specified maxCost a barrier.
+                                }
+                                accumulatedcost[k][j] = largeVal;
+                            } else { // noData cell
+                                cost[k][j] = noData;
+                                accumulatedcost[k][j] = noData;
                             }
+                            backLink[k][j] = (int) noData;
+                        }
+                    }
 
-                            atLeastOneSourceCell = false;
-                            for (r = -maxDist; r <= maxDist; r++) {
-                                for (c = -maxDist; c <= maxDist; c++) {
-                                    zn = output.getValue(row + r, col + c);
-                                    j = c + maxDist;
-                                    k = r + maxDist;
-                                    if ((zn + decrementValue[k][j]) < z && zn != noData) {
-                                        sourceCells[k][j] = 1;
-                                        cost[k][j] = 0;
-                                        accumulatedcost[k][j] = 0;
-                                        atLeastOneSourceCell = true;
-                                    } else if ((zn + decrementValue[k][j]) >= z) {
-                                        sourceCells[k][j] = 0;
-                                        cost[k][j] = (zn - z) + decrementValue[k][j];
-                                        accumulatedcost[k][j] = largeVal;
-                                    } else { // noData cell
-                                        sourceCells[k][j] = noData;
-                                        cost[k][j] = noData;
-                                        accumulatedcost[k][j] = noData;
+                    cost[maxDist][maxDist] = 0;
+                    accumulatedcost[maxDist][maxDist] = largeVal;
+
+                    // is there at least one source cell?
+                    if (atLeastOneSourceCell) {
+
+                        PriorityQueue<CostDistCell> activeCellList =
+                                new PriorityQueue<CostDistCell>(maxDist * 4);
+
+                        // find all the cells that neighbour the target
+                        // cells and add them to the activeCellList
+                        for (r = 0; r < subgridSize; r++) {
+                            for (c = 0; c < subgridSize; c++) {
+                                if (accumulatedcost[r][c] == largeVal) {
+                                    cost1 = cost[r][c];
+                                    for (a = 0; a < 8; a++) {
+                                        cn = c + dX[a];
+                                        rn = r + dY[a];
+                                        if (cn >= 0 && cn < subgridSize && rn >= 0 && rn < subgridSize) {
+                                            if (accumulatedcost[rn][cn] == 0) {
+                                                cost2 = cost[rn][cn];
+                                                newcostVal = (cost1 + cost2) / 2 * dist[a];
+                                                activeCellList.add(new CostDistCell(r, c, newcostVal, a));
+                                            }
+                                        }
                                     }
-                                    backLink[k][j] = (int) noData;
                                 }
                             }
+                        }
+                        if (activeCellList.size() > 0) {
+                            do {
+                                // get the current active cell with the lowest 
+                                // accumulated cost value
+                                CostDistCell cdCell = activeCellList.poll();
+                                if (cdCell != null) {
+                                    r = cdCell.row;
+                                    c = cdCell.col;
+                                    costAccumVal = cdCell.aCost;
+                                    if (accumulatedcost[r][c] > costAccumVal) {
+                                        accumulatedcost[r][c] = costAccumVal;
+                                        backLink[r][c] = cdCell.backLink;
+                                        cost1 = cost[r][c];
+                                        // now look at each of the neighbouring cells
+                                        for (a = 0; a < 8; a++) {
+                                            cn = c + dX[a];
+                                            rn = r + dY[a];
+                                            if (cn >= 0 && cn < subgridSize && rn >= 0 && rn < subgridSize) {
+                                                cost2 = cost[rn][cn];
+                                                newcostVal = costAccumVal + (cost1 + cost2) / 2 * dist[a];
+                                                if (newcostVal < accumulatedcost[rn][cn]) {
+                                                    activeCellList.add(new CostDistCell(rn, cn,
+                                                            newcostVal, backLinkDir[a]));
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    activeCellList.clear();
+                                }
+                            } while (activeCellList.size() > 0);
 
-                            sourceCells[maxDist][maxDist] = 0;
-                            cost[maxDist][maxDist] = 0;
-                            accumulatedcost[maxDist][maxDist] = Float.MAX_VALUE;
-
-                            // is there at least one source cell?
-
-                            if (atLeastOneSourceCell) {
-                                boolean didSomething;
+                            solutionFound = true;
+                            if (useMaxCost) {
+                                // first see whether or not the least cost path
+                                // involves passing through a cell with a cost
+                                // higher than maxCost.
+                                
+                                c = maxDist;
+                                r = maxDist;
+                                previousZ = z;
+                                b = 0;
+                                flag = true;
                                 do {
-                                    didSomething = false;
-                                    for (r = 0; r < subgridSize; r++) {
-                                        for (c = 0; c < subgridSize; c++) {
-                                            costAccumVal = accumulatedcost[r][c];
-                                            if (costAccumVal < largeVal && costAccumVal != noData) {
-                                                cost1 = cost[r][c];
-                                                for (a = 0; a <= 3; a++) {
-                                                    cn = c + dX[a];
-                                                    rn = r + dY[a];
-                                                    if (cn >= 0 && cn < subgridSize && rn >= 0 && rn < subgridSize) {
-                                                        cost2 = cost[rn][cn];
-                                                        newcostVal = costAccumVal + (cost1 + cost2) / 2 * dist[a];
-                                                        if (newcostVal < accumulatedcost[rn][cn] && cost2 != noData) {
-                                                            accumulatedcost[rn][cn] = newcostVal;
-                                                            backLink[rn][cn] = backLinkDir[a];
-                                                            didSomething = true;
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                    //Find which cell to go to from here
+                                    b = backLink[r][c];
+                                    if (b >= 0) {
+                                        c = c + dX[b];
+                                        r = r + dY[b];
+                                        if (cost[r][c] == largeVal) {
+                                            solutionFound = false;
                                         }
+                                    } else {
+                                        flag = false;
                                     }
-
-                                    didSomething = false;
-                                    for (r = (subgridSize - 1); r >= 0; r--) {
-                                        for (c = (subgridSize - 1); c >= 0; c--) {
-                                            costAccumVal = accumulatedcost[r][c];
-                                            if (costAccumVal < largeVal && costAccumVal != noData) {
-                                                cost1 = cost[r][c];
-                                                for (a = 4; a <= 7; a++) {
-                                                    cn = c + dX[a];
-                                                    rn = r + dY[a];
-                                                    if (cn >= 0 && cn < subgridSize && rn >= 0 && rn < subgridSize) {
-                                                        cost2 = cost[rn][cn];
-                                                        newcostVal = costAccumVal + (cost1 + cost2) / 2 * dist[a];
-                                                        if (newcostVal < accumulatedcost[rn][cn] && cost2 != noData) {
-                                                            accumulatedcost[rn][cn] = newcostVal;
-                                                            backLink[rn][cn] = backLinkDir[a];
-                                                            didSomething = true;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    didSomething = false;
-                                    for (c = (subgridSize - 1); c >= 0; c--) {
-                                        for (r = (subgridSize - 1); r >= 0; r--) {
-                                            costAccumVal = accumulatedcost[r][c];
-                                            if (costAccumVal < largeVal && costAccumVal != noData) {
-                                                cost1 = cost[r][c];
-                                                for (a = 3; a <= 6; a++) {
-                                                    cn = c + dX[a];
-                                                    rn = r + dY[a];
-                                                    if (cn >= 0 && cn < subgridSize && rn >= 0 && rn < subgridSize) {
-                                                        cost2 = cost[rn][cn];
-                                                        newcostVal = costAccumVal + (cost1 + cost2) / 2 * dist[a];
-                                                        if (newcostVal < accumulatedcost[rn][cn] && cost2 != noData) {
-                                                            accumulatedcost[rn][cn] = newcostVal;
-                                                            backLink[rn][cn] = backLinkDir[a];
-                                                            didSomething = true;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    didSomething = false;
-                                    for (r = (subgridSize - 1); r >= 0; r--) {
-                                        for (c = 0; c < subgridSize; c++) {
-                                            costAccumVal = accumulatedcost[r][c];
-                                            if (costAccumVal < largeVal && costAccumVal != noData) {
-                                                cost1 = cost[r][c];
-                                                for (a = 1; a <= 4; a++) {
-                                                    cn = c + dX[a];
-                                                    rn = r + dY[a];
-                                                    if (cn >= 0 && cn < subgridSize && rn >= 0 && rn < subgridSize) {
-                                                        cost2 = cost[rn][cn];
-                                                        newcostVal = costAccumVal + (cost1 + cost2) / 2 * dist[a];
-                                                        if (newcostVal < accumulatedcost[rn][cn] && cost2 != noData) {
-                                                            accumulatedcost[rn][cn] = newcostVal;
-                                                            backLink[rn][cn] = backLinkDir[a];
-                                                            didSomething = true;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    didSomething = false;
-                                    for (c = (subgridSize - 1); c >= 0; c--) {
-                                        for (r = 0; r < subgridSize; r++) {
-                                            costAccumVal = accumulatedcost[r][c];
-                                            if (costAccumVal < largeVal && costAccumVal != noData) {
-                                                cost1 = cost[r][c];
-                                                for (a = 2; a <= 5; a++) {
-                                                    cn = c + dX[a];
-                                                    rn = r + dY[a];
-                                                    if (cn >= 0 && cn < subgridSize && rn >= 0 && rn < subgridSize) {
-                                                        cost2 = cost[rn][cn];
-                                                        newcostVal = costAccumVal + (cost1 + cost2) / 2 * dist[a];
-                                                        if (newcostVal < accumulatedcost[rn][cn] && cost2 != noData) {
-                                                            accumulatedcost[rn][cn] = newcostVal;
-                                                            backLink[rn][cn] = backLinkDir[a];
-                                                            didSomething = true;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                } while (didSomething);
-
+                                } while (flag);
+                            }
+                            
+                            if (solutionFound) {
                                 c = maxDist;
                                 r = maxDist;
                                 previousZ = z;
@@ -571,36 +502,48 @@ public class BreachDepressions implements WhiteboxPlugin {
                                         flag = false;
                                     }
                                 } while (flag);
-                                numLarge++;
-                                foundSolution = true;
                             } else {
-                                if (maxDist == largeNeighbourhoodmaxDist) {
-                                    numUnsolvedCells++;
-                                    foundSolution = true; //not really but we need this to get out of the do loop.
-                                }
+                                // this can only happen if a maxCost has been specified
+                                // and the only viable target cell in the local 
+                                // neighbourhood can only be reached by passing through
+                                // one or more cells with a cost that is greater than
+                                // maxCost.
+                                numUnsolvedCells++;
                             }
-
-                            if (foundSolution == false && maxDist == smallNeighbourhoodmaxDist) {
-                                maxDist = largeNeighbourhoodmaxDist;
-                                subgridSize = largeNeighbourhoodsubgridSize;
-                            }
-                        } while (foundSolution == false);
+                        } else { // active cell list is empty. I think this occurs
+                            // when there are rounding errors and the only lower cell
+                            // is the centre cell itself. It is an unusal occurrance.
+                            numUnsolvedCells++;
+                        }
+                    } else {
+                        // There are no lower cells, therefore no target can be found.
+                        numUnsolvedCells++;
                     }
+
                 }
                 if (cancelOp) {
                     cancelOperation();
                     return;
                 }
 
-                solvedCells++;
-                if (solvedCells % oneHundredthOfNumNoFlowCells == 0) {
-                    progress = (int) ((solvedCells * 100.0) / numNoFlowCells);
-                    updateProgress("Loop 2 of 2:", progress);
+                visitedCells++;
+                n++;
+                if (n == oneHundredthOfNumNoFlowCells || (visitedCells % 500 == 0)) {
+                    if (n == oneHundredthOfNumNoFlowCells) { 
+                        n = 0; 
+                        progress++;
+                    }
+                    
+                    
+                    // estimate how much time is remaining
+                    long secPassed = (System.currentTimeMillis() - startTimeLoop2) / 1000;
+                    long secRemaining = (long)(secPassed * ((double)numNoFlowCells / visitedCells) - secPassed);
+                    String timeRemaining = String.format("%02d:%02d:%02d:%02d", secRemaining / 86400, (secRemaining % 86400) / 3600, (secRemaining % 3600) / 60, (secRemaining % 60));
+                    updateProgress("Solved " + df.format((visitedCells - numUnsolvedCells)) + " pits (Est. time remaining " + timeRemaining + "):", progress);
 
                 }
 
-            } while (solvedCells < numNoFlowCells);
-
+            } while (visitedCells < numNoFlowCells);
 
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
@@ -608,12 +551,26 @@ public class BreachDepressions implements WhiteboxPlugin {
 
             output.close();
 
+            Long endTime = System.currentTimeMillis();
+            
             // returning a header file string displays the image.
             returnData(outputHeader);
 
+            
+            
             String results = "Depression Breaching Results:\n";
-            results += "Solved Depression Cells:\t" + String.valueOf(solvedCells - numUnsolvedCells);
-            results += "\nUnsolved Depression Cells:\t" + numUnsolvedCells;
+            results += "Input DEM:\t" + shortName + "\n";
+            results += "Output DEM:\t" + output.getShortHeaderFile() + "\n";
+            results += "Solved Pit Cells:\t" + df.format(visitedCells - numUnsolvedCells);
+            results += "\nUnsolved Pit Cells:\t" + df.format(numUnsolvedCells);
+            results += "\nMax distance:\t" + neighbourhoodMaxDist;
+            if (useMaxCost) {
+                results += "\nMax Elev. Decrement:\t" + maxCost;
+            }
+            // format the duration
+            long sec = (endTime - startTime) / 1000;
+            String duration = String.format("%02d:%02d:%02d:%02d", sec / 86400, (sec % 86400) / 3600, (sec % 3600) / 60, (sec % 60));
+            results += "\nDuration:\t" + duration;
             returnData(results);
         } catch (Exception e) {
             showFeedback(e.getMessage());
@@ -664,16 +621,60 @@ public class BreachDepressions implements WhiteboxPlugin {
             return EQUAL;
         }
     }
-//    
+
+    class CostDistCell implements Comparable<CostDistCell> {
+
+        public int row;
+        public int col;
+        public double aCost;
+        public int backLink;
+
+        public CostDistCell(int row, int col, double aCost, int backLink) {
+            this.row = row;
+            this.col = col;
+            this.aCost = aCost;
+            this.backLink = backLink;
+        }
+
+        @Override
+        public int compareTo(CostDistCell cell) {
+            final int BEFORE = -1;
+            final int EQUAL = 0;
+            final int AFTER = 1;
+
+            if (cell != null) {
+
+                if (this.aCost < cell.aCost) {
+                    return BEFORE;
+                } else if (this.aCost > cell.aCost) {
+                    return AFTER;
+                }
+
+                if (this.row < cell.row) {
+                    return BEFORE;
+                } else if (this.row > cell.row) {
+                    return AFTER;
+                }
+
+                if (this.col < cell.col) {
+                    return BEFORE;
+                } else if (this.col > cell.col) {
+                    return AFTER;
+                }
+
+                return EQUAL;
+            } else {
+                return BEFORE;
+            }
+        }
+    }
 //    // this is only used for debugging the tool
 //    public static void main(String[] args) {
 //        BreachDepressions bd = new BreachDepressions();
-//        args = new String[5];
-//        //args[0] = "/Users/johnlindsay/Documents/agricultural site no OTOs.dep";
-//        //args[1] = "/Users/johnlindsay/Documents/agricultural site no OTOs breached.dep";
-//        args[0] = "/Users/johnlindsay/Documents/DEM.dep";
-//        args[1] = "/Users/johnlindsay/Documents/DEM breached.dep";
-//        args[2] = "80";
+//        args = new String[3];
+//        args[0] = "/Users/johnlindsay/Documents/Research/Active papers/Road Breaching/Data/RondeauLasfilesCompleteIndex/Classified/tmp2.dep";
+//        args[1] = "/Users/johnlindsay/Documents/Research/Active papers/Road Breaching/Data/RondeauLasfilesCompleteIndex/Classified/tmp3.dep";
+//        args[2] = "60";
 //        
 //        bd.setArgs(args);
 //        bd.run();

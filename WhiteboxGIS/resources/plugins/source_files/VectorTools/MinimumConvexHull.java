@@ -356,26 +356,26 @@ public class MinimumConvexHull implements WhiteboxPlugin {
                     int[] parts = new int[chPoly.getNumInteriorRing() + 1];
 
                     Coordinate[] buffCoords = chPoly.getExteriorRing().getCoordinates();
-                    if (Topology.isClockwisePolygon(coords)) {
-                        for (i = coords.length - 1; i >= 0; i--) {
-                            pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
+                    if (!Topology.isClockwisePolygon(buffCoords)) {
+                        for (i = buffCoords.length - 1; i >= 0; i--) {
+                            pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
                         }
                     } else {
-                        for (i = 0; i < coords.length; i++) {
-                            pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
+                        for (i = 0; i < buffCoords.length; i++) {
+                            pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
                         }
                     }
 
                     for (int b = 0; b < chPoly.getNumInteriorRing(); b++) {
                         parts[b + 1] = pnts.size();
                         buffCoords = chPoly.getInteriorRingN(b).getCoordinates();
-                        if (Topology.isClockwisePolygon(coords)) {
-                            for (i = coords.length - 1; i >= 0; i--) {
-                                pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
+                        if (Topology.isClockwisePolygon(buffCoords)) {
+                            for (i = buffCoords.length - 1; i >= 0; i--) {
+                                pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
                             }
                         } else {
-                            for (i = 0; i < coords.length; i++) {
-                                pnts.add(new ShapefilePoint(coords[i].x, coords[i].y));
+                            for (i = 0; i < buffCoords.length; i++) {
+                                pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
                             }
                         }
                     }
