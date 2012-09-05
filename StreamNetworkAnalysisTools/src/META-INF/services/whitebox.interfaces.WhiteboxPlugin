@@ -1,4 +1,7 @@
 plugins.ExtractStreams
+plugins.ExtractValleysJohnstonAndRosenfeld
+plugins.ExtractValleysLowerQuartile
+plugins.ExtractValleysPeuckerAndDouglas
 plugins.FindMainStem
 plugins.RasterStreamsToVector
 plugins.RemoveShortStreams
