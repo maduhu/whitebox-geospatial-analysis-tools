@@ -91,7 +91,6 @@ public class FileUtilities {
         return new String(buffer);
     }
     
-    
     public static void fillFileWithString(String fileName, String str) throws java.io.IOException {
         File file = new File(fileName);
         FileWriter fw = null;
@@ -112,7 +111,6 @@ public class FileUtilities {
 
         }
     }
-    
     
     public static String removeFileExtension(String s) {
 
@@ -136,7 +134,6 @@ public class FileUtilities {
         return filename.substring(0, extensionIndex);
     }
     
-    
     public static String getFileExtension(String s) {
 
         String separator = System.getProperty("file.separator");
@@ -158,4 +155,9 @@ public class FileUtilities {
 
         return filename.substring(extensionIndex + 1);
     }
+    
+    public static boolean fileExists(String fileName) {
+        return (new File(fileName)).exists();
+    }
+    
 }

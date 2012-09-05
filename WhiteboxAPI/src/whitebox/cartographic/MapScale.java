@@ -1,18 +1,34 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package whitebox.cartographic;
 
 import java.awt.Color;
 import java.text.DecimalFormat;
+import whitebox.interfaces.CartographicElement;
+
 /**
  *
  * @author johnlindsay
  */
-public class MapScale {
+public class MapScale implements CartographicElement, Comparable<CartographicElement> {
     double pointsPerMetre = java.awt.Toolkit.getDefaultToolkit().getScreenResolution() * 39.3701; 
     boolean visible = false;
+    boolean selected = false;
+    int number = -1;
     boolean showRepresentativeFraction = false;
     boolean borderVisible = false;
     boolean backgroundVisible = false;
@@ -26,6 +42,7 @@ public class MapScale {
     String units = "kilometres";
     double conversionToMetres = 1000;
     Color backColour = Color.WHITE;
+    Color borderColour = Color.BLACK;
     Color outlineColour = Color.BLACK;
     Color legendColour = Color.BLACK;
     double scale = 0;
@@ -33,6 +50,7 @@ public class MapScale {
     String representativeFraction;
     String lowerLabel = "0";
     String upperLabel = "5";
+    String name = "map scale";
 
     public boolean isRepresentativeFractionVisible() {
         return showRepresentativeFraction;
@@ -86,10 +104,12 @@ public class MapScale {
         this.upperLeftY = upperLeftY;
     }
 
+    @Override
     public boolean isVisible() {
         return visible;
     }
 
+    @Override
     public void setVisible(boolean visible) {
         this.visible = visible;
         upperLeftX = -99;
@@ -136,12 +156,12 @@ public class MapScale {
         this.backColour = backColour;
     }
 
-    public Color getOutlineColour() {
-        return outlineColour;
+    public Color getBorderColour() {
+        return borderColour;
     }
 
-    public void setOutlineColour(Color outlineColour) {
-        this.outlineColour = outlineColour;
+    public void setBorderColour(Color outlineColour) {
+        this.borderColour = outlineColour;
     }
 
     public Color getLegendColour() {
@@ -251,4 +271,57 @@ public class MapScale {
         this.backgroundVisible = backgroundVisible;
     }
     
+    @Override
+    public boolean isSelected() {
+        return selected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public Color getOutlineColour() {
+        return outlineColour;
+    }
+
+    public void setOutlineColour(Color outlineColour) {
+        this.outlineColour = outlineColour;
+    }
+
+    @Override
+    public int getElementNumber() {
+        return number;
+    }
+
+    @Override
+    public void setElementNumber(int number) {
+        this.number = number;
+    }
+    
+    @Override
+    public String getName() {
+        return name;
+    }
+    
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    @Override
+    public int compareTo(CartographicElement other) {
+        final int BEFORE = 1;
+        final int EQUAL = 0;
+        final int AFTER = -1;
+        
+        // compare them based on their element (overlay) numbers
+        if (this.number < other.getElementNumber()) {
+            return BEFORE;
+        } else if (this.number > other.getElementNumber()) {
+            return AFTER;
+        }
+
+        return EQUAL;
+    }
 }

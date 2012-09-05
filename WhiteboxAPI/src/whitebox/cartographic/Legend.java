@@ -24,12 +24,11 @@ import whitebox.interfaces.CartographicElement;
  *
  * @author johnlindsay
  */
-public class MapTitle implements CartographicElement, Comparable<CartographicElement> {
+public class Legend implements CartographicElement, Comparable<CartographicElement> {
     boolean visible = false;
     boolean selected = false;
-    String name = "map title";
     int number = -1;
-    String label = "";
+    String label = "Legend";
     boolean borderVisible = false;
     boolean backgroundVisible = false;
     int upperLeftX = -9999;
@@ -43,13 +42,10 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     Font labelFont;
     Font[] availableFonts;
     int fontHeight = 0;
+    String name = "legend";
 
-    public MapTitle(String label, String name) {
-        this.label = label;
-        //GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        //Font[] availableFonts = e.getAllFonts();
-        labelFont = new Font("SanSerif", Font.BOLD, 20);
-        this.name = name;
+    public Legend() {
+        labelFont = new Font("SanSerif", Font.PLAIN, 12);
     }
     
     public Color getBackColour() {

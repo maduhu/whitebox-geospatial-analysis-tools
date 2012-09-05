@@ -1,6 +1,18 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package whitebox.cartographic;
 
@@ -9,13 +21,17 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 import whitebox.cartographic.NorthArrowMarkers.MarkerStyle;
+import whitebox.interfaces.CartographicElement;
 
 /**
  *
  * @author johnlindsay
  */
-public class NorthArrow {
+public class NorthArrow implements CartographicElement, Comparable<CartographicElement> {
     boolean visible = false;
+    boolean selected = false;
+    String name = "north arrow";
+    int number = -1;
     int x = -1;
     int y = -1;
     int markerSize = 40;
@@ -27,10 +43,12 @@ public class NorthArrow {
     Color outlineColour = Color.BLACK;
     MarkerStyle markerStyle = MarkerStyle.STANDARD;
             
+    @Override
     public boolean isVisible() {
         return visible;
     }
 
+    @Override
     public void setVisible(boolean visible) {
         this.visible = visible;
         x = -1;
@@ -182,5 +200,51 @@ public class NorthArrow {
     ArrayList<Integer> markerDrawingInstructions = new ArrayList<Integer>();
     public ArrayList<Integer> getMarkerDrawingInstructions() {
         return markerDrawingInstructions;
+    }
+
+    @Override
+    public boolean isSelected() {
+        return selected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    @Override
+    public int getElementNumber() {
+        return number;
+    }
+
+    @Override
+    public void setElementNumber(int number) {
+        this.number = number;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    @Override
+    public int compareTo(CartographicElement other) {
+        final int BEFORE = 1;
+        final int EQUAL = 0;
+        final int AFTER = -1;
+        
+        // compare them based on their element (overlay) numbers
+        if (this.number < other.getElementNumber()) {
+            return BEFORE;
+        } else if (this.number > other.getElementNumber()) {
+            return AFTER;
+        }
+
+        return EQUAL;
     }
 }
