@@ -30,7 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import javax.imageio.ImageIO;
-import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
@@ -168,16 +169,22 @@ public class ImportImage implements WhiteboxPlugin {
 
         String inputFilesString = null;
         String fileName = null;
-        String idrisiDataFile = null;
+        String inputDataFile = null;
         String whiteboxHeaderFile = null;
         String whiteboxDataFile = null;
         WhiteboxRaster output = null;
         int i = 0;
+        int row, col, rows, cols;
         String[] imageFiles;
         int numImages = 0;
         double noData = -32768;
         InputStream inStream = null;
         OutputStream outStream = null;
+        
+        String str1 = null;
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        PrintWriter out = null;
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -203,30 +210,62 @@ public class ImportImage implements WhiteboxPlugin {
                 fileName = imageFiles[i];
                 // check to see if the file exists.
                 if (!((new File(fileName)).exists())) {
-                    showFeedback("IDRISI raster file does not exist.");
+                    showFeedback("Image file does not exist.");
                     break;
                 }
                 
-                //whiteboxHeaderFile = fileName.replace(".rdc", ".dep");
-                //whiteboxDataFile = idrisiHeaderFile.replace(".rdc", ".tas");
-//
-//                // see if they exist, and if so, delete them.
-//                (new File(whiteboxHeaderFile)).delete();
-//                (new File(whiteboxDataFile)).delete();
-//
-//                boolean success = createHeaderFile(idrisiHeaderFile, whiteboxHeaderFile);
-//                if (!success) {
-//                    showFeedback("IDRISI header file was not read properly. "
-//                            + "Tool failed to import");
-//                    return;
-//                }
-//                
-                Image image = ImageIO.read(new File(fileName));
+                BufferedImage image = ImageIO.read(new File(fileName));
                 
+                rows = image.getHeight();
+                cols = image.getWidth();
+                //ColorModel cm = image.getColorModel();
+                if (image.getColorModel().getPixelSize() == 24) {
+                    System.out.println(image.getColorModel().getPixelSize());
+                }
                 
+                int k = image.getRGB(45, 100);
+                int r = (int)k & 0xFF;
+                int g = ((int)k >> 8) & 0xFF;
+                int b = ((int)k >> 16) & 0xFF;
+                
+                int dot = imageFiles[i].lastIndexOf(".");
+                String imageExtension = imageFiles[i].substring(dot + 1); // either .tif or .tiff
+                whiteboxHeaderFile = imageFiles[i].replace(imageExtension, "dep");
+                whiteboxDataFile = imageFiles[i].replace(imageExtension, "tas");
+                
+                char[] extChars = imageExtension.toCharArray();
+                boolean worldFileFound = false;
+                
+                String wfExtension = extChars[0] + extChars[2] + "w";
+                String worldFile = imageFiles[i].replace(imageExtension, wfExtension);
+                if ((new File(worldFile)).exists()) {
+                    worldFileFound = true;
+                } else {
+                    wfExtension = imageExtension + "w";
+                    worldFile = imageFiles[i].replace(imageExtension, wfExtension);
+                    if ((new File(worldFile)).exists()) {
+                        worldFileFound = true;
+                    } else {
+                        wfExtension = ".wld";
+                        wfExtension = imageExtension + "w";
+                        worldFile = imageFiles[i].replace(imageExtension, wfExtension);
+                        if ((new File(worldFile)).exists()) {
+                            worldFileFound = true;
+                        }
+                    }
+                }
+
+                // see if they exist, and if so, delete them.
+                (new File(whiteboxHeaderFile)).delete();
+                (new File(whiteboxDataFile)).delete();
+
+                // create the whitebox header file.
+                fw = new FileWriter(whiteboxHeaderFile, false);
+                bw = new BufferedWriter(fw);
+                out = new PrintWriter(bw, true);
                 
                 // copy the data file.
-                File fromfile = new File(idrisiDataFile);
+                File fromfile = new File(inputDataFile);
                 File tofile = new File(whiteboxDataFile);
                 inStream = new FileInputStream(fromfile);
                 outStream = new FileOutputStream(tofile);
@@ -410,5 +449,17 @@ public class ImportImage implements WhiteboxPlugin {
 
         }
 
+    }
+    
+    // This method is only used during testing.
+    public static void main(String[] args) {
+        args = new String[2];
+        args[0] = "/Users/johnlindsay/Documents/Teaching/GEOG2420/Fall 2011/Labs/Lab2/A19411_15.JPG"
+                + ";/Users/johnlindsay/Documents/Teaching/GEOG2420/Fall 2011/Labs/Lab2/A19411_16.JPG";
+        args[1] = "//Users/johnlindsay/Documents/Teaching/GEOG2420/Fall 2011/Labs/Lab2/tmp1.JPG";
+        
+        ImportImage ii = new ImportImage();
+        ii.setArgs(args);
+        ii.run();
     }
 }
