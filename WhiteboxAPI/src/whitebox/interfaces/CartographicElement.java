@@ -39,4 +39,27 @@ public interface CartographicElement extends Comparable<CartographicElement> {
     
     @Override
     public int compareTo(CartographicElement other);
+    
+    public int getUpperLeftX();
+    
+    public int getUpperLeftY();
+    
+    public void setUpperLeftX(int x);
+    
+    public void setUpperLeftY(int y);
+    
+    public int getLowerRightX();
+    
+    public int getLowerRightY();
+    
+    public void resize(int x, int y, int resizeMode);
+    
+    public void setSelectedOffsetX(int x);
+    
+    public void setSelectedOffsetY(int y);
+    
+    public int getSelectedOffsetX();
+    
+    public int getSelectedOffsetY();
+    
 }

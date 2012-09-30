@@ -18,6 +18,9 @@ package whitebox.cartographic;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import whitebox.interfaces.CartographicElement;
 
 /**
@@ -25,31 +28,58 @@ import whitebox.interfaces.CartographicElement;
  * @author johnlindsay
  */
 public class MapTitle implements CartographicElement, Comparable<CartographicElement> {
-    boolean visible = false;
+    boolean visible = true;
     boolean selected = false;
-    String name = "map title";
+    String name = "MapTitle";
     int number = -1;
     String label = "";
     boolean borderVisible = false;
     boolean backgroundVisible = false;
-    int upperLeftX = -9999;
-    int upperLeftY = -9999;
+    int upperLeftX = -32768;
+    int upperLeftY = -32768;
     int height = -1; // in points
     int width = -1; // in points
     int margin = 5;
     Color backColour = Color.WHITE;
     Color borderColour = Color.BLACK;
     Color fontColour = Color.BLACK;
-    Font labelFont;
+    Font labelFont = new Font("SanSerif", Font.BOLD, 20);
     Font[] availableFonts;
     int fontHeight = 0;
+    int maxFontSize = 300;
+    float lineWidth = 0.75f;
+    private int selectedOffsetX;
+    private int selectedOffsetY;
 
+    public MapTitle(String name) {
+        this.name = name;
+        measureFontSizes();
+    }
+    
     public MapTitle(String label, String name) {
         this.label = label;
         //GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
         //Font[] availableFonts = e.getAllFonts();
-        labelFont = new Font("SanSerif", Font.BOLD, 20);
         this.name = name;
+        measureFontSizes();
+    }
+    
+    int[] fontHeights = new int[300];
+    int[] fontWidths = new int[300];
+    private void measureFontSizes() {
+        fontHeights = new int[maxFontSize];
+        fontWidths = new int[maxFontSize];
+        BufferedImage bi = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE);
+        Graphics g = bi.getGraphics();
+        int style = labelFont.getStyle();
+        for (int i = 1; i < fontHeights.length; i++) {
+            Font font = new Font(labelFont.getName(), style, i);
+            FontMetrics metrics = g.getFontMetrics(font);
+            fontWidths[i] = metrics.stringWidth(label);
+            fontHeights[i] = metrics.getHeight();
+        }
+        g.dispose();
+        bi = null;
     }
     
     public Color getBackColour() {
@@ -92,6 +122,7 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
         this.labelFont = labelFont;
         width = -1;
         height = -1;
+        measureFontSizes();
     }
     
     public int getHeight() {
@@ -120,32 +151,54 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
         this.borderColour = outlineColour;
     }
 
+    @Override
     public int getUpperLeftX() {
         return upperLeftX;
     }
 
+    @Override
     public void setUpperLeftX(int upperLeftX) {
-        if (upperLeftX >= 0) {
-            this.upperLeftX = upperLeftX;
-        }
+        this.upperLeftX = upperLeftX;
     }
 
+    @Override
     public int getUpperLeftY() {
         return upperLeftY;
     }
 
+    @Override
     public void setUpperLeftY(int upperLeftY) {
-        if (upperLeftY >= 0) {
-            this.upperLeftY = upperLeftY;
-        }
+        this.upperLeftY = upperLeftY;
     }
     
+    @Override
     public int getLowerRightX() {
         return upperLeftX + width;
     }
 
+    @Override
     public int getLowerRightY() {
         return upperLeftY + height;
+    }
+    
+    @Override
+    public int getSelectedOffsetX() {
+        return selectedOffsetX;
+    }
+
+    @Override
+    public void setSelectedOffsetX(int selectedOffsetX) {
+        this.selectedOffsetX = selectedOffsetX;
+    }
+
+    @Override
+    public int getSelectedOffsetY() {
+        return selectedOffsetY;
+    }
+
+    @Override
+    public void setSelectedOffsetY(int selectedOffsetY) {
+        this.selectedOffsetY = selectedOffsetY;
     }
     
     @Override
@@ -178,6 +231,7 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
         this.label = label;
         width = -1;
         height = -1;
+        measureFontSizes();
     }
 
     public int getFontHeight() {
@@ -213,12 +267,29 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     public void setName(String name) {
         this.name = name;
     }
+
+    public int getMaxFontSize() {
+        return maxFontSize;
+    }
+
+    public void setMaxFontSize(int maxFontSize) {
+        this.maxFontSize = maxFontSize;
+    }
+
+    public float getLineWidth() {
+        return lineWidth;
+    }
+
+    public void setLineWidth(float lineWidth) {
+        this.lineWidth = lineWidth;
+    }
+    
     
     @Override
     public int compareTo(CartographicElement other) {
-        final int BEFORE = 1;
+        final int BEFORE = -1;
         final int EQUAL = 0;
-        final int AFTER = -1;
+        final int AFTER = 1;
         
         // compare them based on their element (overlay) numbers
         if (this.number < other.getElementNumber()) {
@@ -228,5 +299,138 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
         }
 
         return EQUAL;
+    }
+
+    @Override
+    public void resize(int x, int y, int resizeMode) {
+        int minSize = fontHeights[1];
+        int deltaX;
+        int deltaY;
+        int actualFontHeight = height - 2 * margin;
+        int actualFontWidth = width - 2 * margin;
+        int minDiff = Integer.MAX_VALUE;
+        int whichSize = - 1;
+        int j;
+        switch (resizeMode) {
+            case 0: // off the north edge
+                deltaY = y - upperLeftY;
+                actualFontHeight -= deltaY;
+                if (actualFontHeight < minSize) { 
+                    actualFontHeight = minSize;
+                } 
+                for (int i = 1; i < maxFontSize; i++) {
+                    j = (fontHeights[i] - actualFontHeight) * (fontHeights[i] - actualFontHeight);
+                    if (j < minDiff) {
+                        minDiff = j;
+                        whichSize = i;
+                    }
+                }
+                this.setLabelFont(new Font(labelFont.getFamily(), labelFont.getStyle(), whichSize));
+                upperLeftY += deltaY;
+                break;
+            case 1: // off the south edge
+                deltaY = y - (upperLeftY + height);
+                actualFontHeight += deltaY;
+                if (actualFontHeight < minSize) { 
+                    actualFontHeight = minSize;
+                } 
+                for (int i = 1; i < maxFontSize; i++) {
+                    j = (fontHeights[i] - actualFontHeight) * (fontHeights[i] - actualFontHeight);
+                    if (j < minDiff) {
+                        minDiff = j;
+                        whichSize = i;
+                    }
+                }
+                this.setLabelFont(new Font(labelFont.getFamily(), labelFont.getStyle(), whichSize));
+                break;
+            case 2: // off the east edge
+                deltaX = x - (upperLeftX + width);
+                actualFontWidth += deltaX;
+                for (int i = 1; i < maxFontSize; i++) {
+                    j = (fontWidths[i] - actualFontWidth) * (fontWidths[i] - actualFontWidth);
+                    if (j < minDiff) {
+                        minDiff = j;
+                        whichSize = i;
+                    }
+                }
+                this.setLabelFont(new Font(labelFont.getFamily(), labelFont.getStyle(), whichSize));
+                break;
+            case 3: // off the west edge
+                deltaX = x - upperLeftX;
+                actualFontWidth -= deltaX;
+                for (int i = 1; i < maxFontSize; i++) {
+                    j = (fontWidths[i] - actualFontWidth) * (fontWidths[i] - actualFontWidth);
+                    if (j < minDiff) {
+                        minDiff = j;
+                        whichSize = i;
+                    }
+                }
+                this.setLabelFont(new Font(labelFont.getFamily(), labelFont.getStyle(), whichSize));
+                upperLeftX += deltaX;
+                break;
+            case 4: // off the northeast edge
+                deltaY = y - upperLeftY;
+                actualFontHeight -= deltaY;
+                if (actualFontHeight < minSize) { 
+                    actualFontHeight = minSize;
+                } 
+                for (int i = 1; i < maxFontSize; i++) {
+                    j = (fontHeights[i] - actualFontHeight) * (fontHeights[i] - actualFontHeight);
+                    if (j < minDiff) {
+                        minDiff = j;
+                        whichSize = i;
+                    }
+                }
+                this.setLabelFont(new Font(labelFont.getFamily(), labelFont.getStyle(), whichSize));
+                upperLeftY += deltaY;
+                break;
+            case 5: // off the northwest edge
+                deltaY = y - upperLeftY;
+                actualFontHeight -= deltaY;
+                if (actualFontHeight < minSize) { 
+                    actualFontHeight = minSize;
+                } 
+                for (int i = 1; i < maxFontSize; i++) {
+                    j = (fontHeights[i] - actualFontHeight) * (fontHeights[i] - actualFontHeight);
+                    if (j < minDiff) {
+                        minDiff = j;
+                        whichSize = i;
+                    }
+                }
+                this.setLabelFont(new Font(labelFont.getFamily(), labelFont.getStyle(), whichSize));
+                upperLeftY += deltaY;
+                break;
+            case 6: // off the southeast edge
+                deltaY = y - (upperLeftY + height);
+                actualFontHeight += deltaY;
+                if (actualFontHeight < minSize) { 
+                    actualFontHeight = minSize;
+                } 
+                for (int i = 1; i < maxFontSize; i++) {
+                    j = (fontHeights[i] - actualFontHeight) * (fontHeights[i] - actualFontHeight);
+                    if (j < minDiff) {
+                        minDiff = j;
+                        whichSize = i;
+                    }
+                }
+                this.setLabelFont(new Font(labelFont.getFamily(), labelFont.getStyle(), whichSize));
+                break;
+            case 7: // off the southwest edge
+                deltaY = y - (upperLeftY + height);
+                actualFontHeight += deltaY;
+                if (actualFontHeight < minSize) { 
+                    actualFontHeight = minSize;
+                } 
+                for (int i = 1; i < maxFontSize; i++) {
+                    j = (fontHeights[i] - actualFontHeight) * (fontHeights[i] - actualFontHeight);
+                    if (j < minDiff) {
+                        minDiff = j;
+                        whichSize = i;
+                    }
+                }
+                this.setLabelFont(new Font(labelFont.getFamily(), labelFont.getStyle(), whichSize));
+                break;
+                
+        }
     }
 }

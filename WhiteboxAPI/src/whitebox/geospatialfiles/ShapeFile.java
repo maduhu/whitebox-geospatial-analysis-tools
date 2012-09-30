@@ -883,13 +883,59 @@ public class ShapeFile {
      */
     public ArrayList<ShapeFileRecord> getRecordsInBoundingBox(BoundingBox box, double minSize) {
         ArrayList<ShapeFileRecord> recs = new ArrayList<ShapeFileRecord>();
-        for (ShapeFileRecord sfr : records) {
-            if (sfr.getGeometry().isMappable(box, minSize)) {
+        // first see if the bounding box for the entire shapefile fits within box
+        BoundingBox myBox = new BoundingBox(xMin, yMin, xMax, yMax);
+        if (box.contains(myBox)) {
+            // just return all of the records
+            for (ShapeFileRecord sfr : records) {
                 recs.add(sfr);
             }
+            return recs;
         }
-        
-        return recs; //(ShapeFileRecord[]) recs.toArray(new ShapeFileRecord[recs.size()]);
+        if (myBox.overlaps(box)) {
+            for (ShapeFileRecord sfr : records) {
+                Geometry sfrGeom = sfr.getGeometry();
+                if (sfrGeom != null) {
+                    if (sfrGeom.isMappable(box, minSize)) {
+                        recs.add(sfr);
+                    }
+                }
+            }
+            return recs;
+        } else {
+            // it doesn't overlap with box at all and null is returned.
+            return null;
+        }
+    }
+    
+    public ArrayList<ShapeFileRecord> clipRecordsToBoundingBox(BoundingBox box, double minSize) {
+        ArrayList<ShapeFileRecord> recs = new ArrayList<ShapeFileRecord>();
+        // first see if the bounding box for the entire shapefile fits within box
+        BoundingBox myBox = new BoundingBox(xMin, yMin, xMax, yMax);
+        if (box.contains(myBox)) {
+            // just return all of the records
+            for (ShapeFileRecord sfr : records) {
+                recs.add(sfr);
+            }
+            return recs;
+        }
+        if (myBox.overlaps(box)) {
+            for (ShapeFileRecord sfr : records) {
+                Geometry sfrGeometry = sfr.getGeometry();
+                if (sfrGeometry.isMappable(box, minSize)) {
+                    // does it need to be clipped?
+                    if (!sfrGeometry.needsClipping(box)) {
+                        recs.add(sfr);
+                    } else {
+                        
+                    }
+                }
+            }
+            return recs;
+        } else {
+            // it doesn't overlap with box at all and null is returned.
+            return null;
+        }
     }
     
     public String[] getAttributeTableFields() {
@@ -1002,6 +1048,9 @@ public class ShapeFile {
                 //Read File Line By Line
                 while ((line = br.readLine()) != null) {
                     // is it in WKT format?
+                    if (line.toLowerCase().endsWith("unit[\"meter\",1.0]]")) {
+                        xyUnits = "metres";
+                    }
                     if (line.toLowerCase().contains("unit")) {
                         int j = line.toLowerCase().indexOf("unit");
                         int k = line.toLowerCase().indexOf("[", j);

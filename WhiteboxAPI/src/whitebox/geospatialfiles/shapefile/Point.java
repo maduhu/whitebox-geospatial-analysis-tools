@@ -88,6 +88,15 @@ public class Point implements Geometry {
     }
     
     @Override
+    public boolean needsClipping(BoundingBox box) {
+        if (box.isPointInBox(x, y)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
+    @Override
     public com.vividsolutions.jts.geom.Geometry[] getJTSGeometries() {
         GeometryFactory factory = new GeometryFactory();
         CoordinateArraySequence coordArray = new CoordinateArraySequence(1);

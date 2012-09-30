@@ -30,10 +30,10 @@ public class BoundingBox implements Comparable<BoundingBox>  {
     }
     
     public BoundingBox(Double minX, Double minY, Double maxX, Double maxY) {
-        this.maxY = maxY;
-        this.maxX = maxX;
-        this.minY = minY;
-        this.minX = minX;
+            this.maxY = maxY;
+            this.minY = minY;
+            this.maxX = maxX;
+            this.minX = minX;
     }
     
     private double maxY = -1;
@@ -109,7 +109,7 @@ public class BoundingBox implements Comparable<BoundingBox>  {
         return h;
     }
     
-    public boolean doesIntersect(BoundingBox other) {
+    public boolean overlaps(BoundingBox other) {
         if (isNull()) { return false; }
         if (this.maxY < other.getMinY()
                 || this.maxX < other.getMinX()
@@ -118,6 +118,98 @@ public class BoundingBox implements Comparable<BoundingBox>  {
             return false;
         } else {
             return true;
+        }
+    }
+    
+    public boolean intersectsAnEdgeOf(BoundingBox other) {
+        if (isNull()) { return false; }
+        double x, y;
+        boolean oneInsideFound = false;
+        boolean oneOutsideFound = false;
+        // at least one of the coordinates has to be within and at least one of them has to be outside
+        for (int a = 0; a < 4; a++) {
+            switch (a) {
+                case 0:
+                    x = minX;
+                    y = maxY;
+                    break;
+                case 1:
+                    x = minX;
+                    y = minY;
+                    break;
+                case 2:
+                    x = maxX;
+                    y = maxY;
+                    break;
+                default: // 3
+                    x = maxX;
+                    y = minY;
+                    break;
+            }
+            if (!oneInsideFound) {
+                if (y <= other.getMaxY() && y >= other.getMinY()
+                        && x <= other.getMaxX() && x >= other.getMinX()) {
+                    oneInsideFound = true;
+                }
+            }
+            if (!oneOutsideFound) {
+                if (!(y <= other.getMaxY() && y >= other.getMinY())
+                        || !(x <= other.getMaxX() && x >= other.getMinX())) {
+                    oneOutsideFound = true;
+                }
+            }
+            if (oneInsideFound && oneOutsideFound) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public boolean entirelyContainedWithin(BoundingBox other) {
+        if (isNull()) { return false; }
+        if (this.maxY < other.getMaxY()
+                && this.maxX < other.getMaxX()
+                && this.minY > other.getMinY()
+                && this.minX > other.getMinX()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean within(BoundingBox other) {
+        if (isNull()) { return false; }
+        if (this.maxY <= other.getMaxY()
+                && this.maxX <= other.getMaxX()
+                && this.minY >= other.getMinY()
+                && this.minX >= other.getMinX()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean entirelyContains(BoundingBox other) {
+        if (isNull()) { return false; }
+        if (other.getMaxY() < this.maxY
+                && other.getMaxX() < this.maxX
+                && other.getMinY() > this.minY
+                && other.getMinX() > this.minX) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean contains(BoundingBox other) {
+        if (isNull()) { return false; }
+        if (other.getMaxY() <= this.maxY
+                && other.getMaxX() <= this.maxX
+                && other.getMinY() >= this.minY
+                && other.getMinX() >= this.minX) {
+            return true;
+        } else {
+            return false;
         }
     }
     

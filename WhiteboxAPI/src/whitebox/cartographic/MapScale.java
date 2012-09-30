@@ -26,32 +26,39 @@ import whitebox.interfaces.CartographicElement;
  */
 public class MapScale implements CartographicElement, Comparable<CartographicElement> {
     double pointsPerMetre = java.awt.Toolkit.getDefaultToolkit().getScreenResolution() * 39.3701; 
-    boolean visible = false;
+    boolean visible = true;
     boolean selected = false;
     int number = -1;
     boolean showRepresentativeFraction = false;
     boolean borderVisible = false;
     boolean backgroundVisible = false;
-    int upperLeftX = -99;
-    int upperLeftY = -99;
+    int upperLeftX = -32768;
+    int upperLeftY = -32768;
     int height = 50; // in points
     int width = 150; // in points
     int margin = 10;
     double barLength = 5.0;
     int numberDivisions = 5;
-    String units = "kilometres";
-    double conversionToMetres = 1000;
+    String units = "metres";
+    double conversionToMetres = 1;
     Color backColour = Color.WHITE;
     Color borderColour = Color.BLACK;
     Color outlineColour = Color.BLACK;
     Color legendColour = Color.BLACK;
-    double scale = 0;
     DecimalFormat dfScale = new DecimalFormat("###,###,###.#");
     String representativeFraction;
     String lowerLabel = "0";
     String upperLabel = "5";
-    String name = "map scale";
+    String name = "mapScale";
+    float lineWidth = 0.75f;
+    private MapArea mapArea = null;
+    private int selectedOffsetX;
+    private int selectedOffsetY;
 
+    public MapScale(String name) {
+        this.name = name;
+    }
+    
     public boolean isRepresentativeFractionVisible() {
         return showRepresentativeFraction;
     }
@@ -88,22 +95,56 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
         }
     }
 
+    @Override
     public int getUpperLeftX() {
         return upperLeftX;
     }
 
+    @Override
     public void setUpperLeftX(int upperLeftX) {
         this.upperLeftX = upperLeftX;
     }
 
+    @Override
     public int getUpperLeftY() {
         return upperLeftY;
     }
 
+    @Override
     public void setUpperLeftY(int upperLeftY) {
         this.upperLeftY = upperLeftY;
     }
+    
+    @Override
+    public int getLowerRightX() {
+        return upperLeftX + width;
+    }
 
+    @Override
+    public int getLowerRightY() {
+        return upperLeftY + height;
+    }
+
+    @Override
+    public int getSelectedOffsetX() {
+        return selectedOffsetX;
+    }
+
+    @Override
+    public void setSelectedOffsetX(int selectedOffsetX) {
+        this.selectedOffsetX = selectedOffsetX;
+    }
+
+    @Override
+    public int getSelectedOffsetY() {
+        return selectedOffsetY;
+    }
+
+    @Override
+    public void setSelectedOffsetY(int selectedOffsetY) {
+        this.selectedOffsetY = selectedOffsetY;
+    }
+    
     @Override
     public boolean isVisible() {
         return visible;
@@ -183,11 +224,56 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
 
     public double getScale() {
         return scale;
+//        if (mapArea != null) {
+//            double scale = mapArea.getScale();
+//            //what is the width of the scale box in ground units?
+//            double widthGU = (width - 4 * margin) / pointsPerMetre * scale / conversionToMetres;
+//            // the number of divisions can range between 2 and 10
+//            // given this, figure out what the appropriate division length is
+//            double[] possibleLengths = {0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 50.0, 100.0, 500.0, 1000.0, 5000.0, 10000.0, 50000.0, 100000.0};
+//            int[] numDecimals = {3, 3, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//            int closestDivision = 0;
+//            double closestDivisionBarLength = 0;
+//            double minDist = Float.POSITIVE_INFINITY;
+//            double dist;
+//            int numDecimalsInLabel = 0;
+//            for (int a = 2; a <= 10; a++) {
+//                for (int b = 0; b < possibleLengths.length; b++) {
+//                    dist = Math.abs(widthGU - (a * possibleLengths[b]));
+//                    if ((dist < minDist) && (a * possibleLengths[b] < widthGU)) {
+//                        minDist = dist;
+//                        closestDivision = a;
+//                        closestDivisionBarLength = possibleLengths[b];
+//                        numDecimalsInLabel = numDecimals[b];
+//                    }
+//                }
+//            }
+//            barLength = closestDivisionBarLength * closestDivision;
+//            numberDivisions = closestDivision;
+//
+//            // what are the upper and lower labels?
+//            String formatString = "0";
+//            if (numDecimalsInLabel > 0) {
+//                formatString += ".";
+//                for (int a = 0; a < numDecimalsInLabel; a++) {
+//                    formatString += "0";
+//                }
+//            }
+//            DecimalFormat df = new DecimalFormat(formatString);
+//            lowerLabel = df.format(0.0);
+//            upperLabel = df.format(barLength);
+//
+//
+//            return scale;
+//        } else {
+//            return 0.0;
+//        }
     }
 
-    public void setScale(double scale) {
+    private double scale = 0;
+    public void setScale() {
         representativeFraction = "Scale 1:" + dfScale.format(scale);
-        this.scale = scale;
+        this.scale = mapArea.getScale();
         //what is the width of the scale box in ground units?
         double widthGU = (width - 4 * margin) / pointsPerMetre * scale / conversionToMetres;
         // the number of divisions can range between 2 and 10
@@ -308,12 +394,31 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     public void setName(String name) {
         this.name = name;
     }
+
+    public float getLineWidth() {
+        return lineWidth;
+    }
+
+    public void setLineWidth(float lineWidth) {
+        this.lineWidth = lineWidth;
+    }
+
+    public MapArea getMapArea() {
+        return mapArea;
+    }
+
+    public void setMapArea(MapArea mapArea) {
+        this.mapArea = mapArea;
+        getScale();
+    }
+    
+    
     
     @Override
     public int compareTo(CartographicElement other) {
-        final int BEFORE = 1;
+        final int BEFORE = -1;
         final int EQUAL = 0;
-        final int AFTER = -1;
+        final int AFTER = 1;
         
         // compare them based on their element (overlay) numbers
         if (this.number < other.getElementNumber()) {
@@ -323,5 +428,85 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
         }
 
         return EQUAL;
+    }
+
+    @Override
+    public void resize(int x, int y, int resizeMode) {
+        int minSizeX = 60;
+        int minSizeY = 30;
+        int deltaX = 0;
+        int deltaY = 0;
+        switch (resizeMode) {
+            case 0: // off the north edge
+                deltaY = y - upperLeftY;
+                if (height - deltaY >= minSizeY) {
+                    upperLeftY = y;
+                    height -= deltaY;
+                }
+                break;
+            case 1: // off the south edge
+                deltaY = y - (upperLeftY + height);
+                if (height + deltaY >= minSizeY) {
+                    height += deltaY;
+                }
+                break;
+            case 2: // off the east edge
+                deltaX = x - (upperLeftX + width);
+                if (width + deltaX >= minSizeX) {
+                    width += deltaX;
+                }
+                break;
+            case 3: // off the west edge
+                deltaX = x - upperLeftX;
+                if (width - deltaX >= minSizeX) {
+                    upperLeftX = x;
+                    width -= deltaX;
+                }
+                break;
+            case 4: // off the northeast edge
+                deltaY = y - upperLeftY;
+                if (height - deltaY >= minSizeY) {
+                    upperLeftY = y;
+                    height -= deltaY;
+                }
+                deltaX = x - (upperLeftX + width);
+                if (width + deltaX >= minSizeX) {
+                    width += deltaX;
+                }
+                break;
+            case 5: // off the northwest edge
+                deltaY = y - upperLeftY;
+                if (height - deltaY >= minSizeY) {
+                    upperLeftY = y;
+                    height -= deltaY;
+                }
+                deltaX = x - upperLeftX;
+                if (width - deltaX >= minSizeX) {
+                    upperLeftX = x;
+                    width -= deltaX;
+                }
+                break;
+            case 6: // off the southeast edge
+                deltaY = y - (upperLeftY + height);
+                if (height + deltaY >= minSizeY) {
+                    height += deltaY;
+                }
+                deltaX = x - (upperLeftX + width);
+                if (width + deltaX >= minSizeX) {
+                    width += deltaX;
+                }
+                break;
+            case 7: // off the southwest edge
+                deltaY = y - (upperLeftY + height);
+                if (height + deltaY >= minSizeY) {
+                    height += deltaY;
+                }
+                deltaX = x - upperLeftX;
+                if (width - deltaX >= minSizeX) {
+                    upperLeftX = x;
+                    width -= deltaX;
+                }
+                break;
+        }
     }
 }

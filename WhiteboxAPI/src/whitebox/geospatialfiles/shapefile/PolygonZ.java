@@ -440,7 +440,16 @@ public class PolygonZ implements Geometry {
     
     @Override
     public boolean isMappable(BoundingBox box, double minSize) {
-        if (box.doesIntersect(bb) && maxExtent > minSize) {
+        if (box.overlaps(bb) && maxExtent > minSize) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean needsClipping(BoundingBox box) {
+        if ((!bb.entirelyContainedWithin(box)) && (bb.overlaps(box))) {
             return true;
         } else {
             return false;

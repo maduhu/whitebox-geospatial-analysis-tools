@@ -28,13 +28,13 @@ import whitebox.interfaces.CartographicElement;
  * @author johnlindsay
  */
 public class NorthArrow implements CartographicElement, Comparable<CartographicElement> {
-    boolean visible = false;
+    boolean visible = true;
     boolean selected = false;
     String name = "north arrow";
     int number = -1;
-    int x = -1;
-    int y = -1;
-    int markerSize = 40;
+    int x = -32768;
+    int y = -32768;
+    int markerSize = 35;
     int margin = 4;
     boolean borderVisible = false;
     boolean backgroundVisible = false;
@@ -42,7 +42,14 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
     Color borderColour = Color.BLACK;
     Color outlineColour = Color.BLACK;
     MarkerStyle markerStyle = MarkerStyle.STANDARD;
-            
+    float lineWidth = 0.75f;
+    private int selectedOffsetX;
+    private int selectedOffsetY;
+    
+    public NorthArrow(String name) {
+        this.name = name;
+    }
+    
     @Override
     public boolean isVisible() {
         return visible;
@@ -103,22 +110,56 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
         this.outlineColour = outlineColour;
     }
 
+    @Override
     public int getUpperLeftX() {
         return (int)(x - markerSize / 2.0);
     }
 
+    @Override
     public int getUpperLeftY() {
         return (int)(y - markerSize / 2.0);
     }
     
+    @Override
+    public void setUpperLeftX(int x) {
+        this.x = (int)(x + markerSize / 2.0);
+    }
+    
+    @Override
+    public void setUpperLeftY(int y) {
+        this.y = (int)(y + markerSize / 2.0);
+    }
+    
+    @Override
     public int getLowerRightX() {
         return (int)(x + markerSize / 2.0);
     }
 
+    @Override
     public int getLowerRightY() {
         return (int)(y + markerSize / 2.0);
     }
+    
+    @Override
+    public int getSelectedOffsetX() {
+        return selectedOffsetX;
+    }
 
+    @Override
+    public void setSelectedOffsetX(int selectedOffsetX) {
+        this.selectedOffsetX = selectedOffsetX;
+    }
+
+    @Override
+    public int getSelectedOffsetY() {
+        return selectedOffsetY;
+    }
+
+    @Override
+    public void setSelectedOffsetY(int selectedOffsetY) {
+        this.selectedOffsetY = selectedOffsetY;
+    }
+    
     public Color getBackColour() {
         return backColour;
     }
@@ -161,6 +202,10 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
         }
         this.margin = margin;
     }
+    
+//    public double getRotation() {
+//        return 
+//    }
     
     public ArrayList<GeneralPath> getMarkerData() {
         ArrayList<GeneralPath> ret = new ArrayList<GeneralPath>();
@@ -231,12 +276,20 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
     public void setName(String name) {
         this.name = name;
     }
+
+    public float getLineWidth() {
+        return lineWidth;
+    }
+
+    public void setLineWidth(float lineWidth) {
+        this.lineWidth = lineWidth;
+    }
     
     @Override
     public int compareTo(CartographicElement other) {
-        final int BEFORE = 1;
+        final int BEFORE = -1;
         final int EQUAL = 0;
-        final int AFTER = -1;
+        final int AFTER = 1;
         
         // compare them based on their element (overlay) numbers
         if (this.number < other.getElementNumber()) {
@@ -246,5 +299,78 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
         }
 
         return EQUAL;
+    }
+
+    @Override
+    public void resize(int newX, int newY, int resizeMode) {
+        int minMarkerSize = 20;
+        int deltaX = 0;
+        int deltaY = 0;
+        switch (resizeMode) {
+            case 0: // off the north edge
+                deltaY = newY - (y - markerSize / 2);
+                if (markerSize - 2 * deltaY >= minMarkerSize) {
+                    markerSize -= 2 * deltaY;
+                }
+                break;
+            case 1: // off the south edge
+                deltaY = newY - (y + markerSize / 2);
+                if (markerSize + 2 * deltaY >= minMarkerSize) {
+                    markerSize += 2 * deltaY;
+                }
+                break;
+            case 2: // off the east edge
+                deltaX = newX - (x + markerSize / 2);
+                if (markerSize + 2 * deltaX >= minMarkerSize) {
+                    markerSize += 2 * deltaX;
+                }
+                break;
+            case 3: // off the west edge
+                deltaX = newX - (x - markerSize / 2);
+                if (markerSize - 2 * deltaX >= minMarkerSize) {
+                    markerSize -= 2 * deltaX;
+                }
+                break;
+            case 4: // off the northeast edge
+                deltaY = newY - (y - markerSize / 2);
+                if (markerSize - 2 * deltaY >= minMarkerSize) {
+                    markerSize -= 2 * deltaY;
+                }
+                deltaX = newX - (x + markerSize / 2);
+                if (markerSize + 2 * deltaX >= minMarkerSize) {
+                    markerSize += 2 * deltaX;
+                }
+                break;
+            case 5: // off the northwest edge
+                deltaY = newY - (y - markerSize / 2);
+                if (markerSize - 2 * deltaY >= minMarkerSize) {
+                    markerSize -= 2 * deltaY;
+                }
+                deltaX = newX - (x - markerSize / 2);
+                if (markerSize - 2 * deltaX >= minMarkerSize) {
+                    markerSize -= 2 * deltaX;
+                }
+                break;
+            case 6: // off the southeast edge
+                deltaY = newY - (y + markerSize / 2);
+                if (markerSize + 2 * deltaY >= minMarkerSize) {
+                    markerSize += 2 * deltaY;
+                }
+                deltaX = newX - (x + markerSize / 2);
+                if (markerSize + 2 * deltaX >= minMarkerSize) {
+                    markerSize += 2 * deltaX;
+                }
+                break;
+            case 7: // off the southwest edge
+                deltaY = newY - (y + markerSize / 2);
+                if (markerSize + 2 * deltaY >= minMarkerSize) {
+                    markerSize += 2 * deltaY;
+                }
+                deltaX = newX - (x - markerSize / 2);
+                if (markerSize - 2 * deltaX >= minMarkerSize) {
+                    markerSize -= 2 * deltaX;
+                }
+                break;
+        }
     }
 }

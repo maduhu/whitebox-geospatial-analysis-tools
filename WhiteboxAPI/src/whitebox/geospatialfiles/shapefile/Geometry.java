@@ -34,6 +34,10 @@ public interface Geometry {
     
     boolean isMappable(BoundingBox box, double minSize);
     
+    boolean needsClipping(BoundingBox box);
+    
+    
+    
     ByteBuffer toByteBuffer();
     
     com.vividsolutions.jts.geom.Geometry[] getJTSGeometries();

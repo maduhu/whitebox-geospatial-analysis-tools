@@ -36,6 +36,7 @@ public class MultiPointZ implements Geometry {
     private double mMax;
     private double[] mArray;
     private boolean mIncluded = false;
+    private double maxExtent;
     
     //constructors
     public MultiPointZ(byte[] rawData) {
@@ -46,6 +47,7 @@ public class MultiPointZ implements Geometry {
             
             bb = new BoundingBox(buf.getDouble(0), buf.getDouble(8), 
                     buf.getDouble(16), buf.getDouble(24));
+            maxExtent = bb.getMaxExtent();
             numPoints = buf.getInt(32);
             points = new double[numPoints][2];
             for (int i = 0; i < numPoints; i++) {
@@ -187,7 +189,16 @@ public class MultiPointZ implements Geometry {
     
     @Override
     public boolean isMappable(BoundingBox box, double minSize) {
-        if (box.doesIntersect(bb)) {
+        if (box.overlaps(bb) && maxExtent > minSize) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean needsClipping(BoundingBox box) {
+        if ((!bb.entirelyContainedWithin(box)) && (bb.overlaps(box))) {
             return true;
         } else {
             return false;
