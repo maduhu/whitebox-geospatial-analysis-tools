@@ -26,6 +26,7 @@ import java.util.Arrays;
 import javax.swing.*;
 import whitebox.cartographic.PointMarkers;
 import whitebox.cartographic.PointMarkers.MarkerStyle;
+import whitebox.geospatialfiles.RasterLayerInfo;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
@@ -241,7 +242,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JSpinner spin1 = new JSpinner();
             spin1.setMaximumSize(new Dimension(200, 22));
             SpinnerModel sm =
-                    new SpinnerNumberModel(layer.getOverlayNumber(), 0, map.getNumLayers() - 1, 1);
+                    new SpinnerNumberModel(layer.getOverlayNumber(), 0, map.getActiveMapArea().getNumLayers() - 1, 1);
             spin1.setModel(sm);
             overlayBox.add(spin1);
             overlayBox.add(Box.createHorizontalStrut(10));
@@ -392,7 +393,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JSpinner spin1 = new JSpinner();
             spin1.setMaximumSize(new Dimension(200, 22));
             SpinnerModel sm =
-                    new SpinnerNumberModel(layer.getOverlayNumber(), 0, map.getNumLayers() - 1, 1);
+                    new SpinnerNumberModel(layer.getOverlayNumber(), 0, map.getActiveMapArea().getNumLayers() - 1, 1);
             spin1.setModel(sm);
             overlayBox.add(spin1);
             overlayBox.add(Box.createHorizontalStrut(10));

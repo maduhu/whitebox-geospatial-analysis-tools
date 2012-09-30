@@ -22,13 +22,16 @@ import java.awt.event.*;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.*;
 import javax.swing.*;
 import whitebox.cartographic.*;
 import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.structures.BoundingBox;
 
 /**
  *
@@ -38,7 +41,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     
     private MapInfo map = null;
     private JButton ok = new JButton("OK");
-    private JButton update = new JButton("Update");
+    private JButton update = new JButton("Update Map");
     private JButton close = new JButton("Close");
     private DecimalFormat df = new DecimalFormat("#0.0");
     private WhiteboxPluginHost host = null;
@@ -79,7 +82,20 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     private JCheckBox titleFontBold = new JCheckBox();
     private JCheckBox titleFontItalics = new JCheckBox();
     
-    private String activeTab = "";
+    private JCheckBox checkNeatlineVisible = new JCheckBox();
+    private JCheckBox checkNeatlineDoubleLine = new JCheckBox();
+    private JCheckBox checkNeatlineBackgroundVisible = new JCheckBox();
+    
+    private JCheckBox checkMapAreaVisible = new JCheckBox();
+    private JCheckBox checkMapAreaBorderVisible = new JCheckBox();
+    private JCheckBox checkMapAreaBackgroundVisible = new JCheckBox();
+    private JCheckBox checkMapAreaReferenceMarksVisible = new JCheckBox();
+    private JCheckBox checkMapAreaNeatlineVisible = new  JCheckBox();
+    
+    private JPanel elementPropertiesPanel = new JPanel();
+    private JList possibleElementsList = new JList(new DefaultListModel());
+    
+    private int activeElement;
     
     public MapProperties(Frame owner, boolean modal, MapInfo map) {
         super(owner, modal);
@@ -92,9 +108,10 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         this.host = (WhiteboxPluginHost)(owner);
         this.map = map;
         createGui();
+        this.tabs.setSelectedIndex(1);
     }
     
-    public MapProperties(Frame owner, boolean modal, MapInfo map, String activeTab) {
+    public MapProperties(Frame owner, boolean modal, MapInfo map, int activeElement) {
         super(owner, modal);
         if (owner != null) {
             Dimension parentSize = owner.getSize(); 
@@ -104,7 +121,8 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         
         this.host = (WhiteboxPluginHost)(owner);
         this.map = map;
-        this.activeTab = activeTab.toLowerCase();
+        //this.activeTab = activeTab.toLowerCase();
+        this.activeElement = activeElement;
         
         createGui();
     }
@@ -118,13 +136,13 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             return;
         }
         
-        setTitle("Map Properties: " + map.getMapTitle());
+        setTitle("Map Properties: " + map.getMapName());
         
         createPageSizeMap();
         
         // okay and close buttons.
         Box box1 = Box.createHorizontalBox();
-        box1.add(Box.createHorizontalStrut(10));
+        box1.add(Box.createHorizontalGlue());
         box1.add(ok);
         ok.setActionCommand("ok");
         ok.addActionListener(this);
@@ -144,48 +162,23 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         
         add(box1, BorderLayout.SOUTH);
        
-        tabs.addTab("Scale", getScaleBox());
-        tabs.addTab("Legend", getLegendBox());
-        tabs.addTab("North Arrow", getNorthArrowBox());
-        tabs.addTab("Title", getTitleBox());
-        tabs.addTab("Neatline", getNeatlineBox());
-        tabs.addTab("Page", getPageBox());
         tabs.addTab("Map Elements", getMapElementsListing());
-        
-        if (activeTab.length() > 0) {
-            if (activeTab.equals("scale")) {
-                tabs.setSelectedIndex(0);
-            } else if (activeTab.equals("legend")) {
-                tabs.setSelectedIndex(1);
-            } else if (activeTab.contains("north")) {
-                tabs.setSelectedIndex(2);
-            } else if (activeTab.equals("title")) {
-                tabs.setSelectedIndex(3);
-            } else if (activeTab.contains("neat")) {
-                tabs.setSelectedIndex(4);
-            } else if (activeTab.equals("page")) {
-                tabs.setSelectedIndex(5);
-            } else if (activeTab.equals("map elements")) {
-                tabs.setSelectedIndex(6);
-            }
-        }
-        
+        tabs.addTab("Page", getPageBox());
+       
         getContentPane().add(tabs, BorderLayout.CENTER);
         
         pack();
     }
     
+    JPanel elementsPanel = new JPanel();
     private JPanel getMapElementsListing() {
-        JPanel panel = new JPanel();
+        
         try {
+            if (activeElement < 0) { activeElement = 0; }
             JLabel label = null;
             Box mainBox = Box.createVerticalBox();
-            JScrollPane scroll = new JScrollPane(mainBox);
-            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            panel.add(scroll);
             
-            
-            MouseListener ml = new MouseAdapter() {
+            MouseListener ml1 = new MouseAdapter() {
 
                 @Override
                 public void mousePressed(MouseEvent e) {
@@ -197,69 +190,194 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
                         label = o.toString();
                     }
                     if (e.getClickCount() == 1) {
-                        //showToolDescription(label);
+                        
                     } else if (e.getClickCount() == 2) {
-                        CartographicElement ce = listOfCartographicElements.get(index);
-                        if (ce instanceof MapTitle) {
-                            tabs.setSelectedIndex(3);
-                        }
+                        addElement(label);
+                    }
+
+                }
+            };
+            
+            MouseListener ml2 = new MouseAdapter() {
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (e.getClickCount() == 1) {
+                        updateElementPropertiesPanel();
                     }
 
                 }
             };
 
 
-            JPanel mapElementsBox = new JPanel();
-            mapElementsBox.setLayout(new BoxLayout(mapElementsBox, BoxLayout.X_AXIS));
-            mapElementsBox.setBackground(Color.WHITE);
-            mapElementsBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("The map contains these cartographic elements:");
+            JPanel listBox = new JPanel();
+            listBox.setLayout(new BoxLayout(listBox, BoxLayout.X_AXIS));
+            listBox.setBackground(Color.WHITE);
+            listBox.add(Box.createHorizontalStrut(10));
+            
+            Box vbox = Box.createVerticalBox();
+            Box hbox = Box.createHorizontalBox();
+            label = new JLabel("Cartographic Elements:");
+            label.setForeground(Color.darkGray);
             //Font f = label.getFont();
             //label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
-            mapElementsBox.add(label);
-            mapElementsBox.add(Box.createHorizontalGlue());
-            mapElementsBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(mapElementsBox);
+            hbox.add(label);
+            hbox.add(Box.createHorizontalGlue());
+            vbox.add(hbox);
+            
+            //JList possibleElementsList = new JList(new DefaultListModel());
+            possibleElementsList.addMouseListener(ml1);
 
+            DefaultListModel model = new DefaultListModel();
+            model.add(0, "Title");
+            model.add(1, "Scale");
+            model.add(2, "Legend");
+            model.add(3, "North Arrow");
+            model.add(4, "Neatline");
+            model.add(5, "Text Box");
+            model.add(6, "Map Area");
+            possibleElementsList.setModel(model);
+            
+            JScrollPane scroller1 = new JScrollPane(possibleElementsList);
+            vbox.add(scroller1);
+            
+            
+            hbox = Box.createHorizontalBox();
+            JButton addButton = new JButton("Add");
+            addButton.setActionCommand("addElement");
+            addButton.addActionListener(this);
+            hbox.add(Box.createHorizontalGlue());
+            hbox.add(addButton);
+            vbox.add(hbox);
+            
+            listBox.add(vbox);
+            
+            listBox.add(Box.createHorizontalStrut(10));
+            
+            vbox = Box.createVerticalBox();
+            label = new JLabel("Current Map Elements:");
+            label.setForeground(Color.darkGray);
+            hbox = Box.createHorizontalBox();
+            hbox.add(label);
+            hbox.add(Box.createHorizontalGlue());
+            vbox.add(hbox);
+            
+            mapElementsList = new JList(new DefaultListModel());
+            mapElementsList.addMouseListener(ml2);
             populateElementsList();
             
-            mapElementsList.addMouseListener(ml);
+            JScrollPane scroller2 = new JScrollPane(mapElementsList);
+            vbox.add(scroller2);
             
-            JScrollPane scroller1 = new JScrollPane(mapElementsList);
+            hbox = Box.createHorizontalBox();
+            JButton deleteButton = new JButton("Remove");
+            deleteButton.setActionCommand("removeElement");
+            deleteButton.addActionListener(this);
+            hbox.add(Box.createHorizontalGlue());
+            hbox.add(deleteButton);
+            vbox.add(hbox);
             
-            mainBox.add(scroller1);
+            listBox.add(vbox);
             
-            mainBox.add(Box.createVerticalStrut(330));
+            vbox = Box.createVerticalBox();
+            JButton elementUpButton = new JButton(String.valueOf('\u25B2'));
+            elementUpButton.setActionCommand("elementUp");
+            elementUpButton.addActionListener(this);
+            vbox.add(elementUpButton);
+            JButton elementDownButton = new JButton(String.valueOf('\u25BC'));
+            elementDownButton.setActionCommand("elementDown");
+            elementDownButton.addActionListener(this);
+            vbox.add(elementDownButton);
+            listBox.add(vbox);
+            
+            listBox.setMaximumSize(new Dimension(2000, 150));
+            
+            mainBox.add(listBox);
+            
+            vbox = Box.createVerticalBox();
+            vbox.add(Box.createVerticalStrut(10));
+            
+            hbox = Box.createHorizontalBox();
+            hbox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Elements Properties:");
+            //f = label.getFont();
+            //label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
+            label.setForeground(Color.darkGray);
+            hbox.add(label);
+            hbox.add(Box.createHorizontalGlue());
+            vbox.add(hbox);
+            //mainBox.add(hbox);
+            
+            elementPropertiesPanel.setBackground(Color.WHITE);
+            vbox.add(elementPropertiesPanel);
+            
+            mainBox.add(vbox);
+            mainBox.add(Box.createVerticalGlue());
+            
+            //mainBox.add(Box.createVerticalStrut(330));
+            
+            JScrollPane scroll = new JScrollPane(mainBox);
+            elementsPanel.setLayout(new BoxLayout(elementsPanel, BoxLayout.Y_AXIS));
+            elementsPanel.add(scroll);
+            elementsPanel.add(Box.createVerticalGlue());
+            
+            if (listOfCartographicElements.size() > 0) {
+                mapElementsList.setSelectedIndex(listOfCartographicElements.size() - 1 - activeElement);
+                updateElementPropertiesPanel();
+            }
             
         } catch (Exception e) {
             host.showFeedback(e.getMessage());
         } finally {
-            return panel;
+            return elementsPanel;
         }
     }
     
+    private void updateElementPropertiesPanel() {
+        int index = (listOfCartographicElements.size() - 1) - mapElementsList.getSelectedIndex();
+        if (index < 0) { index = 0; }
+        if (index > listOfCartographicElements.size()) { index = listOfCartographicElements.size(); }
+        CartographicElement ce = listOfCartographicElements.get(index);
+        elementPropertiesPanel.removeAll();
+        //Box box = Box.createHorizontalBox();
+        //JScrollPane scroller = new JScrollPane();
+        if (ce instanceof MapTitle) {
+            elementPropertiesPanel.add(getTitleBox((MapTitle)ce));
+        } else if (ce instanceof MapScale) {
+            elementPropertiesPanel.add(getScaleBox((MapScale)ce));
+        } else if (ce instanceof NorthArrow) {
+            elementPropertiesPanel.add(getNorthArrowBox((NorthArrow) ce));
+        } else if (ce instanceof NeatLine) {
+            elementPropertiesPanel.add(getNeatlineBox((NeatLine) ce));
+        } else if (ce instanceof MapArea) {
+            elementPropertiesPanel.add(getMapAreaBox((MapArea) ce));
+        }
+        //elementPropertiesPanel.validate();
+        //elementPropertiesPanel.repaint();
+        elementsPanel.validate();
+        elementsPanel.repaint();
+    }
+    
     private void populateElementsList() {
-        mapElementsList = new JList();
-            
-            int maxIndex;
-            listOfCartographicElements = map.getCartographicElementList();
-            if (listOfCartographicElements.size() <= 10) {
-                maxIndex = listOfCartographicElements.size();
-            } else {
-                maxIndex = 10;
-            }
-            mapElementsList.removeAll();
+        
+
+        listOfCartographicElements = map.getCartographicElementList();
+        mapElementsList.removeAll();
+        if (listOfCartographicElements.size() > 0) {
             DefaultListModel model = new DefaultListModel();
-            int i = 0;
+
+            // the list is in reverse order so that the bottom element is on the list bottom.
             for (CartographicElement ce : listOfCartographicElements) {
-                model.add(i, ce.getName());
-                i++;
+                model.add(0, ce.getName());
             }
+
             mapElementsList.setModel(model);
+        }
+        //mapElementsList.update();
             
     }
     
-    private JPanel getTitleBox() {
+    private JPanel getTitleBox(MapTitle mapTitle) {
         JPanel panel = new JPanel();
         try {
             JLabel label = null;
@@ -268,7 +386,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
             panel.add(scroll);
             
-            Font labelFont = map.mapTitle.getLabelFont();
+            Font labelFont = mapTitle.getLabelFont();
             
             // Title label text
             JPanel titleLabelBox = new JPanel();
@@ -279,8 +397,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             titleLabelBox.add(label);
             titleLabelBox.add(Box.createHorizontalGlue());
-            titleLabelText = new JTextField(String.valueOf(map.mapTitle.getLabel()), 15);
-            titleLabelText.setHorizontalAlignment(JTextField.RIGHT);
+            titleLabelText = new JTextField(String.valueOf(mapTitle.getLabel()), 15);
             titleLabelText.setMaximumSize(new Dimension(50, 22));
             titleLabelBox.add(titleLabelText);
             titleLabelBox.add(Box.createHorizontalStrut(10));
@@ -295,7 +412,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(200, 24));
             titleVisibleBox.add(label);
             titleVisibleBox.add(Box.createHorizontalGlue());
-            checkTitleVisible.setSelected(map.mapTitle.isVisible());
+            checkTitleVisible.setSelected(mapTitle.isVisible());
             checkTitleVisible.addActionListener(this);
             checkTitleVisible.setActionCommand("checkTitleVisible");
             titleVisibleBox.add(checkTitleVisible);
@@ -311,7 +428,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(220, 24));
             titleBackVisibleBox.add(label);
             titleBackVisibleBox.add(Box.createHorizontalGlue());
-            checkTitleBackgroundVisible.setSelected(map.mapTitle.isBackgroundVisible());
+            checkTitleBackgroundVisible.setSelected(mapTitle.isBackgroundVisible());
             checkTitleBackgroundVisible.addActionListener(this);
             checkTitleBackgroundVisible.setActionCommand("checkTitleBackgroundVisible");
             titleBackVisibleBox.add(checkTitleBackgroundVisible);
@@ -327,7 +444,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(220, 24));
             titleBorderVisibleBox.add(label);
             titleBorderVisibleBox.add(Box.createHorizontalGlue());
-            checkTitleBorderVisible.setSelected(map.mapTitle.isBorderVisible());
+            checkTitleBorderVisible.setSelected(mapTitle.isBorderVisible());
             checkTitleBorderVisible.addActionListener(this);
             checkTitleBorderVisible.setActionCommand("checkTitleBorderVisible");
             titleBorderVisibleBox.add(checkTitleBorderVisible);
@@ -343,7 +460,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             titleMarginBox.add(label);
             titleMarginBox.add(Box.createHorizontalGlue());
-            titleMarginText = new JTextField(String.valueOf(map.mapTitle.getMargin()), 15);
+            titleMarginText = new JTextField(String.valueOf(mapTitle.getMargin()), 15);
             titleMarginText.setHorizontalAlignment(JTextField.RIGHT);
             titleMarginText.setMaximumSize(new Dimension(50, 22));
             titleMarginBox.add(titleMarginText);
@@ -361,7 +478,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             titleFontSizeBox.add(Box.createHorizontalGlue());
             titleFontSize.setMaximumSize(new Dimension(200, 22));
             SpinnerModel sm =
-                    new SpinnerNumberModel(labelFont.getSize(), 1, 150, 1);
+                    new SpinnerNumberModel(labelFont.getSize(), 1, mapTitle.getMaxFontSize(), 1);
             titleFontSize.setModel(sm);
             titleFontSizeBox.add(titleFontSize);
             titleFontSizeBox.add(Box.createHorizontalStrut(10));
@@ -401,7 +518,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             titleFontItalicsBox.add(Box.createHorizontalStrut(10));
             mainBox.add(titleFontItalicsBox);
             
-            mainBox.add(Box.createVerticalStrut(330));
+            //mainBox.add(Box.createVerticalStrut(330));
             
         } catch (Exception e) {
             host.showFeedback(e.getMessage());
@@ -447,7 +564,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             pageVisibleBox.add(label);
             pageVisibleBox.add(Box.createHorizontalGlue());
-            checkPageVisible.setSelected(map.isCartoView());
+            checkPageVisible.setSelected(map.isPageVisible());
             checkPageVisible.addActionListener(this);
             checkPageVisible.setActionCommand("checkPageVisible");
             pageVisibleBox.add(checkPageVisible);
@@ -564,7 +681,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         
     }
     
-    private JPanel getNeatlineBox() {
+    private JPanel getMapAreaBox(MapArea mapArea) {
         JPanel panel = new JPanel();
         try {
             JLabel label = null;
@@ -573,21 +690,82 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
             panel.add(scroll);
             
-            JPanel underConstructionBox = new JPanel();
-            underConstructionBox.setLayout(new BoxLayout(underConstructionBox, BoxLayout.X_AXIS));
-            underConstructionBox.setBackground(Color.WHITE);
-            underConstructionBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("This feature is under active development");
-            Font f = label.getFont();
-            label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
-            //label.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
-            underConstructionBox.add(label);
-            underConstructionBox.add(Box.createHorizontalGlue());
-            underConstructionBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(underConstructionBox);
+            // mapArea visibility
+            JPanel maVisibleBox = new JPanel();
+            maVisibleBox.setLayout(new BoxLayout(maVisibleBox, BoxLayout.X_AXIS));
+            maVisibleBox.setBackground(Color.WHITE);
+            maVisibleBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Is the map area visible?");
+            label.setPreferredSize(new Dimension(200, 24));
+            maVisibleBox.add(label);
+            maVisibleBox.add(Box.createHorizontalGlue());
+            checkMapAreaVisible.setSelected(mapArea.isVisible());
+            checkMapAreaVisible.addActionListener(this);
+            maVisibleBox.add(checkMapAreaVisible);
+            maVisibleBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(maVisibleBox);
             
-            mainBox.add(Box.createVerticalStrut(330));
-        
+            // mapArea border visibility
+            JPanel maBorderVisibleBox = new JPanel();
+            maBorderVisibleBox.setLayout(new BoxLayout(maBorderVisibleBox, BoxLayout.X_AXIS));
+            maBorderVisibleBox.setBackground(backColour);
+            maBorderVisibleBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Is the border visible?");
+            label.setPreferredSize(new Dimension(200, 24));
+            maBorderVisibleBox.add(label);
+            maBorderVisibleBox.add(Box.createHorizontalGlue());
+            checkMapAreaBorderVisible.setSelected(mapArea.isBorderVisible());
+            checkMapAreaBorderVisible.addActionListener(this);
+            maBorderVisibleBox.add(checkMapAreaBorderVisible);
+            maBorderVisibleBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(maBorderVisibleBox);
+            
+            // mapArea background visibility
+            JPanel mapAreaBackVisibleBox = new JPanel();
+            mapAreaBackVisibleBox.setLayout(new BoxLayout(mapAreaBackVisibleBox, BoxLayout.X_AXIS));
+            mapAreaBackVisibleBox.setBackground(Color.WHITE);
+            mapAreaBackVisibleBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Is the background visible?");
+            label.setPreferredSize(new Dimension(220, 24));
+            mapAreaBackVisibleBox.add(label);
+            mapAreaBackVisibleBox.add(Box.createHorizontalGlue());
+            checkMapAreaBackgroundVisible.setSelected(mapArea.isBackgroundVisible());
+            checkMapAreaBackgroundVisible.addActionListener(this);
+            mapAreaBackVisibleBox.add(checkMapAreaBackgroundVisible);
+            mapAreaBackVisibleBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(mapAreaBackVisibleBox);
+            
+            // Reference marks visibility
+            JPanel referenceMarksBox = new JPanel();
+            referenceMarksBox.setLayout(new BoxLayout(referenceMarksBox, BoxLayout.X_AXIS));
+            referenceMarksBox.setBackground(backColour);
+            referenceMarksBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Show reference marks?");
+            label.setPreferredSize(new Dimension(220, 24));
+            referenceMarksBox.add(label);
+            referenceMarksBox.add(Box.createHorizontalGlue());
+            checkMapAreaReferenceMarksVisible.setSelected(mapArea.isReferenceMarksVisible());
+            checkMapAreaReferenceMarksVisible.addActionListener(this);
+            referenceMarksBox.add(checkMapAreaReferenceMarksVisible);
+            referenceMarksBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(referenceMarksBox);
+            
+            // neatline visibility
+            JPanel neatlineBox = new JPanel();
+            neatlineBox.setLayout(new BoxLayout(neatlineBox, BoxLayout.X_AXIS));
+            neatlineBox.setBackground(Color.WHITE);
+            neatlineBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Show neatline?");
+            label.setPreferredSize(new Dimension(220, 24));
+            neatlineBox.add(label);
+            neatlineBox.add(Box.createHorizontalGlue());
+            checkMapAreaNeatlineVisible.setSelected(mapArea.isNeatlineVisible());
+            checkMapAreaNeatlineVisible.addActionListener(this);
+            neatlineBox.add(checkMapAreaNeatlineVisible);
+            neatlineBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(neatlineBox);
+            
+            
         } catch (Exception e) {
             host.showFeedback(e.getMessage());
         } finally {
@@ -596,7 +774,70 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         
     }
     
-    private JPanel getNorthArrowBox() {
+    private JPanel getNeatlineBox(NeatLine neatLine) {
+        JPanel panel = new JPanel();
+        try {
+            JLabel label = null;
+            Box mainBox = Box.createVerticalBox();
+            JScrollPane scroll = new JScrollPane(mainBox);
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            panel.add(scroll);
+            
+            // neatline visibility
+            JPanel nlVisibleBox = new JPanel();
+            nlVisibleBox.setLayout(new BoxLayout(nlVisibleBox, BoxLayout.X_AXIS));
+            nlVisibleBox.setBackground(backColour);
+            nlVisibleBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Is the neatline visible?");
+            label.setPreferredSize(new Dimension(200, 24));
+            nlVisibleBox.add(label);
+            nlVisibleBox.add(Box.createHorizontalGlue());
+            checkNeatlineVisible.setSelected(neatLine.isVisible());
+            checkNeatlineVisible.addActionListener(this);
+            nlVisibleBox.add(checkNeatlineVisible);
+            nlVisibleBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(nlVisibleBox);
+            
+            // neatline background visibility
+            JPanel neatlineBackVisibleBox = new JPanel();
+            neatlineBackVisibleBox.setLayout(new BoxLayout(neatlineBackVisibleBox, BoxLayout.X_AXIS));
+            neatlineBackVisibleBox.setBackground(Color.WHITE);
+            neatlineBackVisibleBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Is the neatline background visible?");
+            label.setPreferredSize(new Dimension(220, 24));
+            neatlineBackVisibleBox.add(label);
+            neatlineBackVisibleBox.add(Box.createHorizontalGlue());
+            checkNeatlineBackgroundVisible.setSelected(neatLine.isBackgroundVisible());
+            checkNeatlineBackgroundVisible.addActionListener(this);
+            neatlineBackVisibleBox.add(checkNeatlineBackgroundVisible);
+            neatlineBackVisibleBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(neatlineBackVisibleBox);
+            
+            // Title border visibility
+            JPanel neatlineDoubleLineBox = new JPanel();
+            neatlineDoubleLineBox.setLayout(new BoxLayout(neatlineDoubleLineBox, BoxLayout.X_AXIS));
+            neatlineDoubleLineBox.setBackground(backColour);
+            neatlineDoubleLineBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel("Use double line?");
+            label.setPreferredSize(new Dimension(220, 24));
+            neatlineDoubleLineBox.add(label);
+            neatlineDoubleLineBox.add(Box.createHorizontalGlue());
+            checkNeatlineDoubleLine.setSelected(neatLine.isDoubleLine());
+            checkNeatlineDoubleLine.addActionListener(this);
+            neatlineDoubleLineBox.add(checkNeatlineDoubleLine);
+            neatlineDoubleLineBox.add(Box.createHorizontalStrut(10));
+            mainBox.add(neatlineDoubleLineBox);
+            
+            
+        } catch (Exception e) {
+            host.showFeedback(e.getMessage());
+        } finally {
+            return panel;
+        }
+        
+    }
+    
+    private JPanel getNorthArrowBox(NorthArrow northArrow) {
         JPanel panel = new JPanel();
         try {
             JLabel label = null;
@@ -614,7 +855,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(200, 24));
             naVisibleBox.add(label);
             naVisibleBox.add(Box.createHorizontalGlue());
-            checkNAVisible.setSelected(map.northArrow.isVisible());
+            checkNAVisible.setSelected(northArrow.isVisible());
             checkNAVisible.addActionListener(this);
             checkNAVisible.setActionCommand("checkNAVisible");
             naVisibleBox.add(checkNAVisible);
@@ -630,7 +871,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(220, 24));
             naBackVisibleBox.add(label);
             naBackVisibleBox.add(Box.createHorizontalGlue());
-            checkNABackgroundVisible.setSelected(map.northArrow.isBackgroundVisible());
+            checkNABackgroundVisible.setSelected(northArrow.isBackgroundVisible());
             checkNABackgroundVisible.addActionListener(this);
             checkNABackgroundVisible.setActionCommand("checkNABackgroundVisible");
             naBackVisibleBox.add(checkNABackgroundVisible);
@@ -646,7 +887,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(220, 24));
             naBorderVisibleBox.add(label);
             naBorderVisibleBox.add(Box.createHorizontalGlue());
-            checkNABorderVisible.setSelected(map.northArrow.isBorderVisible());
+            checkNABorderVisible.setSelected(northArrow.isBorderVisible());
             checkNABorderVisible.addActionListener(this);
             checkNABorderVisible.setActionCommand("checkNABorderVisible");
             naBorderVisibleBox.add(checkNABorderVisible);
@@ -663,7 +904,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             naMarkerSizeBox.add(label);
             naMarkerSizeBox.add(Box.createHorizontalGlue());
-            naMarkerSizeText = new JTextField(String.valueOf(map.northArrow.getMarkerSize()), 15);
+            naMarkerSizeText = new JTextField(String.valueOf(northArrow.getMarkerSize()), 15);
             naMarkerSizeText.setHorizontalAlignment(JTextField.RIGHT);
             naMarkerSizeText.setMaximumSize(new Dimension(50, 22));
             naMarkerSizeBox.add(naMarkerSizeText);
@@ -679,14 +920,14 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             naMarginBox.add(label);
             naMarginBox.add(Box.createHorizontalGlue());
-            naMarginText = new JTextField(String.valueOf(map.northArrow.getMargin()), 15);
+            naMarginText = new JTextField(String.valueOf(northArrow.getMargin()), 15);
             naMarginText.setHorizontalAlignment(JTextField.RIGHT);
             naMarginText.setMaximumSize(new Dimension(50, 22));
             naMarginBox.add(naMarginText);
             naMarginBox.add(Box.createHorizontalStrut(10));
             mainBox.add(naMarginBox);
             
-            mainBox.add(Box.createVerticalStrut(330));
+            //mainBox.add(Box.createVerticalStrut(330));
         
         
         } catch (Exception e) {
@@ -719,7 +960,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             underConstructionBox.add(Box.createHorizontalStrut(10));
             mainBox.add(underConstructionBox);
             
-            mainBox.add(Box.createVerticalStrut(330));
+            //mainBox.add(Box.createVerticalStrut(330));
             
         } catch (Exception e) {
             host.showFeedback(e.getMessage());
@@ -729,7 +970,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         
     }
     
-    private JPanel getScaleBox() {
+    private JPanel getScaleBox(MapScale mapScale) {
         JPanel panel = new JPanel();
         try {
             
@@ -748,7 +989,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             scaleVisibleBox.add(label);
             scaleVisibleBox.add(Box.createHorizontalGlue());
-            checkScaleVisible.setSelected(map.mapScale.isVisible());
+            checkScaleVisible.setSelected(mapScale.isVisible());
             checkScaleVisible.addActionListener(this);
             checkScaleVisible.setActionCommand("checkScaleVisible");
             scaleVisibleBox.add(checkScaleVisible);
@@ -764,7 +1005,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(200, 24));
             scaleBackgroundVisibleBox.add(label);
             scaleBackgroundVisibleBox.add(Box.createHorizontalGlue());
-            checkScaleBackgroundVisible.setSelected(map.mapScale.isBackgroundVisible());
+            checkScaleBackgroundVisible.setSelected(mapScale.isBackgroundVisible());
             checkScaleBackgroundVisible.addActionListener(this);
             checkScaleBackgroundVisible.setActionCommand("checkScaleVisible");
             scaleBackgroundVisibleBox.add(checkScaleBackgroundVisible);
@@ -780,7 +1021,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             scaleBorderVisibleBox.add(label);
             scaleBorderVisibleBox.add(Box.createHorizontalGlue());
-            checkScaleBorderVisible.setSelected(map.mapScale.isBorderVisible());
+            checkScaleBorderVisible.setSelected(mapScale.isBorderVisible());
             checkScaleBorderVisible.addActionListener(this);
             checkScaleBorderVisible.setActionCommand("checkScaleBorderVisible");
             scaleBorderVisibleBox.add(checkScaleBorderVisible);
@@ -796,7 +1037,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             scaleUnitBox.add(label);
             scaleUnitBox.add(Box.createHorizontalGlue());
-            scaleUnitText = new JTextField(map.mapScale.getUnits(), 15);
+            scaleUnitText = new JTextField(mapScale.getUnits(), 15);
             scaleUnitText.setHorizontalAlignment(JTextField.RIGHT);
             scaleUnitText.setMaximumSize(new Dimension(50, 22));
             scaleUnitBox.add(scaleUnitText);
@@ -812,7 +1053,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             scaleWidthBox.add(label);
             scaleWidthBox.add(Box.createHorizontalGlue());
-            scaleWidthText = new JTextField(String.valueOf(map.mapScale.getWidth()), 15);
+            scaleWidthText = new JTextField(String.valueOf(mapScale.getWidth()), 15);
             scaleWidthText.setHorizontalAlignment(JTextField.RIGHT);
             scaleWidthText.setMaximumSize(new Dimension(50, 22));
             scaleWidthBox.add(scaleWidthText);
@@ -829,7 +1070,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             scaleHeightBox.add(label);
             scaleHeightBox.add(Box.createHorizontalGlue());
-            scaleHeightText = new JTextField(String.valueOf(map.mapScale.getHeight()), 15);
+            scaleHeightText = new JTextField(String.valueOf(mapScale.getHeight()), 15);
             scaleHeightText.setHorizontalAlignment(JTextField.RIGHT);
             scaleHeightText.setMaximumSize(new Dimension(50, 22));
             scaleHeightBox.add(scaleHeightText);
@@ -845,7 +1086,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             scaleMarginBox.add(label);
             scaleMarginBox.add(Box.createHorizontalGlue());
-            scaleMarginText = new JTextField(String.valueOf(map.mapScale.getMargin()), 15);
+            scaleMarginText = new JTextField(String.valueOf(mapScale.getMargin()), 15);
             scaleMarginText.setHorizontalAlignment(JTextField.RIGHT);
             scaleMarginText.setMaximumSize(new Dimension(50, 22));
             scaleMarginBox.add(scaleMarginText);
@@ -861,7 +1102,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(200, 24));
             scaleRFVisible.add(label);
             scaleRFVisible.add(Box.createHorizontalGlue());
-            checkScaleShowRF.setSelected(map.mapScale.isRepresentativeFractionVisible());
+            checkScaleShowRF.setSelected(mapScale.isRepresentativeFractionVisible());
             checkScaleShowRF.addActionListener(this);
             checkScaleShowRF.setActionCommand("checkScaleRFVisible");
             scaleRFVisible.add(checkScaleShowRF);
@@ -869,7 +1110,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             mainBox.add(scaleRFVisible);
             
             
-            mainBox.add(Box.createVerticalStrut(330));
+            //mainBox.add(Box.createVerticalStrut(330));
             
         } catch (Exception e) {
             host.showFeedback(e.getMessage());
@@ -902,76 +1143,151 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     }
     
     private void updateMap() {
-        map.setCartoView(checkPageVisible.isSelected());
-        
-        PageFormat pf = map.getPageFormat();
-        
-        //final Media media = (Media) attributeSet.get(Media.class);
-        margin = Double.parseDouble(marginText.getText());
-        String paperSize = paperNameCombo.getSelectedItem().toString();
-        MediaSize mediaSize = new MediaSize(pageSizes.get(paperSize)[0], pageSizes.get(paperSize)[1], Size2DSyntax.INCH);
-        pf.setPaper(createPaper(mediaSize));
-        if (landscape.isSelected() && pf.getOrientation() != PageFormat.LANDSCAPE) {
-            pf.setOrientation(PageFormat.LANDSCAPE);
-        } else if (portrait.isSelected() && pf.getOrientation() != PageFormat.PORTRAIT) {
-            pf.setOrientation(PageFormat.PORTRAIT);
-        }
-        map.setMargin(margin);
-        
-        // map scale
-        map.mapScale.setVisible(checkScaleVisible.isSelected());
-        map.mapScale.setBorderVisible(checkScaleBorderVisible.isSelected());
-        map.mapScale.setBackgroundVisible(checkScaleBackgroundVisible.isSelected());
-        map.mapScale.setRepresentativeFractionVisible(checkScaleShowRF.isSelected());
-        if (!map.mapScale.getUnits().equals(scaleUnitText.getText())) {
-            map.mapScale.setUnits(scaleUnitText.getText());
-        }
-        if (map.mapScale.getHeight() != Integer.parseInt(scaleHeightText.getText())) {
-            map.mapScale.setHeight(Integer.parseInt(scaleHeightText.getText()));
-        }
-        if (map.mapScale.getWidth() != Integer.parseInt(scaleWidthText.getText())) {
-            map.mapScale.setWidth(Integer.parseInt(scaleWidthText.getText()));
-        }
-        if (map.mapScale.getMargin() != Integer.parseInt(scaleMarginText.getText())) {
-            map.mapScale.setMargin(Integer.parseInt(scaleMarginText.getText()));
-        }
-        map.mapScale.setScale(map.mapScale.getScale()); // this is just to refresh the map scale.
-        
-        // north arrow
-        map.northArrow.setVisible(checkNAVisible.isSelected());
-        map.northArrow.setBorderVisible(checkNABorderVisible.isSelected());
-        map.northArrow.setBackgroundVisible(checkNABackgroundVisible.isSelected());
-        if (map.northArrow.getMarkerSize() != Integer.parseInt(naMarkerSizeText.getText())) {
-            map.northArrow.setMarkerSize(Integer.parseInt(naMarkerSizeText.getText()));
-        }
-        if (map.northArrow.getMargin() != Integer.parseInt(naMarginText.getText())) {
-            map.northArrow.setMargin(Integer.parseInt(naMarginText.getText()));
-        }
-        
-        // map title
-        if (map.mapTitle.isVisible() != checkTitleVisible.isSelected()) {
-            map.mapTitle.setVisible(checkTitleVisible.isSelected());
-        }
-        map.mapTitle.setBorderVisible(checkTitleBorderVisible.isSelected());
-        map.mapTitle.setBackgroundVisible(checkTitleBackgroundVisible.isSelected());
-        if (map.mapTitle.getMargin() != Integer.parseInt(titleMarginText.getText())) {
-            map.mapTitle.setMargin(Integer.parseInt(titleMarginText.getText()));
-        }
-        if (!map.mapTitle.getLabel().toLowerCase().equals(titleLabelText.getText().toLowerCase())) {
-            map.mapTitle.setLabel(titleLabelText.getText());
-        }
-        Font labelFont = map.mapTitle.getLabelFont();
-        int fontSize = (Integer)(titleFontSize.getValue());
-        int style = 0;
-        if (titleFontBold.isSelected()) {
-            style += Font.BOLD;
-        }
-        if (titleFontItalics.isSelected()) {
-            style += Font.ITALIC;
-        }
-        Font newFont = new Font(labelFont.getName(), style, fontSize);
-        if (!labelFont.equals(newFont)) {
-            map.mapTitle.setLabelFont(newFont);
+        if (tabs.getSelectedIndex() == 0) {
+            // which element is currently selected?
+            int whichElement = listOfCartographicElements.size() - 1 - mapElementsList.getSelectedIndex();
+            CartographicElement ce = map.getCartographicElement(whichElement);
+            if (ce instanceof MapScale) {
+                MapScale mapScale = (MapScale) ce;
+                if (mapScale.isVisible() != checkScaleVisible.isSelected()) {
+                    mapScale.setVisible(checkScaleVisible.isSelected());
+                }
+                if (mapScale.isBorderVisible() != checkScaleBorderVisible.isSelected()) {
+                    mapScale.setBorderVisible(checkScaleBorderVisible.isSelected());
+                }
+                if (mapScale.isBackgroundVisible() != checkScaleBackgroundVisible.isSelected()) {
+                    mapScale.setBackgroundVisible(checkScaleBackgroundVisible.isSelected());
+                }
+                if (mapScale.isRepresentativeFractionVisible() != checkScaleShowRF.isSelected()) {
+                    mapScale.setRepresentativeFractionVisible(checkScaleShowRF.isSelected());
+                }
+                if (!mapScale.getUnits().equals(scaleUnitText.getText())) {
+                    mapScale.setUnits(scaleUnitText.getText());
+                }
+                if (mapScale.getHeight() != Integer.parseInt(scaleHeightText.getText())) {
+                    mapScale.setHeight(Integer.parseInt(scaleHeightText.getText()));
+                }
+                if (mapScale.getWidth() != Integer.parseInt(scaleWidthText.getText())) {
+                    mapScale.setWidth(Integer.parseInt(scaleWidthText.getText()));
+                }
+                if (mapScale.getMargin() != Integer.parseInt(scaleMarginText.getText())) {
+                    mapScale.setMargin(Integer.parseInt(scaleMarginText.getText()));
+                }
+                //mapScale.setScale(mapScale.getScale()); // this is just to refresh the map scale.
+                map.modifyElement(whichElement, ce);
+            } else if (ce instanceof NorthArrow) {
+                NorthArrow northArrow = (NorthArrow)ce;
+                if (northArrow.isVisible() != checkNAVisible.isSelected()) {
+                    northArrow.setVisible(checkNAVisible.isSelected());
+                }
+                if (northArrow.isBorderVisible() != checkNABorderVisible.isSelected()) {
+                    northArrow.setBorderVisible(checkNABorderVisible.isSelected());
+                }
+                if (northArrow.isBackgroundVisible() != checkNABackgroundVisible.isSelected()) {
+                    northArrow.setBackgroundVisible(checkNABackgroundVisible.isSelected());
+                }
+                if (northArrow.getMarkerSize() != Integer.parseInt(naMarkerSizeText.getText())) {
+                    northArrow.setMarkerSize(Integer.parseInt(naMarkerSizeText.getText()));
+                }
+                if (northArrow.getMargin() != Integer.parseInt(naMarginText.getText())) {
+                    northArrow.setMargin(Integer.parseInt(naMarginText.getText()));
+                }
+                map.modifyElement(whichElement, ce);
+            } else if (ce instanceof MapTitle) {
+                MapTitle mapTitle = (MapTitle)ce;
+                if (mapTitle.isVisible() != checkTitleVisible.isSelected()) {
+                    mapTitle.setVisible(checkTitleVisible.isSelected());
+                }
+                if (mapTitle.isBorderVisible() != checkTitleBorderVisible.isSelected()) {
+                    mapTitle.setBorderVisible(checkTitleBorderVisible.isSelected());
+                }
+                if (mapTitle.isBackgroundVisible() != checkTitleBackgroundVisible.isSelected()) {
+                    mapTitle.setBackgroundVisible(checkTitleBackgroundVisible.isSelected());
+                }
+                if (mapTitle.getMargin() != Integer.parseInt(titleMarginText.getText())) {
+                    mapTitle.setMargin(Integer.parseInt(titleMarginText.getText()));
+                }
+                if (!mapTitle.getLabel().toLowerCase().equals(titleLabelText.getText().toLowerCase())) {
+                    mapTitle.setLabel(titleLabelText.getText());
+                }
+                Font labelFont = mapTitle.getLabelFont();
+                int fontSize = (Integer) (titleFontSize.getValue());
+                int style = 0;
+                if (titleFontBold.isSelected()) {
+                    style += Font.BOLD;
+                }
+                if (titleFontItalics.isSelected()) {
+                    style += Font.ITALIC;
+                }
+                Font newFont = new Font(labelFont.getName(), style, fontSize);
+                if (!labelFont.equals(newFont)) {
+                    mapTitle.setLabelFont(newFont);
+                }
+            } else if (ce instanceof NeatLine) {
+                NeatLine neatline = (NeatLine)ce;
+                if (neatline.isVisible() != checkNeatlineVisible.isSelected()) {
+                    neatline.setVisible(checkNeatlineVisible.isSelected());
+                }
+                if (neatline.isBackgroundVisible() != checkNeatlineBackgroundVisible.isSelected()) {
+                    neatline.setBackgroundVisible(checkNeatlineBackgroundVisible.isSelected());
+                }
+                if (neatline.isDoubleLine() != checkNeatlineDoubleLine.isSelected()) {
+                    neatline.setDoubleLine(checkNeatlineDoubleLine.isSelected());
+                }
+                
+            } else if (ce instanceof MapArea) {
+                MapArea mapArea = (MapArea)ce;
+                if (mapArea.isVisible() != checkMapAreaVisible.isSelected()) {
+                    mapArea.setVisible(checkMapAreaVisible.isSelected());
+                }
+                if (mapArea.isBackgroundVisible() != checkMapAreaBackgroundVisible.isSelected()) {
+                    mapArea.setBackgroundVisible(checkMapAreaBackgroundVisible.isSelected());
+                }
+                if (mapArea.isReferenceMarksVisible() != checkMapAreaReferenceMarksVisible.isSelected()) {
+                    mapArea.setReferenceMarksVisible(checkMapAreaReferenceMarksVisible.isSelected());
+                }
+                if (mapArea.isNeatlineVisible() != checkMapAreaNeatlineVisible.isSelected()) {
+                    mapArea.setNeatlineVisible(checkMapAreaNeatlineVisible.isSelected());
+                }
+                if (mapArea.isBorderVisible() != checkMapAreaBorderVisible.isSelected()) {
+                    mapArea.setBorderVisible(checkMapAreaBorderVisible.isSelected());
+                }
+            }
+        } else if (tabs.getSelectedIndex() == 1) {
+            map.setPageVisible(checkPageVisible.isSelected());
+
+            PageFormat pf = map.getPageFormat();
+
+            //final Media media = (Media) attributeSet.get(Media.class);
+            margin = Double.parseDouble(marginText.getText());
+            String paperSize = paperNameCombo.getSelectedItem().toString();
+            MediaSize mediaSize = new MediaSize(pageSizes.get(paperSize)[0], pageSizes.get(paperSize)[1], Size2DSyntax.INCH);
+            
+            boolean changedOrientation = false;
+            if (landscape.isSelected() && pf.getOrientation() != PageFormat.LANDSCAPE) {
+                pf.setOrientation(PageFormat.LANDSCAPE);
+                changedOrientation = true;
+            } else if (portrait.isSelected() && pf.getOrientation() != PageFormat.PORTRAIT) {
+                pf.setOrientation(PageFormat.PORTRAIT);
+                changedOrientation = true;
+            }
+            
+            Paper paper = createPaper(mediaSize);
+            if (paper.getHeight() != pf.getPaper().getHeight() || 
+                    paper.getWidth() != pf.getPaper().getWidth() ||
+                    changedOrientation) {
+                pf.setPaper(paper);
+                // resize the page extent
+                BoundingBox pageExtent = map.getPageExtent();
+                pageExtent.setMinX(-6);
+                pageExtent.setMinY(-6);
+                pageExtent.setMaxX(pf.getWidth() + 12);
+                pageExtent.setMaxY(pf.getHeight() + 12);
+
+                map.setPageExtent(pageExtent);
+
+            }
+            map.setMargin(margin);
         }
         
         host.refreshMap(true);
@@ -1020,10 +1336,91 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
                 size.getY(MM) - MM - MM,
                 MM);
     }
-
+    
+    private void addElement() {
+        String label = possibleElementsList.getSelectedValue().toString();
+        if (label.toLowerCase().equals("scale")) {
+            map.addMapScale();
+            populateElementsList();
+        } else if (label.toLowerCase().equals("legend")) {
+            map.addLegend();
+            populateElementsList();
+        } else if (label.toLowerCase().equals("north arrow")) {
+            map.addNorthArrow();
+            populateElementsList();
+        } else if (label.toLowerCase().equals("map area")) {
+            map.addMapArea();
+            populateElementsList();
+        } else if (label.toLowerCase().equals("title")) {
+            map.addMapTitle();
+            populateElementsList();
+        } else if (label.toLowerCase().equals("neatline")) {
+            map.addNeatline();
+            populateElementsList();
+        }
+        mapElementsList.setSelectedIndex(0);
+        updateElementPropertiesPanel();
+    }
+    
+    private void addElement(String elementType) {
+        if (elementType.toLowerCase().equals("scale")) {
+            map.addMapScale();
+            populateElementsList();
+        } else if (elementType.toLowerCase().equals("legend")) {
+            map.addLegend();
+            populateElementsList();
+        } else if (elementType.toLowerCase().equals("north arrow")) {
+            map.addNorthArrow();
+            populateElementsList();
+        } else if (elementType.toLowerCase().equals("map area")) {
+            map.addMapArea();
+            populateElementsList();
+        } else if (elementType.toLowerCase().equals("title")) {
+            map.addMapTitle();
+            populateElementsList();
+        } else if (elementType.toLowerCase().equals("neatline")) {
+            map.addNeatline();
+            populateElementsList();
+        }
+        mapElementsList.setSelectedIndex(0);
+        host.refreshMap(false);
+        updateElementPropertiesPanel();
+    }
+    
+    private void removeElement() {
+        int elementNumber = listOfCartographicElements.size() - 1 - mapElementsList.getSelectedIndex();
+        map.removeCartographicElement(elementNumber);
+        host.refreshMap(true);
+        populateElementsList();
+        if (elementNumber >= listOfCartographicElements.size() - 1) {
+            mapElementsList.setSelectedIndex(0);
+        } else {
+            mapElementsList.setSelectedIndex(listOfCartographicElements.size() - 1 - elementNumber);
+        }
+        updateElementPropertiesPanel();
+    }
+    
+    private void elementUp() {
+        int elementNumber = listOfCartographicElements.size() - 1 - mapElementsList.getSelectedIndex();
+        map.promoteMapElement(elementNumber);
+        host.refreshMap(true);
+        populateElementsList();
+        mapElementsList.setSelectedIndex(listOfCartographicElements.size() - 2 - elementNumber);
+        updateElementPropertiesPanel();
+    }
+    
+    private void elementDown() {
+        int elementNumber = listOfCartographicElements.size() - 1 - mapElementsList.getSelectedIndex();
+        map.demoteMapElement(elementNumber);
+        host.refreshMap(true);
+        populateElementsList();
+        mapElementsList.setSelectedIndex(listOfCartographicElements.size() - elementNumber);
+        updateElementPropertiesPanel();
+    }
+    
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
+        //Object source = e.getSource();
         String actionCommand = e.getActionCommand();
         if (actionCommand.equals("close")) {
             setVisible(false);
@@ -1033,6 +1430,14 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             this.dispose();
         } else if (actionCommand.equals("update")) {
             updateMap();
+        } else if (actionCommand.equals("addElement")) {
+            addElement();
+        } else if (actionCommand.equals("removeElement")) {
+            removeElement();
+        } else if (actionCommand.equals("elementUp")) {
+            elementUp();
+        } else if (actionCommand.equals("elementDown")) {
+            elementDown();
         }
     }
     

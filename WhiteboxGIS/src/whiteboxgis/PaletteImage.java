@@ -118,6 +118,68 @@ public class PaletteImage extends JPanel {
     
     public boolean isSelected = false;
     
+    public Image getPaletteImage() {
+        try {
+            int width = getWidth();
+            int height = getHeight();
+
+            Image image = null;
+            int numDisplayedPaletteEntries = 0;
+            if (!categorical) {
+                numDisplayedPaletteEntries = paletteData.length;
+            } else {
+                numDisplayedPaletteEntries = (int) (
+                        Math.floor((maxValue - minValue + 1) / numPaletteEntries) + (maxValue - minValue + 1) % numPaletteEntries);
+            }
+            int[] imageData = new int[numDisplayedPaletteEntries];
+            int i, j;
+            int numPaletteEntriesLessOne = numPaletteEntries - 1;
+            if (!isReversed && orientation == VERTICAL_ORIENTATION) {
+                if (!categorical) {
+                    for (i = 0; i < numPaletteEntries; i++) {
+                        j = (int) ((Math.pow((1 - ((double) (i) / numPaletteEntriesLessOne)), gamma)) * numPaletteEntriesLessOne);
+                        imageData[i] = paletteData[j];
+                    }
+                } else { // it is categorical
+                    for (i = 0; i < numDisplayedPaletteEntries; i++) {
+                        j = (int) (i % numPaletteEntries);
+                        imageData[numDisplayedPaletteEntries - 1 - i] = paletteData[j];
+                    }
+                }
+                image = createImage(new MemoryImageSource(1, numDisplayedPaletteEntries, imageData, 0, 1));
+            } else if (!isReversed && orientation == HORIZONTAL_ORIENTATION) {
+                for (i = 0; i < numPaletteEntries; i++) {
+                    j = (int)((Math.pow(((double)(i) / numPaletteEntriesLessOne), gamma)) * numPaletteEntriesLessOne);
+                    imageData[i] = paletteData[j];
+                }
+                image = createImage(new MemoryImageSource(numPaletteEntries, 1, imageData, 0, 1));
+            } else if (isReversed && orientation == VERTICAL_ORIENTATION) {
+                if (!categorical) {
+                    for (i = 0; i < numPaletteEntries; i++) {
+                        j = (int) ((Math.pow(((double) (i) / numPaletteEntriesLessOne), gamma)) * numPaletteEntriesLessOne);
+                        imageData[i] = paletteData[j];
+                    }
+                } else { // it is categorical
+                    for (i = 0; i < numDisplayedPaletteEntries; i++) {
+                        j = (int) (numPaletteEntries - i % numPaletteEntries - 1);
+                        imageData[numDisplayedPaletteEntries - 1 - i] = paletteData[j];
+                    }
+                }
+                image = createImage(new MemoryImageSource(1, numDisplayedPaletteEntries, imageData, 0, 1));
+            } else if (isReversed && orientation == HORIZONTAL_ORIENTATION) {
+                for (i = 0; i < numPaletteEntries; i++) {
+                    j = (int)((Math.pow((1 - ((double)(i) / numPaletteEntriesLessOne)), gamma)) * numPaletteEntriesLessOne);
+                    imageData[i] = paletteData[j];
+                }
+                image = createImage(new MemoryImageSource(imageData.length, 1, imageData, 0, 1));
+            }
+            return image;
+        } catch (Exception e) {
+            return null;
+        }
+        
+    }
+    
     @Override
     public void paint (Graphics g) {
         try {
@@ -183,7 +245,6 @@ public class PaletteImage extends JPanel {
             }
             
             g.drawImage(image, 0, 0, width, height, this);
-
             if (!isSelected) {
                 g.setColor(Color.black);
                 g.drawRect(0, 0, width - 1, height - 1);

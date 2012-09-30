@@ -26,6 +26,8 @@ import java.text.DecimalFormat;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import whitebox.cartographic.MapArea;
+import whitebox.geospatialfiles.RasterLayerInfo;
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataScale;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
 import whitebox.geospatialfiles.shapefile.ShapeType;
@@ -49,14 +51,17 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
     private boolean selected = false;
     private WhiteboxPluginHost host = null;
     private String mapTitle;
+    private String mapAreaName;
     private JLabel titleLabel;
     private Font myFont;
     private int leftMarginSize = 10;
     private int mapNum = -1;
     private int layerNum = -1;
+    private int mapAreaNum = -1;
+    private int legendEntryType;
     
     public LegendEntryPanel(MapLayer layer, WhiteboxPluginHost host, Font font, 
-       int mapNum, int layerNum, boolean isSelected) {
+       int mapNum, int mapAreaNum, int layerNum, boolean isSelected) {
         DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
         textForeground = renderer.getTextNonSelectionColor();
         textBackground = renderer.getBackgroundNonSelectionColor();
@@ -74,22 +79,38 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
         this.selected = isSelected;
         this.mapNum = mapNum;
         this.layerNum = layerNum;
-        
+        this.mapAreaNum = mapAreaNum;
+        this.legendEntryType = 1;
         createMapLayerLegendEntry();
         
     }
     
     public LegendEntryPanel(String mapTitle, WhiteboxPluginHost host, Font font, 
-       int mapNum, int layerNum, boolean isSelected) {
+       int mapNum, int mapAreaNum, int layerNum, boolean isSelected) {
         this.mapTitle = mapTitle;
         this.host = host;
         this.myFont = font;
         this.selected = isSelected;
         this.mapNum = mapNum;
         this.layerNum = layerNum;
+        this.mapAreaNum = mapAreaNum;
+        this.legendEntryType = 0;
         createMapLegendEntry();
     }
-
+    
+    public LegendEntryPanel(MapArea mapArea, WhiteboxPluginHost host, Font font, 
+       int mapNum, int mapAreaNum, int layerNum, boolean isSelected) {
+        this.mapAreaName = mapArea.getName();
+        this.host = host;
+        this.myFont = font;
+        this.selected = isSelected;
+        this.mapNum = mapNum;
+        this.layerNum = layerNum;
+        this.mapAreaNum = mapAreaNum;
+        this.legendEntryType = 2;
+        createMapAreaLegendEntry();
+    }
+    
     private void createMapLegendEntry() {
         try {
             this.removeAll();
@@ -100,6 +121,29 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
             titleLabel.setFont(myFont);
             this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             this.add(Box.createHorizontalStrut(5));
+            this.add(titleLabel);
+            this.add(Box.createHorizontalGlue());
+            //this.setPreferredSize(this.getPreferredSize());
+            //this.validate();
+            this.setOpaque(false);
+            this.setMaximumSize(new Dimension(1000, 15));
+            this.addMouseListener(this);
+            this.revalidate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    
+    private void createMapAreaLegendEntry() {
+        try {
+            this.removeAll();
+            String graphicsDirectory = host.getResourcesDirectory() + "Images" + File.separator;
+            BufferedImage myPicture = ImageIO.read(new File(graphicsDirectory + "mapArea.png"));
+            titleLabel = new JLabel(mapAreaName, new ImageIcon(myPicture), JLabel.RIGHT);
+            titleLabel.setOpaque(false);
+            titleLabel.setFont(myFont);
+            this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            this.add(Box.createHorizontalStrut(15));
             this.add(titleLabel);
             this.add(Box.createHorizontalGlue());
             //this.setPreferredSize(this.getPreferredSize());
@@ -144,9 +188,9 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
                     PaletteImage paletteImage = null;
 
                     if (!rli.isPaletteReversed()) {
-                        paletteImage = new PaletteImage(18, 50, rli.getPaletteFile(), false, PaletteImage.VERTICAL_ORIENTATION);
+                        paletteImage = new PaletteImage(18, 45, rli.getPaletteFile(), false, PaletteImage.VERTICAL_ORIENTATION);
                     } else {
-                        paletteImage = new PaletteImage(18, 50, rli.getPaletteFile(), true, PaletteImage.VERTICAL_ORIENTATION);
+                        paletteImage = new PaletteImage(18, 45, rli.getPaletteFile(), true, PaletteImage.VERTICAL_ORIENTATION);
                     }
                     if (rli.getDataScale() == DataScale.CATEGORICAL) {
                         paletteImage.isCategorical(true, rli.getMinVal(), rli.getMaxVal());
@@ -202,42 +246,42 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
                     this.setBackground(textBackground);
                 }
             } else if (mapLayer.getLayerType() == MapLayerType.VECTOR) {
-                VectorLayerInfo vli = (VectorLayerInfo)mapLayer;
+                VectorLayerInfo vli = (VectorLayerInfo) mapLayer;
                 ShapeType st = vli.getShapeType();
 
-                    LegendEntry[] le = vli.getLegendEntries();
-                    if (le != null && le[0].getLegendLabel().equals("continuous numerical variable") && le[0].getLegendColour().equals(Color.black)) {
-                        // it's a continuous, scaled, numerical variable
-                        layerBox.add(Box.createVerticalStrut(5));
-                        Box box2 = Box.createHorizontalBox();
+                LegendEntry[] le = vli.getLegendEntries();
+                if (le != null && le[0].getLegendLabel().equals("continuous numerical variable") && le[0].getLegendColour().equals(Color.black)) {
+                    // it's a continuous, scaled, numerical variable
+                    layerBox.add(Box.createVerticalStrut(5));
+                    Box box2 = Box.createHorizontalBox();
 
-                        PaletteImage paletteImage = null;
-                        paletteImage = new PaletteImage(18, 50, vli.getPaletteFile(), false, PaletteImage.VERTICAL_ORIENTATION);
-                        box2.add(Box.createHorizontalStrut(5));
-                        box2.add(paletteImage);
+                    PaletteImage paletteImage = null;
+                    paletteImage = new PaletteImage(18, 50, vli.getPaletteFile(), false, PaletteImage.VERTICAL_ORIENTATION);
+                    box2.add(Box.createHorizontalStrut(5));
+                    box2.add(paletteImage);
 
-                        JLabel maxVal = new JLabel(df.format(vli.getMaximumValue()));
-                        JLabel minVal = new JLabel(df.format(vli.getMinimumValue()));
+                    JLabel maxVal = new JLabel(df.format(vli.getMaximumValue()));
+                    JLabel minVal = new JLabel(df.format(vli.getMinimumValue()));
 
-                        Box box3 = Box.createVerticalBox();
-                        box3.add(maxVal);
-                        box3.add(Box.createVerticalGlue());
-                        box3.add(minVal);
+                    Box box3 = Box.createVerticalBox();
+                    box3.add(maxVal);
+                    box3.add(Box.createVerticalGlue());
+                    box3.add(minVal);
 
-                        box2.add(Box.createHorizontalStrut(5));
-                        box2.add(box3);
+                    box2.add(Box.createHorizontalStrut(5));
+                    box2.add(box3);
 
-                        box2.add(Box.createHorizontalGlue());
-                        layerBox.add(box2);
-                    } else {
-                        Box sampleVecBox = Box.createHorizontalBox();
-                        SampleVector sv = new SampleVector(st, vli, true);
-                        sampleVecBox.add(sv);
-                        sampleVecBox.add(Box.createHorizontalGlue());
-                        layerBox.add(sampleVecBox);
-                    }
+                    box2.add(Box.createHorizontalGlue());
+                    layerBox.add(box2);
+                } else {
+                    Box sampleVecBox = Box.createHorizontalBox();
+                    SampleVector sv = new SampleVector(st, vli, true);
+                    sampleVecBox.add(sv);
+                    sampleVecBox.add(Box.createHorizontalGlue());
+                    layerBox.add(sampleVecBox);
+                }
 //                }
-             
+
 
                 layerBox.add(Box.createVerticalStrut(5));
 
@@ -281,20 +325,18 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
     }
     
     public int getLegendEntryType() {
-        if (layerNum < 0) {
-            return 0; // map
-        } else {
-            return 1; // map layer
-        }
+        return legendEntryType;
     }
 
     public void setTitleFont(Font font) {
         if (!font.equals(myFont)) {
             myFont = font;
-            if (getLegendEntryType() == 0) {
+            if (legendEntryType == 0) {
                 createMapLegendEntry();
-            } else {
+            } else if (legendEntryType == 1) {
                 createMapLayerLegendEntry();
+            } else if (legendEntryType == 2) {
+                createMapAreaLegendEntry();
             }
         }
     }
@@ -305,6 +347,10 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
 
     public int getMapNum() {
         return mapNum;
+    }
+    
+    public int getMapArea() {
+        return mapAreaNum;
     }
     
     @Override
@@ -329,13 +375,13 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
         //wb.layersTabMousePress(me, mapNum, layerNum);
         if (me.getClickCount() == 2 && !me.isConsumed()) {
             me.consume();
-            wb.layersTabMousePress(me, mapNum, layerNum);
+            wb.layersTabMousePress(me, mapNum, mapAreaNum, layerNum);
         } else if (me.getButton() == 3 || me.isPopupTrigger()) {
             me.consume();
-            wb.layersTabMousePress(me, mapNum, layerNum);
+            wb.layersTabMousePress(me, mapNum, mapAreaNum, layerNum);
         } else if (me.getClickCount() == 1 && !me.isConsumed()) {
             me.consume();
-            wb.layersTabMousePress(me, mapNum, layerNum);
+            wb.layersTabMousePress(me, mapNum, mapAreaNum, layerNum);
         }
     }
 

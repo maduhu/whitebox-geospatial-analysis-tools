@@ -96,8 +96,12 @@ public class VectorLayerInfo implements MapLayer {
                 layerTitle.toLowerCase().contains("transportation"))) {
             lineColour = Color.black;
         } else if (shapeType == ShapeType.POLYLINE && (layerTitle.toLowerCase().contains("stream") ||
-                layerTitle.toLowerCase().contains("river"))) {
+                layerTitle.toLowerCase().contains("river") || layerTitle.toLowerCase().contains("water"))) {
             lineColour = Color.blue;
+        } else if (shapeType == ShapeType.POLYGON && (layerTitle.toLowerCase().contains("lake") ||
+                layerTitle.toLowerCase().contains("water"))) {
+            lineColour = Color.black;
+            fillColour = Color.blue;
         } else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
             //lineColour = Color.RED; // new Color(153, 204, 255);
             Random generator = new Random();

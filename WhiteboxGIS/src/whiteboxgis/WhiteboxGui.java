@@ -21,6 +21,7 @@ import java.awt.event.*;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.*;
+import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -44,12 +45,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import rastercalculator.RasterCalculator;
+import whitebox.cartographic.MapArea;
+import whitebox.cartographic.MapTitle;
+import whitebox.geospatialfiles.RasterLayerInfo;
 import whitebox.interfaces.MapLayer.MapLayerType;
 import whitebox.interfaces.*;
 import whitebox.structures.BoundingBox;
 import whitebox.structures.ExtensionFileFilter;
 import whitebox.utilities.FileUtilities;
-import java.lang.reflect.Method;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
@@ -59,7 +62,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     StatusBar status = new StatusBar(this);
     // common variables
-    static private String versionNumber = "2.0.3";
+    static private String versionNumber = "2.0.4";
     private String applicationDirectory;
     private String resourcesDirectory;
     private String graphicsDirectory;
@@ -76,7 +79,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private int splitterToolboxLoc;
     private int tbTabsIndex = 0;
     private int qlTabsIndex = 0;
-    private int[] selectedMapAndLayer = new int[2];
+    private int[] selectedMapAndLayer = new int[3];
     private boolean linkAllOpenMaps = false;
     // Gui items.
     private JList allTools;
@@ -90,12 +93,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JTree tree = null;
     private JTabbedPane qlTabs = null;
     private JTabbedPane tb = null;
-    private MapRenderer drawingArea = new MapRenderer();
+    private MapRenderer2 drawingArea = new MapRenderer2();
     private ArrayList<MapInfo> openMaps = new ArrayList<MapInfo>();
     private int activeMap = 0;
     private int numOpenMaps = 1;
     private JPopupMenu layersPopup = null;
     private JPopupMenu mapsPopup = null;
+    private JPopupMenu mapAreaPopup = null;
     private JPopupMenu textPopup = null;
     private JButton pan = null;
     private JButton zoomIntoBox = null;
@@ -193,50 +197,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             System.out.println(e.getMessage());
         }
     }
-//    public static void main(String[] args) {
-//        setLookAndFeel2("systemLAF");
-//        WhiteboxGui wb = new WhiteboxGui();
-//        wb.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-//        wb.setVisible(true);
-//    }
-//    
-//    private static void setLookAndFeel2(String lafName) {
-//        try {
-//            if (System.getProperty("os.name").contains("Mac")) {
-//                System.setProperty("apple.laf.useScreenMenuBar", "true");
-//                System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GIS");
-//                System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
-//                System.setProperty("Xdock:name", "Whitebox");
-//                System.setProperty("apple.awt.fileDialogForDirectories", "true");
-//            }
-//
-//            if (lafName.equals("systemLAF")) {
-//                lafName = getSystemLookAndFeelName2();
-//            }
-//
-//            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-//                if (lafName.equals(info.getName())) {
-//                    UIManager.setLookAndFeel(info.getClassName());
-//                    break;
-//                }
-//            }
-//
-//        } catch (Exception e) {
-//            System.err.println(e.getMessage());
-//        }
-//    }
-//
-//    private static String getSystemLookAndFeelName2() {
-//        String className = UIManager.getSystemLookAndFeelClassName();
-//        String name = null;
-//        for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-//            if (className.equals(info.getClassName())) {
-//                name = info.getName();
-//                break;
-//            }
-//        }
-//        return name;
-//    }
+
     private ArrayList<PluginInfo> plugInfo = null;
 
     private void loadPlugins() {
@@ -584,8 +545,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             createPopupMenus();
             createToolbar();
 
-            MapInfo mapinfo = new MapInfo("New Map 1"); //"New Map 1");
-            mapinfo.setMapTitle("New Map 1");
+            MapInfo mapinfo = new MapInfo("Map1");
+            mapinfo.setMapName("Map1");
             openMaps.add(mapinfo);
             activeMap = 0;
             drawingArea.setMapInfo(mapinfo);
@@ -761,45 +722,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             LayersMenu.add(clipLayerToExtent);
             menubar.add(LayersMenu);
 
-
-            // Cartographic menu
-            JMenu cartoMenu = new JMenu("Cartographic");
-            
-            JMenuItem insertTitle = new JMenuItem("Insert Map Title");
-            cartoMenu.add(insertTitle);
-            insertTitle.addActionListener(this);
-            insertTitle.setActionCommand("insertTitle");
-
-            JMenuItem insertNorthArrow = new JMenuItem("Insert North Arrow");
-            cartoMenu.add(insertNorthArrow);
-            insertNorthArrow.addActionListener(this);
-            insertNorthArrow.setActionCommand("insertNorthArrow");
-
-            JMenuItem insertScale = new JMenuItem("Insert Scale");
-            cartoMenu.add(insertScale);
-            insertScale.addActionListener(this);
-            insertScale.setActionCommand("insertScale");
-
-            JMenuItem insertLegend = new JMenuItem("Insert Legend");
-            cartoMenu.add(insertLegend);
-            insertLegend.addActionListener(this);
-            insertLegend.setActionCommand("insertLegend");
-
-            JCheckBoxMenuItem showNeatline = new JCheckBoxMenuItem("Show Neatline");
-            cartoMenu.add(showNeatline);
-            showNeatline.setState(true);
-            showNeatline.addActionListener(this);
-            showNeatline.setActionCommand("showNeatline");
-
-            cartoMenu.addSeparator();
-            
-            JMenuItem pageProps = new JMenuItem("Page Properties", new ImageIcon(graphicsDirectory + "page.png"));
-            cartoMenu.add(pageProps);
-            pageProps.addActionListener(this);
-            pageProps.setActionCommand("pageProps");
-
-            menubar.add(cartoMenu);
-
             
             
             // View menu
@@ -916,6 +838,50 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             menubar.add(viewMenu);
 
+
+            // Cartographic menu
+            JMenu cartoMenu = new JMenu("Cartographic");
+            
+            JMenuItem insertTitle = new JMenuItem("Insert Map Title");
+            cartoMenu.add(insertTitle);
+            insertTitle.addActionListener(this);
+            insertTitle.setActionCommand("insertTitle");
+
+            JMenuItem insertNorthArrow = new JMenuItem("Insert North Arrow");
+            cartoMenu.add(insertNorthArrow);
+            insertNorthArrow.addActionListener(this);
+            insertNorthArrow.setActionCommand("insertNorthArrow");
+
+            JMenuItem insertScale = new JMenuItem("Insert Scale");
+            cartoMenu.add(insertScale);
+            insertScale.addActionListener(this);
+            insertScale.setActionCommand("insertScale");
+
+            JMenuItem insertLegend = new JMenuItem("Insert Legend");
+            cartoMenu.add(insertLegend);
+            insertLegend.addActionListener(this);
+            insertLegend.setActionCommand("insertLegend");
+
+            JMenuItem insertNeatline = new JMenuItem("Insert Neatline");
+            cartoMenu.add(insertNeatline);
+            insertNeatline.addActionListener(this);
+            insertNeatline.setActionCommand("insertNeatline");
+
+            JMenuItem insertMapArea = new JMenuItem("Insert Map Area", new ImageIcon(graphicsDirectory + "mapArea.png"));
+            cartoMenu.add(insertMapArea);
+            insertMapArea.addActionListener(this);
+            insertMapArea.setActionCommand("insertMapArea");
+
+            cartoMenu.addSeparator();
+            
+            JMenuItem pageProps = new JMenuItem("Page Properties", new ImageIcon(graphicsDirectory + "page.png"));
+            cartoMenu.add(pageProps);
+            pageProps.addActionListener(this);
+            pageProps.setActionCommand("pageProps");
+
+            menubar.add(cartoMenu);
+            
+            
             // Tools menu
             JMenu ToolsMenu = new JMenu("Tools");
             ToolsMenu.add(rasterCalc);
@@ -1080,11 +1046,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         mapsPopup.addSeparator();
 
-        mi = new JMenuItem("Refresh Map");
-        mi.addActionListener(this);
-        mi.setActionCommand("refreshMap");
-        mapsPopup.add(mi);
-
         mi = new JMenuItem("Save Map", new ImageIcon(graphicsDirectory + "SaveMap.png"));
         mi.addActionListener(this);
         mi.setActionCommand("saveMap");
@@ -1112,50 +1073,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         mapsPopup.addSeparator();
 
-        mi = new JMenuItem("Add Layer", new ImageIcon(graphicsDirectory + "AddLayer.png"));
+        mi = new JMenuItem("Refresh Map");
         mi.addActionListener(this);
-        mi.setActionCommand("addLayer");
-
+        mi.setActionCommand("refreshMap");
         mapsPopup.add(mi);
-        mi = new JMenuItem("Remove Layer", new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
+        
+        mi = new JMenuItem("Zoom to Page", new ImageIcon(graphicsDirectory + "ZoomFullExtent3.png"));
         mi.addActionListener(this);
-        mi.setActionCommand("removeLayer");
+        mi.setActionCommand("zoomToPage");
         mapsPopup.add(mi);
-
-        mi = new JMenuItem("Remove All Layers");
-        mi.addActionListener(this);
-        mi.setActionCommand("removeAllLayers");
-        mapsPopup.add(mi);
-
-        mi = new JMenuItem("Show All Layers");
-        mi.addActionListener(this);
-        mi.setActionCommand("allLayersVisible");
-        mapsPopup.add(mi);
-
-        mi = new JMenuItem("Hide All Layers");
-        mi.addActionListener(this);
-        mi.setActionCommand("allLayersInvisible");
-        mapsPopup.add(mi);
-
+        
         mapsPopup.addSeparator();
-
-        mi = new JMenuItem("Zoom Active To Layer", new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
-        mi.addActionListener(this);
-        mi.setActionCommand("zoomToLayer");
-        mapsPopup.add(mi);
-
-        mi = new JMenuItem("Zoom To Full Extent", new ImageIcon(graphicsDirectory + "ZoomFullExtent3.png"));
-        mi.addActionListener(this);
-        mi.setActionCommand("zoomToFullExtent");
-        mapsPopup.add(mi);
-
-        mi = new JMenuItem("Toggle Visibility of All Layers");
-        mi.addActionListener(this);
-        mi.setActionCommand("toggleAllLayerVisibility");
-        mapsPopup.add(mi);
-
-        mapsPopup.addSeparator();
-
+        
         mi = new JMenuItem("Close Map");
         mi.addActionListener(this);
         mi.setActionCommand("closeMap");
@@ -1163,6 +1092,81 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         mapsPopup.setOpaque(true);
         mapsPopup.setLightWeightPopupEnabled(true);
+
+        
+        
+        // map area popup menu
+        mapAreaPopup = new JPopupMenu();
+        
+        mi = new JMenuItem("Add Layer", new ImageIcon(graphicsDirectory + "AddLayer.png"));
+        mi.addActionListener(this);
+        mi.setActionCommand("addLayer");
+
+        mapAreaPopup.add(mi);
+        mi = new JMenuItem("Remove Layer", new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
+        mi.addActionListener(this);
+        mi.setActionCommand("removeLayer");
+        mapAreaPopup.add(mi);
+
+        mi = new JMenuItem("Remove All Layers");
+        mi.addActionListener(this);
+        mi.setActionCommand("removeAllLayers");
+        mapAreaPopup.add(mi);
+
+        mapAreaPopup.addSeparator();
+        
+        mi = new JMenuItem("Fit to Data");
+        mi.addActionListener(this);
+        mi.setActionCommand("fitMapAreaToData");
+        mapAreaPopup.add(mi);
+        
+        JCheckBoxMenuItem miCheck = new JCheckBoxMenuItem("Maximize Screen Size");
+        miCheck.addActionListener(this);
+        miCheck.setActionCommand("maximizeMapAreaScreenSize");
+        mapAreaPopup.add(miCheck);
+        
+        
+        mi = new JMenuItem("Zoom To Active Layer", new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
+        mi.addActionListener(this);
+        mi.setActionCommand("zoomToLayer");
+        mapAreaPopup.add(mi);
+
+        mi = new JMenuItem("Zoom To Full Extent", new ImageIcon(graphicsDirectory + "Globe.png"));
+        mi.addActionListener(this);
+        mi.setActionCommand("zoomToFullExtent");
+        mapAreaPopup.add(mi);
+        
+        mapAreaPopup.addSeparator();
+
+        mi = new JMenuItem("Show All Layers");
+        mi.addActionListener(this);
+        mi.setActionCommand("allLayersVisible");
+        mapAreaPopup.add(mi);
+
+        mi = new JMenuItem("Hide All Layers");
+        mi.addActionListener(this);
+        mi.setActionCommand("allLayersInvisible");
+        mapAreaPopup.add(mi);
+
+        mi = new JMenuItem("Toggle Visibility of All Layers");
+        mi.addActionListener(this);
+        mi.setActionCommand("toggleAllLayerVisibility");
+        mapAreaPopup.add(mi);
+        
+        mapAreaPopup.addSeparator();
+        
+        mi = new JMenuItem("Show Properties");
+        mi.addActionListener(this);
+        mi.setActionCommand("mapAreaProperties");
+        mapAreaPopup.add(mi);
+        
+        mapAreaPopup.addSeparator();
+        
+        mi = new JMenuItem("Delete Map Area");
+        mi.addActionListener(this);
+        mi.setActionCommand("deleteMapArea");
+        mapAreaPopup.add(mi);
+
 
 
         // text popup menu
@@ -1256,6 +1260,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.add(pan);
             select = makeToolBarButton("select.png", "select", "Select", "Select");
             toolbar.add(select);
+            toolbar.addSeparator();
+            JButton zoomToPage = makeToolBarButton("ZoomFullExtent3.png", "zoomToPage", "Zoom To Page", "Zoom To Page");
+            toolbar.add(zoomToPage);
             JButton zoomToFullExtent = makeToolBarButton("Globe.png", "zoomToFullExtent", "Zoom To Full Extent", "Zoom To Full Extent");
             toolbar.add(zoomToFullExtent);
             JButton zoomToActiveLayer = makeToolBarButton("ZoomToActiveLayer.png", "zoomToLayer", "Zoom To Active Layer", "Zoom To Active");
@@ -1291,6 +1298,23 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JLabel scaleLabel = new JLabel("1:");
             scalePanel.add(scaleLabel);
             scalePanel.add(scaleText);
+            scaleText.addKeyListener(new KeyListener() {
+
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        updateMapScale();
+                    }
+                }
+
+                @Override
+                public void keyReleased(KeyEvent e) {
+                }
+
+                @Override
+                public void keyTyped(KeyEvent e) {
+                }
+            });
             scalePanel.setMinimumSize(new Dimension(120, 22));
             scalePanel.setPreferredSize(new Dimension(120, 22));
             scalePanel.setMaximumSize(new Dimension(120, 22));
@@ -1303,6 +1327,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             showFeedback(e.getMessage());
         }
 
+    }
+    
+    private void updateMapScale() {
+        try {
+            String input = scaleText.getText().replace(",", "");
+            double newScale = Double.parseDouble(input);
+            MapArea mapArea = openMaps.get(activeMap).getActiveMapArea();
+            mapArea.setScale(newScale);
+            refreshMap(false);
+        } catch (Exception e) {
+            // do nothing
+        }
     }
 
     private JButton makeToolBarButton(String imageName, String actionCommand, String toolTipText, String altText) {
@@ -1355,7 +1391,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             // how many legend entries should there be?
             int numLegendEntries = 0;
             for (MapInfo mi : openMaps) {
-                numLegendEntries += mi.getNumLayers() + 1;
+                numLegendEntries++; // one for the map entry.
+                for (MapArea ma : mi.getMapAreas()) {
+                    numLegendEntries++; // plus one for the mapArea
+                    numLegendEntries += ma.getNumLayers();
+                }
             }
             if (numLegendEntries != legendEntries.size()) {
                 getLegendEntries();
@@ -1377,8 +1417,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 } else {
                     lep.setTitleFont(fonts.get("inactiveMap"));
 
-                    if (linkAllOpenMaps && (openMaps.get(lep.getMapNum()).getCurrentExtent() != openMaps.get(activeMap).getCurrentExtent())) {
-                        openMaps.get(lep.getMapNum()).setCurrentExtent(openMaps.get(activeMap).getCurrentExtent());
+                    if (linkAllOpenMaps && (openMaps.get(lep.getMapNum()).getActiveMapArea().getCurrentExtent() != openMaps.get(activeMap).getActiveMapArea().getCurrentExtent())) {
+                        openMaps.get(lep.getMapNum()).getActiveMapArea().setCurrentExtent(openMaps.get(activeMap).getActiveMapArea().getCurrentExtent());
                     }
 
                 }
@@ -1389,16 +1429,33 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
                 legend.add(lep);
                 
-            } else { // it's a layer
+            } else if (lep.getLegendEntryType() == 2) { // it's a map area
+                if (lep.getMapArea() == openMaps.get(activeMap).getActiveMapArea().getElementNumber()) {
+                    lep.setTitleFont(fonts.get("activeMap"));
+                } else {
+                    lep.setTitleFont(fonts.get("inactiveMap"));
+                }
+                legend.add(Box.createVerticalStrut(8));
+                legend.add(lep);
+                
+            } else if (lep.getLegendEntryType() == 1) { // it's a layer
                 if ((lep.getMapNum() == selectedMapAndLayer[0]) && 
-                        (lep.getLayerNum() == selectedMapAndLayer[1])) {
+                        (lep.getLayerNum() == selectedMapAndLayer[1])&& 
+                        (lep.getMapArea() == selectedMapAndLayer[2])) {
                     lep.setSelected(true);
                 } else {
                     lep.setSelected(false);
                 }
-                if ((lep.getMapNum() == activeMap) && 
-                        (lep.getLayerNum() == openMaps.get(lep.getMapNum()).getActiveLayerOverlayNumber())) {
-                    lep.setTitleFont(fonts.get("activeLayer"));
+                if (lep.getMapNum() == activeMap) {
+                    if (lep.getMapArea() == openMaps.get(activeMap).getActiveMapArea().getElementNumber()) {
+                        if (lep.getLayerNum() == openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber()) {
+                            lep.setTitleFont(fonts.get("activeLayer"));
+                        } else {
+                            lep.setTitleFont(fonts.get("inactiveLayer"));
+                        }
+                    } else {
+                        lep.setTitleFont(fonts.get("inactiveLayer"));
+                    }
                 } else {
                     lep.setTitleFont(fonts.get("inactiveLayer"));
                 }
@@ -1432,28 +1489,36 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         for (MapInfo mi : openMaps) {
             LegendEntryPanel legendMapEntry;
             if (i == activeMap) {
-                legendMapEntry = new LegendEntryPanel(mi.getMapTitle(), 
-                    this, fonts.get("activeMap"), i, -1, (i == selectedMapAndLayer[0]));
+                legendMapEntry = new LegendEntryPanel(mi.getMapName(), 
+                    this, fonts.get("activeMap"), i, -1, -1, (i == selectedMapAndLayer[0]));
             } else {
-                legendMapEntry = new LegendEntryPanel(mi.getMapTitle(), 
-                    this, fonts.get("inactiveMap"), i, -1, (i == selectedMapAndLayer[0]));
+                legendMapEntry = new LegendEntryPanel(mi.getMapName(), 
+                    this, fonts.get("inactiveMap"), i, -1, -1, (i == selectedMapAndLayer[0]));
             }
             legendEntries.add(legendMapEntry);
             
-            for (int j = mi.getNumLayers() - 1; j >= 0; j--) {
-                // add them to the tree in the order of their overlayNumber
-                MapLayer layer = mi.getLayer(j);
-                LegendEntryPanel legendLayer;
-                if (j == mi.getActiveLayerOverlayNumber()) {
-                    legendLayer = new LegendEntryPanel(layer, this, fonts.get("activeLayer"),
-                            i, j, (j == selectedMapAndLayer[1]));
-                } else {
-                    legendLayer = new LegendEntryPanel(layer, this, fonts.get("inactiveLayer"),
-                            i, j, (j == selectedMapAndLayer[1]));
+            for (MapArea mapArea : mi.getMapAreas()) {
+                LegendEntryPanel legendMapAreaEntry;
+                legendMapAreaEntry = new LegendEntryPanel(mapArea, 
+                    this, fonts.get("inactiveMap"), i, mapArea.getElementNumber(), -1, (i == selectedMapAndLayer[0]));
+                legendEntries.add(legendMapAreaEntry);
+                
+                for (int j = mapArea.getNumLayers() - 1; j >= 0; j--) {
+                    // add them to the tree in the order of their overlayNumber
+                    MapLayer layer = mapArea.getLayer(j);
+                    LegendEntryPanel legendLayer;
+                    if (j == mapArea.getActiveLayerOverlayNumber()) {
+                        legendLayer = new LegendEntryPanel(layer, this, fonts.get("activeLayer"),
+                                i, mapArea.getElementNumber(), j, (j == selectedMapAndLayer[1]));
+                    } else {
+                        legendLayer = new LegendEntryPanel(layer, this, fonts.get("inactiveLayer"),
+                                i, mapArea.getElementNumber(), j, (j == selectedMapAndLayer[1]));
+                    }
+                    legendEntries.add(legendLayer);
                 }
-                legendEntries.add(legendLayer);
             }
             i++;
+            
         }
     }
     
@@ -1483,40 +1548,55 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    public void layersTabMousePress(MouseEvent e, int mapNum, int layerNum) {
+    public void layersTabMousePress(MouseEvent e, int mapNum, int mapArea, int layerNum) {
         // update the selected map and layer
         selectedMapAndLayer[0] = mapNum;
         selectedMapAndLayer[1] = layerNum;
+        selectedMapAndLayer[2] = mapArea;
 
         if (e.getButton() == 3 || e.isPopupTrigger()) {
             // is it a map?
-            if (layerNum == -1) { // it's a map
+            if (layerNum == -1 && mapArea == -1) { // it's a map
                 mapsPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
+            } else if (layerNum == -1) { // it's a mapArea
+                mapAreaPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
             } else { // it's a layer
                 // see if it's a raster or vector layer
-                if (openMaps.get(mapNum).getLayer(layerNum) instanceof RasterLayerInfo) {
-                    menuItemAttributeTable.setVisible(false);
-                    menuItemHisto.setVisible(true);
-                    menuChangePalette.setVisible(true);
-                    menuReversePalette.setVisible(true);
-                    layersPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
-                } else if (openMaps.get(mapNum).getLayer(layerNum) instanceof VectorLayerInfo) {
-                    menuItemAttributeTable.setVisible(true);
-                    menuItemHisto.setVisible(false);
-                    menuChangePalette.setVisible(false);
-                    menuReversePalette.setVisible(false);
-                    layersPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
+                openMaps.get(mapNum).deslectAllCartographicElements();
+                ArrayList<MapArea> mapAreas = openMaps.get(mapNum).getMapAreas();
+                
+                MapArea activeMapArea = null;
+                for (MapArea ma : mapAreas) {
+                    if (ma.getElementNumber() == mapArea) {
+                        activeMapArea = ma;
+                    }
+                }
+                if (activeMapArea != null) {
+                    if (activeMapArea.getLayer(layerNum) instanceof RasterLayerInfo) {
+                        menuItemAttributeTable.setVisible(false);
+                        menuItemHisto.setVisible(true);
+                        menuChangePalette.setVisible(true);
+                        menuReversePalette.setVisible(true);
+                        layersPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
+                    } else if (activeMapArea.getLayer(layerNum) instanceof VectorLayerInfo) {
+                        menuItemAttributeTable.setVisible(true);
+                        menuItemHisto.setVisible(false);
+                        menuChangePalette.setVisible(false);
+                        menuReversePalette.setVisible(false);
+                        layersPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
+                    }
                 }
             }
         } else if (e.getClickCount() == 2) {
+            openMaps.get(activeMap).deslectAllCartographicElements();
             if (layerNum == -1) {
                 setAsActiveMap();
 
             } else {
                 setAsActiveLayer();
             }
-            updateLayersTab();
-            //refreshMap(true);
+            //updateLayersTab();
+            refreshMap(true);
         } else if (e.getClickCount() == 1) {
             updateLayersTab();
         }
@@ -1888,8 +1968,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (numOpenMaps <= 0) {
                 // add a new map
                 numOpenMaps++;
-                MapInfo mapinfo = new MapInfo("New Map");
-                mapinfo.setMapTitle("New Map");
+                MapInfo mapinfo = new MapInfo("Map");
+                mapinfo.setMapName("Map");
                 mapinfo.setWorkingDirectory(workingDirectory);
                 openMaps.add(mapinfo); //new MapInfo(str));
                 activeMap = numOpenMaps - 1;
@@ -1897,20 +1977,24 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 
                 selectedMapAndLayer[0] = -1;
                 selectedMapAndLayer[1] = -1;
+                selectedMapAndLayer[2] = -1;
             }
+            MapArea activeMapArea = openMaps.get(activeMap).getActiveMapArea();
             if (file.contains(".dep")) {
                 String[] defaultPalettes = {defaultQuantPalette, defaultQualPalette, "rgb.pal"};
+                // first get the active map
+                
                 RasterLayerInfo newLayer = new RasterLayerInfo(file, paletteDirectory,
-                        defaultPalettes, 255, openMaps.get(activeMap).getNumLayers());
-                openMaps.get(activeMap).addLayer(newLayer);
-                newLayer.setOverlayNumber(openMaps.get(activeMap).getNumLayers() - 1);
-                openMaps.get(activeMap).setActiveLayer(openMaps.get(activeMap).getNumLayers() - 1);
+                        defaultPalettes, 255, activeMapArea.getNumLayers());
+                activeMapArea.addLayer(newLayer);
+                newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
+                activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
                 refreshMap(true);
             } else if (file.contains(".shp")) {
-                VectorLayerInfo newLayer = new VectorLayerInfo(file, 255, openMaps.get(activeMap).getNumLayers());
-                openMaps.get(activeMap).addLayer(newLayer);
-                newLayer.setOverlayNumber(openMaps.get(activeMap).getNumLayers() - 1);
-                openMaps.get(activeMap).setActiveLayer(openMaps.get(activeMap).getNumLayers() - 1);
+                VectorLayerInfo newLayer = new VectorLayerInfo(file, 255, activeMapArea.getNumLayers());
+                activeMapArea.addLayer(newLayer);
+                newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
+                activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
                 refreshMap(true);
             }
         } catch (Exception e) {
@@ -1998,10 +2082,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private void addLayer() {
 
         int mapNum;
+        int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
         } else {
             mapNum = activeMap;
+            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaOverlayNumber();
         }
 
         // set the filter.
@@ -2039,9 +2126,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (openMaps.isEmpty()) {
                 // create a new map to overlay the layer onto.
                 numOpenMaps = 1;
-                MapInfo mapinfo = new MapInfo("New Map 1");
-                mapinfo.setMapTitle("New Map 1");
-                openMaps.add(mapinfo); //new MapInfo("New Map 1"));
+                MapInfo mapinfo = new MapInfo("Map1");
+                mapinfo.setMapName("Map1");
+                openMaps.add(mapinfo);
                 drawingArea.setMapInfo(openMaps.get(0));
                 activeMap = 0;
             }
@@ -2051,52 +2138,61 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 workingDirectory = fileDirectory;
             }
             String[] defaultPalettes = {defaultQuantPalette, defaultQualPalette, "rgb.pal"};
+            MapArea activeMapArea = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
             for (int i = 0; i < files.length; i++) {
                 // get the file extension.
                 if (files[i].toString().toLowerCase().contains(".dep")) {
                     RasterLayerInfo newLayer = new RasterLayerInfo(files[i].toString(), paletteDirectory,
-                            defaultPalettes, 255, openMaps.get(mapNum).getNumLayers());
-                    openMaps.get(mapNum).addLayer(newLayer);
-                    newLayer.setOverlayNumber(openMaps.get(mapNum).getNumLayers() - 1);
+                            defaultPalettes, 255, activeMapArea.getNumLayers());
+                    activeMapArea.addLayer(newLayer);
+                    newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
                 } else if (files[i].toString().toLowerCase().contains(".shp")) {
                     VectorLayerInfo newLayer = new VectorLayerInfo(files[i].toString(),
-                            255, openMaps.get(mapNum).getNumLayers());
-                    openMaps.get(mapNum).addLayer(newLayer);
-                    newLayer.setOverlayNumber(openMaps.get(mapNum).getNumLayers() - 1);
+                            255, activeMapArea.getNumLayers());
+                    activeMapArea.addLayer(newLayer);
+                    newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
                 }
             }
-            openMaps.get(mapNum).setActiveLayer(openMaps.get(mapNum).getNumLayers() - 1);
+            activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
         }
         refreshMap(true);
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void removeLayer() {
         if (selectedMapAndLayer[1] != -1) {
             // a layer has been selected for removal.
-            openMaps.get(selectedMapAndLayer[0]).removeLayer(selectedMapAndLayer[1]);
+            openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]).removeLayer(selectedMapAndLayer[1]);
+            drawingArea.repaint();
+            updateLayersTab();
+        } else if (selectedMapAndLayer[2] != -1) {
+            // a mapArea has been selected. remove it's active layer.
+            MapArea ma = openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]);
+            ma.removeLayer(ma.getActiveLayerOverlayNumber());
             drawingArea.repaint();
             updateLayersTab();
         } else {
             // remove the active layer
-            int activeLayer = openMaps.get(activeMap).getActiveLayerOverlayNumber();
-            openMaps.get(activeMap).removeLayer(activeLayer);
+            int activeLayer = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
+            openMaps.get(activeMap).getActiveMapArea().removeLayer(activeLayer);
             drawingArea.repaint();
             updateLayersTab();
         }
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void newMap() {
 
-        String str = JOptionPane.showInputDialog("Enter the name of the new Map: ", "New Map " + (numOpenMaps + 1));
+        String str = JOptionPane.showInputDialog("Enter the name of the new Map: ", "Map" + (numOpenMaps + 1));
 
         if (str != null) {
             numOpenMaps++;
             MapInfo mapinfo = new MapInfo(str);
-            mapinfo.setMapTitle(str);
+            mapinfo.setMapName(str);
             mapinfo.setWorkingDirectory(workingDirectory);
             openMaps.add(mapinfo); //new MapInfo(str));
             activeMap = numOpenMaps - 1;
@@ -2107,6 +2203,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         }
 
     }
@@ -2126,7 +2223,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (numOpenMaps > 0) {
                     drawingArea.setMapInfo(openMaps.get(activeMap));
                 } else {
-                    drawingArea.setMapInfo(new MapInfo("New Map"));
+                    drawingArea.setMapInfo(new MapInfo("Map"));
                 }
                 drawingArea.repaint();
             } else {
@@ -2142,7 +2239,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (numOpenMaps > 0) {
                     drawingArea.setMapInfo(openMaps.get(activeMap));
                 } else {
-                    drawingArea.setMapInfo(new MapInfo("New Map"));
+                    drawingArea.setMapInfo(new MapInfo("Map"));
                 }
                 drawingArea.repaint();
 
@@ -2151,6 +2248,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         updateLayersTab();
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     /* Prints the active map. */
@@ -2177,6 +2275,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     // Renames the selected map.
@@ -2184,7 +2283,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         if (selectedMapAndLayer[0] == - 1) {
             selectedMapAndLayer[0] = activeMap;
         }
-        showMapProperties("title");
+        // find the title element
+        int i = -1;
+        for (CartographicElement ce : openMaps.get(activeMap).getCartographicElementList()) {
+            if (ce instanceof MapTitle) {
+                i = ce.getElementNumber();
+                break;
+            }
+        }
+        showMapProperties(i);
+        
 //        String str = JOptionPane.showInputDialog("Enter the new name: ",
 //                openMaps.get(selectedMapAndLayer[0]).getMapTitle());
 //        if (str != null) {
@@ -2193,6 +2301,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //        }
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     // Saves the selected active map.
@@ -2212,6 +2321,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     // Finds a file name to save the active map to.
@@ -2220,7 +2330,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         } // do nothing
         // get the title of the active map.
-        String mapTitle = openMaps.get(selectedMapAndLayer[0]).getMapTitle();
+        String mapTitle = openMaps.get(selectedMapAndLayer[0]).getMapName();
 
         // Ask the user to specify a file name for saving the active map.
         JFileChooser fc = new JFileChooser();
@@ -2313,6 +2423,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             updateLayersTab();
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
             numOpenMaps++;
             //refreshMap();
         }
@@ -2327,7 +2438,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
 
         // get the title of the active map.
-        String mapTitle = openMaps.get(selectedMapAndLayer[0]).getMapTitle();
+        String mapTitle = openMaps.get(selectedMapAndLayer[0]).getMapName();
 
         // Ask the user to specify a file name for saving the active map.
         JFileChooser fc = new JFileChooser();
@@ -2382,72 +2493,87 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void setAsActiveLayer() {
         if (selectedMapAndLayer[0] == activeMap) {
-            openMaps.get(activeMap).setActiveLayer(selectedMapAndLayer[1]);
+            openMaps.get(activeMap).getMapAreaByElementNum(selectedMapAndLayer[2]).setActiveLayer(selectedMapAndLayer[1]);
+            openMaps.get(activeMap).setActiveMapAreaByElementNum(selectedMapAndLayer[2]);
+            
             updateLayersTab();
         } else {
             // first update the activeMap
             activeMap = selectedMapAndLayer[0];
-            openMaps.get(activeMap).setActiveLayer(selectedMapAndLayer[1]);
+            openMaps.get(activeMap).getMapAreaByElementNum(selectedMapAndLayer[2]).setActiveLayer(selectedMapAndLayer[1]);
+            openMaps.get(activeMap).setActiveMapAreaByElementNum(selectedMapAndLayer[2]);
             drawingArea.setMapInfo(openMaps.get(activeMap));
             drawingArea.repaint();
             updateLayersTab();
         }
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void toggleLayerVisibility() {
-        openMaps.get(selectedMapAndLayer[0]).toggleLayerVisibility(selectedMapAndLayer[1]);
+        openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]).toggleLayerVisibility(selectedMapAndLayer[1]);
         drawingArea.repaint();
         updateLayersTab();
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void toggleAllLayerVisibility() {
-        for (int i = 0; i < openMaps.get(selectedMapAndLayer[0]).getNumLayers(); i++) {
-            openMaps.get(selectedMapAndLayer[0]).toggleLayerVisibility(i);
+        for (int i = 0; i < openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]).getNumLayers(); i++) {
+            openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]).toggleLayerVisibility(i);
         }
         drawingArea.repaint();
         updateLayersTab();
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void allLayersVisibile() {
-        int j = 0;
+        int j, k;
         if (selectedMapAndLayer[0] != -1) {
             j = selectedMapAndLayer[0];
+            k = selectedMapAndLayer[2];
         } else {
             j = activeMap;
+            k = openMaps.get(j).getActiveMapAreaOverlayNumber();
         }
-        for (int i = 0; i < openMaps.get(j).getNumLayers(); i++) {
-            openMaps.get(j).getLayer(i).setVisible(true);
+        MapArea ma = openMaps.get(j).getMapAreaByElementNum(k);
+        for (int i = 0; i < ma.getNumLayers(); i++) {
+            ma.getLayer(i).setVisible(true);
         }
         drawingArea.repaint();
         updateLayersTab();
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void allLayersInvisibile() {
-        int j = 0;
+        int j, k;
         if (selectedMapAndLayer[0] != -1) {
             j = selectedMapAndLayer[0];
+            k = selectedMapAndLayer[2];
         } else {
             j = activeMap;
+            k = openMaps.get(j).getActiveMapAreaOverlayNumber();
         }
-        for (int i = 0; i < openMaps.get(j).getNumLayers(); i++) {
-            openMaps.get(j).getLayer(i).setVisible(false);
+        MapArea ma = openMaps.get(j).getMapAreaByElementNum(k);
+        for (int i = 0; i < ma.getNumLayers(); i++) {
+            ma.getLayer(i).setVisible(false);
         }
         drawingArea.repaint();
         updateLayersTab();
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void setAsActiveMap() {
@@ -2457,36 +2583,42 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         updateLayersTab();
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void changeLayerTitle() {
         String str = JOptionPane.showInputDialog("Enter the new title: ",
-                openMaps.get(selectedMapAndLayer[0]).getLayer(selectedMapAndLayer[1]).getLayerTitle());
+                openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]).getLayer(selectedMapAndLayer[1]).getLayerTitle());
         if (str != null) {
-            openMaps.get(selectedMapAndLayer[0]).getLayer(selectedMapAndLayer[1]).setLayerTitle(str);
+            openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]).getLayer(selectedMapAndLayer[1]).setLayerTitle(str);
             updateLayersTab();
         }
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void layerToTop() {
         int mapNum;
+        int mapAreaNum;
         int layerNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             layerNum = selectedMapAndLayer[1];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            layerNum = openMaps.get(mapNum).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 1) {
-            openMaps.get(mapNum).promoteLayerToTop(layerNum);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 1) {
+            ma.promoteLayerToTop(layerNum);
         }
         legendEntries.clear();
         updateLayersTab();
@@ -2495,21 +2627,26 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void layerToBottom() {
         int mapNum;
+        int mapAreaNum;
         int layerNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
             layerNum = selectedMapAndLayer[1];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            layerNum = openMaps.get(mapNum).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
         }
 
-        if (openMaps.get(mapNum).getNumLayers() > 1) {
-            openMaps.get(mapNum).demoteLayerToBottom(layerNum);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 1) {
+            ma.demoteLayerToBottom(layerNum);
         }
         legendEntries.clear();
         updateLayersTab();
@@ -2518,21 +2655,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void promoteLayer() {
         int mapNum;
+        int mapAreaNum;
         int layerNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             layerNum = selectedMapAndLayer[1];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            layerNum = openMaps.get(mapNum).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 1) {
-            openMaps.get(mapNum).promoteLayer(layerNum);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 1) {
+            ma.promoteLayer(layerNum);
         }
         legendEntries.clear();
         updateLayersTab();
@@ -2541,21 +2682,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void demoteLayer() {
         int mapNum;
+        int mapAreaNum;
         int layerNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             layerNum = selectedMapAndLayer[1];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            layerNum = openMaps.get(mapNum).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 1) {
-            openMaps.get(mapNum).demoteLayer(layerNum);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 1) {
+            ma.demoteLayer(layerNum);
         }
         legendEntries.clear();
         updateLayersTab();
@@ -2567,21 +2712,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
      */
     private void changePalette() {
         int mapNum;
+        int mapAreaNum;
         int layerNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             layerNum = selectedMapAndLayer[1];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            layerNum = openMaps.get(mapNum).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getLayer(layerNum).getLayerType() == MapLayerType.RASTER) {
-            RasterLayerInfo rli = (RasterLayerInfo) openMaps.get(mapNum).getLayer(layerNum);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getLayer(layerNum).getLayerType() == MapLayerType.RASTER) {
+            RasterLayerInfo rli = (RasterLayerInfo) ma.getLayer(layerNum);
             String palette = rli.getPaletteFile();
             boolean isReversed = rli.isPaletteReversed();
             double nonlinearity = rli.getNonlinearity();
@@ -2607,68 +2756,136 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void reversePalette() {
         int mapNum;
+        int mapAreaNum;
         int layerOverlayNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             layerOverlayNum = selectedMapAndLayer[1];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            layerOverlayNum = openMaps.get(mapNum).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            layerOverlayNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            openMaps.get(mapNum).reversePaletteOfLayer(layerOverlayNum);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.reversePaletteOfLayer(layerOverlayNum);
             refreshMap(true);
         }
     }
 
     private void zoomToFullExtent() {
         int mapNum;
-
+        int mapAreaNum;
+        if (selectedMapAndLayer[0] != -1) {
+            mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } else {
+            // use the active layer and map
+            mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+        }
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            BoundingBox db = ma.getFullExtent();
+            ma.setCurrentExtent(db.clone());
+            refreshMap(false);
+        }
+    }
+    
+    private void fitToData() {
+        int mapNum;
+        int mapAreaNum;
+        if (selectedMapAndLayer[0] != -1) {
+            mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } else {
+            // use the active layer and map
+            mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+        }
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.fitToData();
+            refreshMap(false);
+        }
+    }
+    
+    private void maximizeMapAreaScreenSize() {
+        int mapNum;
+        int mapAreaNum;
+        if (selectedMapAndLayer[0] != -1) {
+            mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } else {
+            // use the active layer and map
+            mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+        }
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.setSizeMaximizedToScreenSize(!ma.isSizeMaximizedToScreenSize());
+            refreshMap(false);
+        }
+    }
+    
+    private void zoomToPage() {
+        int mapNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
-            // use the active layer and map
+            // use the map
             mapNum = activeMap;
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            BoundingBox db = openMaps.get(mapNum).getFullExtent();
-            openMaps.get(mapNum).setCurrentExtent(db.clone());
-            refreshMap(false);
-        }
+        openMaps.get(mapNum).zoomToPage();
+        refreshMap(false);
     }
-
+    
     private void zoomToLayer() {
         int mapNum;
+        int mapAreaNum;
         int layerOverlayNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             if (selectedMapAndLayer[1] != -1) {
                 layerOverlayNum = selectedMapAndLayer[1];
             } else {
                 // use the active layer
-                layerOverlayNum = openMaps.get(mapNum).getActiveLayerOverlayNumber();
+                layerOverlayNum = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum).getActiveLayerOverlayNumber();
             }
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            layerOverlayNum = openMaps.get(mapNum).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            layerOverlayNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            openMaps.get(mapNum).calculateFullExtent();
-            BoundingBox db = openMaps.get(mapNum).getLayer(layerOverlayNum).getFullExtent();
-            openMaps.get(mapNum).setCurrentExtent(db);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.calculateFullExtent();
+            BoundingBox db = ma.getLayer(layerOverlayNum).getFullExtent();
+            ma.setCurrentExtent(db);
 
             refreshMap(false);
         }
@@ -2676,127 +2893,148 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void zoomIn() {
         int mapNum;
-        int layerOverlayNum;
-
+        int mapAreaNum;
+        
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            openMaps.get(mapNum).zoomIn();
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.zoomIn();
             refreshMap(false);
         }
     }
 
     private void zoomOut() {
         int mapNum;
-
+        int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            openMaps.get(mapNum).zoomOut();
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.zoomOut();
             refreshMap(false);
         }
     }
 
     private void panUp() {
         int mapNum;
-
+        int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            openMaps.get(mapNum).panUp();
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.panUp();
             refreshMap(false);
         }
     }
 
     private void panDown() {
         int mapNum;
-
+        int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            openMaps.get(mapNum).panDown();
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.panDown();
             refreshMap(false);
         }
     }
 
     private void panLeft() {
         int mapNum;
-
+        int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            openMaps.get(mapNum).panLeft();
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.panLeft();
             refreshMap(false);
         }
     }
 
     private void panRight() {
         int mapNum;
-
+        int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            openMaps.get(mapNum).panRight();
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            ma.panRight();
             refreshMap(false);
         }
     }
 
     private void nextExtent() {
         int mapNum;
-
+        int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            boolean ret = openMaps.get(mapNum).nextExtent();
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            boolean ret = ma.nextExtent();
             if (ret) {
                 refreshMap(false);
             }
@@ -2805,18 +3043,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void previousExtent() {
         int mapNum;
-
+        int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
+            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaOverlayNumber();
         }
-
-        if (openMaps.get(mapNum).getNumLayers() > 0) {
-            boolean ret = openMaps.get(mapNum).previousExtent();
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getNumLayers() > 0) {
+            boolean ret = ma.previousExtent();
             if (ret) {
                 refreshMap(false);
             }
@@ -2825,21 +3066,26 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void showLayerProperties() {
         int mapNum;
+        int mapAreaNum;
         int layerOverlayNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
             layerOverlayNum = selectedMapAndLayer[1];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
-            layerOverlayNum = openMaps.get(activeMap).getActiveLayerOverlayNumber();
+            layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(activeMap).getActiveMapArea().getElementNumber();
         }
-        if (openMaps.get(mapNum).getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER
-                || openMaps.get(mapNum).getLayer(layerOverlayNum).getLayerType() == MapLayerType.VECTOR) {
-            MapLayer layer = openMaps.get(mapNum).getLayer(layerOverlayNum);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER
+                || ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.VECTOR) {
+            MapLayer layer = ma.getLayer(layerOverlayNum);
             LayerProperties lp = new LayerProperties(this, false, layer, openMaps.get(mapNum));
             lp.setSize(640, 420);
             lp.setVisible(true);
@@ -2847,43 +3093,80 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    public void showMapProperties(String activeTab) {
+    public void showMapProperties(int activeElement) {
         int mapNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
         }
-        MapProperties mp = new MapProperties(this, false, openMaps.get(mapNum), activeTab);
-        mp.setSize(640, 420);
+        MapProperties mp;
+        if (activeElement >= 0) {
+            mp = new MapProperties(this, false, openMaps.get(mapNum), activeElement);
+        } else {
+            mp = new MapProperties(this, false, openMaps.get(mapNum));
+        }
+        mp.setSize(440, 600);
+        mp.setLocation(new Point(10, 30));
         mp.setVisible(true);
     }
-
+    
+    public void showMapAreaProperties() {
+        int mapNum;
+        int mapAreaNum;
+        if (selectedMapAndLayer[0] != -1) {
+            mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } else {
+            // use the active map
+            mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+        }
+        MapProperties mp;
+        if (mapAreaNum >= 0) {
+            mp = new MapProperties(this, false, openMaps.get(mapNum), mapAreaNum);
+        } else {
+            mp = new MapProperties(this, false, openMaps.get(mapNum));
+        }
+        mp.setSize(440, 600);
+        mp.setLocation(new Point(10, 30));
+        mp.setVisible(true);
+    }
+    
     private void showAttributesFile() {
         int mapNum;
+        int mapAreaNum;
         int layerOverlayNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
             layerOverlayNum = selectedMapAndLayer[1];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
-            layerOverlayNum = openMaps.get(activeMap).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaOverlayNumber();
+            layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-        if (openMaps.get(mapNum).getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER
-                || openMaps.get(mapNum).getLayer(layerOverlayNum).getLayerType() == MapLayerType.VECTOR) {
-            MapLayer layer = openMaps.get(mapNum).getLayer(layerOverlayNum);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER
+                || ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.VECTOR) {
+            MapLayer layer = ma.getLayer(layerOverlayNum);
             VectorLayerInfo vli = (VectorLayerInfo) layer;
             String shapeFileName = vli.getFileName();
             AttributesFileViewer afv = new AttributesFileViewer(this, false, shapeFileName);
             int height = 500;
-            afv.setSize((int) (height * 1.61803399), height);
+            afv.setSize((int) (height * 1.61803399), height); // golden ratio.
             afv.setVisible(true);
         }
     }
@@ -3020,7 +3303,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void modifyPixelValues() {
-        if (openMaps.get(activeMap).getNumRasterLayers() > 0) {
+        if (openMaps.get(activeMap).getActiveMapArea().getNumRasterLayers() > 0) {
             if (drawingArea.isModifyingPixels()) { // is true; unset
                 drawingArea.setModifyingPixels(false);
                 modifyPixelsVals.setBorderPainted(false);
@@ -3040,7 +3323,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void distanceTool() {
-        if (openMaps.get(activeMap).getNumLayers() > 0) {
+        if (openMaps.get(activeMap).getActiveMapArea().getNumLayers() > 0) {
             if (drawingArea.isUsingDistanceTool()) { // is true; unset
                 drawingArea.setUsingDistanceTool(false);
                 distanceToolButton.setBorderPainted(false);
@@ -3061,19 +3344,24 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void clipLayerToExtent() {
         int mapNum;
+        int mapAreaNum;
         int layerOverlayNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
             layerOverlayNum = selectedMapAndLayer[1];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
-            layerOverlayNum = openMaps.get(activeMap).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-        if (openMaps.get(mapNum).getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER) {
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER) {
             // What file name should the clipped image be given?
             String str = JOptionPane.showInputDialog(null, "Enter the name of the new file: ",
                     "Whitebox", 1);
@@ -3082,7 +3370,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 return;
             }
 
-            RasterLayerInfo layer = (RasterLayerInfo) openMaps.get(mapNum).getLayer(layerOverlayNum);
+            RasterLayerInfo layer = (RasterLayerInfo) ma.getLayer(layerOverlayNum);
 
             // what directory is the layer in?
             String dir = layer.getHeaderFile().substring(0,
@@ -3109,7 +3397,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             }
 
-            layer.clipLayerToExtent(openMaps.get(mapNum).getCurrentExtent(), fileName);
+            layer.clipLayerToExtent(ma.getCurrentExtent(), fileName);
 
         } else {
             showFeedback("This function is not currently available for vector layers.");
@@ -3118,39 +3406,48 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void viewHistogram() {
         int mapNum;
+        int mapAreaNum;
         int layerOverlayNum;
 
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
             layerOverlayNum = selectedMapAndLayer[1];
+            mapAreaNum = selectedMapAndLayer[2];
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
         } else {
             // use the active map
             mapNum = activeMap;
-            layerOverlayNum = openMaps.get(activeMap).getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-        if (openMaps.get(mapNum).getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER) {
-            RasterLayerInfo layer = (RasterLayerInfo) openMaps.get(mapNum).getLayer(layerOverlayNum);
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER) {
+            RasterLayerInfo layer = (RasterLayerInfo) ma.getLayer(layerOverlayNum);
             HistogramView histo = new HistogramView(this, false, layer.getHeaderFile(), workingDirectory);
         }
     }
 
     private void removeAllLayers() {
-        int j = 0;
+        int j, k;
         if (selectedMapAndLayer[0] != -1) {
             j = selectedMapAndLayer[0];
+            k = selectedMapAndLayer[2];
         } else {
             j = activeMap;
+            k = openMaps.get(activeMap).getActiveMapAreaOverlayNumber();
         }
+        MapArea mapArea = openMaps.get(j).getMapAreaByElementNum(k);
         do {
-            openMaps.get(j).removeLayer(openMaps.get(j).getNumLayers() - 1);
-        } while (openMaps.get(j).getNumLayers() > 0);
+            mapArea.removeLayer(openMaps.get(j).getActiveMapArea().getNumLayers() - 1);
+        } while (mapArea.getNumLayers() > 0);
 
         drawingArea.repaint();
         updateLayersTab();
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
     }
 
     private void newHelp() {
@@ -3204,31 +3501,32 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void toggleDataAndCartoView(boolean cartoView) {
-        if (selectedMapAndLayer[0] == - 1) {
-            selectedMapAndLayer[0] = activeMap;
-        }
-        // all open maps should be updated.
-        for (MapInfo map : openMaps) {
-            map.setCartoView(cartoView);
-        }
-        //openMaps.get(selectedMapAndLayer[0]).setCartoView(cartoView);
-        if (cartoView) {
-            dataView.setState(false);
-            cartographicView.setState(true);
-        } else {
-            dataView.setState(true);
-            cartographicView.setState(false);
-        }
-        
-        refreshMap(false);
-        selectedMapAndLayer[0] = -1;
-        selectedMapAndLayer[1] = -1;
-    }
+//    private void toggleDataAndCartoView(boolean cartoView) {
+//        if (selectedMapAndLayer[0] == - 1) {
+//            selectedMapAndLayer[0] = activeMap;
+//        }
+//        // all open maps should be updated.
+//        for (MapInfo map : openMaps) {
+//            map.setPageVisible(cartoView);
+//        }
+//        //openMaps.get(selectedMapAndLayer[0]).setCartoView(cartoView);
+//        if (cartoView) {
+//            dataView.setState(false);
+//            cartographicView.setState(true);
+//        } else {
+//            dataView.setState(true);
+//            cartographicView.setState(false);
+//        }
+//        
+//        refreshMap(false);
+//        selectedMapAndLayer[0] = -1;
+//        selectedMapAndLayer[1] = -1;
+//        selectedMapAndLayer[2] = -1;
+//    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
+        //Object source = e.getSource();
         String actionCommand = e.getActionCommand();
         if (actionCommand.equals("addLayer")) {
             addLayer();
@@ -3264,7 +3562,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("setAsActiveMap")) {
             setAsActiveMap();
         } else if (actionCommand.equals("renameMap")) {
-            showMapProperties("title");
+            int i = -1;
+            for (CartographicElement ce : openMaps.get(activeMap).getCartographicElementList()) {
+                if (ce instanceof MapTitle) {
+                    i = ce.getElementNumber();
+                    break;
+                }
+            }
+            showMapProperties(i);
+            //showMapProperties("title");
         } else if (actionCommand.equals("changeLayerTitle")) {
             changeLayerTitle();
         } else if (actionCommand.equals("layerToTop")) {
@@ -3283,6 +3589,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             zoomToFullExtent();
         } else if (actionCommand.equals("zoomToLayer")) {
             zoomToLayer();
+        } else if (actionCommand.equals("zoomToPage")) {
+            zoomToPage();
         } else if (actionCommand.equals("layerProperties")) {
             showLayerProperties();
         } else if (actionCommand.equals("zoomIn")) {
@@ -3298,7 +3606,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("panRight")) {
             panRight();
         } else if (actionCommand.equals("zoomToBox")) {
-            drawingArea.setMouseMode(MapRenderer.MOUSE_MODE_ZOOM);
+            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOM);
             zoomIntoBox.setBorderPainted(true);
             pan.setBorderPainted(false);
             select.setBorderPainted(false);
@@ -3306,7 +3614,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             panMenuItem.setState(false);
             selectMenuItem.setState(false);
         } else if (actionCommand.equals("pan")) {
-            drawingArea.setMouseMode(MapRenderer.MOUSE_MODE_PAN);
+            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_PAN);
             zoomIntoBox.setBorderPainted(false);
             pan.setBorderPainted(true);
             select.setBorderPainted(false);
@@ -3315,7 +3623,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             selectMenuItem.setState(false);
         } else if (actionCommand.equals("select")) {
             showFeedback("Vector selection is under development.");
-            drawingArea.setMouseMode(MapRenderer.MOUSE_MODE_SELECT);
+            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_SELECT);
             zoomIntoBox.setBorderPainted(false);
             pan.setBorderPainted(false);
             select.setBorderPainted(true);
@@ -3391,23 +3699,43 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("newHelp")) {
             newHelp();
         } else if (actionCommand.equals("mapProperties")) {
-            showMapProperties("");
-        } else if (actionCommand.equals("cartoView")) {
-            toggleDataAndCartoView(true);
-        } else if (actionCommand.equals("dataView")) {
-            toggleDataAndCartoView(false);
+            showMapProperties(0);
+//        } else if (actionCommand.equals("cartoView")) {
+//            toggleDataAndCartoView(true);
+//        } else if (actionCommand.equals("dataView")) {
+//            toggleDataAndCartoView(false);
+        } else if (actionCommand.equals("mapAreaProperties")) {
+            showMapAreaProperties();
         } else if (actionCommand.equals("pageProps")) {
-            showMapProperties("page");
+            showMapProperties(-1);
         } else if (actionCommand.equals("insertTitle")) {
-            renameMap();
+            //renameMap();
+            openMaps.get(activeMap).addMapTitle();
+            refreshMap(false);
         } else if (actionCommand.equals("insertScale")) {
-            showMapProperties("scale");
+            //showMapProperties("scale");
+            openMaps.get(activeMap).addMapScale();
+            refreshMap(false);
         } else if (actionCommand.equals("insertNorthArrow")) {
-            showMapProperties("north arrow");
+            //showMapProperties("north arrow");
+            openMaps.get(activeMap).addNorthArrow();
+            refreshMap(false);
         } else if (actionCommand.equals("insertLegend")) {
-            showMapProperties("legend");
-        } else if (actionCommand.equals("showNeatLine")) {
-            showMapProperties("neatline");
+            openMaps.get(activeMap).addLegend();
+            refreshMap(false);
+        } else if (actionCommand.equals("insertNeatline")) {
+            openMaps.get(activeMap).addNeatline();
+            refreshMap(false);
+        } else if (actionCommand.equals("insertMapArea")) {
+            openMaps.get(activeMap).addMapArea();
+            refreshMap(true);
+        } else if (actionCommand.equals("deleteMapArea")) {
+            openMaps.get(activeMap).removeCartographicElement(selectedMapAndLayer[2]);
+            refreshMap(true);
+        } else if (actionCommand.equals("fitMapAreaToData")) {
+            fitToData();
+        } else if (actionCommand.equals("maximizeMapAreaScreenSize")) {
+            maximizeMapAreaScreenSize();
         }
 
     }
