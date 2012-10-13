@@ -211,7 +211,7 @@ public class EuclideanDistance implements WhiteboxPlugin {
             for (row = 0; row < rows; row++) {
                 data = image.getRowValues(row);
                 for (col = 0; col < cols; col++) {
-                    if (data[col] !=0) { 
+                    if (data[col] != 0) { 
                         outputImage.setValue(row, col, 0);
                     }
                 }
