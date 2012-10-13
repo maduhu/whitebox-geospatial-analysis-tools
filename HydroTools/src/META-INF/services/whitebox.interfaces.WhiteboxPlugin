@@ -20,4 +20,5 @@ plugins.NumInflowingNeighbours
 plugins.SnapPourPoints
 plugins.StrahlerOrderBasins
 plugins.Subbasins
+plugins.WallWatershed
 plugins.Watershed

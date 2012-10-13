@@ -16,14 +16,12 @@
  */
 package plugins;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.PriorityQueue;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -35,15 +33,15 @@ import whitebox.structures.RowPriorityGridCell;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class BurnStreams implements WhiteboxPlugin {
+public class WallWatershed implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
     WhiteboxRaster DEM;
-    WhiteboxRaster streams;
+    WhiteboxRaster watershed;
     WhiteboxRaster output;
     String outputHeader = null;
-    String streamsHeader = null;
+    String watershedHeader = null;
     String demHeader = null;
     int rows = 0;
     int cols = 0;
@@ -58,7 +56,7 @@ public class BurnStreams implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "BurnStreams";
+        return "WallWatershed";
     }
 
     /**
@@ -69,7 +67,7 @@ public class BurnStreams implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Burn Streams";
+        return "Wall-in Watershed";
     }
 
     /**
@@ -79,7 +77,7 @@ public class BurnStreams implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-        return "Decrements the elevations in a DEM along a stream network.";
+        return "Creates a wall within a DEM around a watershed.";
     }
 
     /**
@@ -204,23 +202,18 @@ public class BurnStreams implements WhiteboxPlugin {
     public void run() {
         amIActive = true;
 
-        String inputStreamsFile;
+        String inputWatershedFile;
         int row, col;
         int i;
         int topRow, bottomRow, leftCol, rightCol;
         float progress;
-        double decrement;
-        double decayCoefficient = 0;
-        double elevation;
-        double infVal = 9999999;
-        double value;
+        double increment;
         double rowYCoord, colXCoord;
         double[][] geometry;
         BoundingBox box;
         int numPoints, numParts, part;
         int startingPointInPart, endingPointInPart;
         double x1, y1, x2, y2, xPrime, yPrime;
-        DecimalFormat df = new DecimalFormat("###,###,###,###");
         
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -228,19 +221,13 @@ public class BurnStreams implements WhiteboxPlugin {
         }
 
         demHeader = args[0];
-        inputStreamsFile = args[1];
+        inputWatershedFile = args[1];
         outputHeader = args[2];
-        decrement = Double.parseDouble(args[3]);
-        if (!args[4].toLowerCase().contains("not specified")) {
-            decayCoefficient = Double.parseDouble(args[4]);
-            if (decayCoefficient < 0) {
-                decayCoefficient = 0;
-            }
-        }
-
+        increment = Double.parseDouble(args[3]);
+        
 
         // check to see that the inputHeader and outputHeader are not null.
-        if ((demHeader == null) || (inputStreamsFile == null) || (outputHeader == null)) {
+        if ((demHeader == null) || (inputWatershedFile == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
@@ -252,17 +239,54 @@ public class BurnStreams implements WhiteboxPlugin {
             noData = DEM.getNoDataValue();
             gridRes = (DEM.getCellSizeX() + DEM.getCellSizeY()) / 2;
 
-            if (inputStreamsFile.toLowerCase().endsWith(".dep")) {
-                streamsHeader = inputStreamsFile;
-                streams = new WhiteboxRaster(streamsHeader, "r");
-            } else if (inputStreamsFile.toLowerCase().endsWith(".shp")) {
-                streamsHeader = inputStreamsFile.replace(".shp", "_temp.dep");
+            output = new WhiteboxRaster(outputHeader, "rw", demHeader, WhiteboxRaster.DataType.FLOAT, noData);
+            output.setPreferredPalette(DEM.getPreferredPalette());
 
-                // convert the streams vector into a temporary raster
+            if (inputWatershedFile.toLowerCase().endsWith(".dep")) {
+                watershedHeader = inputWatershedFile;
+                watershed = new WhiteboxRaster(watershedHeader, "r");
+
+                if (watershed.getNumberColumns() != cols || watershed.getNumberRows() != rows) {
+                    showFeedback("The input files must have the same dimensions.");
+                    return;
+                }
+
+                double[] demData;
+                boolean isBorderingCell;
+                double w;
+                int[] dX = {1, 1, 1, 0, -1, -1, -1, 0};
+                int[] dY = {-1, 0, 1, 1, 1, 0, -1, -1};
+                for (row = 0; row < rows; row++) {
+                    demData = DEM.getRowValues(row);
+                    for (col = 0; col < cols; col++) {
+                        w = watershed.getValue(row, col);
+                        if (w > 0 && demData[col] != noData) {
+                            // is the cell neighbouring at least one non-watershed cell?
+                            isBorderingCell = false;
+                            for (i = 0; i < 8; i++) {
+                                if (watershed.getValue(row + dY[i], col + dX[i]) != w) {
+                                    isBorderingCell = true;
+                                    break;
+                                }
+                            }
+                            if (isBorderingCell) {
+                                output.setValue(row, col, demData[col] + increment);
+                            }
+                        } else {
+                            output.setValue(row, col, demData[col]);
+                        }
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (float) (100f * row / (rows - 1));
+                    updateProgress((int) progress);
+                }
+                
+            } else if (inputWatershedFile.toLowerCase().endsWith(".shp")) {
                 // initialize the shapefile input
-                ShapeFile input = new ShapeFile(inputStreamsFile);
-                int numRecs = input.getNumberOfRecords();
-
+                ShapeFile input = new ShapeFile(inputWatershedFile);
                 if (input.getShapeType() != ShapeType.POLYLINE
                         && input.getShapeType() != ShapeType.POLYLINEZ
                         && input.getShapeType() != ShapeType.POLYLINEM
@@ -273,13 +297,6 @@ public class BurnStreams implements WhiteboxPlugin {
                             + "'polygon' data type.");
                     return;
                 }
-
-                // initialize the output raster
-                streams = new WhiteboxRaster(streamsHeader, "rw",
-                        demHeader, WhiteboxRasterBase.DataType.INTEGER, 0);
-
-                streams.isTemporaryFile = true;
-
 
                 // first sort the records based on their maxY coordinate. This will
                 // help reduce the amount of disc IO for larger rasters.
@@ -308,7 +325,6 @@ public class BurnStreams implements WhiteboxPlugin {
                 ShapeFileRecord record;
                 for (RecordInfo ri : myList) {
                     record = input.getRecord(ri.recNumber - 1);
-                    value = record.getRecordNumber();
                     geometry = getXYFromShapefileRecord(record);
                     numPoints = geometry.length;
                     numParts = partData.length;
@@ -335,15 +351,15 @@ public class BurnStreams implements WhiteboxPlugin {
                                 box.setMaxY(geometry[i][1]);
                             }
                         }
-                        topRow = streams.getRowFromYCoordinate(box.getMaxY());
-                        bottomRow = streams.getRowFromYCoordinate(box.getMinY());
-                        leftCol = streams.getColumnFromXCoordinate(box.getMinX());
-                        rightCol = streams.getColumnFromXCoordinate(box.getMaxX());
+                        topRow = DEM.getRowFromYCoordinate(box.getMaxY());
+                        bottomRow = DEM.getRowFromYCoordinate(box.getMinY());
+                        leftCol = DEM.getColumnFromXCoordinate(box.getMinX());
+                        rightCol = DEM.getColumnFromXCoordinate(box.getMaxX());
 
                         // find each intersection with a row.
                         for (row = topRow; row <= bottomRow; row++) {
 
-                            rowYCoord = streams.getYCoordinateFromRow(row);
+                            rowYCoord = DEM.getYCoordinateFromRow(row);
                             // find the x-coordinates of each of the line segments 
                             // that intersect this row's y coordinate
 
@@ -357,9 +373,8 @@ public class BurnStreams implements WhiteboxPlugin {
 
                                         // calculate the intersection point
                                         xPrime = x1 + (rowYCoord - y1) / (y2 - y1) * (x2 - x1);
-                                        col = streams.getColumnFromXCoordinate(xPrime);
-                                        //output.setValue(row, col, value);
-                                        pq.add(new RowPriorityGridCell(row, col, value));
+                                        col = DEM.getColumnFromXCoordinate(xPrime);
+                                        pq.add(new RowPriorityGridCell(row, col, increment));
                                     }
                                 }
                             }
@@ -367,7 +382,7 @@ public class BurnStreams implements WhiteboxPlugin {
 
                         // find each intersection with a column.
                         for (col = leftCol; col <= rightCol; col++) {
-                            colXCoord = streams.getXCoordinateFromColumn(col);
+                            colXCoord = DEM.getXCoordinateFromColumn(col);
                             for (i = startingPointInPart; i < endingPointInPart - 1; i++) {
                                 if (isBetween(colXCoord, geometry[i][0], geometry[i + 1][0])) {
                                     x1 = geometry[i][0];
@@ -379,9 +394,8 @@ public class BurnStreams implements WhiteboxPlugin {
                                         // calculate the intersection point
                                         yPrime = y1 + (colXCoord - x1) / (x2 - x1) * (y2 - y1);
 
-                                        row = streams.getRowFromYCoordinate(yPrime);
-                                        //output.setValue(row, col, value);
-                                        pq.add(new RowPriorityGridCell(row, col, value));
+                                        row = DEM.getRowFromYCoordinate(yPrime);
+                                        pq.add(new RowPriorityGridCell(row, col, increment));
                                     }
                                 }
                             }
@@ -392,14 +406,14 @@ public class BurnStreams implements WhiteboxPlugin {
                         numCellsToWrite = pq.size();
                         do {
                             cell = pq.poll();
-                            streams.setValue(cell.row, cell.col, cell.z);
+                            output.setValue(cell.row, cell.col, DEM.getValue(cell.row, cell.col) + increment);
                             j++;
                             if (j % 1000 == 0) {
                                 if (cancelOp) {
                                     cancelOperation();
                                     return;
                                 }
-                                updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                                updateProgress((int) (j * 100.0 / numCellsToWrite));
                             }
                         } while (pq.size() > 0);
                     }
@@ -418,83 +432,37 @@ public class BurnStreams implements WhiteboxPlugin {
                 numCellsToWrite = pq.size();
                 do {
                     cell = pq.poll();
-                    streams.setValue(cell.row, cell.col, cell.z);
+                    output.setValue(cell.row, cell.col, DEM.getValue(cell.row, cell.col) + increment);
                     j++;
                     if (j % 1000 == 0) {
                         if (cancelOp) {
                             cancelOperation();
                             return;
                         }
-                        updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                        updateProgress((int) (j * 100.0 / numCellsToWrite));
                     }
                 } while (pq.size() > 0);
 
-                streams.flush();
-
-            } else {
-                showFeedback("The input streams file must be either a Whitebox raster or shapefile.");
-                return;
-            }
-
-            if (streams.getNumberColumns() != cols || streams.getNumberRows() != rows) {
-                showFeedback("The input files must have the same dimensions.");
-                return;
-            }
-
-            output = new WhiteboxRaster(outputHeader, "rw", demHeader, WhiteboxRaster.DataType.FLOAT, infVal);
-            output.setPreferredPalette(DEM.getPreferredPalette());
-
-            if (decayCoefficient > 0) {
-                if (!CalculateDistance()) {
-                    showFeedback("An error was encountered calculating distances.");
-                    return;
-                }
-                double distVal = 0;
-                double[] data;
-                for (row = 0; row < rows; row++) {
-                    data = DEM.getRowValues(row);
-                    for (col = 0; col < cols; col++) {
-                        if (data[col] != noData) {
-                            distVal = output.getValue(row, col);
-                            elevation = data[col]
-                                    - (Math.pow((gridRes / (gridRes + distVal)),
-                                    decayCoefficient) * decrement);
-                            output.setValue(row, col, elevation);
-                        } else {
-                            output.setValue(row, col, noData);
-                        }
-                    }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
-                    }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress("Burning Streams:", (int) progress);
-                }
-
-            } else {
+                output.flush();
+                
                 double[] demData;
-                double[] streamData;
+                double[] outputData;
                 for (row = 0; row < rows; row++) {
                     demData = DEM.getRowValues(row);
-                    streamData = streams.getRowValues(row);
+                    outputData = output.getRowValues(row);
                     for (col = 0; col < cols; col++) {
-                        if (demData[col] != noData && streamData[col] > 0) {
-                            elevation = demData[col] - decrement;
-                            output.setValue(row, col, elevation);
-                        } else {
-                            output.setValue(row, col, noData);
+                        if (outputData[col] == noData) {
+                            output.setValue(row, col, demData[col]);
                         }
                     }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
-                    }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress("Burning Streams:", (int) progress);
                 }
+                output.flush();
 
+            } else {
+                showFeedback("The input watershed file must be either a Whitebox raster or shapefile.");
+                return;
             }
+
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
@@ -514,170 +482,6 @@ public class BurnStreams implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
-    }
-
-    private boolean CalculateDistance() {
-        try {
-            int row, col;
-            float progress = 0;
-            double z, z2, zMin;
-            int x, y, a, b, i;
-            double h = 0;
-            int whichCell;
-            double infVal = 9999999;
-            int[] dX = new int[]{-1, -1, 0, 1, 1, 1, 0, -1};
-            int[] dY = new int[]{0, -1, -1, -1, 0, 1, 1, 1};
-            int[] Gx = new int[]{1, 1, 0, 1, 1, 1, 0, 1};
-            int[] Gy = new int[]{0, 1, 1, 1, 0, 1, 1, 1};
-
-            WhiteboxRaster Rx = new WhiteboxRaster(outputHeader.replace(".dep", "_temp1.dep"), "rw", demHeader, WhiteboxRaster.DataType.FLOAT, 0);
-            Rx.isTemporaryFile = true;
-            WhiteboxRaster Ry = new WhiteboxRaster(outputHeader.replace(".dep", "_temp2.dep"), "rw", demHeader, WhiteboxRaster.DataType.FLOAT, 0);
-            Ry.isTemporaryFile = true;
-
-            double[] data;
-            for (row = 0; row < rows; row++) {
-                data = streams.getRowValues(row);
-                for (col = 0; col < cols; col++) {
-                    if (data[col] > 0) {
-                        output.setValue(row, col, 0);
-                    }
-                }
-                if (cancelOp) {
-                    cancelOperation();
-                    return false;
-                }
-                progress = (float) (100f * row / (rows - 1));
-                updateProgress("Calculating Distance From Streams:", (int) progress);
-            }
-
-            for (row = 0; row < rows; row++) {
-                for (col = 0; col < cols; col++) {
-                    z = output.getValue(row, col);
-                    if (z != 0) {
-                        zMin = infVal;
-                        whichCell = -1;
-                        for (i = 0; i <= 3; i++) {
-                            x = col + dX[i];
-                            y = row + dY[i];
-                            z2 = output.getValue(y, x);
-                            if (z2 != noData) {
-                                switch (i) {
-                                    case 0:
-                                        h = 2 * Rx.getValue(y, x) + 1;
-                                        break;
-                                    case 1:
-                                        h = 2 * (Rx.getValue(y, x) + Ry.getValue(y, x) + 1);
-                                        break;
-                                    case 2:
-                                        h = 2 * Ry.getValue(y, x) + 1;
-                                        break;
-                                    case 3:
-                                        h = 2 * (Rx.getValue(y, x) + Ry.getValue(y, x) + 1);
-                                        break;
-                                }
-                                z2 += h;
-                                if (z2 < zMin) {
-                                    zMin = z2;
-                                    whichCell = i;
-                                }
-                            }
-                        }
-                        if (zMin < z) {
-                            output.setValue(row, col, zMin);
-                            x = col + dX[whichCell];
-                            y = row + dY[whichCell];
-                            Rx.setValue(row, col, Rx.getValue(y, x) + Gx[whichCell]);
-                            Ry.setValue(row, col, Ry.getValue(y, x) + Gy[whichCell]);
-                        }
-                    }
-                }
-                if (cancelOp) {
-                    cancelOperation();
-                    return false;
-                }
-                progress = (float) (100f * row / (rows - 1));
-                updateProgress("Calculating Distance From Streams:", (int) progress);
-            }
-
-
-            for (row = rows - 1; row >= 0; row--) {
-                for (col = cols - 1; col >= 0; col--) {
-                    z = output.getValue(row, col);
-                    if (z != 0) {
-                        zMin = infVal;
-                        whichCell = -1;
-                        for (i = 4; i <= 7; i++) {
-                            x = col + dX[i];
-                            y = row + dY[i];
-                            z2 = output.getValue(y, x);
-                            if (z2 != noData) {
-                                switch (i) {
-                                    case 5:
-                                        h = 2 * (Rx.getValue(y, x) + Ry.getValue(y, x) + 1);
-                                        break;
-                                    case 4:
-                                        h = 2 * Rx.getValue(y, x) + 1;
-                                        break;
-                                    case 6:
-                                        h = 2 * Ry.getValue(y, x) + 1;
-                                        break;
-                                    case 7:
-                                        h = 2 * (Rx.getValue(y, x) + Ry.getValue(y, x) + 1);
-                                        break;
-                                }
-                                z2 += h;
-                                if (z2 < zMin) {
-                                    zMin = z2;
-                                    whichCell = i;
-                                }
-                            }
-                        }
-                        if (zMin < z) {
-                            output.setValue(row, col, zMin);
-                            x = col + dX[whichCell];
-                            y = row + dY[whichCell];
-                            Rx.setValue(row, col, Rx.getValue(y, x) + Gx[whichCell]);
-                            Ry.setValue(row, col, Ry.getValue(y, x) + Gy[whichCell]);
-                        }
-                    }
-                }
-                if (cancelOp) {
-                    cancelOperation();
-                    return false;
-                }
-                progress = (float) (100f * (rows - 1 - row) / (rows - 1));
-                updateProgress("Calculating Distance From Streams:", (int) progress);
-            }
-
-            for (row = 0; row < rows; row++) {
-                for (col = 0; col < cols; col++) {
-                    z = streams.getValue(row, col);
-                    if (z != noData) {
-                        z = output.getValue(row, col);
-                        output.setValue(row, col, Math.sqrt(z) * gridRes);
-                    } else {
-                        output.setValue(row, col, noData);
-                    }
-                }
-                if (cancelOp) {
-                    cancelOperation();
-                    return false;
-                }
-                progress = (float) (100f * row / (rows - 1));
-                updateProgress("Calculating Distance From Streams:", (int) progress);
-            }
-
-            streams.close();
-            Rx.close();
-            Ry.close();
-
-
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-
     }
     int[] partData;
 
