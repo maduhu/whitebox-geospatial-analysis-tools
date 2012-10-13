@@ -219,7 +219,6 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
         BoundingBox box;
         double[][] geometry;
         int numPoints, numParts, i, part;
-        int stCol, endCol;
         int startingPointInPart, endingPointInPart;
         double x1, y1, x2, y2, xPrime, yPrime;
         boolean useRecID = false;
