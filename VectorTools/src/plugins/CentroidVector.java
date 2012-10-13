@@ -85,7 +85,7 @@ public class CentroidVector implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-        String[] ret = {"PatchShapeTools"};
+        String[] ret = {"PatchShapeTools", "VectorTools"};
         return ret;
     }
 
