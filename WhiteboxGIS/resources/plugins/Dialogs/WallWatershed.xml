@@ -1,4 +1,4 @@
-<Dialog Name="BurnStreams" HelpFile="BurnStreams.html">
+<Dialog Name="WallWatershed" HelpFile="WallWatershed.html">
 	<DialogComponent type="DialogFile">
 		<Name>InputFile</Name>
 		<Description>Enter the name of the input DEM file here</Description>
@@ -10,9 +10,9 @@
 		<ShowButton>True</ShowButton>
 	</DialogComponent>
 	<DialogComponent type="DialogFile">
-		<Name>streamsFile</Name>
-		<Description>Enter the name of the input steams file here</Description>
-		<LabelText>Input Streams File:</LabelText>
+		<Name>watershedFile</Name>
+		<Description>Enter the name of the input watershed file here</Description>
+		<LabelText>Input Watershed File:</LabelText>
 		<DialogMode>Open File</DialogMode>
 		<Filter>Whitebox Files (*.shp; *.dep), DEP, SHP</Filter>
 		<IsVisible>True</IsVisible>
@@ -30,21 +30,11 @@
 		<ShowButton>True</ShowButton>
 	</DialogComponent>
 	<DialogComponent type="DialogDataInput">
-		<Name>decrement</Name>
-		<Description>Enter the desired elevation decrement value here</Description>
-		<LabelText>Decrement (in z units):</LabelText>
+		<Name>increment</Name>
+		<Description>Enter the desired elevation increment value here</Description>
+		<LabelText>Increment (in z units):</LabelText>
 		<IsVisible>True</IsVisible>
 		<InitialText>10</InitialText>
-		<NumericalInputOnly>True</NumericalInputOnly>
-		<MakeOptional>False</MakeOptional>
-		<Width>60</Width>
-	</DialogComponent>
-	<DialogComponent type="DialogDataInput">
-		<Name>decayCoefficient</Name>
-		<Description>Enter the desired distance-decay coefficient here</Description>
-		<LabelText>Distance-Decay:</LabelText>
-		<IsVisible>True</IsVisible>
-		<InitialText>1</InitialText>
 		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 		<Width>60</Width>

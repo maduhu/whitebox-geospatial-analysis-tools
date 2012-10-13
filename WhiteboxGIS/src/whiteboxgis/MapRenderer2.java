@@ -248,32 +248,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
     public boolean saveToImage(String fileName) {
         try {
-//            // get the page size information
-//                double w = this.getWidth();
-//                double h = this.getHeight();
-//            
-//                PageFormat pageFormat = map.getPageFormat();
-//                double pageWidth = pageFormat.getWidth();
-//                double pageHeight = pageFormat.getHeight();
-//                
-//                // set the page scale
-//                
-//                int pageShadowSize = 6;
-//                
-//                BoundingBox pageExtent = map.getPageExtent();
-//                if (pageExtent.getMaxY() == Float.NEGATIVE_INFINITY) {
-//                    // it hasn't yet been initialized
-//                    pageExtent.setMinX(-pageShadowSize);
-//                    pageExtent.setMinY(-pageShadowSize);
-//                    pageExtent.setMaxX(pageWidth + 1.25 * pageShadowSize);
-//                    pageExtent.setMaxY(pageHeight + 1.25 * pageShadowSize);
-//                    
-//                    map.setPageExtent(pageExtent);
-//                }
-//                
-//                
-            int width = (int) this.getWidth();
-            int height = (int) this.getHeight();
+            //int width = (int) this.getWidth();
+            //int height = (int) this.getHeight();
+            // get the page size information
+            PageFormat pageFormat = map.getPageFormat();
+            int width = (int)pageFormat.getWidth();
+            int height = (int)pageFormat.getHeight();
+
             // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
             // into integer pixels
             BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -282,7 +263,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             printingMap = true;
             map.deslectAllCartographicElements();
             drawMap(ig);
-            int i = fileName.lastIndexOf(".");
             String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toUpperCase();
             if (!ImageIO.write(bi, extension, new File(fileName))) {
                 return false;
@@ -294,23 +274,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         }
     }
 
-//    private Image offscreenImage;
-//    private Graphics offscreenGraphics;
-//    private Dimension offscreenDimension;
-    
     @Override
     public void paint(Graphics g) {
-//        Dimension currentSize = getSize();
-//        if (offscreenImage == null || !currentSize.equals(offscreenDimension)) {
-//            // call the 'java.awt.Component.createImage(...)' method to get an
-//            // image
-//            offscreenImage = createImage(currentSize.width, currentSize.height);
-//            offscreenGraphics = offscreenImage.getGraphics();
-//            offscreenDimension = currentSize;
-//        }
-//
-//        drawMap(offscreenImage.getGraphics());
-//        g.drawImage(offscreenImage, 0, 0, this);
         drawMap(g);
     }
     private double scale = 0;
@@ -325,8 +290,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         try {
             
             AffineTransform old = g2.getTransform();
-
-
+            
             // get the drawing area's width and height
             w = this.getWidth();
             h = this.getHeight();
@@ -1397,7 +1361,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                 // only set the clip region if this layer's bounding box actually intersects the
                                                 // boundary of the mapExtent.
                                                 boolean isClipped = false;
-                                                if (!mapExtent.contains(fe)) {
+                                                if (!fe.entirelyContainedWithin(mapExtent)) {
                                                     oldClip = g2.getClip();
                                                     g2.setClip(rect);
                                                     isClipped = true;
@@ -2291,47 +2255,48 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     ce.setUpperLeftY(y - ce.getSelectedOffsetY());
                 }
             }
-            MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
-            if (mapArea.isVisible() && mapExtent.getMinY() != mapExtent.getMaxY() &&
-                    backgroundMouseMode == MOUSE_MODE_PAN && !mapArea.isSelected()) {
-                int x2 = (int) ((e.getX() - pageLeft) / scale);
-                int y2 = (int) ((e.getY() - pageTop) / scale);
+            if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
+                MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
+                if (mapArea.isVisible() && mapExtent.getMinY() != mapExtent.getMaxY()
+                        && backgroundMouseMode == MOUSE_MODE_PAN && !mapArea.isSelected()) {
+                    int x2 = (int) ((e.getX() - pageLeft) / scale);
+                    int y2 = (int) ((e.getY() - pageTop) / scale);
 
-                int referenceMarkSize = mapArea.getReferenceMarksSize();
-                int viewAreaULX = mapArea.getUpperLeftX() + referenceMarkSize;
-                int viewAreaULY = mapArea.getUpperLeftY() + referenceMarkSize;
-                int viewAreaLRX = mapArea.getLowerRightX() - referenceMarkSize;
-                int viewAreaLRY = mapArea.getLowerRightY() - referenceMarkSize;
-                double viewAreaWidth = viewAreaLRX - viewAreaULX;
-                double viewAreaHeight = viewAreaLRY - viewAreaULY;
+                    int referenceMarkSize = mapArea.getReferenceMarksSize();
+                    int viewAreaULX = mapArea.getUpperLeftX() + referenceMarkSize;
+                    int viewAreaULY = mapArea.getUpperLeftY() + referenceMarkSize;
+                    int viewAreaLRX = mapArea.getLowerRightX() - referenceMarkSize;
+                    int viewAreaLRY = mapArea.getLowerRightY() - referenceMarkSize;
+                    double viewAreaWidth = viewAreaLRX - viewAreaULX;
+                    double viewAreaHeight = viewAreaLRY - viewAreaULY;
 
-                if (mapArea.isSizeMaximizedToScreenSize() && !printingMap) {
-                    viewAreaULX = (int) ((-pageLeft / scale) + referenceMarkSize);
-                    viewAreaULY = (int) ((-pageTop / scale) + referenceMarkSize);
-                    viewAreaLRX = viewAreaULX + (int) (w / scale - 2 * referenceMarkSize);
-                    viewAreaLRY = viewAreaULY + (int) (h / scale - 2 * referenceMarkSize);
-                    viewAreaWidth = viewAreaLRX - viewAreaULX;
-                    viewAreaHeight = viewAreaLRY - viewAreaULY;
+                    if (mapArea.isSizeMaximizedToScreenSize() && !printingMap) {
+                        viewAreaULX = (int) ((-pageLeft / scale) + referenceMarkSize);
+                        viewAreaULY = (int) ((-pageTop / scale) + referenceMarkSize);
+                        viewAreaLRX = viewAreaULX + (int) (w / scale - 2 * referenceMarkSize);
+                        viewAreaLRY = viewAreaULY + (int) (h / scale - 2 * referenceMarkSize);
+                        viewAreaWidth = viewAreaLRX - viewAreaULX;
+                        viewAreaHeight = viewAreaLRY - viewAreaULY;
+                    }
+
+                    double xRange = Math.abs(mapExtent.getMaxX() - mapExtent.getMinX());
+                    double yRange = Math.abs(mapExtent.getMaxY() - mapExtent.getMinY());
+
+                    double mapYEnd = mapExtent.getMinY() + (viewAreaLRY - y2) / viewAreaHeight * yRange;
+                    double mapXEnd = mapExtent.getMinX() + (x2 - viewAreaULX) / viewAreaWidth * xRange;
+
+                    double deltaX = mapX - mapXEnd;
+                    double deltaY = mapY - mapYEnd;
+                    if (Math.abs(deltaX / xRange) >= 0.05 || Math.abs(deltaY / yRange) >= 0.05) {
+                        BoundingBox bb = new BoundingBox(mapExtent.getMinX() + deltaX,
+                                mapExtent.getMinY() + deltaY,
+                                mapExtent.getMaxX() + deltaX,
+                                mapExtent.getMaxY() + deltaY);
+                        mapArea.setCurrentExtent(bb);
+                    }
+
                 }
-
-                double xRange = Math.abs(mapExtent.getMaxX() - mapExtent.getMinX());
-                double yRange = Math.abs(mapExtent.getMaxY() - mapExtent.getMinY());
-
-                double mapYEnd = mapExtent.getMinY() + (viewAreaLRY - y2) / viewAreaHeight * yRange;
-                double mapXEnd = mapExtent.getMinX() + (x2 - viewAreaULX) / viewAreaWidth * xRange;
-
-                double deltaX = mapX - mapXEnd;
-                double deltaY = mapY - mapYEnd;
-                if (Math.abs(deltaX / xRange) >= 0.05 || Math.abs(deltaY / yRange) >= 0.05) {
-                    BoundingBox bb = new BoundingBox(mapExtent.getMinX() + deltaX,
-                        mapExtent.getMinY() + deltaY,
-                        mapExtent.getMaxX() + deltaX,
-                        mapExtent.getMaxY() + deltaY);
-                    mapArea.setCurrentExtent(bb);
-                }
-
             }
-        
         } else if (myMode == MOUSE_MODE_RESIZE) {
             CartographicElement ce = map.getCartographicElement(whichCartoElement);
             if (ce.isSelected()) {

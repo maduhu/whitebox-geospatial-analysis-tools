@@ -12,10 +12,15 @@
 <p>The <b><i>NoData</i></b> value is a special numeric value that is used to
 flag grid cells that do not have valid data values. Most Whitebox GAT tools
 handle <b><i>NoData</i></b> values differently and these grid cells are
-displayed specially, usually transparently. The <b><i>NoData</i></b> value is
-equal to -32,768, the smallest value that a 16-bit signed short integer can
-hold. This value was selected because it is unlikely to be needed as a valid
-data value.</p>
+displayed specially, usually transparently. The <b><i>NoData</i></b> value can be
+any numeric value within the range of values that can be represented for a given 
+data type (i.e. double-precision floating point, single-precision floating point, 
+integer, or byte). The NoData value is set within the header file (.dep) of a 
+Whitebox raster. <b><i>NoData</i></b> is most commonly set to -32,768, the 
+smallest value that a 16-bit signed short integer can hold, by raster tools. 
+This value is a good candidate for <b><i>NoData</i></b> because it is unlikely to 
+be needed as a valid data value. Notice that it is not possible to use -32,768 for 
+grids of a Byte data type, which is why this data type is being phased out.</p>
 
 <p>Background areas can be assigned the <b><i>NoData</i></b> value by using
 either the <a href="SetNoData.html">SetNoData</a> tool or the <a
@@ -29,6 +34,7 @@ image can be identified using the <a href="IsNoData.html">IsNoData</a> tool.</p>
   <li><a href="SetNoData.html">Set NoData</a></li>
   <li><a href="Reclass.html">Reclass</a></li>
   <li><a href="IsNoData.html">Is NoData value</a></li>
+  <li><a href="ConvertNoDataToZero">Convert NoData To Zero</a></li>
 </ul>
 </body>
 </html>
