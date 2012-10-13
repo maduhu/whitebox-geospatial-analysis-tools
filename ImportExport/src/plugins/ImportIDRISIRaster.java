@@ -225,8 +225,7 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                 (new File(whiteboxHeaderFile)).delete();
                 (new File(whiteboxDataFile)).delete();
 
-                boolean success = createHeaderFile(idrisiHeaderFile, whiteboxHeaderFile);
-                if (!success) {
+                if (!createHeaderFile(idrisiHeaderFile, whiteboxHeaderFile)) {
                     showFeedback("IDRISI header file was not read properly. "
                             + "Tool failed to import");
                     return;
@@ -235,7 +234,7 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                 int length;
                 byte[] buffer = new byte[1024];
                 
-                if (!idrisiFileIsByteDataType) {
+                if (!idrisiFileIsByteDataType && !idrisiFileIsRGB) {
                     // copy the data file.
                     File fromfile = new File(idrisiDataFile);
                     inStream = new FileInputStream(fromfile);
@@ -249,33 +248,77 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                     outStream.close();
                     inStream.close();
                 
-                } else {
-                    // copy the data file.
-                    File fromfile = new File(idrisiDataFile);
-                    inStream = new FileInputStream(fromfile);
-                    File tofile = new File(whiteboxDataFile);
-                    outStream = new FileOutputStream(tofile);
-                    ByteBuffer buf = null;
-                    ShortBuffer ib = null;
-                    byte[] outBytes = null;
+                } else if (!idrisiFileIsRGB) {
+                    RandomAccessFile rIn = null;
+                    FileChannel inChannel = null;
+                    int numBytesToRead = nrows * ncols;
+                    ByteBuffer buf = ByteBuffer.allocate(numBytesToRead);
+
+                    rIn = new RandomAccessFile(idrisiDataFile, "r");
+            
+                    inChannel = rIn.getChannel();
+            
+                    inChannel.position(0);
+                    inChannel.read(buf);
+
                     java.nio.ByteOrder byteorder = java.nio.ByteOrder.nativeOrder();
-                    while ((length = inStream.read(buffer)) > 0) {
-                        short[] ia = new short[length];
-                    
-                        for (int a = 0; a < length; a++) {
-                            ia[a] = (short)(buffer[a] & 0xff);
+                    // Check the byte order.
+                    buf.order(byteorder);
+                    buf.rewind();
+                    byte[] ba = new byte[numBytesToRead];
+                    buf.get(ba);
+                    WhiteboxRaster wr = new WhiteboxRaster(whiteboxHeaderFile, "rw");
+                    double z;
+                    int row = 0, col = 0;
+                    for (int j = 0; j < numBytesToRead; j++) {
+                        z = (double)(ba[j] & 0xff);
+                        wr.setValue(row, col, z);
+                        col++;
+                        if (col == ncols) {
+                            col = 0;
+                            row++;
                         }
-                        buf = ByteBuffer.allocate(2 * length);
-                        buf.order(byteorder);
-                        ib = buf.asShortBuffer();
-                        ib.put(ia);
-                        ib = null;
-                        //ia = null;
-                        outBytes = buf.array();
-                        outStream.write(outBytes, 0, 2 * length);
                     }
-                    outStream.close();
-                    inStream.close();
+                    wr.close();
+                    inChannel.close();
+                } else {
+                    RandomAccessFile rIn = null;
+                    FileChannel inChannel = null;
+                    int numBytesToRead = nrows * ncols * 3;
+                    ByteBuffer buf = ByteBuffer.allocate(numBytesToRead);
+
+                    rIn = new RandomAccessFile(idrisiDataFile, "r");
+            
+                    inChannel = rIn.getChannel();
+            
+                    inChannel.position(0);
+                    inChannel.read(buf);
+
+                    java.nio.ByteOrder byteorder = java.nio.ByteOrder.nativeOrder();
+                    // Check the byte order.
+                    buf.order(byteorder);
+                    buf.rewind();
+                    byte[] ba = new byte[numBytesToRead];
+                    buf.get(ba);
+                    int r, g, b;
+                    
+                    WhiteboxRaster wr = new WhiteboxRaster(whiteboxHeaderFile, "rw");
+                    double z;
+                    int row = 0, col = 0;
+                    for (int j = 0; j < numBytesToRead; j += 3) {
+                        b = (int)(ba[j] & 0xff);
+                        g = (int)(ba[j + 1] & 0xff);
+                        r = (int)(ba[j + 2] & 0xff);
+                        z = (double)((255 << 24) | (b << 16) | (g << 8) | r);
+                        wr.setValue(row, col, z);
+                        col++;
+                        if (col == ncols) {
+                            col = 0;
+                            row++;
+                        }
+                    }
+                    wr.close();
+                    inChannel.close();
                 }
                     
                 output = new WhiteboxRaster(whiteboxHeaderFile, "r");
@@ -304,10 +347,9 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
     }
 
     private boolean idrisiFileIsByteDataType = false;
-    private int numPixels = 0;
+    private boolean idrisiFileIsRGB = false;
+    private int nrows, ncols;
     private boolean createHeaderFile(String idrisiHeaderFile, String whiteboxHeaderFile) {
-        int nrows = 0;
-        int ncols = 0;
         double north = 0;
         double east = 0;
         double west = 0;
@@ -360,9 +402,10 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                             dataType = "integer";
                         } else if (str[str.length - 1].toLowerCase().contains("real")) {
                             dataType = "float";
-                        } else if (str[str.length - 1].toLowerCase().contains("rbg")) {
+                        } else if (str[str.length - 1].toLowerCase().contains("rgb")) {
                             dataType = "float";
-                            dataScale = "rbg";
+                            dataScale = "rgb";
+                            idrisiFileIsRGB = true;
                         }
                     } else if (str[0].toLowerCase().contains("file type")) {
                         if (!str[str.length - 1].toLowerCase().contains("binary")) {
@@ -388,7 +431,7 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                 in.close();
                 br.close();
                 
-                numPixels = ncols * nrows;
+                int numPixels = ncols * nrows;
 
                 fw = new FileWriter(whiteboxHeaderFile, false);
                 bw = new BufferedWriter(fw);
