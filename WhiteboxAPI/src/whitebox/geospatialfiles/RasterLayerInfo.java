@@ -21,8 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
-import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.geospatialfiles.WhiteboxRasterInfo;
 import whitebox.interfaces.MapLayer;
 import whitebox.structures.BoundingBox;
 

@@ -880,8 +880,8 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
 
             blockEndingCell = endCell;
 
-            int writeLengthInCells = (int)(blockEndingCell - blockStartingCell + 1);
-            buf = ByteBuffer.allocate((int) (writeLengthInCells * cellSizeInBytes));
+            int readLengthInCells = (int)(blockEndingCell - blockStartingCell + 1);
+            buf = ByteBuffer.allocate((int) (readLengthInCells * cellSizeInBytes));
 
             rIn = new RandomAccessFile(dataFile, "r");
             
@@ -897,35 +897,35 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             if (dataType == DataType.DOUBLE) { //.equals("double")) {
                 buf.rewind();
                 DoubleBuffer db = buf.asDoubleBuffer();
-                grid = new double[writeLengthInCells];
+                grid = new double[readLengthInCells];
                 db.get(grid);
             } else if (dataType == DataType.FLOAT) { //.equals("float")) {
                 buf.rewind();
                 FloatBuffer fb = buf.asFloatBuffer();
-                float[] fa = new float[writeLengthInCells];
+                float[] fa = new float[readLengthInCells];
                 fb.get(fa);
                 //fb = null;
                 //buf = null;
-                grid = new double[writeLengthInCells];
-                for (int j = 0; j < writeLengthInCells; j++) {
+                grid = new double[readLengthInCells];
+                for (int j = 0; j < readLengthInCells; j++) {
                     grid[j] = fa[j];
                 }
                 //fa = null;
             } else if (dataType == DataType.INTEGER) { //.equals("integer")) {
                 buf.rewind();
                 ShortBuffer ib = buf.asShortBuffer();
-                short[] ia = new short[writeLengthInCells];
+                short[] ia = new short[readLengthInCells];
                 ib.get(ia);
-                grid = new double[writeLengthInCells];
-                for (int j = 0; j < writeLengthInCells; j++) {
+                grid = new double[readLengthInCells];
+                for (int j = 0; j < readLengthInCells; j++) {
                     grid[j] = ia[j];
                 }
             } else if (dataType == DataType.BYTE) { //.equals("byte")) {
                 buf.rewind();
-                byte[] ba = new byte[writeLengthInCells];
+                byte[] ba = new byte[readLengthInCells];
                 buf.get(ba);
-                grid = new double[writeLengthInCells];
-                for (int j = 0; j < writeLengthInCells; j++) {
+                grid = new double[readLengthInCells];
+                for (int j = 0; j < readLengthInCells; j++) {
                     grid[j] = ba[j];
                 }
             }
@@ -1059,394 +1059,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         }
 
     }
-//
-//    private void setPropertiesUsingAnotherRaster(String BaseRasterHeader, DataType dataType) {
-//        setDataType(dataType);
-//
-//        // Set the properties of this WhiteboxRaster to those of the base raster.
-//        DataInputStream in = null;
-//        BufferedReader br = null;
-//        try {
-//            // Open the file that is the first command line parameter
-//            FileInputStream fstream = new FileInputStream(BaseRasterHeader);
-//            // Get the object of DataInputStream
-//            in = new DataInputStream(fstream);
-//
-//            br = new BufferedReader(new InputStreamReader(in));
-//
-//            if (BaseRasterHeader != null) {
-//                String line;
-//                String[] str;
-//                //Read File Line By Line
-//                while ((line = br.readLine()) != null) {
-//                    str = line.split("\t");
-//                    if (str[0].toLowerCase().contains("north")) {
-//                        this.north = Double.parseDouble(str[1]);
-//                    } else if (str[0].toLowerCase().contains("south")) {
-//                        this.south = Double.parseDouble(str[1]);
-//                    } else if (str[0].toLowerCase().contains("west")) {
-//                        this.west = Double.parseDouble(str[1]);
-//                    } else if (str[0].toLowerCase().contains("east")) {
-//                        this.east = Double.parseDouble(str[1]);
-//                    } else if (str[0].toLowerCase().contains("cols")) {
-//                        this.numberColumns =  Integer.parseInt(str[1]);
-//                    } else if (str[0].toLowerCase().contains("rows")) {
-//                        this.numberRows =  Integer.parseInt(str[1]);
-//                    } else if (str[0].toLowerCase().contains("data scale")) {
-//                        if (str[1].toLowerCase().contains("continuous")) {
-//                            this.setDataScale(DataScale.CONTINUOUS);
-//                            //this.setDataScale(DATA_SCALE_CONTINUOUS);
-//                        } else if (str[1].toLowerCase().contains("categorical")) {
-//                            this.setDataScale(DataScale.CATEGORICAL);
-//                            //this.setDataScale(DATA_SCALE_CATEGORICAL);
-//                        } else if (str[1].toLowerCase().contains("bool")) {
-//                            this.setDataScale(DataScale.BOOLEAN);
-//                            //this.setDataScale(DATA_SCALE_BOOLEAN);
-//                        } else if (str[1].toLowerCase().contains("rgb")) {
-//                            this.setDataScale(DataScale.RGB);
-//                            //this.setDataScale(DATA_SCALE_RGB);
-//                        }
-//                    } else if (str[0].toLowerCase().contains("xy units")) {
-//                        this.xyUnits = str[1];
-//                    } else if (str[0].toLowerCase().contains("projection")) {
-//                        this.projection = str[1];
-//                    } else if (str[0].toLowerCase().contains("nodata")) {
-//                        this.noDataValue = Double.parseDouble(str[1]);
-//                    } else if (str[0].toLowerCase().contains("palette")) {
-//                        this.preferredPalette = str[1];
-//                    }
-//                }
-//
-//            }
-//        } catch (java.io.IOException e) {
-//            System.out.println("Error: " + e.getMessage());
-//        } catch (Exception e) { //Catch exception if any
-//            System.out.println("Error: " + e.getMessage());
-//        } finally {
-//            try {
-//                if (in != null || br!= null) {
-//                    in.close();
-//                    br.close();
-//                }
-//            } catch (java.io.IOException ex) {
-//            }
-//
-//        }
-//
-//        // Save the header file.
-//        this.writeHeaderFile();
-//    }
-//    
-//    /**
-//     * Used to find the minimum and maximum values in the raster. NoDataValues are ignored.
-//     * Minimum and maximum values are stored in the minimumValue and maximumValue fields.
-//     */
-//    public void findMinAndMaxVals() {
-//        double[] data;
-//        double min = Double.MAX_VALUE;
-//        double max = -Double.MAX_VALUE;
-//        double z;
-//        for (int row = 0; row < numberRows; row++) {
-//            data = getRowValues(row);
-//            for (int col = 0; col < numberColumns; col++) {
-//                z = data[col];
-//                if (z != noDataValue) {
-//                    if (z < min) { min = z; }
-//                    if (z > max) { max = z; }
-//                }
-//            }
-//        }
-//        maximumValue = max;
-//        minimumValue = min;
-//    }
-//    
-//    private double[] cumulativeHisto = null;
-//    public double getPercentileValue(double percentile) {
-//        if (mean == noDataValue || mean == -32768d) {
-//            readStatsFile();
-//        }
-//        percentile = percentile / 100;
-//        double retVal = 0;
-//        double x1, x2;
-//        double y1, y2;
-//        
-//        if (cumulativeHisto == null) {
-//            cumulativeHisto = new double[histo.length];
-//            
-//            cumulativeHisto[0] = histo[0];
-//            for (int i = 1; i < histo.length; i++) {
-//                cumulativeHisto[i] = histo[i] + cumulativeHisto[i - 1];
-//            }
-//            for (int i = 0; i < histo.length; i++) {
-//                cumulativeHisto[i] = cumulativeHisto[i] / numValidCells;
-//            }
-//        }
-//        for (int i = 0; i < histo.length; i++) {
-//            if (cumulativeHisto[i] >= percentile) { // find the first bin with a value greater than percentile.
-//                if (i > 0) {
-//                    x1 = minimumValue + (i - 1) * binWidth;
-//                    x2 = minimumValue + i * binWidth;
-//                    y1 = cumulativeHisto[i - 1];
-//                    y2 = cumulativeHisto[i];
-//                    
-//                } else {
-//                    x1 = minimumValue + (i - 1) * binWidth;
-//                    x2 = minimumValue + i * binWidth;
-//                    y1 = 0;
-//                    y2 = cumulativeHisto[i];
-//                    
-//                }
-//                retVal = x1 + (percentile - y1) / (y2 - y1) * binWidth;
-//                break;
-//            }
-//        }
-//        return retVal;
-//    }
-//    
-//    public void readStatsFile() {
-//        File file = new File(statsFile);
-//        if (!file.exists()) { 
-//            createStatsFile();
-//            return;
-//        }
-//        
-//        DataInputStream in = null;
-//        BufferedReader br = null;
-//        boolean statsFlag = false;
-//        boolean histoFlag = false;
-//        int i = 0;
-//        long histoVal = 0;
-//        try {
-//            // Open the file that is the first command line parameter
-//            FileInputStream fstream = new FileInputStream(statsFile);
-//            // Get the object of DataInputStream
-//            in = new DataInputStream(fstream);
-//
-//            br = new BufferedReader(new InputStreamReader(in));
-//
-//            if (statsFile != null) {
-//                String line;
-//                String[] str;
-//                //Read File Line By Line
-//                while ((line = br.readLine()) != null) {
-//                    str = line.split("\t");
-//                    if (str[0].toLowerCase().contains("start_stats")) {
-//                        statsFlag = true;
-//                    }
-//                    if (str[0].toLowerCase().contains("end_stats")) {
-//                        statsFlag = false;
-//                    }
-//                    if (str[0].toLowerCase().contains("start_histo")) {
-//                        histoFlag = true;
-//                    }
-//                    if (str[0].toLowerCase().contains("end_histo")) {
-//                        histoFlag = false;
-//                    }
-//                    if (statsFlag) {
-//                        if (str[0].toLowerCase().contains("mean")) {
-//                            this.mean = Double.parseDouble(str[1]);
-//                        } else if (str[0].toLowerCase().contains("median")) {
-//                            this.median = Double.parseDouble(str[1]);
-//                        } else if (str[0].toLowerCase().contains("mode")) {
-//                            this.mode = Double.parseDouble(str[1]);
-//                        } else if (str[0].toLowerCase().contains("std_dev")) {
-//                            this.stdDeviation = Double.parseDouble(str[1]);
-//                        } else if (str[0].toLowerCase().contains("num_valid_cells")) {
-//                            this.numValidCells = Long.parseLong(str[1]);
-//                        }
-//                    } else if (histoFlag) {
-//                        if (str[0].toLowerCase().contains("bin_width")) {
-//                            this.binWidth = Double.parseDouble(str[1]);
-//                        } else if (str[0].toLowerCase().contains("num_bins")) {
-//                            histo = new long[Integer.parseInt(str[1])];
-//                            i = 0;
-//                        } else if (!str[0].toLowerCase().contains("start_histo")) {
-//                            histo[i] = Long.parseLong(str[0]);
-//                            i++;
-//                        }
-//                    }
-//                    
-//                }
-//                //Close the input stream
-//                in.close();
-//                br.close();
-//
-//            }
-//        } catch (java.io.IOException e) {
-//            System.err.println("Error: " + e.getMessage());
-//        } catch (Exception e) { //Catch exception if any
-//            System.err.println("Error: " + e.getMessage());
-//        } finally {
-//            try {
-//                if (in != null || br!= null) {
-//                    in.close();
-//                    br.close();
-//                }
-//            } catch (java.io.IOException ex) {
-//            }
-//
-//        }
-//
-//    }
-//    
-//    /**
-//     * Creates a .wst file to store information about the statistical distribution
-//     * of the raster, including the min, max, mean, mode, stdev, and the histogram. These
-//     * data are used for clipping the tails of the distribution for enhanced visualization.
-//     */
-//    public void createStatsFile() {
-//        File file = new File(statsFile);
-//        if (file.exists()) { 
-//            file.delete(); 
-//        }
-//        
-//        mean = 0;
-//        mode = 0;
-//        long n = 0;
-//        double[] data;
-//        double imageTotalDeviation = 0;
-//        double min = Double.MAX_VALUE;
-//        double max = -Double.MAX_VALUE;
-//        double z;
-//        double[] rowMedians = new double[numberRows];
-//        
-//        binWidth = 0;
-//        int binNum = 0;
-//        int numberOfBins = 0;
-//        
-//            
-//        if (dataScale != DataScale.RGB) { //DATA_SCALE_RGB) {
-//            
-//            // calculate the mean, min and max.
-//            for (int row = 0; row < numberRows; row++) {
-//                data = getRowValues(row);
-//                for (int col = 0; col < numberColumns; col++) {
-//                    z = data[col];
-//                    if (z != noDataValue) {
-//                        mean += z;
-//                        n++;
-//                        if (z < min) {
-//                            min = z;
-//                        }
-//                        if (z > max) {
-//                            max = z;
-//                        }
-//                    }
-//                }
-//            }
-//            
-//            maximumValue = max;
-//            minimumValue = min;
-//            mean = mean / n;
-//            numValidCells = n;
-//            
-//            if (dataType == DataType.INTEGER) { //equals("integer")) {
-//                numberOfBins = (int)(max - min + 1);
-//                binWidth = 1;
-//            } else if (dataType == DataType.FLOAT || dataType == DataType.DOUBLE) { //.equals("float") || dataType.equals("double")) {
-//                if ((max - min) < 512) {
-//                    numberOfBins = 512;
-//                } else if ((max - min) < 1024) {
-//                    numberOfBins = 1024;
-//                }  else if ((max - min) < 2048) {
-//                    numberOfBins = 2048;
-//                } else if ((max - min) < 4096) {
-//                    numberOfBins = 4096;
-//                } else {
-//                    numberOfBins = 8196;
-//                }
-//                binWidth = (max - min) / (numberOfBins - 1);
-//            }
-//            
-//            histo = new long[numberOfBins];
-//            
-//            // figure out how many bins should be in the histogram
-//
-//            for (int row = 0; row < numberRows; row++) {
-//                data = getRowValues(row);
-//                for (int col = 0; col < numberColumns; col++) {
-//                    z = data[col];
-//                    if (z != noDataValue) {
-//                        imageTotalDeviation += (z - mean) * (z - mean);
-//                        binNum = (int)(Math.floor((z - min) / binWidth));
-//                        histo[binNum]++;
-//                    }
-//                }
-//            }
-//            
-//            stdDeviation = Math.sqrt(imageTotalDeviation / (n - 1));
-//
-//            long highestVal = 0;
-//            int highestBin = 0;
-//            for (int i = 0; i < histo.length; i++) {
-//                if (histo[i] > highestVal) { 
-//                    highestVal = histo[i]; 
-//                    highestBin = i;
-//                }
-//            }
-//
-//            mode = highestBin * binWidth;
-//            median = getPercentileValue(50.0d);
-//            
-//
-//            String str = null;
-//            FileWriter fw = null;
-//            BufferedWriter bw = null;
-//            PrintWriter out = null;
-//            try {
-//                fw = new FileWriter(file, false);
-//                bw = new BufferedWriter(fw);
-//                out = new PrintWriter(bw, true);
-//
-//                str = "START_STATS:";
-//                out.println(str);
-//                str = "MIN: \t" + Double.toString(this.minimumValue);
-//                out.println(str);
-//                str = "MAX: \t" + Double.toString(this.maximumValue);
-//                out.println(str);
-//                str = "MEAN: \t" + Double.toString(mean);
-//                out.println(str);
-//                str = "MEDIAN: \t" + Double.toString(median);
-//                out.println(str);
-//                str = "MODE: \t" + Double.toString(mode);
-//                out.println(str);
-//                str = "STD_DEV: \t" + Double.toString(stdDeviation);
-//                out.println(str);
-//                str = "NUM_VALID_CELLS: \t" + Long.toString(n);
-//                out.println(str);
-//                str = "END_STATS";
-//                out.println(str);
-//                
-//                str = "START_HISTO";
-//                out.println(str);
-//                str = "BIN_WIDTH: \t" + binWidth;
-//                out.println(str);
-//                str = "NUM_BINS: \t" + numberOfBins;
-//                out.println(str);
-//                for (int i = 0; i < histo.length; i++) {
-//                    str = String.valueOf(histo[i]);
-//                    out.println(str);
-//                }
-//                str = "END_HISTO";
-//                out.println(str);
-//                
-//            } catch (java.io.IOException e) {
-//                System.err.println("Error: " + e.getMessage());
-//            } catch (Exception e) { //Catch exception if any
-//                System.err.println("Error: " + e.getMessage());
-//            } finally {
-//                if (out != null || bw != null) {
-//                    out.flush();
-//                    out.close();
-//                }
-//
-//            }
-//
-//        } else {
-//            numberOfBins = 256;
-//        }
-//    }
-//    
+
     /**
      * Used to perform closing functionality when a whiteboxRaster is no longer needed.
      */
