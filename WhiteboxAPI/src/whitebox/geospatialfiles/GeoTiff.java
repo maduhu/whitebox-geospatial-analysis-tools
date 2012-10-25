@@ -32,16 +32,21 @@
  */
 package whitebox.geospatialfiles;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.RandomAccessFile;
 import java.nio.*;
-import java.nio.channels.*;
-import java.io.*;
-import java.util.*;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Low level read/write geotiff files.
  *
  * @author John Caron
  * @author Yuan Ho
+ * @author John Lindsay
  * @see GeotiffWriter
  */
 public class GeoTiff {

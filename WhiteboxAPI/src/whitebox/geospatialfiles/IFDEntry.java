@@ -149,7 +149,7 @@ class IFDEntry implements Comparable {
       sbuf.append("\n");
       for (int i=0; i<geokeys.size(); i++) {
         GeoKey elem = (GeoKey) geokeys.get(i);
-        sbuf.append("        "+elem+"\n");
+        sbuf.append("        " + elem + "\n");
       }
     }
  
