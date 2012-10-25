@@ -16,24 +16,20 @@
  */
 package rastercalculator;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import java.util.ArrayList;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Vector;
 import java.util.Map;
-import whitebox.structures.ExtensionFileFilter;
-import whitebox.interfaces.WhiteboxPluginHost;
+import java.util.Vector;
+import javax.swing.*;
 import whitebox.interfaces.ThreadListener;
+import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.structures.ExtensionFileFilter;
 
 
 /**

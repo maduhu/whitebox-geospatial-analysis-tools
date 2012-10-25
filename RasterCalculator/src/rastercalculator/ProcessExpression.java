@@ -1556,7 +1556,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
             
             file = new File(inputHeader3);
             image2Bool = file.exists();
-            if (image1Bool) {
+            if (image2Bool) {
                 constant2 = -1;
             } else {
                 constant2 = Double.parseDouble(file.getName().replace(".dep", ""));
