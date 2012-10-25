@@ -31,6 +31,8 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
+            //setLookAndFeel("Nimbus");
+            setLookAndFeel("systemLAF");
             
             if (System.getProperty("os.name").contains("Mac")) {
                 System.setProperty("apple.laf.useScreenMenuBar", "true");
@@ -41,9 +43,6 @@ public class Main {
                 System.setProperty("apple.awt.fileDialogForDirectories", "true");
             }
             
-            //setLookAndFeel("Nimbus");
-            setLookAndFeel("systemLAF");
-
             WhiteboxGui wb = new WhiteboxGui();
             wb.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             wb.setVisible(true);

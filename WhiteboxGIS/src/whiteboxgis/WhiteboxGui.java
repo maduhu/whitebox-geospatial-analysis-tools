@@ -588,7 +588,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             this.getContentPane().add(status, java.awt.BorderLayout.SOUTH);
 
             if (System.getProperty("os.name").contains("Mac")) {
-                this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+                
                 try {
                     Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
                     Class params[] = new Class[2];
@@ -605,6 +605,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 } catch (IllegalAccessException e) {
                     // log exception
                 }
+                
+                this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
             }
             this.setMinimumSize(new Dimension(700, 500));
             this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);

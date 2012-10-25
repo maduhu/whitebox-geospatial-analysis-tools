@@ -2149,11 +2149,27 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     g2.drawString(label, viewAreaLRX - adv, viewAreaLRY + referenceMarkSize - 1);
 
                                     // rotate the font
-                                    Font f = font.deriveFont(AffineTransform.getRotateInstance(-Math.PI / 2.0));
-                                    g2.setFont(f);
+                                   
+                                    // Create a rotation transformation for the font.
+                                    AffineTransform fontAT = new AffineTransform();
 
+                                    // get the current font
+                                    Font theFont = g2.getFont();
+
+                                    // Derive a new font using a rotatation transform
+                                    fontAT.rotate(-Math.PI / 2.0);
+                                    Font theDerivedFont = theFont.deriveFont(fontAT);
+
+                                    // set the derived font in the Graphics2D context
+                                    g2.setFont(theDerivedFont);
+
+                                    //Font rf = font.deriveFont(AffineTransform.getRotateInstance(-Math.PI / 2.0));
+                                    //g2.setFont(rf);
+
+                                    //Rectangle2D rect = metrics.getStringBounds(label, g);
                                     label = df.format(currentExtent.getMaxY() + (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
                                     adv = metrics.stringWidth(label);
+                                    //adv = (int)rect.getWidth();
                                     g2.drawString(label, viewAreaULX - 3, viewAreaULY + 4 + adv);
                                     g2.drawString(label, viewAreaLRX + fontHeight, viewAreaULY + 4 + adv);
 
@@ -2161,6 +2177,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     //adv = metrics.stringWidth(label);
                                     g2.drawString(label, viewAreaULX - 3, viewAreaLRY - 4);
                                     g2.drawString(label, viewAreaLRX + fontHeight, viewAreaLRY - 4);
+                                    
+                                    // put the original font back
+                                    g2.setFont(theFont);
+
                                 }
 
                             }
