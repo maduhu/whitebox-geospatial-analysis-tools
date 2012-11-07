@@ -466,9 +466,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 g2.setColor(mapScale.getOutlineColour());
 
                                 // set up the font
-                                font = new Font("SanSerif", Font.PLAIN, 10);
-                                g2.setFont(font);
-                                metrics = g2.getFontMetrics(font);
+                                Font newfont = new Font("SanSerif", Font.PLAIN, 10);
+                                g2.setFont(newfont);
+                                metrics = g2.getFontMetrics(newfont);
 
                                 // what is the content height?
                                 int contentHeight = 0;
@@ -544,6 +544,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 }
 
                                 g2.setStroke(oldStroke);
+                                g2.setFont(font);
                             }
                         }
 
@@ -605,9 +606,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         if (mapTitle.isVisible()) {
                             if (mapTitle.getWidth() < 0) {
 
-                                font = mapTitle.getLabelFont();
-                                g2.setFont(font);
-                                metrics = g2.getFontMetrics(font);
+                                Font newFont = mapTitle.getLabelFont();
+                                g2.setFont(newFont);
+                                metrics = g2.getFontMetrics(newFont);
                                 adv = metrics.stringWidth(mapTitle.getLabel());
                                 mapTitle.setWidth(adv + 2 * mapTitle.getMargin());
                                 mapTitle.setHeight(metrics.getHeight() + 2 * mapTitle.getMargin());
@@ -641,12 +642,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                         mapTitle.getWidth(),
                                         mapTitle.getHeight());
                                 g2.setStroke(oldStroke);
+                                g2.setFont(font);
                             }
-                            font = mapTitle.getLabelFont();
+                            Font newFont = mapTitle.getLabelFont();
                             g2.setColor(mapTitle.getFontColour());
                             oldFont = g2.getFont();
-                            g2.setFont(font);
-                            metrics = g2.getFontMetrics(font);
+                            g2.setFont(newFont);
+                            metrics = g2.getFontMetrics(newFont);
                             int fontHeight = metrics.getHeight() - metrics.getDescent();
                             x = mapTitle.getUpperLeftX() + mapTitle.getMargin();
                             y = (int) (mapTitle.getUpperLeftY() + mapTitle.getMargin() + fontHeight);
@@ -762,9 +764,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             g2.setColor(Color.BLACK);
                             int top = legendULY + legendMargin;
                             int left = legendULX + legendMargin;
-                            font = legend.getLabelFont();
-                            g2.setFont(font);
-                            metrics = g2.getFontMetrics(font);
+                            Font newFont = legend.getLabelFont();
+                            g2.setFont(newFont);
+                            metrics = g2.getFontMetrics(newFont);
                             int fontHeight = metrics.getHeight() - metrics.getDescent();
                             int gap = 10;
                             int imageHeight = 35;
@@ -1181,6 +1183,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                                 g2.draw(rect);
                                 g2.setStroke(oldStroke);
+                                g2.setFont(font);
                             }
 
 
@@ -1191,11 +1194,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 //                            if (mapArea.getRotation() > 0) {
 //                                g2.rotate(mapArea.getRotation());
 //                            }
-                            font = mapArea.getLabelFont();
+                            Font newFont = mapArea.getLabelFont();
                             g2.setColor(mapArea.getFontColour());
                             oldFont = g2.getFont();
-                            g2.setFont(font);
-                            metrics = g2.getFontMetrics(font);
+                            g2.setFont(newFont);
+                            metrics = g2.getFontMetrics(newFont);
                             int fontHeight = metrics.getHeight() - metrics.getDescent();
 
                             if (mapArea.getUpperLeftY() == -32768) {
@@ -1273,6 +1276,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 mapExtent.setMinY(currentExtent.getMinY() - (viewAreaHeight / mapScale - yRange) / 2);
                                 mapExtent.setMaxY(currentExtent.getMaxY() + (viewAreaHeight / mapScale - yRange) / 2);
 
+                                mapArea.setCurrentMapExtent(mapExtent);
+                                
                                 for (int i = 0; i < numLayers; i++) {
                                     if (mapArea.getLayer(i).getLayerType() == MapLayer.MapLayerType.RASTER) {
                                         RasterLayerInfo layer = (RasterLayerInfo) mapArea.getLayer(i);
@@ -1320,7 +1325,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                 height = layer.getImageHeight();
                                                 Image image = createImage(new MemoryImageSource(width, height, layer.getPixelData(), 0, width));
                                                 if (!g2.drawImage(image, x, y, layerWidth, layerHeight, this)) {
-                                                    // do nothing
+                                                    g2.drawImage(image, x, y, layerWidth, layerHeight, this);
                                                 }
 
                                             }
@@ -2133,18 +2138,19 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 g2.setStroke(oldStroke);
 
                                 if (numLayers > 0) {
+                                    Font labelFont = new Font("SanSerif", Font.PLAIN, 10);
                                     XYUnits = mapArea.getXYUnits();
                                     // labels
                                     df = new DecimalFormat("###,###,###.#");
-                                    g2.setFont(font);
-                                    metrics = g2.getFontMetrics(font);
+                                    g2.setFont(labelFont);
+                                    metrics = g2.getFontMetrics(labelFont);
 
                                     label = df.format(currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
                                     g2.drawString(label, viewAreaULX + 4, viewAreaULY - 3);
                                     g2.drawString(label, viewAreaULX + 4, viewAreaLRY + referenceMarkSize - 1);
 
                                     label = df.format(currentExtent.getMaxX() + (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
-                                    adv = metrics.stringWidth(label) + 4;
+                                    adv = metrics.stringWidth(label) + 6;
                                     g2.drawString(label, viewAreaLRX - adv, viewAreaULY - 3);
                                     g2.drawString(label, viewAreaLRX - adv, viewAreaLRY + referenceMarkSize - 1);
 
@@ -2153,25 +2159,23 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     // Create a rotation transformation for the font.
                                     AffineTransform fontAT = new AffineTransform();
 
-                                    // get the current font
-                                    Font theFont = g2.getFont();
-
                                     // Derive a new font using a rotatation transform
                                     fontAT.rotate(-Math.PI / 2.0);
-                                    Font theDerivedFont = theFont.deriveFont(fontAT);
+                                    Font theDerivedFont = labelFont.deriveFont(fontAT);
 
                                     // set the derived font in the Graphics2D context
                                     g2.setFont(theDerivedFont);
-
-                                    //Font rf = font.deriveFont(AffineTransform.getRotateInstance(-Math.PI / 2.0));
-                                    //g2.setFont(rf);
+                                    
+                                    fontHeight = labelFont.getSize();
+                                    
+                                    metrics = g2.getFontMetrics(labelFont); //theDerivedFont);
 
                                     //Rectangle2D rect = metrics.getStringBounds(label, g);
                                     label = df.format(currentExtent.getMaxY() + (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
-                                    adv = metrics.stringWidth(label);
+                                    adv = metrics.stringWidth(label) + 6;
                                     //adv = (int)rect.getWidth();
-                                    g2.drawString(label, viewAreaULX - 3, viewAreaULY + 4 + adv);
-                                    g2.drawString(label, viewAreaLRX + fontHeight, viewAreaULY + 4 + adv);
+                                    g2.drawString(label, viewAreaULX - 3, viewAreaULY + adv);
+                                    g2.drawString(label, viewAreaLRX + fontHeight, viewAreaULY + adv);
 
                                     label = df.format(currentExtent.getMinY() - (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
                                     //adv = metrics.stringWidth(label);
@@ -2179,7 +2183,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     g2.drawString(label, viewAreaLRX + fontHeight, viewAreaLRY - 4);
                                     
                                     // put the original font back
-                                    g2.setFont(theFont);
+                                    g2.setFont(labelFont);
 
                                 }
 
@@ -2502,7 +2506,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
             if (myMode == MOUSE_MODE_MAPAREA) {
                 MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
-                if (mapArea.isVisible() && mapExtent.getMinY() != mapExtent.getMaxY()) {
+                BoundingBox currentExtent = mapArea.getCurrentMapExtent();
+                if (mapArea.isVisible() && currentExtent.getMinY() != currentExtent.getMaxY()) {
                     int x = (int) ((me.getX() - pageLeft) / scale);
                     int y = (int) ((me.getY() - pageTop) / scale);
 
@@ -2526,12 +2531,12 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     if (!isBetween(x, viewAreaULX, viewAreaLRX) || !isBetween(y, viewAreaULY, viewAreaLRY)) {
                         return;
                     }
+                    
+                    double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+                    double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
 
-                    double xRange = Math.abs(mapExtent.getMaxX() - mapExtent.getMinX());
-                    double yRange = Math.abs(mapExtent.getMaxY() - mapExtent.getMinY());
-
-                    mapY = mapExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange; 
-                    mapX = mapExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
+                    mapY = currentExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange;
+                    mapX = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
                     
                     if (backgroundMouseMode == MOUSE_MODE_PAN) {
                         this.setCursor(panClosedHandCursor);
@@ -2583,7 +2588,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             ce.resize(x, y, myResizeMode);
         } else if (mouseDragged && myMode == MOUSE_MODE_MAPAREA) {
             MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
-            if (mapArea.isVisible() && mapExtent.getMinY() != mapExtent.getMaxY() 
+            BoundingBox currentExtent = mapArea.getCurrentMapExtent();
+            if (mapArea.isVisible() && currentExtent.getMinY() != currentExtent.getMaxY() 
                     && !mapArea.isSelected()) {
                 int x = (int) ((e.getX() - pageLeft) / scale);
                 int y = (int) ((e.getY() - pageTop) / scale);
@@ -2610,11 +2616,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     return;
                 }
 
-                double xRange = Math.abs(mapExtent.getMaxX() - mapExtent.getMinX());
-                double yRange = Math.abs(mapExtent.getMaxY() - mapExtent.getMinY());
+                double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+                double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
 
-                double mapYEnd = mapExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange;
-                double mapXEnd = mapExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
+                double mapYEnd = currentExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange;
+                double mapXEnd = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
 
                 if (backgroundMouseMode == MOUSE_MODE_ZOOM) {
                     BoundingBox bb = new BoundingBox(Math.min(mapX, mapXEnd),
@@ -2625,10 +2631,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 } else if (backgroundMouseMode == MOUSE_MODE_PAN) {
                     double deltaX = mapX - mapXEnd;
                     double deltaY = mapY - mapYEnd;
-                    BoundingBox bb = new BoundingBox(mapExtent.getMinX() + deltaX,
-                            mapExtent.getMinY() + deltaY,
-                            mapExtent.getMaxX() + deltaX,
-                            mapExtent.getMaxY() + deltaY);
+                    BoundingBox bb = new BoundingBox(currentExtent.getMinX() + deltaX,
+                            currentExtent.getMinY() + deltaY,
+                            currentExtent.getMaxX() + deltaX,
+                            currentExtent.getMaxY() + deltaY);
                     mapArea.setCurrentExtent(bb);
                     this.setCursor(panCursor);
                 }
@@ -2651,7 +2657,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     
     
     private void updateStatus(MouseEvent e, MapArea mapArea) {
-        if (status != null && mapArea.isVisible() && mapExtent.getMinY() != mapExtent.getMaxY()) {
+        BoundingBox currentExtent = mapArea.getCurrentMapExtent();
+        if (status != null && mapArea.isVisible() && currentExtent.getMinY() != currentExtent.getMaxY()) {
             int x = (int) ((e.getX() - pageLeft) / scale);
             int y = (int) ((e.getY() - pageTop) / scale);
         
@@ -2677,11 +2684,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 return;
             }
             
-            double xRange = Math.abs(mapExtent.getMaxX() - mapExtent.getMinX());
-            double yRange = Math.abs(mapExtent.getMaxY() - mapExtent.getMinY());
+            double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+            double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
 
-            double mapY = mapExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange; //- (e.getY() - borderWidth) / myHeight * (mapExtent.getMaxY() - mapExtent.getMinY());
-            double mapX = mapExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;//(e.getX() - borderWidth) / myWidth * (mapExtent.getMaxX() - mapExtent.getMinX());
+            double mapY = currentExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange; //- (e.getY() - borderWidth) / myHeight * (mapExtent.getMaxY() - mapExtent.getMinY());
+            double mapX = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;//(e.getX() - borderWidth) / myWidth * (mapExtent.getMaxX() - mapExtent.getMinX());
 
             DecimalFormat df = new DecimalFormat("###,###,###.0");
             String xStr = df.format(mapX);
