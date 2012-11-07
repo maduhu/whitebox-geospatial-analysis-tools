@@ -346,6 +346,20 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         addToExtentHistory(extent);
     }
     
+    BoundingBox currentMapExtent;
+    public BoundingBox getCurrentMapExtent() {
+        if (currentMapExtent == null) {
+            calculateFullExtent();
+            currentMapExtent = getFullExtent();
+        }
+        return currentMapExtent.clone();
+    }
+    
+    public void setCurrentMapExtent(BoundingBox extent) {
+        currentMapExtent = extent.clone();
+        //addToExtentHistory(extent);
+    }
+    
     public int getActiveLayerOverlayNumber() {
         return activeLayer.getOverlayNumber();
     }

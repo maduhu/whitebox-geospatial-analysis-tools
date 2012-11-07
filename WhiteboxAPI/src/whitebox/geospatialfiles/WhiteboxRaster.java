@@ -555,10 +555,10 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             if (!isReflectedAtEdges) { return noDataValue; }
             
             // if you get to this point, it is reflected at the edges
-            if (row < 0) { row = -row; }
-            if (row >= numberRows) { row = numberRows - (row - numberRows); }
-            if (column < 0) { column = -column; }
-            if (column >= numberColumns) { column = numberColumns - (column - numberColumns); }
+            if (row < 0) { row = -row - 1; }
+            if (row >= numberRows) { row = numberRows - (row - numberRows) - 1; }
+            if (column < 0) { column = -column - 1; }
+            if (column >= numberColumns) { column = numberColumns - (column - numberColumns) - 1; }
             if (column >= 0 && column < numberColumns && row >= 0 && row < numberRows) {
                 return getValue(row, column);
             } else {
@@ -701,7 +701,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         try {
             // see if the data can be comfortably contained in memory, keeping in
             // mind that it is always stored as doubles.
-            System.gc();
+            //System.gc();
             long availableMemory = Runtime.getRuntime().freeMemory();
             long gridMemoryRequirements = (long)numberRows * (long)numberColumns * 8L;
             if ((availableMemory / 3) > gridMemoryRequirements) {
@@ -716,16 +716,6 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                 blockSize = (numberRows * numberColumns) / 2;
                 bufferSize = ((numberRows * numberColumns) / 2) * 8;
             }
-            
-            /*
-            blockSize = (int) (Math.round(Math.floor(bufferSize / 8))) / 3;
-            if (blockSize > (numberRows * numberColumns)) {
-                blockSize = numberRows * numberColumns;
-                halfBlockSize = blockSize / 2;
-                bufferSize = blockSize * 8;
-            }
-             * 
-             */
             
             halfBlockSize = blockSize / 2;
             blockStartingCell = 0;

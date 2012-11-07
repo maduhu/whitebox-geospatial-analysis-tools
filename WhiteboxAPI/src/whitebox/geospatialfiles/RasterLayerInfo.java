@@ -37,7 +37,7 @@ public class RasterLayerInfo implements MapLayer {
     private int rows, cols;
     public boolean increasesEastward = false;
     public boolean increasesNorthward = false;
-    private boolean dirty = false;
+    private boolean dirty = true;
     private String[] defaultPalettes;
     private double[] data = null;
 
@@ -460,7 +460,7 @@ public class RasterLayerInfo implements MapLayer {
             }
             int numCells = imageHeight * imageWidth;
 
-            WhiteboxRaster sourceData = new WhiteboxRaster(source.getHeaderFile(), "r");
+            WhiteboxRasterInfo sourceData = new WhiteboxRasterInfo(source.getHeaderFile());
 
             int backgroundColour = 0; // transparent black
             pixelData = new int[numCells];
@@ -468,9 +468,15 @@ public class RasterLayerInfo implements MapLayer {
 
             int numPaletteEntriesLessOne = numPaletteEntries - 1;
 
+            //long startTime = System.currentTimeMillis();
+        
             double[] rawData;
             int i = 0;
             if (dataScale == WhiteboxRaster.DataScale.CONTINUOUS) {
+                CreatePixelsContinuous cpc = new CreatePixelsContinuous(sourceData, startRow, endRow,
+                        startCol, endCol, resolutionFactor, minVal, maxVal, gamma, paletteData, backgroundColour);
+//                cpc.createPixels();
+//                pixelData = cpc.getPixels();
                 for (row = startRow; row < endRow; row += resolutionFactor) {
                     rawData = sourceData.getRowValues(row);
                     for (col = startCol; col < endCol; col += resolutionFactor) {
@@ -554,6 +560,10 @@ public class RasterLayerInfo implements MapLayer {
                     }
                 }
             }
+
+            //long endTime = System.currentTimeMillis();
+
+            //System.out.println("CreatePixels took " + (endTime - startTime) + " milliseconds.");
 
             sourceData.close();
             sourceData = null;
