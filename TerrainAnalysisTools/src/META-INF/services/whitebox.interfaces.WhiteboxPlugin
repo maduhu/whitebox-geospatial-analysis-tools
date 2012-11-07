@@ -10,6 +10,7 @@ plugins.ElevRelativeToMinMax
 plugins.ElevRelativeToWatershedMinMax
 plugins.ExposureTowardsWindFlux
 plugins.FetchAnalysis
+plugins.FindRidges
 plugins.Hillshade
 plugins.HorizonAngle
 plugins.MaxDownslopeElevationChange
@@ -26,4 +27,5 @@ plugins.Slope
 plugins.StochasticDepressionAnalysis
 plugins.TangentialCurv
 plugins.TotalCurv
+plugins.VisibilityIndex
 plugins.WetnessIndex
