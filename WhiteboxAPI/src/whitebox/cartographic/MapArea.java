@@ -383,7 +383,7 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
             return -32768;
         }
     }
-    
+
     public void fitToData() {
         if (numLayers > 0) {
             calculateFullExtent();
@@ -458,8 +458,8 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
                 }
 
                 if (flag) {
-                    int row = (int) ((top - northing) / (top - bottom) * (rows - 0.5));
-                    int col = (int) ((easting - left) / (right - left) * (columns - 0.5));
+                    int row = (int) ((top - northing) / (top - bottom) * (rows));// - 0.5));
+                    int col = (int) ((easting - left) / (right - left) * (columns));// - 0.5));
                     z = layer.getDataValue(row, col);
                     point = new GridCell(row, col, z, layer.getNoDataValue(), layer.getOverlayNumber());
                     if (layer.getDataScale() == WhiteboxRasterInfo.DataScale.RGB) {
@@ -487,8 +487,8 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
                             }
 
                             if (flag) {
-                                int row = (int) ((top - northing) / (top - bottom) * (rows - 0.5));
-                                int col = (int) ((easting - left) / (right - left) * (columns - 0.5));
+                                int row = (int) ((top - northing) / (top - bottom) * (rows)); // - 0.5));
+                                int col = (int) ((easting - left) / (right - left) * (columns)); // - 0.5));
                                 z = rli.getDataValue(row, col);
                                 point = new GridCell(row, col, z, rli.getNoDataValue(), rli.getOverlayNumber());
                                 if (rli.getDataScale() == WhiteboxRasterInfo.DataScale.RGB) {

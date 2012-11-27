@@ -452,12 +452,13 @@ public class RasterLayerInfo implements MapLayer {
             // check the numCells
             imageHeight = 0;
             imageWidth = 0;
-            for (row = startRow; row < endRow; row += resolutionFactor) {
+            for (row = startRow; row <= endRow; row += resolutionFactor) {
                 imageHeight++;
             }
-            for (col = startCol; col < endCol; col += resolutionFactor) {
+            for (col = startCol; col <= endCol; col += resolutionFactor) {
                 imageWidth++;
             }
+            
             int numCells = imageHeight * imageWidth;
 
             WhiteboxRasterInfo sourceData = new WhiteboxRasterInfo(source.getHeaderFile());
@@ -473,13 +474,13 @@ public class RasterLayerInfo implements MapLayer {
             double[] rawData;
             int i = 0;
             if (dataScale == WhiteboxRaster.DataScale.CONTINUOUS) {
-                CreatePixelsContinuous cpc = new CreatePixelsContinuous(sourceData, startRow, endRow,
-                        startCol, endCol, resolutionFactor, minVal, maxVal, gamma, paletteData, backgroundColour);
+//                CreatePixelsContinuous cpc = new CreatePixelsContinuous(sourceData, startRow, endRow,
+//                        startCol, endCol, resolutionFactor, minVal, maxVal, gamma, paletteData, backgroundColour);
 //                cpc.createPixels();
 //                pixelData = cpc.getPixels();
-                for (row = startRow; row < endRow; row += resolutionFactor) {
+                for (row = startRow; row <= endRow; row += resolutionFactor) {
                     rawData = sourceData.getRowValues(row);
-                    for (col = startCol; col < endCol; col += resolutionFactor) {
+                    for (col = startCol; col <= endCol; col += resolutionFactor) {
                         value = rawData[col]; //sourceData.getValue(row, col);
                         if (value != noDataValue) {
                             entryNum = (int) (Math.pow(((value - minVal) / range), gamma) * numPaletteEntriesLessOne);
@@ -499,9 +500,9 @@ public class RasterLayerInfo implements MapLayer {
                 }
 
             } else if (dataScale == WhiteboxRaster.DataScale.CATEGORICAL) {
-                for (row = startRow; row < endRow; row += resolutionFactor) {
+                for (row = startRow; row <= endRow; row += resolutionFactor) {
                     rawData = sourceData.getRowValues(row);
-                    for (col = startCol; col < endCol; col += resolutionFactor) {
+                    for (col = startCol; col <= endCol; col += resolutionFactor) {
                         value = rawData[col]; //sourceData.getValue(row, col);
                         if (value != noDataValue) {
                             entryNum = (int) (value - minVal) % numPaletteEntries;
@@ -520,9 +521,9 @@ public class RasterLayerInfo implements MapLayer {
                     }
                 }
             } else if (dataScale == WhiteboxRaster.DataScale.BOOLEAN) {
-                for (row = startRow; row < endRow; row += resolutionFactor) {
+                for (row = startRow; row <= endRow; row += resolutionFactor) {
                     rawData = sourceData.getRowValues(row);
-                    for (col = startCol; col < endCol; col += resolutionFactor) {
+                    for (col = startCol; col <= endCol; col += resolutionFactor) {
                         value = rawData[col]; //sourceData.getValue(row, col);
                         if (value != noDataValue) {
                             if (value > 0) {
@@ -540,9 +541,9 @@ public class RasterLayerInfo implements MapLayer {
                 }
             } else if (dataScale == WhiteboxRaster.DataScale.RGB) {
                 int r, g, b, a, val;
-                for (row = startRow; row < endRow; row += resolutionFactor) {
+                for (row = startRow; row <= endRow; row += resolutionFactor) {
                     rawData = sourceData.getRowValues(row);
-                    for (col = startCol; col < endCol; col += resolutionFactor) {
+                    for (col = startCol; col <= endCol; col += resolutionFactor) {
                         value = rawData[col]; //sourceData.getValue(row, col);
                         if (value != noDataValue) {
                             val = (int) value;

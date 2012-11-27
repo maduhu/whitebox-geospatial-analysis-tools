@@ -345,7 +345,7 @@ public abstract class WhiteboxRasterBase {
         displayMaximum = DisplayMaximum;
     }
 
-    protected String preferredPalette = "not specified";
+    protected String preferredPalette = "grey.pal";
     /**
      * Retrieves the preferred palette for this Whitebox grid.
      * @return Preferred palette.
@@ -659,6 +659,12 @@ public abstract class WhiteboxRasterBase {
                         if (str.length > 1) { this.addMetadataEntry(str[1]); }
                     }
                 }
+                if (this.displayMinimum == Float.POSITIVE_INFINITY) {
+                    this.displayMinimum = this.minimumValue;
+                }
+                if (this.displayMaximum == Float.NEGATIVE_INFINITY) {
+                    this.displayMaximum = this.maximumValue;
+                }
                 //Close the input stream
                 in.close();
                 br.close();
@@ -700,6 +706,12 @@ public abstract class WhiteboxRasterBase {
             }
             if (this.displayMinimum == largeValue) {
                 this.displayMinimum = this.minimumValue;
+            }
+            if (this.displayMaximum < this.displayMinimum ||
+                    this.displayMaximum == this.displayMinimum) {
+                if (this.maximumValue < this.minimumValue) { findMinAndMaxVals(); }
+                this.displayMinimum = this.minimumValue;
+                this.displayMaximum = this.maximumValue;
             }
             
             fw = new FileWriter(file, false);
@@ -932,14 +944,14 @@ public abstract class WhiteboxRasterBase {
                 ia = null;
             } else if (dataType == DataType.BYTE) { //.equals("byte")) {
                 buf.rewind();
-                byte[] ba = new byte[writeLengthInCells];
-                buf.get(ba);
-                buf = null;
+                //byte[] ba = new byte[writeLengthInCells];
+                //buf.get(ba);
+                //buf = null;
                 retVals = new double[writeLengthInCells];
                 for (int j = 0; j < writeLengthInCells; j++) {
-                    retVals[j] = ba[j];
+                    retVals[j] = whitebox.utilities.Unsigned.getUnsignedByte(buf, j); //ba[j]);
                 }
-                ba = null;
+                //ba = null;
             }
 
         } catch (Exception e) {

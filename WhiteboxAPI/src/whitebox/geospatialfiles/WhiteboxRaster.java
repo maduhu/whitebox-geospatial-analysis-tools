@@ -189,7 +189,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
     // Property getter and setter methods.
     // ***********************************
 
-    private long bufferSize = 100 * 1048576; //Runtime.getRuntime().totalMemory(); //in bytes
+    private long bufferSize = Runtime.getRuntime().maxMemory() / 5; //100 * 1048576; //in bytes
     /**
      * Retrieves the maximum memory usage for this Whitebox grid in megabytes.
      * @return Maximum memory.
@@ -912,11 +912,11 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                 }
             } else if (dataType == DataType.BYTE) { //.equals("byte")) {
                 buf.rewind();
-                byte[] ba = new byte[readLengthInCells];
-                buf.get(ba);
+                //byte[] ba = new byte[readLengthInCells];
+                //buf.get(ba);
                 grid = new double[readLengthInCells];
                 for (int j = 0; j < readLengthInCells; j++) {
-                    grid[j] = ba[j];
+                    grid[j] = whitebox.utilities.Unsigned.getUnsignedByte(buf, j); //ba[j];
                 }
             }
 
