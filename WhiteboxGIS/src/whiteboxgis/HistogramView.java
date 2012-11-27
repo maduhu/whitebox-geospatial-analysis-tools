@@ -16,26 +16,22 @@
  */
 package whiteboxgis;
 
-import java.awt.event.ActionEvent;
-import javax.swing.JDialog;
-import java.awt.Frame;
-import java.awt.Container;
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.print.*;
-import javax.print.attribute.*;
-import javax.swing.Box;
-import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import java.util.ArrayList;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import java.io.File;
+import java.util.ArrayList;
 import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
-import javax.swing.BoxLayout;
-import whitebox.structures.ExtensionFileFilter;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
+import javax.swing.*;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.structures.ExtensionFileFilter;
 
 /**
  *

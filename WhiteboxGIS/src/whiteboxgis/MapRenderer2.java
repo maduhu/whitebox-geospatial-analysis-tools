@@ -2611,10 +2611,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     viewAreaHeight = viewAreaLRY - viewAreaULY;
                 }
 
-                if (!isBetween(x, viewAreaULX, viewAreaLRX) || !isBetween(y, viewAreaULY, viewAreaLRY)) {
-                    status.setMessage("");
-                    return;
-                }
+//                if (!isBetween(x, viewAreaULX, viewAreaLRX) || !isBetween(y, viewAreaULY, viewAreaLRY)) {
+//                    status.setMessage("");
+//                    return;
+//                }
 
                 double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
                 double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());

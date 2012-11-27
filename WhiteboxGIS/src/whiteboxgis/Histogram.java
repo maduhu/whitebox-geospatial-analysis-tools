@@ -17,21 +17,27 @@
 package whiteboxgis;
 
 import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.print.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.FileChannel;
-
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataType;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
+import whitebox.utilities.Parallel;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
@@ -175,6 +181,8 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         
     }
     
+    int nCols;
+    int numHistoEntriesLessOne;
     private void createHistogram() {
         try {
             if (wbInfo != null) {
@@ -188,9 +196,9 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
                     isIntegerData = true;
                 }
                 histo = new double[numHistoEntries];
-                int numHistoEntriesLessOne = numHistoEntries - 1;
+                numHistoEntriesLessOne = numHistoEntries - 1;
                 int nRows = wbInfo.getNumberRows();
-                int nCols = wbInfo.getNumberColumns();
+                nCols = wbInfo.getNumberColumns();
                 double[] data = null;
                 noData = wbInfo.getNoDataValue();
                 minVal = wbInfo.getDisplayMinimum();
@@ -198,21 +206,34 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
                 range = maxVal - minVal;
                 //double binSize = range / numPaletteEntries;
                 double z = 0;
-                int bin = 0;
+                //int bin = 0;
                 
-                for (int row = 0; row < nRows; row++) {
-                    data = wbInfo.getRowValues(row);
-                    for (int col = 0; col < nCols; col++) {
-                        if (data[col] != noData) {
-                            z = data[col];
-                            if (z < minVal) { z = minVal; }
-                            if (z > maxVal) { z = maxVal; }
-                            
-                            bin = (int)(Math.floor((z - minVal) / range * numHistoEntriesLessOne));
-                            histo[bin]++;
+                Parallel.For(0, nRows, 1, new Parallel.LoopBody<Integer>() {
+
+                    double[] data = null;
+                    double z;
+                    int bin = 0;
+
+                    @Override
+                    public void run(Integer row) {
+                        //for (int row = 0; row < nRows; row++) {
+                        data = wbInfo.getRowValues(row);
+                        for (int col = 0; col < nCols; col++) {
+                            if (data[col] != noData) {
+                                z = data[col];
+                                if (z < minVal) {
+                                    z = minVal;
+                                }
+                                if (z > maxVal) {
+                                    z = maxVal;
+                                }
+
+                                bin = (int) ((z - minVal) / range * numHistoEntriesLessOne);
+                                histo[bin]++;
+                            }
                         }
                     }
-                }
+                });
                 
                 total = 0;
                 fullestBinVal2 = 0;

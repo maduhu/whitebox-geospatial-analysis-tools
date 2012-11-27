@@ -21,6 +21,7 @@ import java.awt.event.*;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -75,6 +76,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private String pathSep;
     private String toolboxFile;
     private String propsFile;
+    private String userName;
     private int splitterLoc1 = 250;
     private int splitterToolboxLoc;
     private int tbTabsIndex = 0;
@@ -124,6 +126,72 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JCheckBoxMenuItem cartographicView = null;
     private JTextField scaleText = new JTextField();
     
+    public static void main(String[] args) {
+        
+        //setLookAndFeel("Nimbus");
+        setLookAndFeel("systemLAF");
+        if (System.getProperty("os.name").contains("Mac")) {
+            System.setProperty("apple.laf.useScreenMenuBar", "true");
+            //System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
+            System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
+            //System.setProperty("Xdock:name", "Whitebox");
+            System.setProperty("apple.awt.fileDialogForDirectories", "true");
+        }
+
+        WhiteboxGui wb = new WhiteboxGui();
+        wb.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        wb.setVisible(true);
+    }
+    
+    private String retFile;
+    private boolean flag = true;
+    private void findFile(File dir, String fileName) {
+        if (flag) {
+            File[] files = dir.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isDirectory()) {
+                    findFile(files[i], fileName);
+                } else if (files[i].getName().equals(fileName)) {
+                    retFile = files[i].toString();
+                    flag = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    private static void setLookAndFeel(String lafName) {
+        try {
+            
+            if (lafName.equals("systemLAF")) {
+                lafName = getSystemLookAndFeelName();
+            }
+
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if (lafName.equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+
+
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private static String getSystemLookAndFeelName() {
+        String className = UIManager.getSystemLookAndFeelClassName();
+        String name = null;
+        for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+            if (className.equals(info.getClassName())) {
+                name = info.getName();
+                break;
+            }
+        }
+        return name;
+    }
+    
     public WhiteboxGui() {
         super("Whitebox GAT v." + versionNumber);
         try {
@@ -151,6 +219,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             propsFile = resourcesDirectory + "app.config";
             workingDirectory = resourcesDirectory + "samples" + pathSep;
             paletteDirectory = resourcesDirectory + "palettes" + pathSep;
+            
+            
+            findFile(new File(applicationDirectory + pathSep), "wbGAT.png");
+            if (retFile != null) {
+                this.setIconImage(new ImageIcon(retFile).getImage());
+                
+            }
 
             callSplashScreen();
 
@@ -192,7 +267,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
 
             this.createGui();
-
+            
+            checkForNewInstallation();
+            
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -200,6 +277,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private ArrayList<PluginInfo> plugInfo = null;
 
+    private void checkForNewInstallation() {
+        if (userName == null || !userName.equals(System.getProperty("user.name"))) {
+            refreshToolUsage();
+            userName = System.getProperty("user.name");
+//            String message = "Welcome to Whitebox " + userName + ".\n" 
+//                    + "System memory = " + ((com.sun.management.OperatingSystemMXBean) ManagementFactory
+//                .getOperatingSystemMXBean()).getTotalPhysicalMemorySize() / 1073741824.0 + " Gb\n" 
+//                    + "Max heap size = " + Runtime.getRuntime().maxMemory() / 1073741824.0 + " Gb";
+            String message = "Welcome to Whitebox " + userName + ".";
+            showFeedback(message);
+        }
+    }
+    
     private void loadPlugins() {
         pluginService = PluginServiceFactory.createPluginService(pluginDirectory);
         pluginService.initPlugins();
@@ -439,7 +529,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 defaultQualPalette = props.getProperty("defaultQualPalette");
                 defaultQuantPalette.replace(".plt", ".pal"); // just in case the old style palette is specified.
                 defaultQualPalette.replace(".plt", ".pal");
-
+                userName = props.getProperty("userName");
+                
                 // retrieve the plugin usage information
                 String[] pluginNames = props.getProperty("pluginNames").split(",");
                 String[] pluginUsage = props.getProperty("pluginUsage").split(",");
@@ -480,7 +571,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void setApplicationProperties() {
         // see if the app.config file exists
-        File propertiesFile = new File(propsFile);
+        //File propertiesFile = new File(propsFile);
+        if (!(new File(propsFile).exists())) {
+            return;
+        }
         Properties props = new Properties();
         props.setProperty("workingDirectory", workingDirectory);
         props.setProperty("splitterLoc1", Integer.toString(splitPane.getDividerLocation() - 2));
@@ -491,6 +585,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("qlTabsIndex", Integer.toString(qlTabs.getSelectedIndex()));
         props.setProperty("defaultQuantPalette", defaultQuantPalette);
         props.setProperty("defaultQualPalette", defaultQualPalette);
+        props.setProperty("userName", System.getProperty("user.name"));
 
         // set the tool usage properties
 
@@ -1116,6 +1211,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         mapAreaPopup.add(mi);
 
         mapAreaPopup.addSeparator();
+        
+        mi = new JMenuItem("Fit to Map to Page");
+        mi.addActionListener(this);
+        mi.setActionCommand("fitMapAreaToPage");
+        mapAreaPopup.add(mi);
         
         mi = new JMenuItem("Fit to Data");
         mi.addActionListener(this);
@@ -1915,33 +2015,33 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void setLookAndFeel(String lnfName) {
-        try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if (lnfName.equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    SwingUtilities.updateComponentTreeUI(this);
-                    this.pack();
-                    this.setExtendedState(JFrame.MAXIMIZED_BOTH);
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            showFeedback(e.getMessage());
-        }
-    }
+//    private void setLookAndFeel(String lnfName) {
+//        try {
+//            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+//                if (lnfName.equals(info.getName())) {
+//                    UIManager.setLookAndFeel(info.getClassName());
+//                    SwingUtilities.updateComponentTreeUI(this);
+//                    this.pack();
+//                    this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+//                    break;
+//                }
+//            }
+//        } catch (Exception e) {
+//            showFeedback(e.getMessage());
+//        }
+//    }
 
-    private String getSystemLookAndFeelName() {
-        String className = UIManager.getSystemLookAndFeelClassName();
-        String name = null;
-        for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-            if (className.equals(info.getClassName())) {
-                name = info.getName();
-                break;
-            }
-        }
-        return name;
-    }
+//    private String getSystemLookAndFeelName() {
+//        String className = UIManager.getSystemLookAndFeelClassName();
+//        String name = null;
+//        for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+//            if (className.equals(info.getClassName())) {
+//                name = info.getName();
+//                break;
+//            }
+//        }
+//        return name;
+//    }
 
     @Override
     public int showFeedback(String message) {
@@ -2822,6 +2922,31 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             ma.fitToData();
             refreshMap(false);
         }
+    }
+    
+    private void fitToPage() {
+        int mapNum;
+        int mapAreaNum;
+        if (selectedMapAndLayer[0] != -1) {
+            mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } else {
+            // use the active layer and map
+            mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+        }
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        BoundingBox pageExtent = openMaps.get(mapNum).getPageExtent();
+        int margin = (int) (openMaps.get(mapNum).getMargin() * 72);
+        int referenceMarkSize = ma.getReferenceMarksSize();
+        ma.setUpperLeftX(margin);
+        ma.setUpperLeftY(margin);
+        ma.setWidth((int)(pageExtent.getWidth() - 2 * margin - referenceMarkSize));
+        ma.setHeight((int)(pageExtent.getHeight() - 2 * margin - referenceMarkSize));
+        refreshMap(false);
     }
     
     private void maximizeMapAreaScreenSize() {
@@ -3736,6 +3861,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             refreshMap(true);
         } else if (actionCommand.equals("fitMapAreaToData")) {
             fitToData();
+        } else if (actionCommand.equals("fitMapAreaToPage")) {
+            fitToPage();
         } else if (actionCommand.equals("maximizeMapAreaScreenSize")) {
             maximizeMapAreaScreenSize();
         }
