@@ -198,6 +198,7 @@ public class ExtractStreams implements WhiteboxPlugin {
         int i;
         double channelizationThreshold = 0;
         double backValue = 0;
+        boolean flag = false;
                 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -212,7 +213,11 @@ public class ExtractStreams implements WhiteboxPlugin {
             } else if (i == 2) {
                 channelizationThreshold = Double.parseDouble(args[i]);
             } else if (i == 3) {
-                backValue = Double.parseDouble(args[i]);
+                if (args[i].toLowerCase().equals("nodata")) {
+                    flag = true;
+                } else {
+                    backValue = Double.parseDouble(args[i]);
+                }
             }
         }
 
@@ -227,7 +232,10 @@ public class ExtractStreams implements WhiteboxPlugin {
             int rows = image.getNumberRows();
             int cols = image.getNumberColumns();
             double noData = image.getNoDataValue();
-            
+            if (flag) {
+                backValue = noData;
+            }
+ 
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", 
                     accumHeader, WhiteboxRaster.DataType.FLOAT, 0);
             output.setPreferredPalette("qual.pal");
