@@ -24,56 +24,73 @@ import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class Viewshed implements WhiteboxPlugin {
-    
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "Viewshed";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "Viewshed";
+        return "Viewshed";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "Identifies the viewshed for a point or set of points.";
+        return "Identifies the viewshed for a point or set of points.";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "TerrainAnalysis" };
-    	return ret;
+        String[] ret = {"TerrainAnalysis"};
+        return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -83,8 +100,11 @@ public class Viewshed implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -92,24 +112,29 @@ public class Viewshed implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
-
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -118,34 +143,39 @@ public class Viewshed implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -155,7 +185,7 @@ public class Viewshed implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
+
         String inputHeader;
         String inputViewingStation;
         String outputHeader;
@@ -176,12 +206,12 @@ public class Viewshed implements WhiteboxPlugin {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
+
         inputHeader = args[0];
         inputViewingStation = args[1];
         outputHeader = args[2];
         stationHeight = Double.parseDouble(args[3]);
-        
+
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -189,358 +219,358 @@ public class Viewshed implements WhiteboxPlugin {
         }
 
         try {
-            
+
             WhiteboxRaster DEM = new WhiteboxRaster(inputHeader, "r");
             rows = DEM.getNumberRows();
             cols = DEM.getNumberColumns();
             noData = DEM.getNoDataValue();
             outputNoData = -32768;
-            double stationX = DEM.getXCoordinateFromColumn(stationCol);
-            double stationY = DEM.getYCoordinateFromRow(stationRow);
-            double stationZ = DEM.getValue(stationRow, stationCol) + stationHeight;
-            
-            
-            
-            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", 
+            double stationX; // = DEM.getXCoordinateFromColumn(stationCol);
+            double stationY; // = DEM.getYCoordinateFromRow(stationRow);
+            double stationZ; // = DEM.getValue(stationRow, stationCol) + stationHeight;
+
+
+
+            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
                     inputHeader, WhiteboxRaster.DataType.INTEGER, 0);
             output.setNoDataValue(outputNoData);
             output.setPreferredPalette("spectrum.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
-            
+
             // create a temporary raster to hold the view angle
-            WhiteboxRaster viewAngle = new WhiteboxRaster(outputHeader.replace(".dep", "_temp1.dep"), "rw", 
+            WhiteboxRaster viewAngle = new WhiteboxRaster(outputHeader.replace(".dep", "_temp1.dep"), "rw",
                     inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
             viewAngle.isTemporaryFile = true;
-            
+
             // create a temporary raster to hold the max view angle
-            WhiteboxRaster maxViewAngle = new WhiteboxRaster(outputHeader.replace(".dep", "_temp2.dep"), "rw", 
+            WhiteboxRaster maxViewAngle = new WhiteboxRaster(outputHeader.replace(".dep", "_temp2.dep"), "rw",
                     inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
             maxViewAngle.isTemporaryFile = true;
-            
+
             Random generator = new Random();
             for (int a = 0; a < 500; a++) {
                 stationRow = generator.nextInt(rows - 1);
                 stationCol = generator.nextInt(cols - 1);
-                
+
                 stationX = DEM.getXCoordinateFromColumn(stationCol);
                 stationY = DEM.getYCoordinateFromRow(stationRow);
                 stationZ = DEM.getValue(stationRow, stationCol) + stationHeight;
-            
-            
-            
-            for (row = 0; row < rows; row++) {
-                data = DEM.getRowValues(row);
-                for (col = 0; col < cols; col++) {
-                    z = data[col];
-                    if (z != noData) {
-                        x = DEM.getXCoordinateFromColumn(col);
-                        y = DEM.getYCoordinateFromRow(row);
-                        dZ = z - stationZ;
-                        dist = Math.sqrt((x - stationX) * (x - stationX) + (y - stationY) * (y - stationY));
-                        if (dist != 0.0) {
-                            viewAngleValue = dZ / dist * 1000;
-                            viewAngle.setValue(row, col, viewAngleValue);
+
+
+
+                for (row = 0; row < rows; row++) {
+                    data = DEM.getRowValues(row);
+                    for (col = 0; col < cols; col++) {
+                        z = data[col];
+                        if (z != noData) {
+                            x = DEM.getXCoordinateFromColumn(col);
+                            y = DEM.getYCoordinateFromRow(row);
+                            dZ = z - stationZ;
+                            dist = Math.sqrt((x - stationX) * (x - stationX) + (y - stationY) * (y - stationY));
+                            if (dist != 0.0) {
+                                viewAngleValue = dZ / dist * 1000;
+                                viewAngle.setValue(row, col, viewAngleValue);
+                            }
+                        } else {
+                            viewAngle.setValue(row, col, outputNoData);
                         }
-                    } else {
-                        viewAngle.setValue(row, col, outputNoData);
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (int) (100f * row / (rows - 1));
+                    updateProgress(progress);
+                }
+
+                // perform the simple scan lines.
+                for (row = stationRow - 1; row <= stationRow + 1; row++) {
+                    for (col = stationCol - 1; col <= stationCol + 1; col++) {
+                        maxViewAngle.setValue(row, col, viewAngle.getValue(row, col));
                     }
                 }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
+
+                double maxVA = viewAngle.getValue(stationRow - 1, stationCol);
+                for (row = stationRow - 2; row >= 0; row--) {
+                    z = viewAngle.getValue(row, stationCol);
+                    if (z > maxVA) {
+                        maxVA = z;
+                    }
+                    maxViewAngle.setValue(row, stationCol, maxVA);
                 }
-                progress = (int) (100f * row / (rows - 1));
-                updateProgress(progress);
-            }
-            
-            // perform the simple scan lines.
-            for (row = stationRow - 1; row <= stationRow + 1; row++) {
-                for (col = stationCol - 1; col <= stationCol + 1; col++) {
-                    maxViewAngle.setValue(row, col, viewAngle.getValue(row, col));
+
+                maxVA = viewAngle.getValue(stationRow + 1, stationCol);
+                for (row = stationRow + 2; row < rows; row++) {
+                    z = viewAngle.getValue(row, stationCol);
+                    if (z > maxVA) {
+                        maxVA = z;
+                    }
+                    maxViewAngle.setValue(row, stationCol, maxVA);
                 }
-            }
-            
-            double maxVA = viewAngle.getValue(stationRow - 1, stationCol);
-            for (row = stationRow - 2; row >= 0; row--) {
-                z = viewAngle.getValue(row, stationCol);
-                if (z > maxVA) {
-                    maxVA = z;
+
+                maxVA = viewAngle.getValue(stationRow, stationCol + 1);
+                for (col = stationCol + 2; col < cols - 1; col++) {
+                    z = viewAngle.getValue(stationRow, col);
+                    if (z > maxVA) {
+                        maxVA = z;
+                    }
+                    maxViewAngle.setValue(stationRow, col, maxVA);
                 }
-                maxViewAngle.setValue(row, stationCol, maxVA);
-            }
-            
-            maxVA = viewAngle.getValue(stationRow + 1, stationCol);
-            for (row = stationRow + 2; row < rows; row++) {
-                z = viewAngle.getValue(row, stationCol);
-                if (z > maxVA) {
-                    maxVA = z;
+
+                maxVA = viewAngle.getValue(stationRow, stationCol - 1);
+                for (col = stationCol - 2; col >= 0; col--) {
+                    z = viewAngle.getValue(stationRow, col);
+                    if (z > maxVA) {
+                        maxVA = z;
+                    }
+                    maxViewAngle.setValue(stationRow, col, maxVA);
                 }
-                maxViewAngle.setValue(row, stationCol, maxVA);
-            }
-            
-            maxVA = viewAngle.getValue(stationRow, stationCol + 1);
-            for (col = stationCol + 2; col < cols - 1; col++) {
-                z = viewAngle.getValue(stationRow, col);
-                if (z > maxVA) {
-                    maxVA = z;
-                }
-                maxViewAngle.setValue(stationRow, col, maxVA);
-            }
-            
-            maxVA = viewAngle.getValue(stationRow, stationCol - 1);
-            for (col = stationCol - 2; col >= 0; col--) {
-                z = viewAngle.getValue(stationRow, col);
-                if (z > maxVA) {
-                    maxVA = z;
-                }
-                maxViewAngle.setValue(stationRow, col, maxVA);
-            }
-            
-            //solve the first triangular facet
-            for (row = stationRow - 2; row >= 0; row--) {
-                vertCount++;
-                horizCount = 0;
-                for (col = stationCol + 1; col <= stationCol + vertCount; col++) {
-                    if (col <= cols) {
-                        va = viewAngle.getValue(row, col);
-                        horizCount++;
-                        if (horizCount != vertCount) {
-                            t1 = maxViewAngle.getValue(row + 1, col - 1);
-                            t2 = maxViewAngle.getValue(row + 1, col);
-                            tva = t2 + horizCount / vertCount * (t1 - t2);
+
+                //solve the first triangular facet
+                for (row = stationRow - 2; row >= 0; row--) {
+                    vertCount++;
+                    horizCount = 0;
+                    for (col = stationCol + 1; col <= stationCol + vertCount; col++) {
+                        if (col <= cols) {
+                            va = viewAngle.getValue(row, col);
+                            horizCount++;
+                            if (horizCount != vertCount) {
+                                t1 = maxViewAngle.getValue(row + 1, col - 1);
+                                t2 = maxViewAngle.getValue(row + 1, col);
+                                tva = t2 + horizCount / vertCount * (t1 - t2);
+                            } else {
+                                tva = maxViewAngle.getValue(row + 1, col - 1);
+                            }
+                            if (tva > va) {
+                                maxViewAngle.setValue(row, col, tva);
+                            } else {
+                                maxViewAngle.setValue(row, col, va);
+                            }
                         } else {
-                            tva = maxViewAngle.getValue(row + 1, col - 1);
+                            break;
                         }
-                        if (tva > va) {
-                            maxViewAngle.setValue(row, col, tva);
-                        } else {
-                            maxViewAngle.setValue(row, col, va);
-                        }
-                    } else {
-                        break;
                     }
                 }
-            }
-            
-            //solve the second triangular facet
-            vertCount = 1;
-            for (row = stationRow - 2; row >= 0; row--) {
-                vertCount++;
-                horizCount = 0;
-                for (col = stationCol - 1; col >= stationCol - vertCount; col--) {
-                    if (col >= 0) {
-                        va = viewAngle.getValue(row, col);
-                        horizCount++;
-                        if (horizCount != vertCount) {
-                            t1 = maxViewAngle.getValue(row + 1, col + 1);
-                            t2 = maxViewAngle.getValue(row + 1, col);
-                            tva = t2 + horizCount / vertCount * (t1 - t2);
+
+                //solve the second triangular facet
+                vertCount = 1;
+                for (row = stationRow - 2; row >= 0; row--) {
+                    vertCount++;
+                    horizCount = 0;
+                    for (col = stationCol - 1; col >= stationCol - vertCount; col--) {
+                        if (col >= 0) {
+                            va = viewAngle.getValue(row, col);
+                            horizCount++;
+                            if (horizCount != vertCount) {
+                                t1 = maxViewAngle.getValue(row + 1, col + 1);
+                                t2 = maxViewAngle.getValue(row + 1, col);
+                                tva = t2 + horizCount / vertCount * (t1 - t2);
+                            } else {
+                                tva = maxViewAngle.getValue(row + 1, col + 1);
+                            }
+                            if (tva > va) {
+                                maxViewAngle.setValue(row, col, tva);
+                            } else {
+                                maxViewAngle.setValue(row, col, va);
+                            }
                         } else {
-                            tva = maxViewAngle.getValue(row + 1, col + 1);
+                            break;
                         }
-                        if (tva > va) {
-                            maxViewAngle.setValue(row, col, tva);
-                        } else {
-                            maxViewAngle.setValue(row, col, va);
-                        }
-                    } else {
-                        break;
                     }
                 }
-            }
-            
-            // solve the third triangular facet
-            vertCount = 1;
-            for (row = stationRow + 2; row < rows; row++) {
-                vertCount++;
-                horizCount = 0;
-                for (col = stationCol - 1; col >= stationCol - vertCount; col--) {
-                    if (col >= 0) {
-                        va = viewAngle.getValue(row, col);
-                        horizCount++;
-                        if (horizCount != vertCount) {
-                            t1 = maxViewAngle.getValue(row - 1, col + 1);
-                            t2 = maxViewAngle.getValue(row - 1, col);
-                            tva = t2 + horizCount / vertCount * (t1 - t2);
+
+                // solve the third triangular facet
+                vertCount = 1;
+                for (row = stationRow + 2; row < rows; row++) {
+                    vertCount++;
+                    horizCount = 0;
+                    for (col = stationCol - 1; col >= stationCol - vertCount; col--) {
+                        if (col >= 0) {
+                            va = viewAngle.getValue(row, col);
+                            horizCount++;
+                            if (horizCount != vertCount) {
+                                t1 = maxViewAngle.getValue(row - 1, col + 1);
+                                t2 = maxViewAngle.getValue(row - 1, col);
+                                tva = t2 + horizCount / vertCount * (t1 - t2);
+                            } else {
+                                tva = maxViewAngle.getValue(row - 1, col + 1);
+                            }
+                            if (tva > va) {
+                                maxViewAngle.setValue(row, col, tva);
+                            } else {
+                                maxViewAngle.setValue(row, col, va);
+                            }
                         } else {
-                            tva = maxViewAngle.getValue(row - 1, col + 1);
+                            break;
                         }
-                        if (tva > va) {
-                            maxViewAngle.setValue(row, col, tva);
-                        } else {
-                            maxViewAngle.setValue(row, col, va);
-                        }
-                    } else {
-                        break;
                     }
                 }
-            }
-            
-            // solve the fourth triangular facet
-            vertCount = 1;
-            for (row = stationRow + 2; row < rows; row++) {
-                vertCount++;
-                horizCount = 0;
-                for (col = stationCol + 1; col <= stationCol + vertCount; col++) {
-                    if (col < cols) {
-                        va = viewAngle.getValue(row, col);
-                        horizCount++;
-                        if (horizCount != vertCount) {
-                            t1 = maxViewAngle.getValue(row - 1, col - 1);
-                            t2 = maxViewAngle.getValue(row - 1, col);
-                            tva = t2 + horizCount / vertCount * (t1 - t2);
+
+                // solve the fourth triangular facet
+                vertCount = 1;
+                for (row = stationRow + 2; row < rows; row++) {
+                    vertCount++;
+                    horizCount = 0;
+                    for (col = stationCol + 1; col <= stationCol + vertCount; col++) {
+                        if (col < cols) {
+                            va = viewAngle.getValue(row, col);
+                            horizCount++;
+                            if (horizCount != vertCount) {
+                                t1 = maxViewAngle.getValue(row - 1, col - 1);
+                                t2 = maxViewAngle.getValue(row - 1, col);
+                                tva = t2 + horizCount / vertCount * (t1 - t2);
+                            } else {
+                                tva = maxViewAngle.getValue(row - 1, col - 1);
+                            }
+                            if (tva > va) {
+                                maxViewAngle.setValue(row, col, tva);
+                            } else {
+                                maxViewAngle.setValue(row, col, va);
+                            }
                         } else {
-                            tva = maxViewAngle.getValue(row - 1, col - 1);
+                            break;
                         }
-                        if (tva > va) {
-                            maxViewAngle.setValue(row, col, tva);
-                        } else {
-                            maxViewAngle.setValue(row, col, va);
-                        }
-                    } else {
-                        break;
                     }
                 }
-            }
-            
-            // solve the fifth triangular facet
-            vertCount = 1;
-            for (col = stationCol + 2; col < cols; col++) {
-                vertCount++;
-                horizCount = 0;
-                for (row = stationRow - 1; row >= stationRow - vertCount; row--) {
-                    if (row >= 0) {
-                        va = viewAngle.getValue(row, col);
-                        horizCount++;
-                        if (horizCount != vertCount) {
-                            t1 = maxViewAngle.getValue(row + 1, col - 1);
-                            t2 = maxViewAngle.getValue(row, col - 1);
-                            tva = t2 + horizCount / vertCount * (t1 - t2);
+
+                // solve the fifth triangular facet
+                vertCount = 1;
+                for (col = stationCol + 2; col < cols; col++) {
+                    vertCount++;
+                    horizCount = 0;
+                    for (row = stationRow - 1; row >= stationRow - vertCount; row--) {
+                        if (row >= 0) {
+                            va = viewAngle.getValue(row, col);
+                            horizCount++;
+                            if (horizCount != vertCount) {
+                                t1 = maxViewAngle.getValue(row + 1, col - 1);
+                                t2 = maxViewAngle.getValue(row, col - 1);
+                                tva = t2 + horizCount / vertCount * (t1 - t2);
+                            } else {
+                                tva = maxViewAngle.getValue(row + 1, col - 1);
+                            }
+                            if (tva > va) {
+                                maxViewAngle.setValue(row, col, tva);
+                            } else {
+                                maxViewAngle.setValue(row, col, va);
+                            }
                         } else {
-                            tva = maxViewAngle.getValue(row + 1, col - 1);
+                            break;
                         }
-                        if (tva > va) {
-                            maxViewAngle.setValue(row, col, tva);
-                        } else {
-                            maxViewAngle.setValue(row, col, va);
-                        }
-                    } else {
-                        break;
                     }
+                }
+
+                // solve the sixth triangular facet
+                vertCount = 1;
+                for (col = stationCol + 2; col < cols; col++) {
+                    vertCount++;
+                    horizCount = 0;
+                    for (row = stationRow + 1; row <= stationRow + vertCount; row++) {
+                        if (row < rows) {
+                            va = viewAngle.getValue(row, col);
+                            horizCount++;
+                            if (horizCount != vertCount) {
+                                t1 = maxViewAngle.getValue(row - 1, col - 1);
+                                t2 = maxViewAngle.getValue(row, col - 1);
+                                tva = t2 + horizCount / vertCount * (t1 - t2);
+                            } else {
+                                tva = maxViewAngle.getValue(row - 1, col - 1);
+                            }
+                            if (tva > va) {
+                                maxViewAngle.setValue(row, col, tva);
+                            } else {
+                                maxViewAngle.setValue(row, col, va);
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                // solve the seventh triangular facet
+                vertCount = 1;
+                for (col = stationCol - 2; col >= 0; col--) {
+                    vertCount++;
+                    horizCount = 0;
+                    for (row = stationRow + 1; row <= stationRow + vertCount; row++) {
+                        if (row < rows) {
+                            va = viewAngle.getValue(row, col);
+                            horizCount++;
+                            if (horizCount != vertCount) {
+                                t1 = maxViewAngle.getValue(row - 1, col + 1);
+                                t2 = maxViewAngle.getValue(row, col + 1);
+                                tva = t2 + horizCount / vertCount * (t1 - t2);
+                            } else {
+                                tva = maxViewAngle.getValue(row - 1, col + 1);
+                            }
+                            if (tva > va) {
+                                maxViewAngle.setValue(row, col, tva);
+                            } else {
+                                maxViewAngle.setValue(row, col, va);
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                // solve the eigth triangular facet
+                vertCount = 1;
+                for (col = stationCol - 2; col >= 0; col--) {
+                    vertCount++;
+                    horizCount = 0;
+                    for (row = stationRow - 1; row >= stationRow - vertCount; row--) {
+                        if (row < rows) {
+                            va = viewAngle.getValue(row, col);
+                            horizCount++;
+                            if (horizCount != vertCount) {
+                                t1 = maxViewAngle.getValue(row + 1, col + 1);
+                                t2 = maxViewAngle.getValue(row, col + 1);
+                                tva = t2 + horizCount / vertCount * (t1 - t2);
+                            } else {
+                                tva = maxViewAngle.getValue(row + 1, col + 1);
+                            }
+                            if (tva > va) {
+                                maxViewAngle.setValue(row, col, tva);
+                            } else {
+                                maxViewAngle.setValue(row, col, va);
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                //output.flush();
+                viewAngle.flush();
+                maxViewAngle.flush();
+
+                double[] dataVA;
+                for (row = 0; row < rows; row++) {
+                    dataVA = viewAngle.getRowValues(row);
+                    data = maxViewAngle.getRowValues(row);
+                    for (col = 0; col < cols; col++) {
+                        if (data[col] <= dataVA[col] && dataVA[col] != outputNoData) {
+                            output.setValue(row, col, output.getValue(row, col) + 1);
+                        } else if (dataVA[col] == outputNoData) {
+                            output.setValue(row, col, outputNoData);
+                        }
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (int) (100f * row / (rows - 1));
+                    updateProgress(progress);
                 }
             }
 
-            // solve the sixth triangular facet
-            vertCount = 1;
-            for (col = stationCol + 2; col < cols; col++) {
-                vertCount++;
-                horizCount = 0;
-                for (row = stationRow + 1; row <= stationRow + vertCount; row++) {
-                    if (row < rows) {
-                        va = viewAngle.getValue(row, col);
-                        horizCount++;
-                        if (horizCount != vertCount) {
-                            t1 = maxViewAngle.getValue(row - 1, col - 1);
-                            t2 = maxViewAngle.getValue(row, col - 1);
-                            tva = t2 + horizCount / vertCount * (t1 - t2);
-                        } else {
-                            tva = maxViewAngle.getValue(row - 1, col - 1);
-                        }
-                        if (tva > va) {
-                            maxViewAngle.setValue(row, col, tva);
-                        } else {
-                            maxViewAngle.setValue(row, col, va);
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            }
-
-            // solve the seventh triangular facet
-            vertCount = 1;
-            for (col = stationCol - 2; col >= 0; col--) {
-                vertCount++;
-                horizCount = 0;
-                for (row = stationRow + 1; row <= stationRow + vertCount; row++) {
-                    if (row < rows) {
-                        va = viewAngle.getValue(row, col);
-                        horizCount++;
-                        if (horizCount != vertCount) {
-                            t1 = maxViewAngle.getValue(row - 1, col + 1);
-                            t2 = maxViewAngle.getValue(row, col + 1);
-                            tva = t2 + horizCount / vertCount * (t1 - t2);
-                        } else {
-                            tva = maxViewAngle.getValue(row - 1, col + 1);
-                        }
-                        if (tva > va) {
-                            maxViewAngle.setValue(row, col, tva);
-                        } else {
-                            maxViewAngle.setValue(row, col, va);
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            }
-            
-            // solve the eigth triangular facet
-            vertCount = 1;
-            for (col = stationCol - 2; col >= 0; col--) {
-                vertCount++;
-                horizCount = 0;
-                for (row = stationRow - 1; row >= stationRow - vertCount; row--) {
-                    if (row < rows) {
-                        va = viewAngle.getValue(row, col);
-                        horizCount++;
-                        if (horizCount != vertCount) {
-                            t1 = maxViewAngle.getValue(row + 1, col + 1);
-                            t2 = maxViewAngle.getValue(row, col + 1);
-                            tva = t2 + horizCount / vertCount * (t1 - t2);
-                        } else {
-                            tva = maxViewAngle.getValue(row + 1, col + 1);
-                        }
-                        if (tva > va) {
-                            maxViewAngle.setValue(row, col, tva);
-                        } else {
-                            maxViewAngle.setValue(row, col, va);
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            }
-            //output.flush();
-            viewAngle.flush();
-            maxViewAngle.flush();
-            
-            double[] dataVA;
-            for (row = 0; row < rows; row++) {
-                dataVA = viewAngle.getRowValues(row);
-                data = maxViewAngle.getRowValues(row);
-                for (col = 0; col < cols; col++) {
-                    if (data[col] <= dataVA[col] && dataVA[col] != outputNoData) {
-                        output.setValue(row, col, output.getValue(row, col) + 1);
-                    } else if (dataVA[col] == outputNoData) {
-                        output.setValue(row, col, outputNoData);
-                    }
-                }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
-                progress = (int) (100f * row / (rows - 1));
-                updateProgress(progress);
-            }
-            }
-                        
             viewAngle.close();
             maxViewAngle.close();
-            
+
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
-            
+
             DEM.close();
             output.close();
 
@@ -556,7 +586,7 @@ public class Viewshed implements WhiteboxPlugin {
             myHost.pluginComplete();
         }
     }
-    
+
     // this is only used for testing the tool
     public static void main(String[] args) {
         Viewshed vs = new Viewshed();
@@ -565,9 +595,9 @@ public class Viewshed implements WhiteboxPlugin {
         args[1] = "/Users/johnlindsay/Documents/Data/Vermont DEM/tmp2.dep";
         args[2] = "/Users/johnlindsay/Documents/Data/Vermont DEM/temp2.dep";
         args[3] = "2";
-        
+
         vs.setArgs(args);
         vs.run();
-        
+
     }
 }

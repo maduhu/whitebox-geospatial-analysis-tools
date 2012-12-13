@@ -1010,18 +1010,18 @@ public class VisibilityIndex implements WhiteboxPlugin {
         }
     }
 
-    //long startTime;
-    // this is only used for testing the tool
-    public static void main(String[] args) {
-        VisibilityIndex vi = new VisibilityIndex();
-        args = new String[5];
-        args[0] = "/Users/johnlindsay/Documents/Data/Vermont DEM/Vermont DEM.dep";
-        args[1] = "/Users/johnlindsay/Documents/Data/Vermont DEM/temp2.dep";
-        args[2] = "2";
-        args[3] = "true";
-        args[4] = "2.0";
-        vi.setArgs(args);
-        vi.run();
-        
-    }
+//    //long startTime;
+//    // this is only used for testing the tool
+//    public static void main(String[] args) {
+//        VisibilityIndex vi = new VisibilityIndex();
+//        args = new String[5];
+//        args[0] = "/Users/johnlindsay/Documents/Data/Vermont DEM/Vermont DEM.dep";
+//        args[1] = "/Users/johnlindsay/Documents/Data/Vermont DEM/temp2.dep";
+//        args[2] = "2";
+//        args[3] = "true";
+//        args[4] = "2.0";
+//        vi.setArgs(args);
+//        vi.run();
+//        
+//    }
 }

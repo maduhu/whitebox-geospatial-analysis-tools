@@ -246,8 +246,8 @@ public class RelativeStreamPowerIndex implements WhiteboxPlugin {
                 area = areaImage.getRowValues(row);
                 slope = slopeImage.getRowValues(row);
                 for (col = 0; col < cols; col++) {
-                    if (area[row] != areaNoData && slope[row] != slopeNoData) {
-                        z = (Math.pow(area[row], powerValue)) * (Math.tan(Math.toRadians(slope[row])));
+                    if (area[col] != areaNoData && slope[col] != slopeNoData) {
+                        z = (Math.pow(area[col], powerValue)) * (Math.tan(Math.toRadians(slope[col])));
                         output.setValue(row, col, z);
                     } else {
                         output.setValue(row, col, areaNoData);
