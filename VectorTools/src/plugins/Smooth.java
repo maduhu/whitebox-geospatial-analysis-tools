@@ -198,7 +198,7 @@ public class Smooth implements WhiteboxPlugin {
         int featureNum, numFeatures;
         int filterSize, halfFilterSize;
         double[][] geometry;
-        double[][] outputGeometry;
+//        double[][] outputGeometry;
         int numPoints, numParts, part, startingPointInPart, endingPointInPart;
         int numPointsInFilter;
         ShapeType shapeType;
@@ -252,7 +252,7 @@ public class Smooth implements WhiteboxPlugin {
                 geometry = getXYFromShapefileRecord(record);
                 numPoints = geometry.length;
                 numParts = partData.length;
-                outputGeometry = new double[numPoints][2];
+//                outputGeometry = new double[numPoints][2];
                 for (part = 0; part < numParts; part++) {
                     startingPointInPart = partData[part];
                     if (part < numParts - 1) {
