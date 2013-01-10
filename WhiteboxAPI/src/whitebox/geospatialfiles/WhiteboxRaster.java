@@ -17,11 +17,14 @@
 
 package whitebox.geospatialfiles;
  
-
-import java.util.Arrays;
-import java.io.*;
-import java.nio.*;
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 
 /**
  * The whiteboxRaster is used to manipulate Whitebox GAT raster files (.dep and .tas).
@@ -72,7 +75,6 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         setFileAccess(FileAccess);
         readHeaderFile();
         setBlockData();
-        
     }
 
     /**
@@ -839,7 +841,9 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                 try { 
                     outChannel.force(false);
                     outChannel.close(); 
-                } catch (Exception e) {};
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
             }
             buf = null;
             if (rOut != null) {

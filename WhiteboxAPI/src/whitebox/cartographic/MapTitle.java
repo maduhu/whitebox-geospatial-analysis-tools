@@ -35,6 +35,7 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     String label = "";
     boolean borderVisible = false;
     boolean backgroundVisible = false;
+    boolean outlineVisible = false;
     int upperLeftX = -32768;
     int upperLeftY = -32768;
     int height = -1; // in points
@@ -43,6 +44,7 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     Color backColour = Color.WHITE;
     Color borderColour = Color.BLACK;
     Color fontColour = Color.BLACK;
+    Color outlineColour = Color.BLACK;
     Font labelFont = new Font("SanSerif", Font.BOLD, 20);
     Font[] availableFonts;
     int fontHeight = 0;
@@ -51,6 +53,8 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     private int selectedOffsetX;
     private int selectedOffsetY;
 
+    public MapTitle() {}
+    
     public MapTitle(String name) {
         this.name = name;
         measureFontSizes();
@@ -89,7 +93,15 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     public void setBackColour(Color backColour) {
         this.backColour = backColour;
     }
+    
+    public Color getOutlineColour() {
+        return outlineColour;
+    }
 
+    public void setOutlineColour(Color outlineColour) {
+        this.outlineColour = outlineColour;
+    }
+    
     public boolean isBackgroundVisible() {
         return backgroundVisible;
     }
@@ -105,7 +117,15 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     public void setBorderVisible(boolean borderVisible) {
         this.borderVisible = borderVisible;
     }
+    
+    public boolean isOutlineVisible() {
+        return outlineVisible;
+    }
 
+    public void setOutlineVisible(boolean outlineVisible) {
+        this.outlineVisible = outlineVisible;
+    }
+    
     public Color getFontColour() {
         return fontColour;
     }
@@ -211,8 +231,8 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
         this.visible = visible;
         width = -1;
         height = -1;
-        upperLeftX = -9999;
-        upperLeftY = -9999;
+        upperLeftX = -32768;
+        upperLeftY = -32768;
     }
 
     public int getWidth() {
