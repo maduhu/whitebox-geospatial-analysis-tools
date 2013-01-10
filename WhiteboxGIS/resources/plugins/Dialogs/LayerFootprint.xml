@@ -4,7 +4,7 @@
 		<Description>Enter the name of the input file here</Description>
 		<LabelText>Input Raster or Vector File:</LabelText>
 		<DialogMode>Open File</DialogMode>
-		<Filter>Raster Files (*.dep), DEP|Vector Files (*.shp), SHP</Filter>
+		<Filter>Whitebox Files (*.dep; *.shp), DEP, SHP</Filter>
 		<IsVisible>True</IsVisible>
 		<MakeOptional>False</MakeOptional>
 		<ShowButton>True</ShowButton>

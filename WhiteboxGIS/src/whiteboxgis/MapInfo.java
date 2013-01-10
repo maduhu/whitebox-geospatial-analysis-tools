@@ -36,12 +36,9 @@ public class MapInfo {
     private String mapName = "";
     private boolean dirty = false; 
     private String fileName = "";
-    //private String applicationDirectory = "";
-    //private String paletteDirectory = "";
-    //private String pathSep;
     private boolean pageVisible = true;
     private PageFormat pageFormat = new PageFormat();
-    private double margin = 0.25;
+    private double margin = 0.0;
     private int numMapAreas = 0;
     private BoundingBox pageBox = new BoundingBox();
     

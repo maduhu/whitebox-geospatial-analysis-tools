@@ -18,6 +18,8 @@ package whiteboxgis;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.*;
@@ -33,6 +35,8 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
+import javax.print.attribute.Size2DSyntax;
+import javax.print.attribute.standard.MediaSize;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -122,9 +126,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JMenuItem menuReversePalette = null;
     private HashMap<String, ImageIcon> icons = new HashMap<String, ImageIcon>();
     private HashMap<String, Font> fonts = new HashMap<String, Font>();
-    private JCheckBoxMenuItem dataView = null;
-    private JCheckBoxMenuItem cartographicView = null;
+    //private JCheckBoxMenuItem dataView = null;
+    //private JCheckBoxMenuItem cartographicView = null;
     private JTextField scaleText = new JTextField();
+    
+    private PageFormat defaultPageFormat = new PageFormat();
     
     public static void main(String[] args) {
         
@@ -265,7 +271,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (defaultQualPalette.equals("")) {
                 defaultQualPalette = "qual.pal";
             }
-
+            
             this.createGui();
             
             checkForNewInstallation();
@@ -530,6 +536,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 defaultQuantPalette.replace(".plt", ".pal"); // just in case the old style palette is specified.
                 defaultQualPalette.replace(".plt", ".pal");
                 userName = props.getProperty("userName");
+                defaultPageFormat.setOrientation(Integer.parseInt(props.getProperty("defaultPageOrientation")));
+                double width = Float.parseFloat(props.getProperty("defaultPageWidth"));
+                double height = Float.parseFloat(props.getProperty("defaultPageHeight"));
+                Paper paper = defaultPageFormat.getPaper();
+                paper.setSize(width, height);
+                defaultPageFormat.setPaper(paper);
                 
                 // retrieve the plugin usage information
                 String[] pluginNames = props.getProperty("pluginNames").split(",");
@@ -586,7 +598,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("defaultQuantPalette", defaultQuantPalette);
         props.setProperty("defaultQualPalette", defaultQualPalette);
         props.setProperty("userName", System.getProperty("user.name"));
-
+        props.setProperty("defaultPageOrientation", Integer.toString(defaultPageFormat.getOrientation()));
+        props.setProperty("defaultPageHeight", Double.toString(defaultPageFormat.getPaper().getHeight()));
+        props.setProperty("defaultPageWidth", Double.toString(defaultPageFormat.getPaper().getWidth()));
+        
         // set the tool usage properties
 
         // first sort plugInfo alphabetacally.
@@ -642,6 +657,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             MapInfo mapinfo = new MapInfo("Map1");
             mapinfo.setMapName("Map1");
+            mapinfo.setPageFormat(defaultPageFormat);
+            
             openMaps.add(mapinfo);
             activeMap = 0;
             drawingArea.setMapInfo(mapinfo);
@@ -1524,6 +1541,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     }
 
                 }
+                
+                if ((lep.getMapNum() == selectedMapAndLayer[0]) & 
+                        (selectedMapAndLayer[1]) == -1 & 
+                        (selectedMapAndLayer[2]) == -1) {
+                    lep.setSelected(true);
+                } else {
+                    lep.setSelected(false);
+                }
+                
                 if (lep.getMapNum() == 0) {
                     legend.add(Box.createVerticalStrut(5));
                 } else {
@@ -1532,10 +1558,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 legend.add(lep);
                 
             } else if (lep.getLegendEntryType() == 2) { // it's a map area
-                if (lep.getMapArea() == openMaps.get(activeMap).getActiveMapArea().getElementNumber()) {
+                if (lep.getMapArea() == openMaps.get(activeMap).getActiveMapArea().getElementNumber() &&
+                        lep.getMapNum() == activeMap) {
                     lep.setTitleFont(fonts.get("activeMap"));
                 } else {
                     lep.setTitleFont(fonts.get("inactiveMap"));
+                }
+                if ((lep.getMapArea() == selectedMapAndLayer[2]) & 
+                        (selectedMapAndLayer[1]) == -1 &&
+                        lep.getMapNum() == selectedMapAndLayer[0]) {
+                    lep.setSelected(true);
+                } else {
+                    lep.setSelected(false);
                 }
                 legend.add(Box.createVerticalStrut(8));
                 legend.add(lep);
@@ -1601,8 +1635,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             
             for (MapArea mapArea : mi.getMapAreas()) {
                 LegendEntryPanel legendMapAreaEntry;
+//                legendMapAreaEntry = new LegendEntryPanel(mapArea, 
+//                    this, fonts.get("inactiveMap"), i, mapArea.getElementNumber(), 
+//                        -1, (mapArea.getElementNumber() == selectedMapAndLayer[2]));
                 legendMapAreaEntry = new LegendEntryPanel(mapArea, 
-                    this, fonts.get("inactiveMap"), i, mapArea.getElementNumber(), -1, (i == selectedMapAndLayer[0]));
+                    this, fonts.get("inactiveMap"), i, mapArea.getElementNumber(), 
+                        -1, (mapArea.getElementNumber() == selectedMapAndLayer[2] &
+                        selectedMapAndLayer[1] == -1));
                 legendEntries.add(legendMapAreaEntry);
                 
                 for (int j = mapArea.getNumLayers() - 1; j >= 0; j--) {
@@ -1655,6 +1694,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         selectedMapAndLayer[0] = mapNum;
         selectedMapAndLayer[1] = layerNum;
         selectedMapAndLayer[2] = mapArea;
+        
+//        if (selectedMapAndLayer[0] != mapNum ||
+//                selectedMapAndLayer[1] != layerNum ||
+//                selectedMapAndLayer[2] != mapArea) {
+//            selectedMapAndLayer[0] = mapNum;
+//            selectedMapAndLayer[1] = layerNum;
+//            selectedMapAndLayer[2] = mapArea;
+//        } else if (e.getClickCount() != 2) {
+//            selectedMapAndLayer[0] = -1;
+//            selectedMapAndLayer[1] = -1;
+//            selectedMapAndLayer[2] = -1;
+//        }
 
         if (e.getButton() == 3 || e.isPopupTrigger()) {
             // is it a map?
@@ -1689,6 +1740,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     }
                 }
             }
+            //updateLayersTab();
         } else if (e.getClickCount() == 2) {
             openMaps.get(activeMap).deslectAllCartographicElements();
             if (layerNum == -1) {
@@ -2296,6 +2348,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             MapInfo mapinfo = new MapInfo(str);
             mapinfo.setMapName(str);
             mapinfo.setWorkingDirectory(workingDirectory);
+            mapinfo.setPageFormat(defaultPageFormat);
             openMaps.add(mapinfo); //new MapInfo(str));
             activeMap = numOpenMaps - 1;
             drawingArea.setMapInfo(openMaps.get(activeMap));
@@ -2605,6 +2658,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             
             updateLayersTab();
         } else {
+            if (selectedMapAndLayer[0] == -1) { return; }
             // first update the activeMap
             activeMap = selectedMapAndLayer[0];
             openMaps.get(activeMap).getMapAreaByElementNum(selectedMapAndLayer[2]).setActiveLayer(selectedMapAndLayer[1]);
@@ -2679,13 +2733,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void setAsActiveMap() {
-        activeMap = selectedMapAndLayer[0];
-        drawingArea.setMapInfo(openMaps.get(activeMap));
-        drawingArea.repaint();
-        updateLayersTab();
-        selectedMapAndLayer[0] = -1;
-        selectedMapAndLayer[1] = -1;
-        selectedMapAndLayer[2] = -1;
+        if (selectedMapAndLayer[0] != -1) {
+            activeMap = selectedMapAndLayer[0];
+            if (selectedMapAndLayer[2] != -1) {
+                //openMaps.get(activeMap).setActiveMapAreaByElementNum(selectedMapAndLayer[2]); // this may have to be changed to the overlay number rather than the element number
+                openMaps.get(activeMap).setActiveMapAreaByElementNum(openMaps.get(activeMap).getCartographicElement(selectedMapAndLayer[2]).getElementNumber());
+            }
+            drawingArea.setMapInfo(openMaps.get(activeMap));
+            drawingArea.repaint();
+            updateLayersTab();
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        }
     }
 
     private void changeLayerTitle() {

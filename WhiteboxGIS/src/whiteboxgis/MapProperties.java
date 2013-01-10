@@ -21,6 +21,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +31,8 @@ import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.*;
 import javax.swing.*;
 import whitebox.cartographic.*;
+import whitebox.cartographic.properties.ColourProperty;
+import whitebox.cartographic.properties.NorthArrowPropertyGrid;
 import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.BoundingBox;
@@ -37,7 +41,7 @@ import whitebox.structures.BoundingBox;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class MapProperties extends JDialog implements ActionListener, AdjustmentListener, MouseListener {
+public class MapProperties extends JDialog implements ActionListener, AdjustmentListener, MouseListener, PropertyChangeListener {
     
     private MapInfo map = null;
     private JButton ok = new JButton("OK");
@@ -67,20 +71,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     private JTextField scaleHeightText = null;
     private JTextField scaleMarginText = null;
     
-    private JCheckBox checkNAVisible = new JCheckBox();
-    private JCheckBox checkNABackgroundVisible = new JCheckBox();
-    private JCheckBox checkNABorderVisible = new JCheckBox();
-    private JTextField naMarkerSizeText = null;
-    private JTextField naMarginText = null;
-    
-    private JCheckBox checkTitleVisible = new JCheckBox();
-    private JCheckBox checkTitleBackgroundVisible = new JCheckBox();
-    private JCheckBox checkTitleBorderVisible = new JCheckBox();
-    private JTextField titleMarginText = null;
-    private JTextField titleLabelText = null;
-    private JSpinner titleFontSize = new JSpinner();
-    private JCheckBox titleFontBold = new JCheckBox();
-    private JCheckBox titleFontItalics = new JCheckBox();
+    private ColourProperty outlineColourBox;
     
     private JCheckBox checkNeatlineVisible = new JCheckBox();
     private JCheckBox checkNeatlineDoubleLine = new JCheckBox();
@@ -96,6 +87,9 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     private JList possibleElementsList = new JList(new DefaultListModel());
     
     private int activeElement;
+    
+    private int sampleWidth = 30;
+    private int sampleHeight = 15;
     
     public MapProperties(Frame owner, boolean modal, MapInfo map) {
         super(owner, modal);
@@ -217,7 +211,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             
             Box vbox = Box.createVerticalBox();
             Box hbox = Box.createHorizontalBox();
-            label = new JLabel("Cartographic Elements:");
+            label = new JLabel("Carto Elements:");
             label.setForeground(Color.darkGray);
             //Font f = label.getFont();
             //label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
@@ -236,6 +230,8 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             model.add(4, "Neatline");
             model.add(5, "Text Box");
             model.add(6, "Map Area");
+            model.add(7, "Label");
+            
             possibleElementsList.setModel(model);
             
             JScrollPane scroller1 = new JScrollPane(possibleElementsList);
@@ -378,155 +374,217 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     }
     
     private JPanel getTitleBox(MapTitle mapTitle) {
-        JPanel panel = new JPanel();
-        try {
-            JLabel label = null;
-            Box mainBox = Box.createVerticalBox();
-            JScrollPane scroll = new JScrollPane(mainBox);
-            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            panel.add(scroll);
-            
-            Font labelFont = mapTitle.getLabelFont();
-            
-            // Title label text
-            JPanel titleLabelBox = new JPanel();
-            titleLabelBox.setLayout(new BoxLayout(titleLabelBox, BoxLayout.X_AXIS));
-            titleLabelBox.setBackground(Color.WHITE);
-            titleLabelBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Label Text:");
-            label.setPreferredSize(new Dimension(180, 24));
-            titleLabelBox.add(label);
-            titleLabelBox.add(Box.createHorizontalGlue());
-            titleLabelText = new JTextField(String.valueOf(mapTitle.getLabel()), 15);
-            titleLabelText.setMaximumSize(new Dimension(50, 22));
-            titleLabelBox.add(titleLabelText);
-            titleLabelBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(titleLabelBox);
-            
-            // title visibility
-            JPanel titleVisibleBox = new JPanel();
-            titleVisibleBox.setLayout(new BoxLayout(titleVisibleBox, BoxLayout.X_AXIS));
-            titleVisibleBox.setBackground(backColour);
-            titleVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is the title visible?");
-            label.setPreferredSize(new Dimension(200, 24));
-            titleVisibleBox.add(label);
-            titleVisibleBox.add(Box.createHorizontalGlue());
-            checkTitleVisible.setSelected(mapTitle.isVisible());
-            checkTitleVisible.addActionListener(this);
-            checkTitleVisible.setActionCommand("checkTitleVisible");
-            titleVisibleBox.add(checkTitleVisible);
-            titleVisibleBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(titleVisibleBox);
-            
-            // Title background visibility
-            JPanel titleBackVisibleBox = new JPanel();
-            titleBackVisibleBox.setLayout(new BoxLayout(titleBackVisibleBox, BoxLayout.X_AXIS));
-            titleBackVisibleBox.setBackground(Color.WHITE);
-            titleBackVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is the title background visible?");
-            label.setPreferredSize(new Dimension(220, 24));
-            titleBackVisibleBox.add(label);
-            titleBackVisibleBox.add(Box.createHorizontalGlue());
-            checkTitleBackgroundVisible.setSelected(mapTitle.isBackgroundVisible());
-            checkTitleBackgroundVisible.addActionListener(this);
-            checkTitleBackgroundVisible.setActionCommand("checkTitleBackgroundVisible");
-            titleBackVisibleBox.add(checkTitleBackgroundVisible);
-            titleBackVisibleBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(titleBackVisibleBox);
-            
-            // Title border visibility
-            JPanel titleBorderVisibleBox = new JPanel();
-            titleBorderVisibleBox.setLayout(new BoxLayout(titleBorderVisibleBox, BoxLayout.X_AXIS));
-            titleBorderVisibleBox.setBackground(backColour);
-            titleBorderVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is the title box border visible?");
-            label.setPreferredSize(new Dimension(220, 24));
-            titleBorderVisibleBox.add(label);
-            titleBorderVisibleBox.add(Box.createHorizontalGlue());
-            checkTitleBorderVisible.setSelected(mapTitle.isBorderVisible());
-            checkTitleBorderVisible.addActionListener(this);
-            checkTitleBorderVisible.setActionCommand("checkTitleBorderVisible");
-            titleBorderVisibleBox.add(checkTitleBorderVisible);
-            titleBorderVisibleBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(titleBorderVisibleBox);
-            
-            // Title margin size
-            JPanel titleMarginBox = new JPanel();
-            titleMarginBox.setLayout(new BoxLayout(titleMarginBox, BoxLayout.X_AXIS));
-            titleMarginBox.setBackground(Color.WHITE);
-            titleMarginBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Margin Size (Points):");
-            label.setPreferredSize(new Dimension(180, 24));
-            titleMarginBox.add(label);
-            titleMarginBox.add(Box.createHorizontalGlue());
-            titleMarginText = new JTextField(String.valueOf(mapTitle.getMargin()), 15);
-            titleMarginText.setHorizontalAlignment(JTextField.RIGHT);
-            titleMarginText.setMaximumSize(new Dimension(50, 22));
-            titleMarginBox.add(titleMarginText);
-            titleMarginBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(titleMarginBox);
-            
-            // Title label font size
-            JPanel titleFontSizeBox = new JPanel();
-            titleFontSizeBox.setLayout(new BoxLayout(titleFontSizeBox, BoxLayout.X_AXIS));
-            titleFontSizeBox.setBackground(backColour);
-            titleFontSizeBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Font Size:");
-            label.setPreferredSize(new Dimension(180, 24));
-            titleFontSizeBox.add(label);
-            titleFontSizeBox.add(Box.createHorizontalGlue());
-            titleFontSize.setMaximumSize(new Dimension(200, 22));
-            SpinnerModel sm =
-                    new SpinnerNumberModel(labelFont.getSize(), 1, mapTitle.getMaxFontSize(), 1);
-            titleFontSize.setModel(sm);
-            titleFontSizeBox.add(titleFontSize);
-            titleFontSizeBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(titleFontSizeBox);
-            
-            // title label font bold
-            int fontBold = labelFont.getStyle() & Font.BOLD;
-            JPanel titleFontBoldBox = new JPanel();
-            titleFontBoldBox.setLayout(new BoxLayout(titleFontBoldBox, BoxLayout.X_AXIS));
-            titleFontBoldBox.setBackground(Color.WHITE);
-            titleFontBoldBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Use bold font?");
-            label.setPreferredSize(new Dimension(200, 24));
-            titleFontBoldBox.add(label);
-            titleFontBoldBox.add(Box.createHorizontalGlue());
-            titleFontBold.setSelected(fontBold > 0);
-            titleFontBold.addActionListener(this);
-            //titleFontBold.setActionCommand("checkTitleVisible");
-            titleFontBoldBox.add(titleFontBold);
-            titleFontBoldBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(titleFontBoldBox);
-            
-            // title label font bold
-            int fontItalicized = labelFont.getStyle() & Font.ITALIC;
-            JPanel titleFontItalicsBox = new JPanel();
-            titleFontItalicsBox.setLayout(new BoxLayout(titleFontItalicsBox, BoxLayout.X_AXIS));
-            titleFontItalicsBox.setBackground(backColour);
-            titleFontItalicsBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Use italicized font?");
-            label.setPreferredSize(new Dimension(200, 24));
-            titleFontItalicsBox.add(label);
-            titleFontItalicsBox.add(Box.createHorizontalGlue());
-            titleFontItalics.setSelected(fontItalicized > 0);
-            titleFontItalics.addActionListener(this);
-            //titleFontItalics.setActionCommand("checkTitleVisible");
-            titleFontItalicsBox.add(titleFontItalics);
-            titleFontItalicsBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(titleFontItalicsBox);
-            
-            //mainBox.add(Box.createVerticalStrut(330));
-            
-        } catch (Exception e) {
-            host.showFeedback(e.getMessage());
-        } finally {
-            return panel;
-        }
+        whitebox.cartographic.properties.MapTitlePropertyGrid obj = new whitebox.cartographic.properties.MapTitlePropertyGrid(mapTitle, host);
+        obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
+        return obj;
+//        JPanel panel = new JPanel();
+//        try {
+//            int rightMarginSize = 20;
+//            int leftMarginSize = 10;
+//            
+//            panel.setBackground(Color.WHITE);
+//            
+//            JLabel label = null;
+//            Box mainBox = Box.createVerticalBox();
+//            JScrollPane scroll = new JScrollPane(mainBox);
+//            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+//            scroll.setMaximumSize(new Dimension(1000, 230));
+//            panel.add(scroll);
+//            
+//            Font labelFont = mapTitle.getLabelFont();
+//            
+//            // Title label text
+//            JPanel titleLabelBox = new JPanel();
+//            titleLabelBox.setLayout(new BoxLayout(titleLabelBox, BoxLayout.X_AXIS));
+//            titleLabelBox.setBackground(Color.WHITE);
+//            titleLabelBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Label Text:");
+//            label.setPreferredSize(new Dimension(180, 24));
+//            titleLabelBox.add(label);
+//            titleLabelBox.add(Box.createHorizontalGlue());
+//            titleLabelText = new JTextField(String.valueOf(mapTitle.getLabel()), 15);
+//            titleLabelText.setMaximumSize(new Dimension(40, 22));
+//            titleLabelBox.add(titleLabelText);
+//            titleLabelBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(titleLabelBox);
+//            
+//            // title visibility
+//            JPanel titleVisibleBox = new JPanel();
+//            titleVisibleBox.setLayout(new BoxLayout(titleVisibleBox, BoxLayout.X_AXIS));
+//            titleVisibleBox.setBackground(backColour);
+//            titleVisibleBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Is the title visible?");
+//            label.setPreferredSize(new Dimension(200, 24));
+//            titleVisibleBox.add(label);
+//            titleVisibleBox.add(Box.createHorizontalGlue());
+//            checkTitleVisible.setSelected(mapTitle.isVisible());
+//            checkTitleVisible.addActionListener(this);
+//            checkTitleVisible.setActionCommand("checkTitleVisible");
+//            titleVisibleBox.add(checkTitleVisible);
+//            titleVisibleBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(titleVisibleBox);
+//            
+//            whitebox.cartographic.properties.BooleanProperty titleVis = new 
+//                    whitebox.cartographic.properties.BooleanProperty("Is the title visible?", 
+//                    mapTitle.isVisible());
+//            titleVis.setLeftMargin(leftMarginSize);
+//            titleVis.setRightMargin(rightMarginSize);
+//            titleVis.setBackColour(backColour);
+//            titleVis.addPropertyChangeListener("value", this);
+//            mainBox.add(titleVis);
+//            
+//            // Title background visibility
+//            JPanel titleBackVisibleBox = new JPanel();
+//            titleBackVisibleBox.setLayout(new BoxLayout(titleBackVisibleBox, BoxLayout.X_AXIS));
+//            titleBackVisibleBox.setBackground(Color.WHITE);
+//            titleBackVisibleBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Is the title background visible?");
+//            label.setPreferredSize(new Dimension(220, 24));
+//            titleBackVisibleBox.add(label);
+//            titleBackVisibleBox.add(Box.createHorizontalGlue());
+//            checkTitleBackgroundVisible.setSelected(mapTitle.isBackgroundVisible());
+//            checkTitleBackgroundVisible.addActionListener(this);
+//            checkTitleBackgroundVisible.setActionCommand("checkTitleBackgroundVisible");
+//            titleBackVisibleBox.add(checkTitleBackgroundVisible);
+//            titleBackVisibleBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(titleBackVisibleBox);
+//            
+//            // Title border visibility
+//            JPanel titleBorderVisibleBox = new JPanel();
+//            titleBorderVisibleBox.setLayout(new BoxLayout(titleBorderVisibleBox, BoxLayout.X_AXIS));
+//            titleBorderVisibleBox.setBackground(backColour);
+//            titleBorderVisibleBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Is the title box border visible?");
+//            label.setPreferredSize(new Dimension(220, 24));
+//            titleBorderVisibleBox.add(label);
+//            titleBorderVisibleBox.add(Box.createHorizontalGlue());
+//            checkTitleBorderVisible.setSelected(mapTitle.isBorderVisible());
+//            checkTitleBorderVisible.addActionListener(this);
+//            checkTitleBorderVisible.setActionCommand("checkTitleBorderVisible");
+//            titleBorderVisibleBox.add(checkTitleBorderVisible);
+//            titleBorderVisibleBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(titleBorderVisibleBox);
+//            
+//            // outline visibility
+//            JPanel titleOutlineBox = new JPanel();
+//            titleOutlineBox.setLayout(new BoxLayout(titleOutlineBox, BoxLayout.X_AXIS));
+//            titleOutlineBox.setBackground(Color.WHITE);
+//            titleOutlineBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Is the font outline visible?");
+//            label.setPreferredSize(new Dimension(200, 24));
+//            titleOutlineBox.add(label);
+//            titleOutlineBox.add(Box.createHorizontalGlue());
+//            checkTitleOutlineVisible.setSelected(mapTitle.isOutlineVisible());
+//            checkTitleOutlineVisible.addActionListener(this);
+//            checkTitleOutlineVisible.setActionCommand("checkTitleVisible");
+//            titleOutlineBox.add(checkTitleOutlineVisible);
+//            titleOutlineBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(titleOutlineBox);
+//            
+//            // Title margin size
+//            JPanel titleMarginBox = new JPanel();
+//            titleMarginBox.setLayout(new BoxLayout(titleMarginBox, BoxLayout.X_AXIS));
+//            titleMarginBox.setBackground(Color.WHITE);
+//            titleMarginBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Margin Size (Points):");
+//            label.setPreferredSize(new Dimension(180, 24));
+//            titleMarginBox.add(label);
+//            titleMarginBox.add(Box.createHorizontalGlue());
+//            titleMarginText = new JTextField(String.valueOf(mapTitle.getMargin()), 15);
+//            titleMarginText.setHorizontalAlignment(JTextField.RIGHT);
+//            titleMarginText.setMaximumSize(new Dimension(40, 22));
+//            titleMarginBox.add(titleMarginText);
+//            titleMarginBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(titleMarginBox);
+//            
+//            // Title label font size
+//            JPanel titleFontSizeBox = new JPanel();
+//            titleFontSizeBox.setLayout(new BoxLayout(titleFontSizeBox, BoxLayout.X_AXIS));
+//            titleFontSizeBox.setBackground(backColour);
+//            titleFontSizeBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Font Size:");
+//            label.setPreferredSize(new Dimension(180, 24));
+//            titleFontSizeBox.add(label);
+//            titleFontSizeBox.add(Box.createHorizontalGlue());
+//            titleFontSize.setMaximumSize(new Dimension(200, 22));
+//            SpinnerModel sm =
+//                    new SpinnerNumberModel(labelFont.getSize(), 1, mapTitle.getMaxFontSize(), 1);
+//            titleFontSize.setModel(sm);
+//            titleFontSizeBox.add(titleFontSize);
+//            titleFontSizeBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(titleFontSizeBox);
+//            
+//            // title label font bold
+//            int fontBold = labelFont.getStyle() & Font.BOLD;
+//            JPanel titleFontBoldBox = new JPanel();
+//            titleFontBoldBox.setLayout(new BoxLayout(titleFontBoldBox, BoxLayout.X_AXIS));
+//            titleFontBoldBox.setBackground(Color.WHITE);
+//            titleFontBoldBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Use bold font?");
+//            label.setPreferredSize(new Dimension(200, 24));
+//            titleFontBoldBox.add(label);
+//            titleFontBoldBox.add(Box.createHorizontalGlue());
+//            titleFontBold.setSelected(fontBold > 0);
+//            titleFontBold.addActionListener(this);
+//            //titleFontBold.setActionCommand("checkTitleVisible");
+//            titleFontBoldBox.add(titleFontBold);
+//            titleFontBoldBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(titleFontBoldBox);
+//            
+//            // title label font bold
+//            int fontItalicized = labelFont.getStyle() & Font.ITALIC;
+//            JPanel titleFontItalicsBox = new JPanel();
+//            titleFontItalicsBox.setLayout(new BoxLayout(titleFontItalicsBox, BoxLayout.X_AXIS));
+//            titleFontItalicsBox.setBackground(backColour);
+//            titleFontItalicsBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Use italicized font?");
+//            label.setPreferredSize(new Dimension(200, 24));
+//            titleFontItalicsBox.add(label);
+//            titleFontItalicsBox.add(Box.createHorizontalGlue());
+//            titleFontItalics.setSelected(fontItalicized > 0);
+//            titleFontItalics.addActionListener(this);
+//            //titleFontItalics.setActionCommand("checkTitleVisible");
+//            titleFontItalicsBox.add(titleFontItalics);
+//            titleFontItalicsBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(titleFontItalicsBox);
+//            
+//            JPanel fontColourBox = new JPanel();
+//            fontColourBox.setLayout(new BoxLayout(fontColourBox, BoxLayout.X_AXIS));
+//            fontColourBox.setBackground(Color.WHITE);
+//            fontColourBox.add(Box.createHorizontalStrut(leftMarginSize));
+//            label = new JLabel("Font Colour:");
+//            label.setPreferredSize(new Dimension(180, 24));
+//            fontColourBox.add(label);
+//            fontColourBox.add(Box.createHorizontalGlue());
+//            fontColour = mapTitle.getFontColour();
+//            sampleFontColourPanel = new SampleColour(sampleWidth, sampleHeight, fontColour);
+//            sampleFontColourPanel.setToolTipText("Click to select new color.");
+//            sampleFontColourPanel.addMouseListener(this);
+//            fontColourBox.add(sampleFontColourPanel);
+//            fontColourBox.add(Box.createHorizontalStrut(rightMarginSize));
+//            mainBox.add(fontColourBox);
+//            
+//            outlineColourBox = new 
+//                    whitebox.cartographic.properties.ColourProperty("Outline Colour:", 
+//                    mapTitle.getOutlineColour());
+//            outlineColourBox.setLeftMargin(leftMarginSize);
+//            outlineColourBox.setRightMargin(rightMarginSize);
+//            outlineColourBox.setBackColour(backColour);
+//            outlineColourBox.addPropertyChangeListener("colour", this);
+//            mainBox.add(outlineColourBox);
+//            
+//            //mainBox.add(Box.createVerticalStrut(330));
+//            
+//        } catch (Exception e) {
+//            host.showFeedback(e.getMessage());
+//        } finally {
+//            return panel;
+//        }
         
     }
+    
+    private Color fontColour;
+    private SampleColour sampleFontColourPanel;
     
     private JPanel getPageBox() {
         JPanel panel = new JPanel();
@@ -603,7 +661,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             // page name
             String[] fields = new String[]{"Letter", "Legal", "A0", "A1",
                  "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", 
-                 "B0", "B1", "B2", "Custom"};
+                 "B0", "B1", "B2"};
             paperNameCombo = new JComboBox(fields);
             JPanel paperNameBox = new JPanel();
             paperNameBox.setLayout(new BoxLayout(paperNameBox, BoxLayout.X_AXIS));
@@ -619,9 +677,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
                         e.getValue()[1] == (paper.getHeight() / POINTS_PER_INCH)) {
                     paperNameCombo.setSelectedItem(e.getKey());
                 }
-                //System.out.println(e.getKey() + ": " + e.getValue()[0] + " " + e.getValue()[1]);
             }
-            //paperNameCombo.setSelectedIndex(map.isCartoView());
             paperNameCombo.addActionListener(this);
             paperNameCombo.setActionCommand("checkPageVisible");
             paperNameBox.add(paperNameCombo);
@@ -838,103 +894,107 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     }
     
     private JPanel getNorthArrowBox(NorthArrow northArrow) {
-        JPanel panel = new JPanel();
-        try {
-            JLabel label = null;
-            Box mainBox = Box.createVerticalBox();
-            JScrollPane scroll = new JScrollPane(mainBox);
-            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            panel.add(scroll);
-            
-            // NA visibility
-            JPanel naVisibleBox = new JPanel();
-            naVisibleBox.setLayout(new BoxLayout(naVisibleBox, BoxLayout.X_AXIS));
-            naVisibleBox.setBackground(Color.WHITE);
-            naVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is the north arrow visible?");
-            label.setPreferredSize(new Dimension(200, 24));
-            naVisibleBox.add(label);
-            naVisibleBox.add(Box.createHorizontalGlue());
-            checkNAVisible.setSelected(northArrow.isVisible());
-            checkNAVisible.addActionListener(this);
-            checkNAVisible.setActionCommand("checkNAVisible");
-            naVisibleBox.add(checkNAVisible);
-            naVisibleBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(naVisibleBox);
-            
-            // NA background visibility
-            JPanel naBackVisibleBox = new JPanel();
-            naBackVisibleBox.setLayout(new BoxLayout(naBackVisibleBox, BoxLayout.X_AXIS));
-            naBackVisibleBox.setBackground(backColour);
-            naBackVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is the arrow background visible?");
-            label.setPreferredSize(new Dimension(220, 24));
-            naBackVisibleBox.add(label);
-            naBackVisibleBox.add(Box.createHorizontalGlue());
-            checkNABackgroundVisible.setSelected(northArrow.isBackgroundVisible());
-            checkNABackgroundVisible.addActionListener(this);
-            checkNABackgroundVisible.setActionCommand("checkNABackgroundVisible");
-            naBackVisibleBox.add(checkNABackgroundVisible);
-            naBackVisibleBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(naBackVisibleBox);
-            
-            // NA border visibility
-            JPanel naBorderVisibleBox = new JPanel();
-            naBorderVisibleBox.setLayout(new BoxLayout(naBorderVisibleBox, BoxLayout.X_AXIS));
-            naBorderVisibleBox.setBackground(Color.WHITE);
-            naBorderVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is the north arrow border visible?");
-            label.setPreferredSize(new Dimension(220, 24));
-            naBorderVisibleBox.add(label);
-            naBorderVisibleBox.add(Box.createHorizontalGlue());
-            checkNABorderVisible.setSelected(northArrow.isBorderVisible());
-            checkNABorderVisible.addActionListener(this);
-            checkNABorderVisible.setActionCommand("checkNABorderVisible");
-            naBorderVisibleBox.add(checkNABorderVisible);
-            naBorderVisibleBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(naBorderVisibleBox);
-            
-            
-            // NA marker size
-            JPanel naMarkerSizeBox = new JPanel();
-            naMarkerSizeBox.setLayout(new BoxLayout(naMarkerSizeBox, BoxLayout.X_AXIS));
-            naMarkerSizeBox.setBackground(backColour);
-            naMarkerSizeBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Marker Size (Points):");
-            label.setPreferredSize(new Dimension(180, 24));
-            naMarkerSizeBox.add(label);
-            naMarkerSizeBox.add(Box.createHorizontalGlue());
-            naMarkerSizeText = new JTextField(String.valueOf(northArrow.getMarkerSize()), 15);
-            naMarkerSizeText.setHorizontalAlignment(JTextField.RIGHT);
-            naMarkerSizeText.setMaximumSize(new Dimension(50, 22));
-            naMarkerSizeBox.add(naMarkerSizeText);
-            naMarkerSizeBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(naMarkerSizeBox);
-            
-            // NA margin size
-            JPanel naMarginBox = new JPanel();
-            naMarginBox.setLayout(new BoxLayout(naMarginBox, BoxLayout.X_AXIS));
-            naMarginBox.setBackground(Color.WHITE);
-            naMarginBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Margin Size (Points):");
-            label.setPreferredSize(new Dimension(180, 24));
-            naMarginBox.add(label);
-            naMarginBox.add(Box.createHorizontalGlue());
-            naMarginText = new JTextField(String.valueOf(northArrow.getMargin()), 15);
-            naMarginText.setHorizontalAlignment(JTextField.RIGHT);
-            naMarginText.setMaximumSize(new Dimension(50, 22));
-            naMarginBox.add(naMarginText);
-            naMarginBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(naMarginBox);
-            
-            //mainBox.add(Box.createVerticalStrut(330));
-        
-        
-        } catch (Exception e) {
-            host.showFeedback(e.getMessage());
-        } finally {
-            return panel;
-        }
+        NorthArrowPropertyGrid obj = new NorthArrowPropertyGrid(northArrow, host);
+        obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
+        return obj;
+        //return new NorthArrowPropertyGrid(northArrow, host);
+//        JPanel panel = new JPanel();
+//        try {
+//            JLabel label = null;
+//            Box mainBox = Box.createVerticalBox();
+//            JScrollPane scroll = new JScrollPane(mainBox);
+//            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+//            panel.add(scroll);
+//            
+//            // NA visibility
+//            JPanel naVisibleBox = new JPanel();
+//            naVisibleBox.setLayout(new BoxLayout(naVisibleBox, BoxLayout.X_AXIS));
+//            naVisibleBox.setBackground(Color.WHITE);
+//            naVisibleBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel("Is the north arrow visible?");
+//            label.setPreferredSize(new Dimension(200, 24));
+//            naVisibleBox.add(label);
+//            naVisibleBox.add(Box.createHorizontalGlue());
+//            checkNAVisible.setSelected(northArrow.isVisible());
+//            checkNAVisible.addActionListener(this);
+//            checkNAVisible.setActionCommand("checkNAVisible");
+//            naVisibleBox.add(checkNAVisible);
+//            naVisibleBox.add(Box.createHorizontalStrut(10));
+//            mainBox.add(naVisibleBox);
+//            
+//            // NA background visibility
+//            JPanel naBackVisibleBox = new JPanel();
+//            naBackVisibleBox.setLayout(new BoxLayout(naBackVisibleBox, BoxLayout.X_AXIS));
+//            naBackVisibleBox.setBackground(backColour);
+//            naBackVisibleBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel("Is the arrow background visible?");
+//            label.setPreferredSize(new Dimension(220, 24));
+//            naBackVisibleBox.add(label);
+//            naBackVisibleBox.add(Box.createHorizontalGlue());
+//            checkNABackgroundVisible.setSelected(northArrow.isBackgroundVisible());
+//            checkNABackgroundVisible.addActionListener(this);
+//            checkNABackgroundVisible.setActionCommand("checkNABackgroundVisible");
+//            naBackVisibleBox.add(checkNABackgroundVisible);
+//            naBackVisibleBox.add(Box.createHorizontalStrut(10));
+//            mainBox.add(naBackVisibleBox);
+//            
+//            // NA border visibility
+//            JPanel naBorderVisibleBox = new JPanel();
+//            naBorderVisibleBox.setLayout(new BoxLayout(naBorderVisibleBox, BoxLayout.X_AXIS));
+//            naBorderVisibleBox.setBackground(Color.WHITE);
+//            naBorderVisibleBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel("Is the north arrow border visible?");
+//            label.setPreferredSize(new Dimension(220, 24));
+//            naBorderVisibleBox.add(label);
+//            naBorderVisibleBox.add(Box.createHorizontalGlue());
+//            checkNABorderVisible.setSelected(northArrow.isBorderVisible());
+//            checkNABorderVisible.addActionListener(this);
+//            checkNABorderVisible.setActionCommand("checkNABorderVisible");
+//            naBorderVisibleBox.add(checkNABorderVisible);
+//            naBorderVisibleBox.add(Box.createHorizontalStrut(10));
+//            mainBox.add(naBorderVisibleBox);
+//            
+//            
+//            // NA marker size
+//            JPanel naMarkerSizeBox = new JPanel();
+//            naMarkerSizeBox.setLayout(new BoxLayout(naMarkerSizeBox, BoxLayout.X_AXIS));
+//            naMarkerSizeBox.setBackground(backColour);
+//            naMarkerSizeBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel("Marker Size (Points):");
+//            label.setPreferredSize(new Dimension(180, 24));
+//            naMarkerSizeBox.add(label);
+//            naMarkerSizeBox.add(Box.createHorizontalGlue());
+//            naMarkerSizeText = new JTextField(String.valueOf(northArrow.getMarkerSize()), 15);
+//            naMarkerSizeText.setHorizontalAlignment(JTextField.RIGHT);
+//            naMarkerSizeText.setMaximumSize(new Dimension(50, 22));
+//            naMarkerSizeBox.add(naMarkerSizeText);
+//            naMarkerSizeBox.add(Box.createHorizontalStrut(10));
+//            mainBox.add(naMarkerSizeBox);
+//            
+//            // NA margin size
+//            JPanel naMarginBox = new JPanel();
+//            naMarginBox.setLayout(new BoxLayout(naMarginBox, BoxLayout.X_AXIS));
+//            naMarginBox.setBackground(Color.WHITE);
+//            naMarginBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel("Margin Size (Points):");
+//            label.setPreferredSize(new Dimension(180, 24));
+//            naMarginBox.add(label);
+//            naMarginBox.add(Box.createHorizontalGlue());
+//            naMarginText = new JTextField(String.valueOf(northArrow.getMargin()), 15);
+//            naMarginText.setHorizontalAlignment(JTextField.RIGHT);
+//            naMarginText.setMaximumSize(new Dimension(50, 22));
+//            naMarginBox.add(naMarginText);
+//            naMarginBox.add(Box.createHorizontalStrut(10));
+//            mainBox.add(naMarginBox);
+//            
+//            //mainBox.add(Box.createVerticalStrut(330));
+//        
+//        
+//        } catch (Exception e) {
+//            host.showFeedback(e.getMessage());
+//        } finally {
+//            return panel;
+//        }
         
     }
     
@@ -1175,54 +1235,6 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
                 }
                 //mapScale.setScale(mapScale.getScale()); // this is just to refresh the map scale.
                 map.modifyElement(whichElement, ce);
-            } else if (ce instanceof NorthArrow) {
-                NorthArrow northArrow = (NorthArrow)ce;
-                if (northArrow.isVisible() != checkNAVisible.isSelected()) {
-                    northArrow.setVisible(checkNAVisible.isSelected());
-                }
-                if (northArrow.isBorderVisible() != checkNABorderVisible.isSelected()) {
-                    northArrow.setBorderVisible(checkNABorderVisible.isSelected());
-                }
-                if (northArrow.isBackgroundVisible() != checkNABackgroundVisible.isSelected()) {
-                    northArrow.setBackgroundVisible(checkNABackgroundVisible.isSelected());
-                }
-                if (northArrow.getMarkerSize() != Integer.parseInt(naMarkerSizeText.getText())) {
-                    northArrow.setMarkerSize(Integer.parseInt(naMarkerSizeText.getText()));
-                }
-                if (northArrow.getMargin() != Integer.parseInt(naMarginText.getText())) {
-                    northArrow.setMargin(Integer.parseInt(naMarginText.getText()));
-                }
-                map.modifyElement(whichElement, ce);
-            } else if (ce instanceof MapTitle) {
-                MapTitle mapTitle = (MapTitle)ce;
-                if (mapTitle.isVisible() != checkTitleVisible.isSelected()) {
-                    mapTitle.setVisible(checkTitleVisible.isSelected());
-                }
-                if (mapTitle.isBorderVisible() != checkTitleBorderVisible.isSelected()) {
-                    mapTitle.setBorderVisible(checkTitleBorderVisible.isSelected());
-                }
-                if (mapTitle.isBackgroundVisible() != checkTitleBackgroundVisible.isSelected()) {
-                    mapTitle.setBackgroundVisible(checkTitleBackgroundVisible.isSelected());
-                }
-                if (mapTitle.getMargin() != Integer.parseInt(titleMarginText.getText())) {
-                    mapTitle.setMargin(Integer.parseInt(titleMarginText.getText()));
-                }
-                if (!mapTitle.getLabel().toLowerCase().equals(titleLabelText.getText().toLowerCase())) {
-                    mapTitle.setLabel(titleLabelText.getText());
-                }
-                Font labelFont = mapTitle.getLabelFont();
-                int fontSize = (Integer) (titleFontSize.getValue());
-                int style = 0;
-                if (titleFontBold.isSelected()) {
-                    style += Font.BOLD;
-                }
-                if (titleFontItalics.isSelected()) {
-                    style += Font.ITALIC;
-                }
-                Font newFont = new Font(labelFont.getName(), style, fontSize);
-                if (!labelFont.equals(newFont)) {
-                    mapTitle.setLabelFont(newFont);
-                }
             } else if (ce instanceof NeatLine) {
                 NeatLine neatline = (NeatLine)ce;
                 if (neatline.isVisible() != checkNeatlineVisible.isSelected()) {
@@ -1454,7 +1466,14 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     @Override
     public void mousePressed(MouseEvent me) {
         Object source = me.getSource();
-        
+        if (source == sampleFontColourPanel) {
+            Color newColour = JColorChooser.showDialog(this, "Choose Color", fontColour);
+            if (newColour != null) {
+                fontColour = newColour;
+                sampleFontColourPanel.setBackColour(newColour);
+            }
+            
+        }
     }
 
     @Override
@@ -1471,5 +1490,40 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     public void mouseExited(MouseEvent me) {
         //throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        Object source = evt.getSource();
+        if (source == outlineColourBox) {
+            if (evt.getPropertyName().equals("colour")) {
+                updateMap();
+            }
+        }
+    }
     
+    
+    private class SampleColour extends JPanel {
+        Color backColour;
+        
+        protected SampleColour(int width, int height, Color clr) {
+            this.setMaximumSize(new Dimension(width, height));
+            this.setPreferredSize(new Dimension(width, height));
+            backColour = clr;
+        }
+        
+        protected void setBackColour(Color clr) {
+            backColour = clr;
+            repaint();
+        }
+        
+        @Override
+        public void paint (Graphics g) {
+            g.setColor(backColour);
+            g.fillRect(0, 0, this.getWidth(), this.getHeight());
+            
+            g.setColor(Color.black);
+            g.drawRect(0, 0, this.getWidth() - 1, this.getHeight() - 1);
+            
+        }
+    }
 }

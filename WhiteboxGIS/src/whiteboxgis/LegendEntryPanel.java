@@ -87,6 +87,14 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
     
     public LegendEntryPanel(String mapTitle, WhiteboxPluginHost host, Font font, 
        int mapNum, int mapAreaNum, int layerNum, boolean isSelected) {
+        
+        DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+        this.textForeground = renderer.getTextNonSelectionColor();
+        this.textBackground = renderer.getBackgroundNonSelectionColor();
+        this.selectionForeground = renderer.getTextSelectionColor();
+        this.selectionBackground = renderer.getBackgroundSelectionColor();
+        renderer = null;
+        
         this.mapTitle = mapTitle;
         this.host = host;
         this.myFont = font;
@@ -95,11 +103,20 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
         this.layerNum = layerNum;
         this.mapAreaNum = mapAreaNum;
         this.legendEntryType = 0;
+        
         createMapLegendEntry();
     }
     
     public LegendEntryPanel(MapArea mapArea, WhiteboxPluginHost host, Font font, 
        int mapNum, int mapAreaNum, int layerNum, boolean isSelected) {
+        
+        DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+        this.textForeground = renderer.getTextNonSelectionColor();
+        this.textBackground = renderer.getBackgroundNonSelectionColor();
+        this.selectionForeground = renderer.getTextSelectionColor();
+        this.selectionBackground = renderer.getBackgroundSelectionColor();
+        renderer = null;
+        
         this.mapAreaName = mapArea.getName();
         this.host = host;
         this.myFont = font;
@@ -108,6 +125,7 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
         this.layerNum = layerNum;
         this.mapAreaNum = mapAreaNum;
         this.legendEntryType = 2;
+        
         createMapAreaLegendEntry();
     }
     
@@ -125,9 +143,19 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
             this.add(Box.createHorizontalGlue());
             //this.setPreferredSize(this.getPreferredSize());
             //this.validate();
-            this.setOpaque(false);
+            this.setOpaque(true);
             this.setMaximumSize(new Dimension(1000, 15));
             this.addMouseListener(this);
+            
+            
+            if (selected) {
+                titleLabel.setForeground(selectionForeground);
+                this.setBackground(selectionBackground);
+            } else {
+                titleLabel.setForeground(textForeground);
+                this.setBackground(textBackground);
+            }
+            
             this.revalidate();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -140,18 +168,32 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
             String graphicsDirectory = host.getResourcesDirectory() + "Images" + File.separator;
             BufferedImage myPicture = ImageIO.read(new File(graphicsDirectory + "mapArea.png"));
             titleLabel = new JLabel(mapAreaName, new ImageIcon(myPicture), JLabel.RIGHT);
+            
             titleLabel.setOpaque(false);
             titleLabel.setFont(myFont);
             this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             this.add(Box.createHorizontalStrut(15));
             this.add(titleLabel);
             this.add(Box.createHorizontalGlue());
+            
+            
             //this.setPreferredSize(this.getPreferredSize());
             //this.validate();
-            this.setOpaque(false);
+            this.setOpaque(true);
             this.setMaximumSize(new Dimension(1000, 15));
             this.addMouseListener(this);
+            
+            if (selected) {
+                titleLabel.setForeground(selectionForeground);
+                this.setBackground(selectionBackground);
+            } else {
+                titleLabel.setForeground(textForeground);
+                this.setBackground(textBackground);
+            }
+            
+            
             this.revalidate();
+            
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -319,6 +361,8 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
         this.selected = selected;
         if (getLegendEntryType() == 0) {
             createMapLegendEntry();
+        } else if (getLegendEntryType() == 2) {
+            createMapAreaLegendEntry();
         } else {
             createMapLayerLegendEntry();
         }

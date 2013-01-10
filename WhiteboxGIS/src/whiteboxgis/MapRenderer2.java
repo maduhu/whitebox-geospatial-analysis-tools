@@ -23,6 +23,7 @@ import java.util.Collections;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import java.awt.font.GlyphVector;
 import whitebox.cartographic.*;
 import whitebox.geospatialfiles.RasterLayerInfo;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
@@ -33,6 +34,7 @@ import whitebox.interfaces.MapLayer;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.BoundingBox;
 import whitebox.structures.GridCell;
+import whitebox.structures.XYPoint;
 import whitebox.utilities.OSFinder;
 /**
  *
@@ -652,7 +654,24 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             int fontHeight = metrics.getHeight() - metrics.getDescent();
                             x = mapTitle.getUpperLeftX() + mapTitle.getMargin();
                             y = (int) (mapTitle.getUpperLeftY() + mapTitle.getMargin() + fontHeight);
-                            g2.drawString(mapTitle.getLabel(), x, y);
+                            //g2.drawString(mapTitle.getLabel(), x, y);
+                            
+                            GlyphVector gv = newFont.createGlyphVector(g2.getFontRenderContext(), mapTitle.getLabel());
+                            Shape sp = gv.getOutline();
+                            //g2.setColor(mapTitle.getOutlineColour());
+                            g2.translate(x, y);
+                            g2.fill(sp);
+                            g2.translate(-x, -y);
+                            
+                            if (mapTitle.isOutlineVisible()) {
+                                //GlyphVector gv = newFont.createGlyphVector(g2.getFontRenderContext(), mapTitle.getLabel());
+                                //Shape sp = gv.getOutline();
+                                g2.setColor(mapTitle.getOutlineColour());
+                                g2.translate(x, y);
+                                g2.draw(sp);
+                                g2.translate(-x, -y);
+                            }
+                            
                             g2.setFont(oldFont);
                         }
 
@@ -1206,13 +1225,19 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 mapArea.setReferenceMarksSize(fontHeight + 2);
 
                                 // now set the initial size
-                                int mapAreaSize = (int) (Math.min((pageHeight - 2 * margin),
-                                        (pageWidth - 2 * margin)));
-                                mapArea.setWidth(mapAreaSize);
-                                mapArea.setHeight(mapAreaSize);
-                                mapArea.setUpperLeftX((int) (margin + (pageWidth - 2 * margin - mapAreaSize) / 2));
-                                mapArea.setUpperLeftY((int) (margin + (pageHeight - 2 * margin - mapAreaSize) / 2));
-
+//                                int mapAreaSize = (int) (Math.min((pageHeight - 2 * margin - 4),
+//                                        (pageWidth - 2 * margin - 4)));
+//                                mapArea.setWidth(mapAreaSize);
+//                                mapArea.setHeight(mapAreaSize);
+                                int mapAreaWidth = (int)(pageWidth - 2 * margin - 4);
+                                int mapAreaHeight = (int)(pageHeight - 2 * margin - 4);
+                                mapArea.setWidth(mapAreaWidth);
+                                mapArea.setHeight(mapAreaHeight);
+//                                mapArea.setUpperLeftX((int) (margin + (pageWidth - 2 * margin - mapAreaSize) / 2));
+//                                mapArea.setUpperLeftY((int) (margin + (pageHeight - 2 * margin - mapAreaSize) / 2));
+                                mapArea.setUpperLeftX((int) (margin + (pageWidth - 2 * margin - mapAreaWidth) / 2));
+                                mapArea.setUpperLeftY((int) (margin + (pageHeight - 2 * margin - mapAreaHeight) / 2));
+                                
                             }
                             int referenceMarkSize = mapArea.getReferenceMarksSize();
 
@@ -2250,6 +2275,28 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                 g2.setTransform(old);
 
+                if (usingDistanceTool) {
+                    oldStroke = g2.getStroke();
+                    //g2.setStroke(dashed);
+                    g2.setColor(Color.yellow);
+//                    int boxWidth = (int) (Math.abs(startCol - endCol));
+//                    int boxHeight = (int) (Math.abs(startRow - endRow));
+//                    x = Math.min(startCol, endCol);
+//                    y = Math.min(startRow, endRow);
+//                    g2.drawRect(x, y, boxWidth, boxHeight);
+//                    g2.setColor(Color.white);
+//                    g2.setStroke(dashed2);
+//                    g2.drawRect(x, y, boxWidth, boxHeight);
+                    
+                    for (int i = 0; i < distPoints.size(); i++) {
+                        g2.fillRect((int)distPoints.get(i).x - 1, (int)distPoints.get(i).y - 1, 2, 2);
+                        
+                    }
+                    
+                    g2.setStroke(oldStroke);
+                }
+                
+                
             }
             
         } catch (Exception e) {
@@ -2437,6 +2484,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         }
         return threshold2 > threshold1 ? val > threshold1 && val < threshold2 : val > threshold2 && val < threshold1;
     }
+    
+    ArrayList<XYPoint> distPoints = new ArrayList<XYPoint>();
+    double calculatedDistance;
 
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -2460,6 +2510,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                     map.setActiveMapAreaByElementNum(map.getCartographicElement(whichCartoElement).getElementNumber());
                     host.refreshMap(true);
+                    
+                    if (usingDistanceTool) {
+                        distPoints.add(new XYPoint(e.getX(), e.getY()));
+                    }
                 }
             } else if (myMode == MOUSE_MODE_CARTO_ELEMENT) {
                 map.getCartographicElement(whichCartoElement).setSelected(false);
