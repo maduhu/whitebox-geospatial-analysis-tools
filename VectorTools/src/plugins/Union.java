@@ -24,8 +24,8 @@ import com.vividsolutions.jts.geom.LineString;
 import java.io.File;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.ShapeFile;
-import whitebox.geospatialfiles.shapefile.DBF.DBFField;
-import whitebox.geospatialfiles.shapefile.DBF.DBFWriter;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
+import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
@@ -287,24 +287,34 @@ public class Union implements WhiteboxPlugin {
                         updateProgress("Loop " + (k + 1) + " of " + numFiles + ": Reading data:", progress);
                     }
                 }
-                if (k == 0) {
-                    g1 = factory.buildGeometry(inputGeometryList);
-                    inputGeometryList.clear();
-                } else {
-                    g2 = factory.buildGeometry(inputGeometryList);
-                    updateProgress("Performing operation (progress will not be updated):", -1);
-                    try {
-                        outputGeometry = g1.union(g2);
-                    } catch (Exception ex) {
-                        outputGeometry = com.vividsolutions.jts.operation.overlay.snap.SnapOverlayOp.union(g1, g2);
-                    }
-                    g1 = (com.vividsolutions.jts.geom.Geometry)outputGeometry.clone();
-                    inputGeometryList.clear();
-                }
+//                if (k == 0) {
+//                    g1 = factory.buildGeometry(inputGeometryList);
+//                    inputGeometryList.clear();
+//                } else {
+//                    g2 = factory.buildGeometry(inputGeometryList);
+//                    updateProgress("Performing operation (progress will not be updated):", -1);
+//                    try {
+//                        outputGeometry = g1.union(g2);
+//                    } catch (Exception ex) {
+//                        outputGeometry = com.vividsolutions.jts.operation.overlay.snap.SnapOverlayOp.union(g1, g2);
+//                    }
+//                    g1 = (com.vividsolutions.jts.geom.Geometry)outputGeometry.clone();
+//                    inputGeometryList.clear();
+//                }
+            }
+            
+            try {
+                updateProgress("Performing operation (progress will not be updated):", -1);
+                g1 = factory.buildGeometry(inputGeometryList);
+                outputGeometry = g1.buffer(0);
+            } catch (Exception e) {
+                showFeedback("Error during analysis.");
+                return;
             }
             
             ShapeFile output = null;
             DBFWriter writer = null;
+            
             if (outputGeometry instanceof GeometryCollection) {
                 // set up the output files of the shapefile and the dbf
                 output = new ShapeFile(outputFile, outputShapeType);
