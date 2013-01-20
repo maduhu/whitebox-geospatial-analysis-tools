@@ -655,9 +655,10 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
 
                     numLayers = layers.size();
                 }
-
-                currentExtent = calculateFullExtent();
-                listOfExtents.add(currentExtent.clone());
+                
+                calculateFullExtent();
+                //currentExtent = calculateFullExtent();
+                //listOfExtents.add(currentExtent.clone());
             }
         } catch (Exception e) {
             // do nothing.

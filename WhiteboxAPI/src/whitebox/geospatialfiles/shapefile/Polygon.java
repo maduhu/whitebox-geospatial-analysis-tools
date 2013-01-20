@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import whitebox.structures.BoundingBox;
-//import com.vividsolutions.jts.geom.Polygon;
 
 /**
  *
@@ -40,6 +39,7 @@ public class Polygon implements Geometry {
     private boolean[] isHole;
     private boolean[] isConvex;
     private double maxExtent;
+    private double area = 0;
 
     /**
      * This constructor is used when the Polygon is being created from data that
@@ -163,7 +163,56 @@ public class Polygon implements Geometry {
         return parts;
     }
 
+    public double getArea() {
+        if (area <= 0) {
+            calculateArea();
+        }
+        return area;
+    }
+    
+    
+
     // methods
+    private void calculateArea() {
+        int stPoint, endPoint, numPointsInPart;
+        double x0, y0, x1, y1, x2, y2;
+        int n1 = 0, n2 = 0;
+        area = 0;
+        for (int i = 0; i < numParts; i++) {
+            stPoint = parts[i];
+            if (i < numParts - 1) {
+                // remember, the last point in each part is the same as the first...it's not a legitamate point.
+                endPoint = parts[i + 1] - 2;
+            } else {
+                endPoint = numPoints - 2;
+            }
+            numPointsInPart = endPoint - stPoint + 1;
+            if (numPointsInPart < 3) { return; } // something's wrong!
+        
+            double area2 = 0;
+            for (int j = 0; j < numPointsInPart; j++) {
+                n1 = stPoint + j;
+                if (j < numPointsInPart - 1) {
+                    n2 = stPoint + j + 1;
+                } else {
+                    n2 = stPoint;
+                }
+                x1 = points[n1][0];
+                y1 = points[n1][1];
+                x2 = points[n2][0];
+                y2 = points[n2][1];
+
+                area2 += (x1 * y2) - (x2 * y1);
+            }
+            area2 = area2 / 2.0;
+            if (area2 < 0) { // a positive area indicates counter-clockwise order
+                area += -area2;
+            } else {
+                area -= area2;
+            }
+        }
+    }
+    
     private void checkForHoles() {
         // Note: holes are polygons that have verticies in counter-clockwise order
 
@@ -234,7 +283,7 @@ public class Polygon implements Geometry {
                 }
             } else {
                 // calculate the polygon area. If it is positive is is in clockwise order, else counter-clockwise.
-                double area = 0;
+                double area2 = 0;
                 for (int j = 0; j < numPointsInPart; j++) {
                     n1 = stPoint + j;
                     if (j < numPointsInPart - 1) {
@@ -247,13 +296,16 @@ public class Polygon implements Geometry {
                     x2 = points[n2][0];
                     y2 = points[n2][1];
 
-                    area += (x1 * y2) - (x2 * y1);
+                    area2 += (x1 * y2) - (x2 * y1);
                 }
-                // if this were the true area, we'd half it, but we're only interested in the sign.
-                if (area < 0) { // a positive area indicates counter-clockwise order
+                area2 = area2 / 2.0;
+
+                if (area2 < 0) { // a positive area indicates counter-clockwise order
                     isHole[i] = false;
+                    area += -area2;
                 } else {
                     isHole[i] = true;
+                    area -= area2;
                 }
             }
         }

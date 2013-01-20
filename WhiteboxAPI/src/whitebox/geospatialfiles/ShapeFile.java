@@ -21,12 +21,13 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import whitebox.geospatialfiles.shapefile.DBF.DBFException;
-import whitebox.geospatialfiles.shapefile.DBF.DBFField;
-import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
+import whitebox.geospatialfiles.shapefile.attributes.DBFException;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
+import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
 import whitebox.geospatialfiles.shapefile.*;
 import whitebox.structures.BoundingBox;
 import whitebox.utilities.ByteSwapper;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 
 /**
  *
@@ -62,6 +63,8 @@ public class ShapeFile {
     public ArrayList<ShapeFileRecord> records = new ArrayList<ShapeFileRecord>();
     private boolean pointType;
     
+    public AttributeTable attributeTable;
+    
     // Constructors
     public ShapeFile(String fileName) {
         setFileName(fileName);
@@ -72,6 +75,35 @@ public class ShapeFile {
         // see if the databaseFile exists.
         databaseFileExists = (new File(databaseFile)).exists();
         
+        if (databaseFileExists) {
+            this.attributeTable = new AttributeTable(databaseFile);
+//            try {
+//                
+//                Object[] tmp = this.attributeTable.getRecord(0);
+//                    for (int i = 0; i < tmp.length; i++) {
+//                        if (tmp[i] != null) {
+//                            System.out.println(tmp[i].toString());
+//                        } else {
+//                            System.out.println("null");
+//                        }
+//                    }
+//                
+//                Object[] tmp1 = this.attributeTable.getRecords(5, 15);
+//                for (int a = 0; a < tmp1.length; a++) {
+//                    System.out.println("Record " + a);
+//                    tmp = (Object[]) tmp1[a];
+//                    for (int i = 0; i < tmp.length; i++) {
+//                        if (tmp[i] != null) {
+//                            System.out.println(tmp[i].toString());
+//                        } else {
+//                            System.out.println("null");
+//                        }
+//                    }
+//                }
+//            } catch (Exception e) {
+//                System.out.println(e.getMessage());
+//            }
+        }
     }
     
     public ShapeFile(String fileName, ShapeType st) {
@@ -941,7 +973,7 @@ public class ShapeFile {
     public String[] getAttributeTableFields() {
         try {
             
-            if (databaseFileExists){ 
+            if (databaseFileExists) { 
                 DBFReader reader = new DBFReader(databaseFile);
 
                 //DBFReader reader = new DBFReader( inputStream); 
@@ -1054,7 +1086,7 @@ public class ShapeFile {
                     if (line.toLowerCase().contains("unit")) {
                         int j = line.toLowerCase().indexOf("unit");
                         int k = line.toLowerCase().indexOf("[", j);
-                        System.out.println(line);
+                        //System.out.println(line);
                     }
                     if (line.contains("[") || line.contains("(")) {
                         // it is in WKT format
