@@ -23,7 +23,6 @@ import java.awt.print.Paper;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.*;
-import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -35,8 +34,6 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
-import javax.print.attribute.Size2DSyntax;
-import javax.print.attribute.standard.MediaSize;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -346,6 +343,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (automaticallyDisplayReturns) {
                     displayLayer(retStr);
                 }
+            } else if (retStr.toLowerCase().endsWith(".dbf") && retStr.contains(pathSep)) { 
+                AttributesFileViewer afv = new AttributesFileViewer(this, false, retStr.replace(".dbf", ".shp"));
+                int height = 500;
+                afv.setSize((int) (height * 1.61803399), height); // golden ratio.
+                afv.setVisible(true);
             } else if (retStr.endsWith(".html") && retStr.contains(pathSep)) {
                 // display this markup in a webbrowser component
                 try {

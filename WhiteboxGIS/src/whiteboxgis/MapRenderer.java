@@ -235,12 +235,14 @@
 //
 //                double marginSize = mapinfo.getMargin();
 //                
+//                MapArea mapArea = mapinfo.getActiveMapArea();
+//                
 //                int leftEdge = (int)pageLeft; // + borderWidth;
 //                int topEdge = (int)pageTop; //borderWidth;
 //                int rightEdge = (int)(leftEdge + pageWidth); //borderWidth + (int) myWidth;
 //                int bottomEdge = (int)(topEdge + pageHeight); //borderWidth + (int) myHeight;
 //
-//                BoundingBox currentExtent = mapinfo.getCurrentExtent();
+//                BoundingBox currentExtent = mapArea.getCurrentExtent();
 //                double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
 //                double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
 //                
@@ -285,7 +287,7 @@
 //
 //                }
 //
-//                int numLayers = mapinfo.getNumLayers();
+//                int numLayers = mapArea.getNumLayers();
 //                if (numLayers == 0) {
 //                    return;
 //                }
@@ -308,7 +310,7 @@
 //                        // Map scale
 //                        MapScale mapScale = (MapScale)ce;
 //                        if (mapScale.isVisible()) {
-//                            mapScale.setScale(1 / Math.min(((myWidth / ppm) / xRange), ((myHeight / ppm) / yRange)));
+//                            mapArea.setScale(1 / Math.min(((myWidth / ppm) / xRange), ((myHeight / ppm) / yRange)));
 //                            if (mapScale.getUpperLeftY() < 0) {
 //                                mapScale.setUpperLeftY(bottomEdge - mapScale.getHeight() - 2);
 //                                mapScale.setUpperLeftX(leftEdge + 2);
@@ -543,7 +545,7 @@
 //            g2d.setColor(Color.white);
 //            g2d.fillRect(0, 0, getWidth(), getHeight());
 //            if (mapinfo != null) {
-//                int numLayers = mapinfo.getNumLayers();
+//                int numLayers = mapArea.getNumLayers();
 //                if (numLayers == 0) {
 //                    return;
 //                }
@@ -555,7 +557,7 @@
 //                int x, y;
 //
 //                
-//                BoundingBox currentExtent = mapinfo.getCurrentExtent();
+//                BoundingBox currentExtent = mapArea.getCurrentExtent();
 //                double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
 //                double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
 //                scale = Math.min((myWidth / xRange), (myHeight / yRange));
@@ -575,7 +577,7 @@
 //                String XYUnits = "";
 //
 //                for (int i = 0; i < numLayers; i++) {
-//                    if (mapinfo.getLayer(i).getLayerType() == MapLayerType.RASTER) {
+//                    if (mapArea.getLayer(i).getLayerType() == MapLayerType.RASTER) {
 //                        RasterLayerInfo layer = (RasterLayerInfo) mapinfo.getLayer(i);
 //                        if (layer.getXYUnits().toLowerCase().contains("met")) {
 //                            XYUnits = " m";

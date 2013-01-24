@@ -76,7 +76,6 @@ public class Main {
     
     private void launchProgram() {
         try {
-            // is it a 32-bit or 64-bit runtime?
             List inputArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
             boolean isDebug = inputArgs.contains("-Xdebug");
 

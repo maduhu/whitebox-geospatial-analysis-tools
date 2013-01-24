@@ -2,9 +2,9 @@
 	<DialogComponent type="DialogFile">
 		<Name>InputFile</Name>
 		<Description>Enter the name of the input file here</Description>
-		<LabelText>Input Raster File:</LabelText>
+		<LabelText>Input Raster or Vector File:</LabelText>
 		<DialogMode>Open File</DialogMode>
-		<Filter>Raster Files (*.dep), DEP</Filter>
+		<Filter>Whitebox Files (*.shp; *.dep), DEP, SHP</Filter>
 		<IsVisible>True</IsVisible>
 		<MakeOptional>False</MakeOptional>
 		<ShowButton>True</ShowButton>
@@ -16,7 +16,7 @@
 		<DialogMode>Save File</DialogMode>
 		<Filter>Raster Files (*.dep), DEP</Filter>
 		<IsVisible>True</IsVisible>
-		<MakeOptional>False</MakeOptional>
+		<MakeOptional>True</MakeOptional>
 		<ShowButton>True</ShowButton>
 	</DialogComponent>
         <DialogComponent type="DialogCheckBox">

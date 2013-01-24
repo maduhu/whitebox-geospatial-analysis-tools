@@ -1381,7 +1381,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                          * This is an example of cartographic
                                          * generalization.
                                          */
-                                        double minDistinguishableLength = layer.getCartographicGeneralizationLevel() / scale;
+                                        double minDistinguishableLength = layer.getCartographicGeneralizationLevel() / mapScale; //scale;
 
                                         int r;
 
