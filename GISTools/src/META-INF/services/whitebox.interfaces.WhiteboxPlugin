@@ -17,6 +17,7 @@ plugins.LinearityIndex
 plugins.MaxAbsOverlay
 plugins.MaxOverlay
 plugins.MinOverlay
+plugins.PatchOrientationVectorField
 plugins.PerimeterAreaRatio
 plugins.PatchOrientation
 plugins.Perimeter

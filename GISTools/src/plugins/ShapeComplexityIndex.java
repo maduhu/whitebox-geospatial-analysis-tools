@@ -16,9 +16,19 @@
  */
 package plugins;
 
+import com.vividsolutions.jts.algorithm.ConvexHull;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 import java.text.DecimalFormat;
 import java.util.Date;
+import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.shapefile.PolygonM;
+import whitebox.geospatialfiles.shapefile.PolygonZ;
+import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
+import whitebox.geospatialfiles.shapefile.ShapeType;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 /**
@@ -152,8 +162,7 @@ public class ShapeComplexityIndex implements WhiteboxPlugin {
         return amIActive;
     }
     
-    @Override
-    public void run() {
+    private void calculateRaster() {
         amIActive = true;
 
         String inputHeader = null;
@@ -174,16 +183,10 @@ public class ShapeComplexityIndex implements WhiteboxPlugin {
             return;
         }
 
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                blnTextOutput = Boolean.parseBoolean(args[i]);
-            }
-        }
-
+        inputHeader = args[0];
+        outputHeader = args[1];
+        blnTextOutput = Boolean.parseBoolean(args[2]);
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -403,6 +406,163 @@ public class ShapeComplexityIndex implements WhiteboxPlugin {
             // tells the main application that this process is completed.
             amIActive = false;
             myHost.pluginComplete();
+        }
+    }
+    
+    private void calculateVector() {
+        /*
+         * Notice that this tool assumes that each record in the shapefile is an
+         * individual polygon. The feature can contain multiple parts only if it
+         * has holes, i.e. islands. A multipart record cannot contain multiple
+         * and seperate features. This is because it complicates the calculation
+         * of feature area and perimeter.
+         */
+
+        amIActive = true;
+
+        // Declare the variable.
+        String inputFile = null;
+        int progress;
+        double featureArea = 0;
+        double hullArea = 0;
+        int recNum;
+        int j, i;
+        double[][] vertices = null;
+        CoordinateArraySequence coordArray;
+        ConvexHull ch;
+        GeometryFactory factory = new GeometryFactory();
+        Geometry geom;
+            
+        if (args.length <= 0) {
+            showFeedback("Plugin parameters have not been set.");
+            return;
+        }
+
+        inputFile = args[0];
+        /*
+         * args[1], args[2], and args[3] are ignored by the vector tool
+         */
+
+        // check to see that the inputHeader and outputHeader are not null.
+        if (inputFile == null) {
+            showFeedback("One or more of the input parameters have not been set properly.");
+            return;
+        }
+
+        try {
+
+            ShapeFile input = new ShapeFile(inputFile);
+            double numberOfRecords = input.getNumberOfRecords();
+
+            if (input.getShapeType().getBaseType() != ShapeType.POLYGON) {
+                showFeedback("This function can only be applied to polygon type shapefiles.");
+                return;
+            }
+
+            /* create a new field in the input file's database 
+               to hold the fractal dimension. Put it at the end 
+               of the database. */
+            DBFField field = new DBFField();
+            field = new DBFField();
+            field.setName("COMPLEXITY");
+            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setFieldLength(10);
+            field.setDecimalCount(4);
+            input.attributeTable.addField(field);
+
+            // initialize the shapefile.
+            ShapeType inputType = input.getShapeType();
+            
+            for (ShapeFileRecord record : input.records) {
+                switch (inputType) {
+                    case POLYGON:
+                        whitebox.geospatialfiles.shapefile.Polygon recPolygon =
+                                (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+                        vertices = recPolygon.getPoints();
+                        coordArray = new CoordinateArraySequence(vertices.length);
+                        j = 0;
+                        for (i = 0; i < vertices.length; i++) {
+                            coordArray.setOrdinate(j, 0, vertices[i][0]);
+                            coordArray.setOrdinate(j, 1, vertices[i][1]);
+                            j++;
+                        }
+                        geom = factory.createMultiPoint(coordArray);
+                        ch = new ConvexHull(geom);
+                        hullArea = ch.getConvexHull().getArea();
+                        featureArea = recPolygon.getArea();
+                        break;
+                    case POLYGONZ:
+                        PolygonZ recPolygonZ = (PolygonZ) (record.getGeometry());
+                        vertices = recPolygonZ.getPoints();
+                        coordArray = new CoordinateArraySequence(vertices.length);
+                        j = 0;
+                        for (i = 0; i < vertices.length; i++) {
+                            coordArray.setOrdinate(j, 0, vertices[i][0]);
+                            coordArray.setOrdinate(j, 1, vertices[i][1]);
+                            j++;
+                        }
+                        geom = factory.createMultiPoint(coordArray);
+                        ch = new ConvexHull(geom);
+                        hullArea = ch.getConvexHull().getArea();
+                        featureArea = recPolygonZ.getArea();
+                        break;
+                    case POLYGONM:
+                        PolygonM recPolygonM = (PolygonM) (record.getGeometry());
+                        vertices = recPolygonM.getPoints();
+                        coordArray = new CoordinateArraySequence(vertices.length);
+                        j = 0;
+                        for (i = 0; i < vertices.length; i++) {
+                            coordArray.setOrdinate(j, 0, vertices[i][0]);
+                            coordArray.setOrdinate(j, 1, vertices[i][1]);
+                            j++;
+                        }
+                        geom = factory.createMultiPoint(coordArray);
+                        ch = new ConvexHull(geom);
+                        hullArea = ch.getConvexHull().getArea();
+                        featureArea = recPolygonM.getArea();
+                        break;
+                }
+                
+                recNum = record.getRecordNumber() - 1;
+                Object[] recData = input.attributeTable.getRecord(recNum);
+                if (hullArea > 0) {
+                    recData[recData.length - 1] = new Double(1 - featureArea / hullArea);
+                } else {
+                    recData[recData.length - 1] = new Double(0);
+                }
+                input.attributeTable.updateRecord(recNum, recData);
+
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (record.getRecordNumber() / numberOfRecords * 100);
+                updateProgress(progress);
+            }
+
+            // returning the database file will result in it being opened in the Whitebox GUI.
+            returnData(input.getDatabaseFile());
+
+        } catch (Exception e) {
+            showFeedback(e.getMessage());
+            showFeedback(e.getCause().toString());
+        } finally {
+            updateProgress("Progress: ", 0);
+            // tells the main application that this process is completed.
+            amIActive = false;
+            myHost.pluginComplete();
+        }
+    }
+    
+    @Override
+    public void run() {
+        String inputFile = args[0];
+        if (inputFile.toLowerCase().contains(".dep")) {
+            calculateRaster();
+        } else if (inputFile.toLowerCase().contains(".shp")) {
+            calculateVector();
+        } else {
+            showFeedback("There was a problem reading the input file.");
         }
     }
 }

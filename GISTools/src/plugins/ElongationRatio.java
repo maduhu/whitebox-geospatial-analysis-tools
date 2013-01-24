@@ -18,17 +18,26 @@ package plugins;
 
 import java.text.DecimalFormat;
 import java.util.Date;
+import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.shapefile.PolygonM;
+import whitebox.geospatialfiles.shapefile.PolygonZ;
+import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
+import whitebox.geospatialfiles.shapefile.ShapeType;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ElongationRatio implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost;
     private String[] args;
+
     /**
      * Used to retrieve the plugin tool's name. This is a short, unique name
      * containing no spaces.
@@ -39,45 +48,57 @@ public class ElongationRatio implements WhiteboxPlugin {
     public String getName() {
         return "ElongationRatio";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "Elongation Ratio";
+        return "Elongation Ratio";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "The ratio between the difference "
+        return "The ratio between the difference "
                 + "in the long and short axis of the minimum bounding box for "
                 + "each polygon in a raster image to the sum of the long and short axis.";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "PatchShapeTools" };
-    	return ret;
+        String[] ret = {"PatchShapeTools"};
+        return ret;
     }
 
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
-     */  
+     */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String feedback) {
@@ -87,8 +108,11 @@ public class ElongationRatio implements WhiteboxPlugin {
             System.out.println(feedback);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -96,8 +120,11 @@ public class ElongationRatio implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
@@ -108,8 +135,11 @@ public class ElongationRatio implements WhiteboxPlugin {
             System.out.println(progressLabel + " " + progress + "%");
         }
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -119,42 +149,46 @@ public class ElongationRatio implements WhiteboxPlugin {
             System.out.print("Progress: " + progress + "%");
         }
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
         return amIActive;
     }
-    
-    @Override
-    public void run() {
+
+    private void calculateRaster() {
         amIActive = true;
 
         String inputHeader = null;
@@ -179,17 +213,10 @@ public class ElongationRatio implements WhiteboxPlugin {
             return;
         }
 
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                blnTextOutput = Boolean.parseBoolean(args[i]);
-            } else if (i == 3) {
-                zeroAsBackground = Boolean.parseBoolean(args[i]);
-            }
-        }
+        inputHeader = args[0];
+        outputHeader = args[1];
+        blnTextOutput = Boolean.parseBoolean(args[2]);
+        zeroAsBackground = Boolean.parseBoolean(args[3]);
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
@@ -204,7 +231,7 @@ public class ElongationRatio implements WhiteboxPlugin {
             numCols = image.getNumberColumns();
             double noData = image.getNoDataValue();
             gridRes = (image.getCellSizeX() + image.getCellSizeY()) / 2;
-            
+
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
             output.setPreferredPalette("spectrum.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
@@ -376,7 +403,7 @@ public class ElongationRatio implements WhiteboxPlugin {
                 progress = (float) (a * 100f / range);
                 updateProgress("Finding minimum bounding boxes:", (int) progress);
             }
-            
+
             if (zeroAsBackground) {
                 elongation[0] = noData;
                 area[0] = (long) noData;
@@ -422,11 +449,11 @@ public class ElongationRatio implements WhiteboxPlugin {
 
                 returnData(retstr);
             }
-            
+
             // returning a header file string displays the image.
             returnData(outputHeader);
-            
-            
+
+
         } catch (Exception e) {
             showFeedback(e.getMessage());
             showFeedback(e.getCause().toString());
@@ -435,6 +462,204 @@ public class ElongationRatio implements WhiteboxPlugin {
             // tells the main application that this process is completed.
             amIActive = false;
             myHost.pluginComplete();
+        }
+    }
+
+    private void calculateVector() {
+        /*
+         * Notice that this tool assumes that each record in the shapefile is an
+         * individual polygon. The feature can contain multiple parts only if it
+         * has holes, i.e. islands. A multipart record cannot contain multiple
+         * and seperate features. This is because it complicates the calculation
+         * of feature area and perimeter.
+         */
+
+        amIActive = true;
+
+        // Declare the variable.
+        String inputFile = null;
+        int progress;
+        int recNum;
+        double[][] vertices = null;
+        double[][] verticesRotated = null;
+        double[] newBoundingBox = new double[4];
+        double midX = 0;
+        double midY = 0;
+        double psi = 0;
+        double DegreeToRad = Math.PI / 180;
+        double x, y;
+        double[] axes = new double[2];
+        double newXAxis = 0;
+        double newYAxis = 0;
+        double longAxis;
+        double shortAxis;
+//        double axisDirection = 0;
+
+        if (args.length <= 0) {
+            showFeedback("Plugin parameters have not been set.");
+            return;
+        }
+
+        inputFile = args[0];
+        /*
+         * args[1], args[2], and args[3] are ignored by the vector tool
+         */
+
+        // check to see that the inputHeader and outputHeader are not null.
+        if (inputFile == null) {
+            showFeedback("One or more of the input parameters have not been set properly.");
+            return;
+        }
+
+        try {
+
+            ShapeFile input = new ShapeFile(inputFile);
+            double numberOfRecords = input.getNumberOfRecords();
+
+            if (input.getShapeType().getBaseType() != ShapeType.POLYGON) {
+                showFeedback("This function can only be applied to polygon type shapefiles.");
+                return;
+            }
+
+            /*
+             * create a new field in the input file's database to hold the
+             * fractal dimension. Put it at the end of the database.
+             */
+            DBFField field = new DBFField();
+            field = new DBFField();
+            field.setName("ELONGATION");
+            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setFieldLength(10);
+            field.setDecimalCount(4);
+            input.attributeTable.addField(field);
+            
+//            field = new DBFField();
+//            field.setName("ELONG_DIR");
+//            field.setDataType(DBFField.FIELD_TYPE_N);
+//            field.setFieldLength(10);
+//            field.setDecimalCount(4);
+//            input.attributeTable.addField(field);
+
+            // initialize the shapefile.
+            ShapeType inputType = input.getShapeType();
+
+            for (ShapeFileRecord record : input.records) {
+                switch (inputType) {
+                    case POLYGON:
+                        whitebox.geospatialfiles.shapefile.Polygon recPolygon =
+                                (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+                        vertices = recPolygon.getPoints();
+                        midX = recPolygon.getXMin() + (recPolygon.getXMax() - recPolygon.getXMin()) / 2;
+                        midY = recPolygon.getYMin() + (recPolygon.getYMax() - recPolygon.getYMin()) / 2;
+                        break;
+                    case POLYGONZ:
+                        PolygonZ recPolygonZ = (PolygonZ) (record.getGeometry());
+                        vertices = recPolygonZ.getPoints();
+                        midX = recPolygonZ.getXMin() + (recPolygonZ.getXMax() - recPolygonZ.getXMin()) / 2;
+                        midY = recPolygonZ.getYMin() + (recPolygonZ.getYMax() - recPolygonZ.getYMin()) / 2;
+                        break;
+                    case POLYGONM:
+                        PolygonM recPolygonM = (PolygonM) (record.getGeometry());
+                        vertices = recPolygonM.getPoints();
+                        midX = recPolygonM.getXMin() + (recPolygonM.getXMax() - recPolygonM.getXMin()) / 2;
+                        midY = recPolygonM.getYMin() + (recPolygonM.getYMax() - recPolygonM.getYMin()) / 2;
+                        break;
+                }
+
+                int numVertices = vertices.length;
+                verticesRotated = new double[numVertices][2];
+//                axisDirection = 0;
+                axes[0] = 999999;
+                axes[1] = 999999;
+                // Rotate the edge cells in 0.5 degree increments.
+                for (int m = 0; m < 360; m++) {
+                    psi = m * 0.5 * DegreeToRad;
+                    // Rotate each edge cell in the array by m degrees.
+                    for (int n = 0; n < numVertices; n++) {
+                        x = vertices[n][0] - midX;
+                        y = vertices[n][1] - midY;
+                        verticesRotated[n][0] = (x * Math.cos(psi)) - (y * Math.sin(psi));
+                        verticesRotated[n][1] = (x * Math.sin(psi)) + (y * Math.cos(psi));
+                    }
+                    // calcualte the minimum bounding box in this coordinate 
+                    // system and see if it is less
+                    newBoundingBox[0] = Double.MAX_VALUE; // west
+                    newBoundingBox[1] = Double.MIN_VALUE; // east
+                    newBoundingBox[2] = Double.MAX_VALUE; // north
+                    newBoundingBox[3] = Double.MIN_VALUE; // south
+                    for (int n = 0; n < numVertices; n++) {
+                        x = verticesRotated[n][0];
+                        y = verticesRotated[n][1];
+                        if (x < newBoundingBox[0]) {
+                            newBoundingBox[0] = x;
+                        }
+                        if (x > newBoundingBox[1]) {
+                            newBoundingBox[1] = x;
+                        }
+                        if (y < newBoundingBox[2]) {
+                            newBoundingBox[2] = y;
+                        }
+                        if (y > newBoundingBox[3]) {
+                            newBoundingBox[3] = y;
+                        }
+
+                    }
+                    newXAxis = newBoundingBox[1] - newBoundingBox[0] + 1;
+                    newYAxis = newBoundingBox[3] - newBoundingBox[2] + 1;
+
+                    if ((axes[0] * axes[1]) > (newXAxis * newYAxis)) {
+                        axes[0] = newXAxis;
+                        axes[1] = newYAxis;
+//                        axisDirection = m / 2.0;
+                    }
+                }
+                longAxis = Math.max(axes[0], axes[1]);
+                shortAxis = Math.min(axes[0], axes[1]);
+                
+//                // convert the axisDirection so it's referenced clockwise from north
+//                if (axisDirection <= 90) {
+//                    axisDirection = 90 - axisDirection;
+//                }// else {
+//                //    axisDirection = 180 - (axisDirection - 90);
+//                //}
+                
+                recNum = record.getRecordNumber() - 1;
+                Object[] recData = input.attributeTable.getRecord(recNum);
+                recData[recData.length - 1] = new Double((longAxis - shortAxis) / (longAxis + shortAxis));
+                input.attributeTable.updateRecord(recNum, recData);
+
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (record.getRecordNumber() / numberOfRecords * 100);
+                updateProgress(progress);
+            }
+
+            // returning the database file will result in it being opened in the Whitebox GUI.
+            returnData(input.getDatabaseFile());
+
+        } catch (Exception e) {
+            showFeedback(e.getMessage());
+            showFeedback(e.getCause().toString());
+        } finally {
+            updateProgress("Progress: ", 0);
+            // tells the main application that this process is completed.
+            amIActive = false;
+            myHost.pluginComplete();
+        }
+    }
+
+    @Override
+    public void run() {
+        amIActive = true;
+        String inputFile = args[0];
+        if (inputFile.toLowerCase().contains(".dep")) {
+            calculateRaster();
+        } else if (inputFile.toLowerCase().contains(".shp")) {
+            calculateVector();
+        } else {
+            showFeedback("There was a problem reading the input file.");
         }
     }
 }

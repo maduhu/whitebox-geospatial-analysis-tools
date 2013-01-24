@@ -18,7 +18,13 @@ package plugins;
 
 import java.text.DecimalFormat;
 import java.util.Date;
+import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.shapefile.PolygonM;
+import whitebox.geospatialfiles.shapefile.PolygonZ;
+import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
+import whitebox.geospatialfiles.shapefile.ShapeType;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 /**
@@ -152,8 +158,7 @@ public class PatchOrientation implements WhiteboxPlugin {
         return amIActive;
     }
     
-    @Override
-    public void run() {
+    private void calculateRaster() {
         amIActive = true;
 
         String inputHeader = null;
@@ -206,8 +211,8 @@ public class PatchOrientation implements WhiteboxPlugin {
             range = maxValue - minValue;
 
             double[][] regressionData = new double[6][range + 1];
-            double[] rSquare = new double[range + 1];
-            double[][] totals = new double[3][range + 1];
+            //double[] rSquare = new double[range + 1];
+            //double[][] totals = new double[3][range + 1];
             long[][] minRowAndCol = new long[2][range + 1];
             
             for (a = 0; a <= range; a++) {
@@ -348,6 +353,246 @@ public class PatchOrientation implements WhiteboxPlugin {
             // tells the main application that this process is completed.
             amIActive = false;
             myHost.pluginComplete();
+        }
+    }
+    
+    private void calculateVector() {
+        /*
+         * Notice that this tool assumes that each record in the shapefile is an
+         * individual polygon. The feature can contain multiple parts only if it
+         * has holes, i.e. islands. A multipart record cannot contain multiple
+         * and seperate features. This is because it complicates the calculation
+         * of feature area and perimeter.
+         */
+
+        amIActive = true;
+
+        // Declare the variable.
+        String inputFile = null;
+        int progress;
+        int recNum;
+        int v;
+        double sigmaX;
+        double sigmaY;
+        double N;
+        double sigmaXY;
+        double sigmaXsqr;
+        double sigmaYsqr;
+        double mean;
+        double meanY;
+        double radians2Deg = 180 / Math.PI;
+        double slope;
+        double slopeInDegrees;
+        double slopeM1;
+        double slopeM2;
+        double slopeRMA;
+        double slopeDegM1;
+        double slopeDegM2;
+        double slopeDegRMA;
+        double midX;
+        double midY;
+        double Sxx, Syy, Sxy;
+        double z = 0;
+        double x, y;
+
+        if (args.length <= 0) {
+            showFeedback("Plugin parameters have not been set.");
+            return;
+        }
+
+        inputFile = args[0];
+
+        // check to see that the inputHeader and outputHeader are not null.
+        if (inputFile == null) {
+            showFeedback("One or more of the input parameters have not been set properly.");
+            return;
+        }
+
+        try {
+
+            ShapeFile input = new ShapeFile(inputFile);
+            double numberOfRecords = input.getNumberOfRecords();
+
+            if (input.getShapeType().getBaseType() != ShapeType.POLYGON) {
+                showFeedback("This function can only be applied to polygon type shapefiles.");
+                return;
+            }
+
+            /*
+             * create a new field in the input file's database to hold the
+             * fractal dimension. Put it at the end of the database.
+             */
+            DBFField field = new DBFField();
+            field = new DBFField();
+            field.setName("ORIENT");
+            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setFieldLength(10);
+            field.setDecimalCount(4);
+            input.attributeTable.addField(field);
+
+            // initialize the shapefile.
+            ShapeType inputType = input.getShapeType();
+
+            double[][] vertices = null;
+            double[] regressionData;
+            double rSquared;
+
+            for (ShapeFileRecord record : input.records) {
+                midX = 0;
+                midY = 0;
+                switch (inputType) {
+                    case POLYGON:
+                        whitebox.geospatialfiles.shapefile.Polygon recPolygon =
+                                (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+                        vertices = recPolygon.getPoints();
+                        midX = recPolygon.getXMin() + (recPolygon.getXMax() - recPolygon.getXMin()) / 2;
+                        midY = recPolygon.getYMin() + (recPolygon.getYMax() - recPolygon.getYMin()) / 2;
+                        break;
+                    case POLYGONZ:
+                        PolygonZ recPolygonZ = (PolygonZ) (record.getGeometry());
+                        vertices = recPolygonZ.getPoints();
+                        midX = recPolygonZ.getXMin() + (recPolygonZ.getXMax() - recPolygonZ.getXMin()) / 2;
+                        midY = recPolygonZ.getYMin() + (recPolygonZ.getYMax() - recPolygonZ.getYMin()) / 2;
+                        break;
+                    case POLYGONM:
+                        PolygonM recPolygonM = (PolygonM) (record.getGeometry());
+                        vertices = recPolygonM.getPoints();
+                        midX = recPolygonM.getXMin() + (recPolygonM.getXMax() - recPolygonM.getXMin()) / 2;
+                        midY = recPolygonM.getYMin() + (recPolygonM.getYMax() - recPolygonM.getYMin()) / 2;
+                        break;
+                }
+
+                // initialize variables
+                regressionData = new double[5];
+                rSquared = 0;
+                slope = 0;
+                slopeInDegrees = 0;
+                slopeDegM1 = 0;
+                slopeDegM2 = 0;
+                slopeDegRMA = 0;
+                slopeM1 = 0;
+                slopeM2 = 0;
+                slopeRMA = 0;
+
+                N = vertices.length;
+                for (v = 0; v < N; v++) {
+                    x = vertices[v][0] - midX;
+                    y = vertices[v][1] - midY;
+                    regressionData[0] += x; // sigma X
+                    regressionData[1] += y; // sigma Y
+                    regressionData[2] += x * y; // sigma XY
+                    regressionData[3] += x * x; // sigma Xsqr
+                    regressionData[4] += y * y; // sigma Ysqr
+                }
+
+                sigmaX = regressionData[0];
+                mean = sigmaX / N;
+                sigmaY = regressionData[1];
+                meanY = sigmaY / N;
+                sigmaXY = regressionData[2];
+                sigmaXsqr = regressionData[3];
+                sigmaYsqr = regressionData[4];
+
+                // Calculate the slope of the y on x regression (model 1)
+                if ((sigmaXsqr - mean * sigmaX) > 0) {
+                    slopeM1 = (sigmaXY - mean * sigmaY) / (sigmaXsqr - mean * sigmaX);
+                    slopeDegM1 = (Math.atan(slopeM1) * radians2Deg);
+                    if (slopeDegM1 < 0) {
+                        slopeDegM1 = 90 + -1 * slopeDegM1;
+                    } else {
+                        slopeDegM1 = 90 - slopeDegM1;
+                    }
+                }
+
+                Sxx = (sigmaXsqr / N - mean * mean);
+                Syy = (sigmaYsqr / N - (sigmaY / N) * (sigmaY / N));
+                Sxy = (sigmaXY / N - (sigmaX * sigmaY) / (N * N));
+                if (Math.sqrt(Sxx * Syy) != 0) {
+                    rSquared = ((Sxy / Math.sqrt(Sxx * Syy)) * (Sxy / Math.sqrt(Sxx * Syy)));
+                }
+
+                // Calculate the slope of the Reduced Major Axis (RMA)
+                slopeRMA = Math.sqrt(Syy / Sxx);
+                if ((sigmaXY - mean * sigmaY) / (sigmaXsqr - mean * sigmaX) < 0) {
+                    slopeRMA = -slopeRMA;
+                }
+                slopeDegRMA = (Math.atan(slopeRMA) * radians2Deg);
+                if (slopeDegRMA < 0) {
+                    slopeDegRMA = 90 + -1 * slopeDegRMA;
+                } else {
+                    slopeDegRMA = 90 - slopeDegRMA;
+                }
+
+                // Perform the X on Y (inverse) regression.
+                if ((sigmaYsqr - meanY * sigmaY) > 0) {
+                    slopeM2 = (sigmaXY - meanY * sigmaX) / (sigmaYsqr - meanY * sigmaY);
+                    slopeM2 = 1 / slopeM2;
+                    slopeDegM2 = (Math.atan(slopeM2) * radians2Deg);
+                    if (slopeDegM2 < 0) {
+                        slopeDegM2 = 90 + -1 * slopeDegM2;
+                    } else {
+                        slopeDegM2 = 90 - slopeDegM2;
+                    }
+                }
+
+                /*
+                 * When the polygon is nearly vertically oriented (+/- 6
+                 * degrees) the x-on-y slope (model 2) does a better job
+                 * describing the trendline. When the polygon is nearly E-W in
+                 * orientation, the standard y-on-x slope (model 1 regression)
+                 * does a better job. Otherwise, the RMA seems to be the best
+                 * model, this is particularly the case since there is similar
+                 * levels of error in both the x and y, as these are simply
+                 * coordinates.
+                 */
+                if (slopeDegM2 < 6 || slopeDegM2 > 174) {
+                    slope = slopeM2;
+                    slopeInDegrees = slopeDegM2;
+                } else if (slopeDegM1 > 84 && slopeDegM1 < 96) {
+                    slope = slopeM1;
+                    slopeInDegrees = slopeDegM1;
+                } else {
+                    slope = slopeRMA;
+                    slopeInDegrees = slopeDegRMA;
+                }
+
+                recNum = record.getRecordNumber() - 1;
+                Object[] recData = input.attributeTable.getRecord(recNum);
+                recData[recData.length - 1] = new Double(slopeInDegrees);
+                input.attributeTable.updateRecord(recNum, recData);
+                
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (record.getRecordNumber() / numberOfRecords * 100);
+                updateProgress(progress);
+            }
+
+            // returning the database file will result in it being opened in the Whitebox GUI.
+            returnData(input.getDatabaseFile());
+
+        } catch (Exception e) {
+            showFeedback(e.getMessage());
+            showFeedback(e.getCause().toString());
+        } finally {
+            updateProgress("Progress: ", 0);
+            // tells the main application that this process is completed.
+            amIActive = false;
+            myHost.pluginComplete();
+        }
+    }
+    
+    @Override
+    public void run() {
+        amIActive = true;
+        String inputFile = args[0];
+        if (inputFile.toLowerCase().contains(".dep")) {
+            calculateRaster();
+        } else if (inputFile.toLowerCase().contains(".shp")) {
+            calculateVector();
+        } else {
+            showFeedback("There was a problem reading the input file.");
         }
     }
 }
