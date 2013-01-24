@@ -46,6 +46,7 @@ public class PolygonZ implements Geometry {
     private double maxExtent;
     private boolean mIncluded = false;
     private double area = 0;
+    private double perimeter = 0;
     
     /**
      * This constructor is used when the PolygonZ is being created from data
@@ -270,6 +271,13 @@ public class PolygonZ implements Geometry {
         return area;
     }
     
+    public double getPerimeter() {
+        if (perimeter <= 0) {
+            calculatePerimeter();
+        }
+        return perimeter;
+    }
+    
     // methods
     private void calculateArea() {
         int stPoint, endPoint, numPointsInPart;
@@ -307,6 +315,43 @@ public class PolygonZ implements Geometry {
                 area += -area2;
             } else {
                 area -= area2;
+            }
+        }
+    }
+    
+    private void calculatePerimeter() {
+        int stPoint, endPoint, numPointsInPart;
+        double x1, y1, x2, y2;
+        int n1 = 0, n2 = 0;
+        perimeter = 0;
+        for (int i = 0; i < numParts; i++) {
+            if (!isHole[i]) {
+                stPoint = parts[i];
+                if (i < numParts - 1) {
+                    // remember, the last point in each part is the same as the first...it's not a legitamate point.
+                    endPoint = parts[i + 1] - 2;
+                } else {
+                    endPoint = numPoints - 2;
+                }
+                numPointsInPart = endPoint - stPoint + 1;
+                if (numPointsInPart < 3) {
+                    return;
+                } // something's wrong!
+
+                for (int j = 0; j < numPointsInPart; j++) {
+                    n1 = stPoint + j;
+                    if (j < numPointsInPart - 1) {
+                        n2 = stPoint + j + 1;
+                    } else {
+                        n2 = stPoint;
+                    }
+                    x1 = points[n1][0];
+                    y1 = points[n1][1];
+                    x2 = points[n2][0];
+                    y2 = points[n2][1];
+
+                    perimeter += Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+                }
             }
         }
     }

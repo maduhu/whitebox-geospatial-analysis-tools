@@ -63,7 +63,7 @@ public class ShapeFile {
     public ArrayList<ShapeFileRecord> records = new ArrayList<ShapeFileRecord>();
     private boolean pointType;
     
-    public AttributeTable attributeTable;
+    public AttributeTable attributeTable = null;
     
     // Constructors
     public ShapeFile(String fileName) {
@@ -126,7 +126,33 @@ public class ShapeFile {
         this.numRecs = 0;
         deleteFiles();
     }
-
+    
+    public ShapeFile(String fileName, ShapeType st, DBFField[] fields) {
+        this.fileName = fileName;
+        int extensionIndex = fileName.lastIndexOf(".");
+        this.indexFile = fileName.substring(0, extensionIndex) + ".shx";
+        this.projectionFile = fileName.substring(0, extensionIndex) + ".prj";
+        this.databaseFile = fileName.substring(0, extensionIndex) + ".dbf";
+        this.fileCode = 9994;
+        this.version = 1000;
+        this.shapeType = st;
+        this.xMin = Float.POSITIVE_INFINITY;
+        this.yMin = Float.POSITIVE_INFINITY;
+        this.xMax = Float.NEGATIVE_INFINITY;
+        this.yMax = Float.NEGATIVE_INFINITY;
+        this.zMin = Float.POSITIVE_INFINITY;
+        this.zMax = Float.NEGATIVE_INFINITY;
+        this.mMin = Float.POSITIVE_INFINITY;
+        this.mMax = Float.NEGATIVE_INFINITY;
+        this.numRecs = 0;
+        deleteFiles();
+        try {
+            this.attributeTable = new AttributeTable(databaseFile, fields);
+        } catch (Exception e) {
+            // do nothing
+        }
+    }
+    
     // Properties
     public String getFileName() {
         return fileName;
@@ -489,6 +515,9 @@ public class ShapeFile {
                 output = new BufferedOutputStream(new FileOutputStream(indexFile));
                 output.write(buf.array());
                 
+                if (this.attributeTable != null) {
+                    this.attributeTable.write();
+                }
             } finally {
                 output.close();
             }
@@ -648,6 +677,160 @@ public class ShapeFile {
             if (recMMin < mMin) { mMin = recMMin; }
             if (recMMax > mMax) { mMax = recMMax; }
             
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean addRecord(Geometry recordGeometry, Object rowData[]) {
+        if (recordGeometry.getShapeType() == shapeType) {
+            numRecs++;
+            int contentLength = (4 + recordGeometry.getLength()) / 2;
+            ShapeFileRecord sfr = new ShapeFileRecord(numRecs, contentLength,
+                  shapeType, recordGeometry);
+            records.add(sfr);
+            
+            // update the min and max coordinates
+            double recXMin = 0, recYMin = 0, recXMax = 0, recYMax = 0, 
+                    recZMin = 0, recZMax = 0, recMMin = 0, recMMax = 0;
+            
+            switch (shapeType) {
+                case POINT:
+                    Point recPoint = (Point)recordGeometry;
+                    recXMin = recPoint.getX();
+                    recYMin = recPoint.getY();
+                    recXMax = recXMin;
+                    recYMax = recYMin;
+                    break;
+                case MULTIPOINT:
+                    MultiPoint recMultiPoint = (MultiPoint)recordGeometry;
+                    recXMin = recMultiPoint.getXMin();
+                    recYMin = recMultiPoint.getYMin();
+                    recXMax = recMultiPoint.getXMax();
+                    recYMax = recMultiPoint.getYMax();
+                    break;
+                case POLYLINE:
+                    PolyLine recPolyLine = (PolyLine)recordGeometry;
+                    recXMin = recPolyLine.getXMin();
+                    recYMin = recPolyLine.getYMin();
+                    recXMax = recPolyLine.getXMax();
+                    recYMax = recPolyLine.getYMax();
+                    break;
+                case POINTZ:
+                    PointZ recPointZ = (PointZ)recordGeometry;
+                    recXMin = recPointZ.getX();
+                    recYMin = recPointZ.getY();
+                    recXMax = recXMin;
+                    recYMax = recYMin;
+                    recZMin = recPointZ.getZ();
+                    recZMax = recPointZ.getZ();
+                    recMMin = recPointZ.getM();
+                    recMMax = recPointZ.getM();
+                    break;
+                case POINTM:
+                    PointM recPointM = (PointM)recordGeometry;
+                    recXMin = recPointM.getX();
+                    recYMin = recPointM.getY();
+                    recXMax = recXMin;
+                    recYMax = recYMin;
+                    recMMin = recPointM.getM();
+                    recMMax = recPointM.getM();
+                    break;
+                case MULTIPOINTM:
+                    MultiPointM recMultiPointM = (MultiPointM)recordGeometry;
+                    recXMin = recMultiPointM.getXMin();
+                    recYMin = recMultiPointM.getYMin();
+                    recXMax = recMultiPointM.getXMax();
+                    recYMax = recMultiPointM.getYMax();
+                    recMMin = recMultiPointM.getmMin();
+                    recMMax = recMultiPointM.getmMax();
+                    break;
+                case POLYLINEM:
+                    PolyLineM recPolyLineM = (PolyLineM)recordGeometry;
+                    recXMin = recPolyLineM.getXMin();
+                    recYMin = recPolyLineM.getYMin();
+                    recXMax = recPolyLineM.getXMax();
+                    recYMax = recPolyLineM.getYMax();
+                    recMMin = recPolyLineM.getmMin();
+                    recMMax = recPolyLineM.getmMax();
+                    break;
+                case MULTIPOINTZ:
+                    MultiPointZ recMultiPointZ = (MultiPointZ)recordGeometry;
+                    recXMin = recMultiPointZ.getXMin();
+                    recYMin = recMultiPointZ.getYMin();
+                    recXMax = recMultiPointZ.getXMax();
+                    recYMax = recMultiPointZ.getYMax();
+                    recZMin = recMultiPointZ.getzMin();
+                    recZMax = recMultiPointZ.getzMin();
+                    recMMin = recMultiPointZ.getmMin();
+                    recMMax = recMultiPointZ.getmMax();
+                    break;
+                case POLYLINEZ:
+                    PolyLineZ recPolyLineZ = (PolyLineZ)recordGeometry;
+                    recXMin = recPolyLineZ.getXMin();
+                    recYMin = recPolyLineZ.getYMin();
+                    recXMax = recPolyLineZ.getXMax();
+                    recYMax = recPolyLineZ.getYMax();
+                    recZMin = recPolyLineZ.getzMin();
+                    recZMax = recPolyLineZ.getzMax();
+                    recMMin = recPolyLineZ.getmMin();
+                    recMMax = recPolyLineZ.getmMax();
+                    break;
+                case POLYGON:
+                    Polygon recPolygon = (Polygon)recordGeometry;
+                    recXMin = recPolygon.getXMin();
+                    recYMin = recPolygon.getYMin();
+                    recXMax = recPolygon.getXMax();
+                    recYMax = recPolygon.getYMax();
+                    break;
+                case POLYGONM:
+                    PolygonM recPolygonM = (PolygonM)recordGeometry;
+                    recXMin = recPolygonM.getXMin();
+                    recYMin = recPolygonM.getYMin();
+                    recXMax = recPolygonM.getXMax();
+                    recYMax = recPolygonM.getYMax();
+                    recMMin = recPolygonM.getmMin();
+                    recMMax = recPolygonM.getmMax();
+                    break;
+                case POLYGONZ:
+                    PolygonZ recPolygonZ = (PolygonZ)recordGeometry;
+                    recXMin = recPolygonZ.getXMin();
+                    recYMin = recPolygonZ.getYMin();
+                    recXMax = recPolygonZ.getXMax();
+                    recYMax = recPolygonZ.getYMax();
+                    recZMin = recPolygonZ.getzMin();
+                    recZMax = recPolygonZ.getzMax();
+                    recMMin = recPolygonZ.getmMin();
+                    recMMax = recPolygonZ.getmMax();
+                    break;
+                case MULTIPATCH:
+                    MultiPatch recMultiPatch = (MultiPatch)recordGeometry;
+                    recXMin = recMultiPatch.getXMin();
+                    recYMin = recMultiPatch.getYMin();
+                    recXMax = recMultiPatch.getXMax();
+                    recYMax = recMultiPatch.getYMax();
+                    recZMin = recMultiPatch.getzMin();
+                    recZMax = recMultiPatch.getzMax();
+                    recMMin = recMultiPatch.getmMin();
+                    recMMax = recMultiPatch.getmMax();
+                    break;
+            }
+            
+            if (recXMin < xMin) { xMin = recXMin; }
+            if (recYMin < yMin) { yMin = recYMin; }
+            if (recXMax > xMax) { xMax = recXMax; }
+            if (recYMax > yMax) { yMax = recYMax; }
+            if (recZMin < zMin) { zMin = recZMin; }
+            if (recZMax > zMax) { zMax = recZMax; }
+            if (recMMin < mMin) { mMin = recMMin; }
+            if (recMMax > mMax) { mMax = recMMax; }
+            
+            try { 
+                this.attributeTable.addRecord(rowData);
+            } catch (Exception e) {
+                return false;
+            }
             return true;
         } else {
             return false;
