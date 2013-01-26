@@ -265,9 +265,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
             ShapeFile input = new ShapeFile(inputFile);
             int numRecs = input.getNumberOfRecords();
 
-            if (input.getShapeType() != ShapeType.POLYGON
-                    && input.getShapeType() != ShapeType.POLYGONZ
-                    && input.getShapeType() != ShapeType.POLYGONM) {
+            if (input.getShapeType().getBaseType() != ShapeType.POLYGON) {
                 showFeedback("The input shapefile must be of a 'polygon' data type.");
                 return;
             }
