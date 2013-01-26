@@ -216,7 +216,6 @@ public class PatchOrientationVectorField implements WhiteboxPlugin {
         double maxLineLength = 100;
         double lineLength;
         double Sxx, Syy, Sxy;
-        double z = 0;
         double centroidX;
         double centroidY;
         double deltaX, deltaY;

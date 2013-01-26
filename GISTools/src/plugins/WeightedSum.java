@@ -183,7 +183,7 @@ public class WeightedSum implements WhiteboxPlugin {
         outputHeader = args[1];
         
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputDataString == null) || (outputHeader == null)) {
+        if (outputHeader == null) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
