@@ -7,7 +7,10 @@ plugins.Intersect
 plugins.IsolateVectorFeaturesByLocation
 plugins.LayerFootprint
 plugins.MinimumConvexHull
+plugins.PolygonsOrLinesToPoints
 plugins.PolygonsToLines
+plugins.RemovePolygonHoles
+plugins.SimplifyLineOrPolygon
 plugins.Smooth
 plugins.SymmetricDifference
 plugins.Union
