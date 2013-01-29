@@ -242,11 +242,11 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
             fields[0].setDecimalCount(0);
             
             
-            fields[0] = new DBFField();
-            fields[0].setName("SRC_FID");
-            fields[0].setDataType(DBFField.FIELD_TYPE_N);
-            fields[0].setFieldLength(10);
-            fields[0].setDecimalCount(0);
+            fields[1] = new DBFField();
+            fields[1].setName("PARENT_ID");
+            fields[1].setDataType(DBFField.FIELD_TYPE_N);
+            fields[1].setFieldLength(10);
+            fields[1].setDecimalCount(0);
             
             ShapeFile output = new ShapeFile(outputFile, outputShapeType, fields);
             
@@ -311,6 +311,7 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
             output.write();
             
             // returning a header file string displays the image.
+            updateProgress("Displaying vector: ", 0);
             returnData(outputFile);
             
             
@@ -325,15 +326,15 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
        
     }
     
-    
-     //This method is only used during testing.
-    public static void main(String[] args) {
-        args = new String[2];
-        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/someLakes.shp";
-        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp5.shp";
-        
-        PolygonsOrLinesToPoints pl2p = new PolygonsOrLinesToPoints();
-        pl2p.setArgs(args);
-        pl2p.run();
-    }
+//    
+//     //This method is only used during testing.
+//    public static void main(String[] args) {
+//        args = new String[2];
+//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/someLakes.shp";
+//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp5.shp";
+//        
+//        PolygonsOrLinesToPoints pl2p = new PolygonsOrLinesToPoints();
+//        pl2p.setArgs(args);
+//        pl2p.run();
+//    }
 }

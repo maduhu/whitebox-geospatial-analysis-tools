@@ -245,8 +245,8 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
             oneHundredthTotal = numFeatures / 100;
             n = 0;
             progress = 0;
-            com.vividsolutions.jts.geom.Geometry[] recJTS = null;
-            com.vividsolutions.jts.geom.Polygon polyJTS;
+//            com.vividsolutions.jts.geom.Geometry[] recJTS = null;
+//            com.vividsolutions.jts.geom.Polygon polyJTS;
             
             for (ShapeFileRecord record : input.records) {
 //                recJTS = record.getGeometry().getJTSGeometries();
@@ -313,20 +313,17 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
                         }
                         break;
                     case POLYGONZ:
-                        PolygonZ recPolyZ = (PolygonZ)(record.getGeometry());
+                        PolygonZ recPolyZ = (PolygonZ) (record.getGeometry());
                         vertices = recPolyZ.getPoints();
                         if (recPolyZ.getNumberOfHoles() == 0) {
                             // just add the polygon to the output file.
                             output.addRecord(recPolyZ);
                         } else {
                             // reconstruct the polygon without holes.
-                            PolygonZ recPolygonOutput = (PolygonZ)(record.getGeometry());
                             ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
                             int numParts = recPolyZ.getNumParts() - recPolyZ.getNumberOfHoles();
                             int[] outParts = new int[numParts];
                             int[] inParts = recPolyZ.getParts();
-                            double[] zData = recPolyZ.getzArray();
-                            double[] mData = recPolyZ.getmArray();
                             int numPoints = recPolyZ.getNumPoints();
                             int numPartsIn = recPolyZ.getNumParts();
                             boolean[] isHole = recPolyZ.getPartHoleData();
@@ -341,33 +338,64 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
                                         endingPointInPart = numPoints;
                                     }
                                     for (int p = startingPointInPart; p < endingPointInPart; p++) {
-                                        ShapefilePoint sfp = new ShapefilePoint(vertices[p][0], vertices[p][1]);
-                                        sfp.z = zData[p];
-                                        sfp.m = mData[p];
-                                        pnts.add(sfp);
+                                        pnts.add(new ShapefilePoint(vertices[p][0], vertices[p][1]));
                                     }
                                     outPartNum++;
                                 }
                             }
                             PointsList pl = new PointsList(pnts);
-                            whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(outParts, pl.getPointsArray());
+                            // z data
+                            double[] zArray = recPolyZ.getzArray();
+                            double[] zArrayOut = new double[pnts.size()];
+                            int j = 0;
+                            for (int part = 0; part < inParts.length; part++) {
+                                if (!isHole[part]) {
+                                    startingPointInPart = inParts[part];
+                                    if (part < numPartsIn - 1) {
+                                        endingPointInPart = inParts[part + 1];
+                                    } else {
+                                        endingPointInPart = numPoints;
+                                    }
+                                    for (int p = startingPointInPart; p < endingPointInPart; p++) {
+                                        zArrayOut[j] = zArray[p];
+                                        j++;
+                                    }
+                                }
+                            }
+                            // m data
+                            double[] mArray = recPolyZ.getmArray();
+                            double[] mArrayOut = new double[pnts.size()];
+                            j = 0;
+                            for (int part = 0; part < inParts.length; part++) {
+                                if (!isHole[part]) {
+                                    startingPointInPart = inParts[part];
+                                    if (part < numPartsIn - 1) {
+                                        endingPointInPart = inParts[part + 1];
+                                    } else {
+                                        endingPointInPart = numPoints;
+                                    }
+                                    for (int p = startingPointInPart; p < endingPointInPart; p++) {
+                                        mArrayOut[j] = mArray[p];
+                                        j++;
+                                    }
+                                }
+                            }       
+                            PolygonZ wbPoly = new PolygonZ(outParts, pl.getPointsArray(), zArrayOut, mArrayOut);
                             output.addRecord(wbPoly);
                         }
                         break;
                     case POLYGONM:
-                        PolygonM recPolyM = (PolygonM)(record.getGeometry());
+                        PolygonM recPolyM = (PolygonM) (record.getGeometry());
                         vertices = recPolyM.getPoints();
                         if (recPolyM.getNumberOfHoles() == 0) {
                             // just add the polygon to the output file.
                             output.addRecord(recPolyM);
                         } else {
                             // reconstruct the polygon without holes.
-                            PolygonM recPolygonOutput = (PolygonM)(record.getGeometry());
                             ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
                             int numParts = recPolyM.getNumParts() - recPolyM.getNumberOfHoles();
                             int[] outParts = new int[numParts];
                             int[] inParts = recPolyM.getParts();
-                            double[] mData = recPolyM.getmArray();
                             int numPoints = recPolyM.getNumPoints();
                             int numPartsIn = recPolyM.getNumParts();
                             boolean[] isHole = recPolyM.getPartHoleData();
@@ -382,15 +410,32 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
                                         endingPointInPart = numPoints;
                                     }
                                     for (int p = startingPointInPart; p < endingPointInPart; p++) {
-                                        ShapefilePoint sfp = new ShapefilePoint(vertices[p][0], vertices[p][1]);
-                                        sfp.m = mData[p];
-                                        pnts.add(sfp);
+                                        pnts.add(new ShapefilePoint(vertices[p][0], vertices[p][1]));
                                     }
                                     outPartNum++;
                                 }
                             }
                             PointsList pl = new PointsList(pnts);
-                            whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(outParts, pl.getPointsArray());
+                            
+                            // m data
+                            double[] mArray = recPolyM.getmArray();
+                            double[] mArrayOut = new double[pnts.size()];
+                            int j = 0;
+                            for (int part = 0; part < inParts.length; part++) {
+                                if (!isHole[part]) {
+                                    startingPointInPart = inParts[part];
+                                    if (part < numPartsIn - 1) {
+                                        endingPointInPart = inParts[part + 1];
+                                    } else {
+                                        endingPointInPart = numPoints;
+                                    }
+                                    for (int p = startingPointInPart; p < endingPointInPart; p++) {
+                                        mArrayOut[j] = mArray[p];
+                                        j++;
+                                    }
+                                }
+                            }
+                            PolygonM wbPoly = new PolygonM(outParts, pl.getPointsArray(), mArrayOut);
                             output.addRecord(wbPoly);
                         }
                         break;
@@ -410,6 +455,7 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
             output.write();
 
             // returning a header file string displays the image.
+            updateProgress("Displaying vector: ", 0);
             returnData(outputFile);
 
 
@@ -427,10 +473,12 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
 //    //This method is only used during testing.
 //    public static void main(String[] args) {
 //        args = new String[2];
-//        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/65E UTM.shp";
-//        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/tmp3.shp";
+//        //args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/65E UTM.shp";
+//        //args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/tmp3.shp";
 //        //args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Body_rmow.shp";
 //        //args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp4.shp";
+//        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/alllakesutmdissolve.shp";
+//        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp1.shp";
 //        
 //        RemovePolygonHoles rph = new RemovePolygonHoles();
 //        rph.setArgs(args);

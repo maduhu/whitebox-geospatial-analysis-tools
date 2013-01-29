@@ -239,9 +239,16 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
             }
 
             // set up the output files of the shapefile and the dbf
-            outputShapeType = shapeType;
+            if (shapeType.getBaseType() == ShapeType.POLYGON) {
+                outputShapeType = ShapeType.POLYGON;
+            } else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
+                outputShapeType = ShapeType.POLYLINE;
+            } else {
+                showFeedback("This tool only works with shapefiles of a polygon or line base shape type.");
+                return;
+            }
 
-            DBFField fields[] = new DBFField[1];
+            DBFField fields[] = new DBFField[2];
 
             fields[0] = new DBFField();
             fields[0].setName("FID");
@@ -249,21 +256,21 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
 
+            fields[1] = new DBFField();
+            fields[1].setName("PARENT_ID");
+            fields[1].setDataType(DBFField.FIELD_TYPE_N);
+            fields[1].setFieldLength(10);
+            fields[1].setDecimalCount(0);
+
             ShapeFile output = new ShapeFile(outputFile, outputShapeType, fields);
-
-            //ShapeFile output = new ShapeFile(outputFile, outputShapeType);
-
-            //FileUtilities.copyFile(new File(input.getDatabaseFile()), new File(output.getDatabaseFile()));
 
             numFeatures = input.getNumberOfRecords();
             oneHundredthTotal = numFeatures / 100;
             n = 0;
             progress = 0;
-            ArrayList<com.vividsolutions.jts.geom.Geometry> pointList = new ArrayList<com.vividsolutions.jts.geom.Geometry>();
             com.vividsolutions.jts.geom.Geometry[] recJTS = null;
             for (ShapeFileRecord record : input.records) {
                 //featureNum++;
-                //rawData = record.getGeometry().toByteBuffer().array();
                 recJTS = record.getGeometry().getJTSGeometries();
 
                 ArrayList<com.vividsolutions.jts.geom.Geometry> geomList = new ArrayList<com.vividsolutions.jts.geom.Geometry>();
@@ -276,11 +283,9 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
                 com.vividsolutions.jts.geom.Geometry outputGeom = dps.getResultGeometry();
 
                 if (outputGeom.isEmpty() && loseNoFeatures) {
-                    Object rowData[] = new Object[1];
-                    rowData[0] = new Double(featureNumber);
-                    featureNumber++;
-                    output.addRecord(record.getGeometry(), rowData);
-                } else if (!outputGeom.isEmpty()) {
+                    outputGeom = factory.buildGeometry(geomList);
+                }
+                if (!outputGeom.isEmpty()) {
                     for (int a = 0; a < outputGeom.getNumGeometries(); a++) {
                         //parentRecNum = 0;
                         com.vividsolutions.jts.geom.Geometry g = outputGeom.getGeometryN(a);
@@ -322,9 +327,10 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
 
                             PointsList pl = new PointsList(pnts);
                             whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                            Object rowData[] = new Object[1];
+                            Object rowData[] = new Object[2];
                             rowData[0] = new Double(featureNumber);
                             featureNumber++;
+                            rowData[1] = new Double(record.getRecordNumber());
                             output.addRecord(wbPoly, rowData);
                         } else if (g instanceof com.vividsolutions.jts.geom.LineString && !g.isEmpty()) {
                             LineString ls = (LineString) g;
@@ -339,13 +345,13 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
 
                             PointsList pl = new PointsList(pnts);
                             whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                            Object rowData[] = new Object[1];
+                            Object rowData[] = new Object[2];
                             rowData[0] = new Double(featureNumber);
                             featureNumber++;
+                            rowData[1] = new Double(record.getRecordNumber());
                             output.addRecord(wbGeometry, rowData);
 
                         }
-
                     }
                 }
                 n++;
@@ -363,6 +369,7 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
             output.write();
 
             // returning a header file string displays the image.
+            updateProgress("Displaying vector: ", 0);
             returnData(outputFile);
 
 
@@ -376,18 +383,23 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
         }
 
     }
-//    //This method is only used during testing.
-//    public static void main(String[] args) {
-//        args = new String[4];
-//        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/65E UTM.shp";
-//        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/tmp1.shp";
-//        //args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Body_rmow.shp";
-//        //args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp4.shp";
-//        args[2] = "100";
-//        args[3] = "true";
-//        
-//        SimplifyLineOrPolygon slp = new SimplifyLineOrPolygon();
-//        slp.setArgs(args);
-//        slp.run();
-//    }
+    
+    //This method is only used during testing.
+    public static void main(String[] args) {
+        args = new String[4];
+        //args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/65E UTM.shp";
+        //args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/tmp1.shp";
+        //args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Body_rmow.shp";
+        //args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp4.shp";
+
+        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/alllakesutmdissolve.shp";
+        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp1.shp";
+
+        args[2] = "15";
+        args[3] = "true";
+
+        SimplifyLineOrPolygon slp = new SimplifyLineOrPolygon();
+        slp.setArgs(args);
+        slp.run();
+    }
 }
