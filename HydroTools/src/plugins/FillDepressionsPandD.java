@@ -192,8 +192,15 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
             //large negative value.
             double noDataOutput = -32768.0;
 
-            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
+            WhiteboxRaster output;
+            if (smallValue < 0.01 && smallValue > 0) { 
+                output = new WhiteboxRaster(outputHeader, "rw",
+                    inputHeader, WhiteboxRaster.DataType.DOUBLE, largeValue);
+            } else {
+                output = new WhiteboxRaster(outputHeader, "rw",
                     inputHeader, WhiteboxRaster.DataType.FLOAT, largeValue);
+            }
+            
             output.setNoDataValue(noDataOutput);
 
             // copy the data into the output file.
