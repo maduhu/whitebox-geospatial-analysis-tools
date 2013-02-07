@@ -16,19 +16,13 @@
  */
 package plugins;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.simplify.DouglasPeuckerSimplifier;
 import java.util.ArrayList;
 import java.io.File;
 import whitebox.utilities.FileUtilities;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.*;
-import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.utilities.Topology;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -200,7 +194,6 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
         amIActive = true;
         String inputFile;
         String outputFile;
-        int featureNumber = 1;
         int progress;
         int i, n;
         int numFeatures;
@@ -245,33 +238,9 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
             oneHundredthTotal = numFeatures / 100;
             n = 0;
             progress = 0;
-//            com.vividsolutions.jts.geom.Geometry[] recJTS = null;
-//            com.vividsolutions.jts.geom.Polygon polyJTS;
             
             for (ShapeFileRecord record : input.records) {
-//                recJTS = record.getGeometry().getJTSGeometries();
-//                for (int g = 0; g < recJTS.length; g++) {
-//                    polyJTS = (com.vividsolutions.jts.geom.Polygon)(recJTS[g]);
-//                    Coordinate[] buffCoords = polyJTS.getExteriorRing().getCoordinates();
-//                    ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
-//                    int[] outParts = {0};
-//                                    
-//                    if (!Topology.isLineClosed(buffCoords)) {
-//                        System.out.println("Exterior ring not closed.");
-//                    }
-//                    if (Topology.isClockwisePolygon(buffCoords)) {
-//                        for (i = 0; i < buffCoords.length; i++) {
-//                            pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
-//                        }
-//                    } else {
-//                        for (i = buffCoords.length - 1; i >= 0; i--) {
-//                            pnts.add(new ShapefilePoint(buffCoords[i].x, buffCoords[i].y));
-//                        }
-//                    }
-//                    PointsList pl = new PointsList(pnts);
-//                    whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(outParts, pl.getPointsArray());
-//                    output.addRecord(wbPoly);
-//                }
+
                 switch (shapeType) {
                     case POLYGON:
                         whitebox.geospatialfiles.shapefile.Polygon recPoly =

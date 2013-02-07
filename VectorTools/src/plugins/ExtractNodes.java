@@ -29,7 +29,7 @@ import whitebox.utilities.FileUtilities;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
+public class ExtractNodes implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -42,7 +42,7 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "PolygonsOrLinesToPoints";
+        return "ExtractNodes";
     }
 
     /**
@@ -53,7 +53,7 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Polygons Or Lines To Points";
+    	return "Extract Nodes";
     }
 
     /**
@@ -63,7 +63,7 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Converts vector polygons/lines to points";
+    	return "Converts vector polygons/lines to point nodes";
     }
 
     /**
@@ -200,7 +200,7 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
         int progress;
         int i, n;
         double[][] vertices = null;
-        int pointNum = 0;
+        //int pointNum = 0;
         int numFeatures;
         int oneHundredthTotal;
         ShapeType shapeType, outputShapeType;
@@ -233,31 +233,31 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
             // set up the output files of the shapefile and the dbf
             outputShapeType = ShapeType.POINT;
             
-            DBFField fields[] = new DBFField[2];
-
+            int numOutputFields = input.attributeTable.getFieldCount() + 1;
+            int numInputFields = input.attributeTable.getFieldCount();
+            DBFField[] inputFields = input.attributeTable.getAllFields();
+            DBFField fields[] = new DBFField[numOutputFields];
+            
             fields[0] = new DBFField();
-            fields[0].setName("FID");
+            fields[0].setName("PARENT_ID");
             fields[0].setDataType(DBFField.FIELD_TYPE_N);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
             
-            
-            fields[1] = new DBFField();
-            fields[1].setName("PARENT_ID");
-            fields[1].setDataType(DBFField.FIELD_TYPE_N);
-            fields[1].setFieldLength(10);
-            fields[1].setDecimalCount(0);
-            
+            System.arraycopy(inputFields, 0, fields, 1, numInputFields);
+
             ShapeFile output = new ShapeFile(outputFile, outputShapeType, fields);
-            
-            FileUtilities.copyFile(new File(input.getDatabaseFile()), new File(output.getDatabaseFile()));
             
             numFeatures = input.getNumberOfRecords();
             oneHundredthTotal = numFeatures / 100;
             //featureNum = 0;
             n = 0;
             progress = 0;
+            int recordNum;
             for (ShapeFileRecord record : input.records) {
+                recordNum = record.getRecordNumber();
+                Object[] attData = input.attributeTable.getRecord(recordNum - 1);
+                vertices = new double[0][0];
                 switch (shapeType) {
                     case POLYGON:
                         whitebox.geospatialfiles.shapefile.Polygon recPolygon =
@@ -289,11 +289,10 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
                 for (i = 0; i < vertices.length; i++) {
                     x = vertices[i][0];
                     y = vertices[i][1];
-                    Object rowData[] = new Object[2];
-                    rowData[0] = new Double(pointNum);
-                    rowData[1] = new Double(record.getRecordNumber());
+                    Object rowData[] = new Object[numOutputFields];
+                    rowData[0] = new Double(recordNum - 1);
+                    System.arraycopy(attData, 0, rowData, 1, numInputFields);
                     output.addRecord(new whitebox.geospatialfiles.shapefile.Point(x, y), rowData);
-                    pointNum++;
                 }
 
                 n++;
@@ -326,15 +325,14 @@ public class PolygonsOrLinesToPoints implements WhiteboxPlugin {
        
     }
     
-//    
-//     //This method is only used during testing.
-//    public static void main(String[] args) {
-//        args = new String[2];
-//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/someLakes.shp";
-//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp5.shp";
-//        
-//        PolygonsOrLinesToPoints pl2p = new PolygonsOrLinesToPoints();
-//        pl2p.setArgs(args);
-//        pl2p.run();
-//    }
+     //This method is only used during testing.
+    public static void main(String[] args) {
+        args = new String[2];
+        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp1.shp";
+        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp3.shp";
+
+        ExtractNodes en = new ExtractNodes();
+        en.setArgs(args);
+        en.run();
+    }
 }

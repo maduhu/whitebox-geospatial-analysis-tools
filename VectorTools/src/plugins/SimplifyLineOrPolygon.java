@@ -201,7 +201,6 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
         amIActive = true;
         String inputFile;
         String outputFile;
-        int featureNumber = 1;
         int progress;
         int i, n;
         int numFeatures;
@@ -248,20 +247,19 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
                 return;
             }
 
-            DBFField fields[] = new DBFField[2];
-
+            int numOutputFields = input.attributeTable.getFieldCount() + 1;
+            int numInputFields = input.attributeTable.getFieldCount();
+            DBFField[] inputFields = input.attributeTable.getAllFields();
+            DBFField fields[] = new DBFField[numOutputFields];
+            
             fields[0] = new DBFField();
-            fields[0].setName("FID");
+            fields[0].setName("PARENT_ID");
             fields[0].setDataType(DBFField.FIELD_TYPE_N);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
 
-            fields[1] = new DBFField();
-            fields[1].setName("PARENT_ID");
-            fields[1].setDataType(DBFField.FIELD_TYPE_N);
-            fields[1].setFieldLength(10);
-            fields[1].setDecimalCount(0);
-
+            System.arraycopy(inputFields, 0, fields, 1, numInputFields);
+            
             ShapeFile output = new ShapeFile(outputFile, outputShapeType, fields);
 
             numFeatures = input.getNumberOfRecords();
@@ -269,7 +267,10 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
             n = 0;
             progress = 0;
             com.vividsolutions.jts.geom.Geometry[] recJTS = null;
+            int recordNum;
             for (ShapeFileRecord record : input.records) {
+                recordNum = record.getRecordNumber();
+                Object[] attData = input.attributeTable.getRecord(recordNum - 1);
                 //featureNum++;
                 recJTS = record.getGeometry().getJTSGeometries();
 
@@ -327,10 +328,9 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
 
                             PointsList pl = new PointsList(pnts);
                             whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                            Object rowData[] = new Object[2];
-                            rowData[0] = new Double(featureNumber);
-                            featureNumber++;
-                            rowData[1] = new Double(record.getRecordNumber());
+                            Object rowData[] = new Object[numOutputFields];
+                            rowData[0] = new Double(recordNum - 1);
+                            System.arraycopy(attData, 0, rowData, 1, numInputFields);
                             output.addRecord(wbPoly, rowData);
                         } else if (g instanceof com.vividsolutions.jts.geom.LineString && !g.isEmpty()) {
                             LineString ls = (LineString) g;
@@ -345,10 +345,9 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
 
                             PointsList pl = new PointsList(pnts);
                             whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                            Object rowData[] = new Object[2];
-                            rowData[0] = new Double(featureNumber);
-                            featureNumber++;
-                            rowData[1] = new Double(record.getRecordNumber());
+                            Object rowData[] = new Object[numOutputFields];
+                            rowData[0] = new Double(recordNum - 1);
+                            System.arraycopy(attData, 0, rowData, 1, numInputFields);
                             output.addRecord(wbGeometry, rowData);
 
                         }
