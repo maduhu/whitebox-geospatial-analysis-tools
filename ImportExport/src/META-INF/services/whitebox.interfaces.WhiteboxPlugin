@@ -11,3 +11,4 @@ plugins.ImportIDRISIRaster
 plugins.ImportImage
 plugins.ImportSurferAsciiGrid
 plugins.ImportTASVector
+plugins.ImportXYZToVectorPoints
