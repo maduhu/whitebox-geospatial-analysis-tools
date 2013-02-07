@@ -26,6 +26,7 @@ plugins.SedimentTransportIndex
 plugins.Slope
 plugins.StochasticDepressionAnalysis
 plugins.TangentialCurv
+plugins.TopographicRuggednessIndex
 plugins.TotalCurv
 plugins.VisibilityIndex
 plugins.WetnessIndex
