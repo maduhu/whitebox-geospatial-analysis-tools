@@ -65,7 +65,7 @@ public class FractalDimension implements WhiteboxPlugin {
     @Override
     public String getToolDescription() {
         return "Measures the fractal "
-                + "dimension of patch raster polygons.";
+                + "dimension of patch polygons.";
     }
 
     /**

@@ -69,7 +69,7 @@ public class ElongationRatio implements WhiteboxPlugin {
     public String getToolDescription() {
         return "The ratio between the difference "
                 + "in the long and short axis of the minimum bounding box for "
-                + "each polygon in a raster image to the sum of the long and short axis.";
+                + "each polygon to the sum of the long and short axis.";
     }
 
     /**
@@ -391,7 +391,7 @@ public class ElongationRatio implements WhiteboxPlugin {
                     }
                     longAxis = Math.max(axes[0][a], axes[1][a]);
                     shortAxis = Math.min(axes[0][a], axes[1][a]);
-                    elongation[a] = (double) ((longAxis - shortAxis) / (longAxis + shortAxis));
+                    elongation[a] = (double)(1 - shortAxis / longAxis); //(longAxis - shortAxis) / (longAxis + shortAxis));
                 } else {
                     elongation[a] = 1;
                 }
@@ -581,7 +581,7 @@ public class ElongationRatio implements WhiteboxPlugin {
                         verticesRotated[n][0] = (x * Math.cos(psi)) - (y * Math.sin(psi));
                         verticesRotated[n][1] = (x * Math.sin(psi)) + (y * Math.cos(psi));
                     }
-                    // calcualte the minimum bounding box in this coordinate 
+                    // calculate the minimum bounding box in this coordinate 
                     // system and see if it is less
                     newBoundingBox[0] = Double.MAX_VALUE; // west
                     newBoundingBox[1] = Double.MIN_VALUE; // east
@@ -602,7 +602,6 @@ public class ElongationRatio implements WhiteboxPlugin {
                         if (y > newBoundingBox[3]) {
                             newBoundingBox[3] = y;
                         }
-
                     }
                     newXAxis = newBoundingBox[1] - newBoundingBox[0] + 1;
                     newYAxis = newBoundingBox[3] - newBoundingBox[2] + 1;
@@ -625,7 +624,7 @@ public class ElongationRatio implements WhiteboxPlugin {
                 
                 recNum = record.getRecordNumber() - 1;
                 Object[] recData = input.attributeTable.getRecord(recNum);
-                recData[recData.length - 1] = new Double((longAxis - shortAxis) / (longAxis + shortAxis));
+                recData[recData.length - 1] = new Double(1 - shortAxis / longAxis); //(longAxis - shortAxis) / (longAxis + shortAxis));
                 input.attributeTable.updateRecord(recNum, recData);
 
                 if (cancelOp) {
@@ -661,5 +660,15 @@ public class ElongationRatio implements WhiteboxPlugin {
         } else {
             showFeedback("There was a problem reading the input file.");
         }
+    }
+    
+     //This method is only used during testing.
+    public static void main(String[] args) {
+        args = new String[1];
+        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/alllakesutmdissolve.shp";
+        
+        ElongationRatio er = new ElongationRatio();
+        er.setArgs(args);
+        er.run();
     }
 }

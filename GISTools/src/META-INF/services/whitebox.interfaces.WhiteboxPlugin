@@ -12,6 +12,7 @@ plugins.EuclideanAllocation
 plugins.ElongationRatio
 plugins.FindPatchOrClassEdgeCells
 plugins.FractalDimension
+plugins.HoleProportion
 plugins.IsolateRasterFeaturesByLocation
 plugins.LinearityIndex
 plugins.MaxAbsOverlay

@@ -58,7 +58,7 @@ public class Perimeter implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Calculates the perimeter of polygons or classes within a raster image.";
+    	return "Calculates the perimeter of polygons or classes.";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.

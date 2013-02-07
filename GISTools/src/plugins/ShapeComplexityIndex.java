@@ -63,7 +63,7 @@ public class ShapeComplexityIndex implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Assigns each patch in a raster image a simple index value based "
+    	return "Assigns each patch a simple index value based "
                 + "on the patch's shape complexity.";
     }
     /**
