@@ -196,7 +196,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             minValButton.addActionListener(this);
             minBox.add(minValButton);
             minBox.add(Box.createHorizontalStrut(2));
-            clipAmountLower = new JTextField("2.0%", 4);
+            clipAmountLower = new JTextField("1.0%", 4);
             clipAmountLower.setHorizontalAlignment(JTextField.RIGHT);
             clipAmountLower.setMaximumSize(new Dimension(50, 22));
             minBox.add(clipAmountLower);
@@ -224,7 +224,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             maxBox.add(Box.createHorizontalStrut(2));
             clipUpperTail.setActionCommand("clipUpperTail");
             clipUpperTail.addActionListener(this);
-            clipAmountUpper = new JTextField("2.0%", 4);
+            clipAmountUpper = new JTextField("1.0%", 4);
             clipAmountUpper.setHorizontalAlignment(JTextField.RIGHT);
             clipAmountUpper.setMaximumSize(new Dimension(50, 22));
             maxBox.add(clipAmountUpper);

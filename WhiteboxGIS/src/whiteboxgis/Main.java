@@ -116,6 +116,7 @@ public class Main {
         try {
             String xmx = "-Xmx" + heapSize + heapSizeUnit;
             String xms = "-Xms" + heapSize + heapSizeUnit;
+            System.out.println(xmx);
             String separator = System.getProperty("file.separator");
             String classpath = System.getProperty("java.class.path");
             String path = System.getProperty("java.home")

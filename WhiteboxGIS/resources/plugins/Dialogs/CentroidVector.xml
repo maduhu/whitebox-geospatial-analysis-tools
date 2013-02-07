@@ -2,7 +2,7 @@
 	<DialogComponent type="DialogFile">
 		<Name>inputFile</Name>
 		<Description>Enter the name of the input vector file here. It must be of a polygon base shapetype.</Description>
-		<LabelText>Input Vector Points File:</LabelText>
+		<LabelText>Input Vector Polygon File:</LabelText>
 		<DialogMode>Open File</DialogMode>
 		<Filter>ShapeFile (*.shp), SHP</Filter>
 		<IsVisible>True</IsVisible>

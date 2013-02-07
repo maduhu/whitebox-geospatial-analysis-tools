@@ -1022,6 +1022,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             newHelp.setActionCommand("newHelp");
             ToolsMenu.add(newHelp);
             menubar.add(ToolsMenu);
+            JMenuItem scripter = new JMenuItem("Scripter", new ImageIcon(graphicsDirectory + "ScriptIcon2.png"));
+            scripter.addActionListener(this);
+            scripter.setActionCommand("scripter");
+            ToolsMenu.add(scripter);
 
             // Help menu
             JMenu HelpMenu = new JMenu("Help");

@@ -1,4 +1,4 @@
-<Dialog Name="PolygonsOrLinesToPoints" HelpFile="PolygonsOrLinesToPoints.html">
+<Dialog Name="ExtractNodes" HelpFile="ExtractNodes.html">
 	<DialogComponent type="DialogFile">
 		<Name>inputFile</Name>
 		<Description>Enter the name of the input vector file here. It must be either of polyline or polygon base shapetype.</Description>

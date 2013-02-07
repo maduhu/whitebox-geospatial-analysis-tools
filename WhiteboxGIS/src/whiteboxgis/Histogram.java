@@ -410,8 +410,13 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
                 val1 = (int)val1; 
             }
             String val = df.format(val1);
-            df = new DecimalFormat("#,###,###");
-            label = "Value: " + val + " Pixels: " + df.format((int)(histo[binNum] * fullestBinVal2));
+            //df = new DecimalFormat("#,###,###");
+            df = new DecimalFormat("0.0000");
+//            if (!cumulative) {
+//                label = "Value: " + val + " Freq: " + df.format((histo[binNum] * fullestBinVal2));
+//            } else {
+                label = "Value: " + val + " Freq: " + df.format((histo[binNum]));
+//            }
             adv = metrics.stringWidth(label);
             g2d.setColor(Color.black); 
             g2d.drawString(label, 5, hgt + 5);
