@@ -102,7 +102,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
      * @param HeaderFile The name of the WhiteboxRaster header file.
      * @param FileAccess Sets the file access. Either "r" (read-only) or "rw" (read/write).
      * @param BaseRasterHeader The name of a WhiteboxRaster header file to base this new object on.
-     * @param DataType The data type of the new WhiteboxRaster. Can be 'double', 'float', 'integer', or 'byte'
+     * @param dataType The data type of the new WhiteboxRaster. Can be 'double', 'float', 'integer', or 'byte'
      * @param InitialValue Double indicating the value used to initialize the grid. It is recommended to use the noDataValue.
      */
     public WhiteboxRaster(String HeaderFile, String FileAccess, String BaseRasterHeader, DataType dataType, double InitialValue)
@@ -233,65 +233,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         return numberOfDataFileWrites;
     }
 
-//    private double stdDeviation = noDataValue;
-//    public double getStandardDeviation() {
-//        if (stdDeviation == noDataValue) {
-//            readStatsFile();
-//        }
-//        return stdDeviation;
-//    }
-//    
-//    private double mode = noDataValue;
-//    public double getMode() {
-//        if (mode == noDataValue) {
-//            readStatsFile();
-//        }
-//        return mode;
-//    }
-//    
-//    private double mean = noDataValue;
-//    public double getMean() {
-//        if (mean == noDataValue) {
-//            readStatsFile();
-//        }
-//        return mean;
-//    }
-//    
-//    private double median = noDataValue;
-//    public double getMedian() {
-//        if (median == noDataValue) {
-//            readStatsFile();
-//        }
-//        return median;
-//    }
-//    
-//    private long[] histo = null;
-//    public long[] getHisto() {
-//        if (mean == noDataValue) {
-//            readStatsFile();
-//        }
-//        return histo;
-//    }
-//    
-//    private double binWidth = noDataValue;
-//    public double getHistoBinWidth() {
-//        if (binWidth == noDataValue) {
-//            readStatsFile();
-//        }
-//        return binWidth;
-//    }
-//    
-//    private long numValidCells = (long)noDataValue;
-//    public long getnumValidCells() {
-//        if (numValidCells == (long)noDataValue) {
-//            readStatsFile();
-//        }
-//        return numValidCells;
-//    }
     
-
-
-
     //********************************************
     // Available methods.
     // *******************************************
@@ -520,7 +462,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             
             
             // what is the cell number?
-            int cellNum = row * numberColumns + column;
+            long cellNum = (long)(row) * numberColumns + column;
 
             // check to see if it is within the current block
             if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
@@ -534,7 +476,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                         numSwitchReadDirections++;
                         switchRatio = (double)numSwitchReadDirections / numReads;
                     }
-                    blockStartingCell = (int)(cellNum - halfBlockSize * switchRatio); //10 * numberColumns);
+                    blockStartingCell = (long)(cellNum - halfBlockSize * switchRatio); //10 * numberColumns);
                 } else { // reading upward
                     if (currentReadDirection == -1) { currentReadDirection = 1; }
                     if (currentReadDirection != 1) {
@@ -542,7 +484,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                         numSwitchReadDirections++;
                         switchRatio = (double)numSwitchReadDirections / numReads;
                     }
-                    blockStartingCell = (int)(cellNum - (blockSize - (switchRatio * halfBlockSize))); //+ (blockSize / 2) * ((double)upReadDirection / downReadDirection)); // + 10 * numberColumns - blockSize);
+                    blockStartingCell = (long)(cellNum - (blockSize - (switchRatio * halfBlockSize))); //+ (blockSize / 2) * ((double)upReadDirection / downReadDirection)); // + 10 * numberColumns - blockSize);
                 }
                 previousRow = row;
                 //blockStartingCell = (int)(cellNum - blockSize / 2);
@@ -580,7 +522,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         if (saveChanges && column >= 0 && column < this.numberColumns 
                 && row >= 0 && row < this.numberRows) {
             // what is the cell number?
-            int cellNum = row * numberColumns + column;
+            long cellNum = (long)(row) * numberColumns + column;
 
             if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
                 if (isDirty) { writeDataBlock(); }
@@ -593,7 +535,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                         numSwitchReadDirections++;
                         switchRatio = (double)numSwitchReadDirections / numReads;
                     }
-                    blockStartingCell = (int)(cellNum - halfBlockSize * switchRatio); 
+                    blockStartingCell = (long)(cellNum - halfBlockSize * switchRatio); 
                 } else {
                     if (currentReadDirection == -1) { currentReadDirection = 1; }
                     if (currentReadDirection != 1) {
@@ -601,7 +543,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                         numSwitchReadDirections++;
                         switchRatio = (double)numSwitchReadDirections / numReads;
                     }
-                    blockStartingCell = (int)(cellNum - (blockSize - (switchRatio * halfBlockSize))); 
+                    blockStartingCell = (long)(cellNum - (blockSize - (switchRatio * halfBlockSize))); 
                 }
                 previousRow = row;
                 if (blockStartingCell < 0) { blockStartingCell = 0; }
@@ -623,7 +565,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         if (saveChanges && column >= 0 && column < this.numberColumns 
                 && row >= 0 && row < this.numberRows) {
             // what is the cell number?
-            int cellNum = row * numberColumns + column;
+            long cellNum = (long)(row) * numberColumns + column;
 
             if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
                 if (isDirty) { writeDataBlock(); }
@@ -636,7 +578,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                         numSwitchReadDirections++;
                         switchRatio = (double)numSwitchReadDirections / numReads;
                     }
-                    blockStartingCell = (int)(cellNum - halfBlockSize * switchRatio); 
+                    blockStartingCell = (long)(cellNum - halfBlockSize * switchRatio); 
                 } else {
                     if (currentReadDirection == -1) { currentReadDirection = 1; }
                     if (currentReadDirection != 1) {
@@ -644,7 +586,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                         numSwitchReadDirections++;
                         switchRatio = (double)numSwitchReadDirections / numReads;
                     }
-                    blockStartingCell = (int)(cellNum - (blockSize - (switchRatio * halfBlockSize))); 
+                    blockStartingCell = (long)(cellNum - (blockSize - (switchRatio * halfBlockSize))); 
                 }
                 previousRow = row;
                 if (blockStartingCell < 0) { blockStartingCell = 0; }
@@ -666,7 +608,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         if (saveChanges && column >= 0 && column < this.numberColumns 
                 && row >= 0 && row < this.numberRows) {
             // what is the cell number?
-            int cellNum = row * numberColumns + column;
+            long cellNum = (long)(row) * numberColumns + column;
 
             if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
                 if (isDirty) { writeDataBlock(); }
@@ -679,7 +621,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                         numSwitchReadDirections++;
                         switchRatio = (double)numSwitchReadDirections / numReads;
                     }
-                    blockStartingCell = (int)(cellNum - halfBlockSize * switchRatio); 
+                    blockStartingCell = (long)(cellNum - halfBlockSize * switchRatio); 
                 } else {
                     if (currentReadDirection == -1) { currentReadDirection = 1; }
                     if (currentReadDirection != 1) {
@@ -687,7 +629,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                         numSwitchReadDirections++;
                         switchRatio = (double)numSwitchReadDirections / numReads;
                     }
-                    blockStartingCell = (int)(cellNum - (blockSize - (switchRatio * halfBlockSize))); 
+                    blockStartingCell = (long)(cellNum - (blockSize - (switchRatio * halfBlockSize))); 
                 }
                 previousRow = row;
                 if (blockStartingCell < 0) { blockStartingCell = 0; }
@@ -727,12 +669,21 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         }
     }
 
+    public void reinitialize(double initialValue) {
+        this.initialValue = initialValue;
+        
+        // See if the data file exists.
+        File file = new File(dataFile);
+        file.delete();
+        createNewDataFile();
+
+    }
     public void createNewDataFile() {
         RandomAccessFile rOut = null;
         ByteBuffer buf = null;
         FileChannel outChannel = null;
         try {
-            long numberCells = numberRows * numberColumns;
+            long numberCells = (long)((long)(numberRows) * numberColumns);
             int writeLength = 2000000;
             if (writeLength > numberCells) { writeLength = (int)numberCells; }
             long numCellsWritten = 0;
@@ -866,9 +817,9 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             }
 
             // What is the ending cell?
-            long endCell = blockStartingCell + blockSize;
-            if (endCell > (numberRows * numberColumns - 1)) {
-                endCell = numberRows * numberColumns - 1;
+            long endCell = (long)(blockStartingCell) + blockSize;
+            if (endCell > ((long)(numberRows) * numberColumns - 1)) {
+                endCell = (long)(numberRows) * numberColumns - 1;
             }
 
 

@@ -602,9 +602,11 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
     public void addLayer(MapLayer newLayer) {
         layers.add(newLayer);
         numLayers = layers.size();
-        currentExtent = calculateFullExtent();
-        listOfExtents.add(currentExtent.clone());
-        listOfExtentsIndex = listOfExtents.size() - 1;
+        if (currentExtent.getMinX() > currentExtent.getMaxX()) {
+            currentExtent = calculateFullExtent();
+            listOfExtents.add(currentExtent.clone());
+            listOfExtentsIndex = listOfExtents.size() - 1;
+        } 
         dirty = true;
     }
     
@@ -656,7 +658,11 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
                     numLayers = layers.size();
                 }
                 
-                calculateFullExtent();
+                if (numLayers == 0) {
+                    currentExtent = null;
+                } else {
+                    calculateFullExtent();
+                }
                 //currentExtent = calculateFullExtent();
                 //listOfExtents.add(currentExtent.clone());
             }

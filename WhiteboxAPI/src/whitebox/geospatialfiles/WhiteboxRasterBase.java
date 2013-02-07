@@ -894,11 +894,11 @@ public abstract class WhiteboxRasterBase {
             }
             
             // what is the starting and ending cell?
-            long startingCell = row * numberColumns;
-            long endingCell = startingCell + numberColumns - 1;
+            long startingCell = (long)(row) * numberColumns;
+            long endingCell = (long)(startingCell) + numberColumns - 1;
 
-            int writeLengthInCells = (int)(endingCell - startingCell + 1);
-            buf = ByteBuffer.allocate((int) (writeLengthInCells * cellSizeInBytes));
+            int readLengthInCells = (int)(endingCell - startingCell + 1);
+            buf = ByteBuffer.allocate((int) (readLengthInCells * cellSizeInBytes));
 
             rIn = new RandomAccessFile(dataFile, "r");
             
@@ -914,31 +914,31 @@ public abstract class WhiteboxRasterBase {
             if (dataType == DataType.DOUBLE) { //.equals("double")) {
                 buf.rewind();
                 DoubleBuffer db = buf.asDoubleBuffer();
-                retVals = new double[writeLengthInCells];
+                retVals = new double[readLengthInCells];
                 db.get(retVals);
                 db = null;
                 buf = null;
             } else if (dataType == DataType.FLOAT) { //.equals("float")) {
                 buf.rewind();
                 FloatBuffer fb = buf.asFloatBuffer();
-                float[] fa = new float[writeLengthInCells];
+                float[] fa = new float[readLengthInCells];
                 fb.get(fa);
                 fb = null;
                 buf = null;
-                retVals = new double[writeLengthInCells];
-                for (int j = 0; j < writeLengthInCells; j++) {
+                retVals = new double[readLengthInCells];
+                for (int j = 0; j < readLengthInCells; j++) {
                     retVals[j] = fa[j];
                 }
                 fa = null;
             } else if (dataType == DataType.INTEGER) { //.equals("integer")) {
                 buf.rewind();
                 ShortBuffer ib = buf.asShortBuffer();
-                short[] ia = new short[writeLengthInCells];
+                short[] ia = new short[readLengthInCells];
                 ib.get(ia);
                 ib = null;
                 buf = null;
-                retVals = new double[writeLengthInCells];
-                for (int j = 0; j < writeLengthInCells; j++) {
+                retVals = new double[readLengthInCells];
+                for (int j = 0; j < readLengthInCells; j++) {
                     retVals[j] = ia[j];
                 }
                 ia = null;
@@ -947,8 +947,8 @@ public abstract class WhiteboxRasterBase {
                 //byte[] ba = new byte[writeLengthInCells];
                 //buf.get(ba);
                 //buf = null;
-                retVals = new double[writeLengthInCells];
-                for (int j = 0; j < writeLengthInCells; j++) {
+                retVals = new double[readLengthInCells];
+                for (int j = 0; j < readLengthInCells; j++) {
                     retVals[j] = whitebox.utilities.Unsigned.getUnsignedByte(buf, j); //ba[j]);
                 }
                 //ba = null;
@@ -998,7 +998,7 @@ public abstract class WhiteboxRasterBase {
 
             rOut = new RandomAccessFile(dataFile, "rw");
             outChannel = rOut.getChannel();
-            int cellNum = row * numberColumns + column;
+            long cellNum = (long)(row) * numberColumns + column;
             outChannel.position(cellNum * cellSizeInBytes);
             int writeLengthInCells = 1;
             
