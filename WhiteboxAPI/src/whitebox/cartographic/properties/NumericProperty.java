@@ -8,10 +8,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.DocumentEvent;
 import java.text.NumberFormat;
-import whitebox.utilities.StringUtilities;
 
 /**
  *

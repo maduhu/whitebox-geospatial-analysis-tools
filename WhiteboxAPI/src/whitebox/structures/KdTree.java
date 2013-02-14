@@ -307,6 +307,7 @@ public abstract class KdTree<T> {
             this.distance = distance;
             this.value = value;
         }
+        
     }
     
     /**
