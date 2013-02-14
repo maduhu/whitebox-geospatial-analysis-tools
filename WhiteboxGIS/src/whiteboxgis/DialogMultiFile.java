@@ -120,6 +120,7 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
         }
     }
     
+    @Override
     public String getValue() {
         String ret = "";
         for (int a = 0; a < value.size(); a++) {
@@ -128,14 +129,17 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
         return ret;
     }
     
+    @Override
     public String getComponentName() {
         return name;
     }
     
+    @Override
     public boolean getOptionalStatus() {
         return false;
     }
     
+    @Override
     public boolean setArgs(String[] args) {
         try {
             // first make sure that there are the right number of args
@@ -156,6 +160,7 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
         }
     }
     
+    @Override
     public String[] getArgsDescriptors() {
         String[] argsDescriptors = new String[numArgs];
         argsDescriptors[0] = "String name";
@@ -228,6 +233,7 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
         }
     }
     
+    @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
         String actionCommand = e.getActionCommand();

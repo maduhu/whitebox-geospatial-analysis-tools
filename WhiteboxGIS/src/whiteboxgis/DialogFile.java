@@ -18,6 +18,8 @@ package whiteboxgis;
 
 import java.awt.Dimension;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import javax.swing.*;
@@ -30,7 +32,8 @@ import whitebox.structures.ExtensionFileFilter;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class DialogFile extends JPanel implements ActionListener, DialogComponent {
+public class DialogFile extends JPanel implements ActionListener, DialogComponent, 
+        PropertyChangeListener {
    
     static final byte MODE_OPEN = 0;
     static final byte MODE_SAVEAS = 1;
@@ -56,6 +59,17 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
      * 
      * @param host Communicator
      */
+    public DialogFile() {
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        this.setMaximumSize(new Dimension(2500, 50));
+        this.setPreferredSize(new Dimension(350, 50));
+        resourcesDirectory = hostDialog.getResourcesDirectory();
+        pathSep = File.separator;
+        graphicsDirectory = resourcesDirectory + "Images" + pathSep;
+        workingDirectory = hostDialog.getWorkingDirectory();
+            
+    }
+    
     public DialogFile(Communicator host) {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.setMaximumSize(new Dimension(2500, 50));
@@ -263,7 +277,9 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
                 hostDialog.setWorkingDirectory(fileDirectory);
             }
             text.setText(file.toString());
+            String oldValue = this.value;
             this.value = file.toString();
+            firePropertyChange("value", oldValue, value);
         }
     }
     
@@ -308,8 +324,10 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
             }
             
             text.setText(file.toString());
-            this.value = file.toString();
             
+            String oldValue = this.value;
+            this.value = file.toString();
+            firePropertyChange("value", oldValue, value);
         }
     }
     
@@ -322,5 +340,10 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
         } else if (actionCommand.equals("save")) {
             saveFile();
         }
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

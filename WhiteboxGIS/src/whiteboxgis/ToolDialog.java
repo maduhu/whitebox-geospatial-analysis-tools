@@ -328,6 +328,18 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
                         components.add(cb);
                         mainPanel.add(cb);
                         //box.add(cb);
+                    } else if (componentType.equals("DialogFieldSelector")) {
+                        args = new String[4];
+                        args[0] = getTextValue(el, "Name");
+                        args[1] = getTextValue(el, "Description");
+                        args[2] = getTextValue(el, "LabelText");
+                        args[3] = getTextValue(el, "Multiselection");
+                        
+                        DialogFieldSelector fs = new DialogFieldSelector();
+                        fs.setHostDialog(this);
+                        fs.setArgs(args);
+                        components.add(fs);
+                        mainPanel.add(fs);
                     } else if (componentType.equals("DialogDataInput")) {
                         args = new String[6];
                         args[0] = getTextValue(el, "Name");
