@@ -146,7 +146,7 @@ public class ElongationRatio implements WhiteboxPlugin {
         if (myHost != null) {
             myHost.updateProgress(progress);
         } else {
-            System.out.print("Progress: " + progress + "%");
+            System.out.println("Progress: " + progress + "%");
         }
     }
 
@@ -493,7 +493,11 @@ public class ElongationRatio implements WhiteboxPlugin {
         double newYAxis = 0;
         double longAxis;
         double shortAxis;
-//        double axisDirection = 0;
+        double elongation = 0;
+        double bearing = 0;
+        double slope;
+        final double rightAngle = Math.toRadians(90);
+        //double axisDirection = 0;
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -533,16 +537,16 @@ public class ElongationRatio implements WhiteboxPlugin {
             field.setDecimalCount(4);
             input.attributeTable.addField(field);
             
-//            field = new DBFField();
-//            field.setName("ELONG_DIR");
-//            field.setDataType(DBFField.FIELD_TYPE_N);
-//            field.setFieldLength(10);
-//            field.setDecimalCount(4);
-//            input.attributeTable.addField(field);
+            field = new DBFField();
+            field.setName("ELONG_DIR");
+            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setFieldLength(10);
+            field.setDecimalCount(4);
+            input.attributeTable.addField(field);
 
             // initialize the shapefile.
             ShapeType inputType = input.getShapeType();
-
+            int oldProgress = -1;
             for (ShapeFileRecord record : input.records) {
                 switch (inputType) {
                     case POLYGON:
@@ -569,11 +573,14 @@ public class ElongationRatio implements WhiteboxPlugin {
                 int numVertices = vertices.length;
                 verticesRotated = new double[numVertices][2];
 //                axisDirection = 0;
-                axes[0] = 999999;
-                axes[1] = 999999;
+                slope = 0;
+                axes[0] = 9999999;
+                axes[1] = 9999999;
+
+
                 // Rotate the edge cells in 0.5 degree increments.
-                for (int m = 0; m < 360; m++) {
-                    psi = m * 0.5 * DegreeToRad;
+                for (int m = 0; m <= 180; m++) {
+                    psi = -m * 0.5 * DegreeToRad; // rotation in clockwise direction
                     // Rotate each edge cell in the array by m degrees.
                     for (int n = 0; n < numVertices; n++) {
                         x = vertices[n][0] - midX;
@@ -609,22 +616,25 @@ public class ElongationRatio implements WhiteboxPlugin {
                     if ((axes[0] * axes[1]) > (newXAxis * newYAxis)) {
                         axes[0] = newXAxis;
                         axes[1] = newYAxis;
-//                        axisDirection = m / 2.0;
+
+                        if (axes[0] > axes[1]) {
+                            slope = -psi;
+                        } else {
+                            slope = -(rightAngle + psi);
+                        }
                     }
                 }
                 longAxis = Math.max(axes[0], axes[1]);
                 shortAxis = Math.min(axes[0], axes[1]);
-                
-//                // convert the axisDirection so it's referenced clockwise from north
-//                if (axisDirection <= 90) {
-//                    axisDirection = 90 - axisDirection;
-//                }// else {
-//                //    axisDirection = 180 - (axisDirection - 90);
-//                //}
-                
+                elongation = 1 - shortAxis / longAxis;
+
+                bearing = 90 - Math.toDegrees(slope);
+
+
                 recNum = record.getRecordNumber() - 1;
                 Object[] recData = input.attributeTable.getRecord(recNum);
-                recData[recData.length - 1] = new Double(1 - shortAxis / longAxis); //(longAxis - shortAxis) / (longAxis + shortAxis));
+                recData[recData.length - 2] = new Double(elongation); //(longAxis - shortAxis) / (longAxis + shortAxis));
+                recData[recData.length - 1] = new Double(bearing); 
                 input.attributeTable.updateRecord(recNum, recData);
 
                 if (cancelOp) {
@@ -632,7 +642,10 @@ public class ElongationRatio implements WhiteboxPlugin {
                     return;
                 }
                 progress = (int) (record.getRecordNumber() / numberOfRecords * 100);
-                updateProgress(progress);
+                if (progress > oldProgress) { 
+                    updateProgress(progress);
+                }
+                oldProgress = progress;
             }
 
             // returning the database file will result in it being opened in the Whitebox GUI.
@@ -665,7 +678,7 @@ public class ElongationRatio implements WhiteboxPlugin {
      //This method is only used during testing.
     public static void main(String[] args) {
         args = new String[1];
-        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/alllakesutmdissolve.shp";
+        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/medium lakes.shp";
         
         ElongationRatio er = new ElongationRatio();
         er.setArgs(args);
