@@ -110,13 +110,17 @@ public class SampleVector extends JPanel {
             g2d.setColor(backColour);
             g2d.fillRect(0, 0, width, height);
                     
-            if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM ||
-                    st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
+            if (st.getBaseType() == ShapeType.POLYGON || st == ShapeType.MULTIPATCH) {
                 double top = 7.0;
                 double bottom = height - 7.0;
                 double left = 15.0;
                 double right = width - 15.0;
                 GeneralPath polyline;
+                if (fillColour.equals(Color.white) && !isOutlined) {
+                    g2d.setColor(Color.LIGHT_GRAY);
+                    g2d.fillRect(0, 0, width, height);
+
+                }
                 if (isFilled) {
                     if (isFilledWithOneColour) {
                         g2d.setColor(fillColour);
@@ -202,10 +206,7 @@ public class SampleVector extends JPanel {
                     }
 
                 }
-            } else if (st == ShapeType.POINT ||
-                    st == ShapeType.POINTM || st == ShapeType.POINTZ ||
-                    st == ShapeType.MULTIPOINT || st == ShapeType.MULTIPOINTM ||
-                    st == ShapeType.MULTIPOINTZ) {
+            } else if (st.getBaseType() == ShapeType.POINT || st.getBaseType() == ShapeType.MULTIPOINT) {
                 
                 double[][] xyData = PointMarkers.getMarkerData(vli.getMarkerStyle(), vli.getMarkerSize());
                 
@@ -284,8 +285,7 @@ public class SampleVector extends JPanel {
                         g2d.drawString(label, (float) (r), (float) (b - vOffset));
                     }
                 }
-            } else if (st == ShapeType.POLYLINE || st == ShapeType.POLYLINEM |
-                    st == ShapeType.POLYLINEZ) {
+            } else if (st.getBaseType() == ShapeType.POLYLINE) {
                 
                 double top = 7.0;
                 double bottom = height - 7.0;
@@ -346,11 +346,6 @@ public class SampleVector extends JPanel {
                             polyline.lineTo(margin + oneThirdWidth, t);
                             polyline.lineTo(margin + oneThirdWidth * 2, b);
                             polyline.lineTo(margin + oneThirdWidth * 3, t);
-                            
-//                            polyline.moveTo(left, bottom);
-//                            polyline.lineTo(left + oneThirdWidth, top);
-//                            polyline.lineTo(left + oneThirdWidth * 2, bottom);
-//                            polyline.lineTo(left + oneThirdWidth * 3, top);
                         } else {
                             double middle = height / 2.0;
                             polyline.moveTo(left, middle);

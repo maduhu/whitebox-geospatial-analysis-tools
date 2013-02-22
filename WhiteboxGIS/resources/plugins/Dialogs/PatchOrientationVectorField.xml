@@ -29,4 +29,11 @@
 		<MakeOptional>False</MakeOptional>
 		<Width>60</Width>
 	</DialogComponent>
+        <DialogComponent type="DialogCheckBox">
+		<Name>useElongationRatio</Name>
+		<Description>Should vectors be calculated based on elongation?</Description>
+                <LabelText>Base calculation on elongatio ratio?</LabelText>
+		<InitialState>False</InitialState>
+		<IsVisible>True</IsVisible>
+	</DialogComponent>
 </Dialog>

@@ -117,7 +117,7 @@ public class CompactnessRatio implements WhiteboxPlugin {
         if (myHost != null) {
             myHost.updateProgress(progress);
         } else {
-            System.out.print("Progress: " + progress + "%");
+            System.out.println("Progress: " + progress + "%");
         }
     }
 /**
