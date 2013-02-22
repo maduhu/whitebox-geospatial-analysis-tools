@@ -15,6 +15,7 @@ plugins.Hillshade
 plugins.HorizonAngle
 plugins.MaxDownslopeElevationChange
 plugins.MaxUpslopeFlowpathLength
+plugins.MinDownslopeElevationChange
 plugins.NumDownslopeNeighbours
 plugins.NumUpslopeNeighbours
 plugins.Pennocks_Landform_Classification
