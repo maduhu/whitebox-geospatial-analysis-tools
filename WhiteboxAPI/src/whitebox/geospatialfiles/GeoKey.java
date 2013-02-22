@@ -324,8 +324,10 @@ class GeoKey  {
  
     public Tag tag() { return tag; }
     public int value() { return value; }
+      @Override
     public String toString() { return value+" ("+name+")"; }
  
+      @Override
     public int compareTo( Object o) {
       if (!(o instanceof TagValue))
         return 0;
