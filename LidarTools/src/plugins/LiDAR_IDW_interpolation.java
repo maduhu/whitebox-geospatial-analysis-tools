@@ -623,6 +623,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                 northing = (north - halfResolution) - (row * resolution);
                                 entry = new double[]{northing, easting};
                                 results = pointsTree.nearestNeighbor(entry, numPointsToUse, false);
+                                
                                 sumWeights = 0;
                                 for (i = 0; i < results.size(); i++) {
                                     if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
