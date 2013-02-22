@@ -1,4 +1,5 @@
 plugins.CompareImagesForDifferences
+plugins.CorrelationForAttributes
 plugins.CumulativeDistributionFunction
 plugins.CrispnessIndex
 plugins.CrossTabulation
@@ -13,6 +14,7 @@ plugins.ImageStandardDeviation
 plugins.ImageTotal
 plugins.KappaIndex
 plugins.NumberOfGridCells
+plugins.PCAForAttributes
 plugins.TestForNormality
 plugins.TurningBands
 plugins.RandomSample
