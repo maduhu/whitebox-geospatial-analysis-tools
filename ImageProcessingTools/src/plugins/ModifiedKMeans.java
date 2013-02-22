@@ -222,7 +222,7 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                     nCols = images[i].getNumberColumns();
                     nRows = images[i].getNumberRows();
                     noData = images[i].getNoDataValue();
-                    numClasses = (int)(images[i].getMaximumValue() / 2);
+//                    numClasses = (int)(images[i].getMaximumValue() / 2);
                 } else {
                     if (images[i].getNumberColumns() != nCols
                             || images[i].getNumberRows() != nRows) {
@@ -236,6 +236,8 @@ public class ModifiedKMeans implements WhiteboxPlugin {
 
             }
 
+            numClasses = 100; //(int)(images[i].getMaximumValue() / 2);
+            
             data = new double[numImages][];
             numPixelsInEachClass = new long[numImages];
 
