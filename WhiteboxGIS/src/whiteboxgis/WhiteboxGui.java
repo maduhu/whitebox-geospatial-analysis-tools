@@ -55,6 +55,8 @@ import whitebox.interfaces.*;
 import whitebox.structures.BoundingBox;
 import whitebox.structures.ExtensionFileFilter;
 import whitebox.utilities.FileUtilities;
+import whitebox.geospatialfiles.VectorLayerInfo;
+
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
@@ -2151,7 +2153,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
                 refreshMap(true);
             } else if (file.contains(".shp")) {
-                VectorLayerInfo newLayer = new VectorLayerInfo(file, 255, activeMapArea.getNumLayers());
+                VectorLayerInfo newLayer = new VectorLayerInfo(file, paletteDirectory, 
+                        255, activeMapArea.getNumLayers());
                 activeMapArea.addLayer(newLayer);
                 newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
                 activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
@@ -2307,7 +2310,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     activeMapArea.addLayer(newLayer);
                     newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
                 } else if (files[i].toString().toLowerCase().contains(".shp")) {
-                    VectorLayerInfo newLayer = new VectorLayerInfo(files[i].toString(),
+                    VectorLayerInfo newLayer = new VectorLayerInfo(files[i].toString(), paletteDirectory, 
                             255, activeMapArea.getNumLayers());
                     activeMapArea.addLayer(newLayer);
                     newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);

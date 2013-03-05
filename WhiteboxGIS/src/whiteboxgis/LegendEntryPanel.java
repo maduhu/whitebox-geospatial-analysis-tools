@@ -34,7 +34,9 @@ import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.interfaces.MapLayer;
 import whitebox.interfaces.MapLayer.MapLayerType;
 import whitebox.interfaces.WhiteboxPluginHost;
-import whiteboxgis.VectorLayerInfo.LegendEntry;
+import whitebox.geospatialfiles.VectorLayerInfo.LegendEntry;
+import whitebox.geospatialfiles.VectorLayerInfo;
+import whitebox.cartographic.SampleVector;
 
 /**
  *

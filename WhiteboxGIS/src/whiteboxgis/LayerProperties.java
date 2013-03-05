@@ -34,6 +34,7 @@ import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.interfaces.Communicator;
 import whitebox.interfaces.MapLayer;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.geospatialfiles.VectorLayerInfo;
 
 /**
  *

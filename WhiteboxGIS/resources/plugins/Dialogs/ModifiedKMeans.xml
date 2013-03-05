@@ -39,7 +39,25 @@
 		<Description>Any two cluster centroids that are nearer than this value will be merged.</Description>
 		<LabelText>Cluster merger distance:</LabelText>
 		<IsVisible>True</IsVisible>
-		<InitialText>30.0</InitialText>
+		<InitialText></InitialText>
+		<NumericalInputOnly>True</NumericalInputOnly>
+		<MakeOptional>False</MakeOptional>
+	</DialogComponent>
+        <DialogComponent type="DialogDataInput">
+		<Name>maxDist</Name>
+		<Description>Any pixel more distant than this value to the nearest cluster centre will be left unassigned.</Description>
+		<LabelText>Maximum allowable distant (Optional):</LabelText>
+		<IsVisible>True</IsVisible>
+		<InitialText></InitialText>
+		<NumericalInputOnly>True</NumericalInputOnly>
+		<MakeOptional>True</MakeOptional>
+	</DialogComponent>
+        <DialogComponent type="DialogDataInput">
+		<Name>minimumClassSize</Name>
+		<Description>What is the minimum allowable class size?</Description>
+		<LabelText>Minimum allowable class size (pixels):</LabelText>
+		<IsVisible>True</IsVisible>
+		<InitialText>1</InitialText>
 		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
@@ -48,7 +66,7 @@
 		<Description>What technique should be used to initialize cluster centres?</Description>
 		<LabelText>Initalize cluster centres:</LabelText>
 		<IsVisible>True</IsVisible>
-		<ListItems>with max dispersion along diagonal, randomly</ListItems>
+		<ListItems>randomly,with max dispersion along diagonal</ListItems>
 		<DefaultItem>0</DefaultItem>		
 	</DialogComponent>
 </Dialog>

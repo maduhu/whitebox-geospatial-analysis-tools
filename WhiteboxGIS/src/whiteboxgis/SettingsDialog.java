@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import whitebox.cartographic.PointMarkers;
 import whitebox.cartographic.PointMarkers.MarkerStyle;
 import whitebox.geospatialfiles.RasterLayerInfo;
+import whitebox.geospatialfiles.VectorLayerInfo;
 
 /**
  *
