@@ -180,14 +180,19 @@ public class ModifiedKMeans implements WhiteboxPlugin {
         int maxIterations = 100;
         double dist, minDist;
         int whichClass;
-        double minAdjustment = 10;
+        //double minAdjustment = 10;
         byte initializationMode = 0; // maximum dispersion along diagonal
-        long numCellsChanged = 0;
+        long numPixelsChanged = 0;
         long totalNumCells = 0;
         boolean totalNumCellsCounted = false;
         double percentChanged = 0;
         double percentChangedThreshold = 1.0;
         double centroidMergeDist = 30;
+        int minimumAllowableClassSize = 1;
+        int initialNumClasses = 10000;
+        double maxDist = Double.POSITIVE_INFINITY;
+        int unassignedClass = -1;
+        boolean isNoDataPixel;
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -201,13 +206,18 @@ public class ModifiedKMeans implements WhiteboxPlugin {
         maxIterations = Integer.parseInt(args[2]);
         percentChangedThreshold = Double.parseDouble(args[3]);
         centroidMergeDist = Double.parseDouble(args[4]);
-        if (args[5].toLowerCase().contains("random")) {
+        if (!args[5].toLowerCase().contains("not specified")) {
+            maxDist = Double.parseDouble(args[5]);
+        }
+        minimumAllowableClassSize = Integer.parseInt(args[6]);
+        if (args[7].toLowerCase().contains("random")) {
             initializationMode = 1; //random positioning 
         } else {
             initializationMode = 0; //maximum dispersion along multi-dimensional diagonal
         }
 
         int[] clusterHistory = new int[maxIterations];
+        double[] changeHistory = new double[maxIterations];
         
         try {
             
@@ -222,7 +232,6 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                     nCols = images[i].getNumberColumns();
                     nRows = images[i].getNumberRows();
                     noData = images[i].getNoDataValue();
-//                    numClasses = (int)(images[i].getMaximumValue() / 2);
                 } else {
                     if (images[i].getNumberColumns() != nCols
                             || images[i].getNumberRows() != nRows) {
@@ -236,22 +245,21 @@ public class ModifiedKMeans implements WhiteboxPlugin {
 
             }
 
-            numClasses = 100; //(int)(images[i].getMaximumValue() / 2);
+            numClasses = initialNumClasses;
             
             data = new double[numImages][];
             numPixelsInEachClass = new long[numImages];
 
             // now set up the output image
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
-                    imageFiles[0], WhiteboxRaster.DataType.INTEGER, 0);
+                    imageFiles[0], WhiteboxRaster.DataType.INTEGER, noData);
             output.setDataScale(DataScale.CATEGORICAL);
             output.setPreferredPalette("qual.pal");
 
+            // initialize the class centres either along the diagonal or randomly
             if (initializationMode == 1) {
-                // initialize the class centres randomly
                 Random generator = new Random();
                 double range;
-                //classCentres = new double[numClasses][numImages];
                 for (a = 0; a < numClasses; a++) {
                     classCentre = new double[numImages];
                     for (i = 0; i < numImages; i++) {
@@ -262,7 +270,6 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                 }
             } else {
                 double range, spacing;
-                //classCentres = new double[numClasses][numImages];
                 for (a = 0; a < numClasses; a++) {
                     classCentre = new double[numImages];
                     for (i = 0; i < numImages; i++) {
@@ -277,21 +284,22 @@ public class ModifiedKMeans implements WhiteboxPlugin {
             j = 0;
             whichClass = 0;
             do {
-                clusterHistory[j] = numClasses;
                 if (j > 0) {
-                    numClasses = centres.size();
+                    numClasses = classCentres.length; //centres.size();
                     
                     centres.clear();
-                    for (a = 0; a < numClasses; a++) {
+                    for (a = 0; a < classCentres.length; a++) {
                         centres.add(classCentres[a]);
                     }
-
-                    // Remove any empty classes
+                            
                     ArrayList<Long> numPixels = new ArrayList<Long>();
                     for (i = 0; i < numPixelsInEachClass.length; i++) {
                         numPixels.add(numPixelsInEachClass[i]);
                     }
-                    boolean flag = false;
+                    
+                    
+                    // Remove any empty classes or classes smaller than the minimumAllowableClassSize
+                    boolean flag = true;
                     a = 0;
                     do {
                         if (numPixels.get(a) == 0) {
@@ -305,13 +313,10 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                             flag = false;
                         }
                     } while (flag);
-
-                    numPixelsInEachClass = new long[numPixels.size()];
-                    for (i = 0; i < numPixels.size(); i++) {
-                        numPixelsInEachClass[i] = numPixels.get(i);
-                    }
-
+                    
                     // See if any of the class centroids are close enough to be merged.
+                    
+                    long numPixels1, numPixels2; 
                     do {
                         flag = false;
                         for (a = 0; a < centres.size(); a++) {
@@ -319,8 +324,10 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                                 break;
                             }
                             classCentre = centres.get(a);
-                            for (int b = 0; b < centres.size(); b++) {
-                                if (b > a) {
+                            numPixels1 = numPixels.get(a);
+                            for (int b = a; b < centres.size(); b++) {
+                                numPixels2 = numPixels.get(b);
+                                if (b > a && numPixels1 > 0 && numPixels2 > 0) {
                                     double[] classCentre2 = centres.get(b);
                                     dist = 0;
                                     for (i = 0; i < numImages; i++) {
@@ -330,9 +337,9 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                                     if (dist < centroidMergeDist) {
                                         // these two clusters should be merged
                                         double[] classCentre3 = new double[numImages];
-                                        long totalPix = numPixelsInEachClass[a] + numPixelsInEachClass[b];
-                                        double weight1 = (double) numPixelsInEachClass[a] / totalPix;
-                                        double weight2 = (double) numPixelsInEachClass[b] / totalPix;
+                                        long totalPix = numPixels1 + numPixels2;
+                                        double weight1 = (double)numPixels1 / totalPix;
+                                        double weight2 = (double)numPixels2 / totalPix;
 
                                         for (int k = 0; k < numImages; k++) {
                                             classCentre3[k] = classCentre[k] * weight1 + classCentre2[k] * weight2;
@@ -340,6 +347,11 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                                         centres.remove(Math.max(a, b));
                                         centres.remove(Math.min(a, b));
                                         centres.add(classCentre3);
+                                        
+                                        numPixels.remove(Math.max(a, b));
+                                        numPixels.remove(Math.min(a, b));
+                                        numPixels.add(totalPix);
+                                        
                                         flag = true;
                                     }
                                     if (flag) {
@@ -350,6 +362,23 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                         }
                         numClasses = centres.size();
                     } while (flag);
+                    
+                    // Remove any classes smaller than the minimumAllowableClassSize
+                    flag = true;
+                    a = 0;
+                    do {
+                        if (numPixels.get(a) < minimumAllowableClassSize) {
+                            centres.remove(a);
+                            numPixels.remove(a);
+                            flag = true;
+                            a = -1;
+                        }
+                        a++;
+                        if (a >= numPixels.size()) {
+                            flag = false;
+                        }
+                    } while (flag);
+
                 }
 
                 numClasses = centres.size();
@@ -365,39 +394,56 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                 double[][] classCentreData = new double[numClasses][numImages];
                 numPixelsInEachClass = new long[numClasses];
 
-                numCellsChanged = 0;
+                numPixelsChanged = 0;
+                
                 for (row = 0; row < nRows; row++) {
                     for (i = 0; i < numImages; i++) {
                         data[i] = images[i].getRowValues(row);
                     }
                     for (col = 0; col < nCols; col++) {
-                        if (data[0][col] != noData) {
+                        // check to see if the cell is a nodata value in any of the input images
+                        isNoDataPixel = false;
+                        for (i = 0; i < numImages; i++) {
+                            if (data[i][col] == imageMetaData[i][0]) { 
+                                isNoDataPixel = true; 
+                                break;
+                            }
+                        }
+                        if (!isNoDataPixel) {
                             if (!totalNumCellsCounted) {
                                 totalNumCells++;
                             }
                             // calculate the squared distance to each of the centroids
                             // and assign the pixel the value of the nearest centroid.
                             minDist = Double.POSITIVE_INFINITY;
+                            whichClass = unassignedClass;
                             for (a = 0; a < numClasses; a++) {
                                 dist = 0;
                                 for (i = 0; i < numImages; i++) {
                                     dist += (data[i][col] - classCentres[a][i]) * (data[i][col] - classCentres[a][i]);
                                 }
-                                if (dist < minDist) {
+                                if (dist < minDist && dist <= maxDist) {
                                     minDist = dist;
                                     whichClass = a;
                                 }
                             }
+                            // See if the assigned class has changed and if it has add it to the total changed cells.
+                            // This is a criterion for stopping.
                             z = output.getValue(row, col);
                             if ((int)z != whichClass) {
-                                numCellsChanged++;
+                                numPixelsChanged++;
+                                
+                                // Assign the output pixel the class value
+                                output.setValue(row, col, whichClass);
                             }
-                            output.setValue(row, col, whichClass);
+                            if (whichClass != unassignedClass) {
+                                numPixelsInEachClass[whichClass]++;
 
-                            numPixelsInEachClass[whichClass]++;
-                            for (i = 0; i < numImages; i++) {
-                                classCentreData[whichClass][i] += data[i][col];
+                                for (i = 0; i < numImages; i++) {
+                                    classCentreData[whichClass][i] += (data[i][col] - imageMetaData[i][1]);
+                                }
                             }
+                            
                         } else {
                             output.setValue(row, col, noData);
                         }
@@ -416,103 +462,45 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                     if (numPixelsInEachClass[a] > 0) {
                         double[] newClassCentre = new double[numImages];
                         for (i = 0; i < numImages; i++) {
-                            newClassCentre[i] = classCentreData[a][i] / numPixelsInEachClass[a];
+                            newClassCentre[i] = classCentreData[a][i] / numPixelsInEachClass[a] + imageMetaData[i][1];
                         }
                         for (i = 0; i < numImages; i++) {
                             classCentres[a][i] = newClassCentre[i];
                         }
-
                     }
                 }
                 
-//                centres.clear();
-//                for (a = 0; a < numClasses; a++) {
-//                    centres.add(classCentres[a]);            
-//                }
-//                
-//                // Remove any empty classes
-//                ArrayList<Long> numPixels = new ArrayList<Long>();
-//                for (i = 0; i < numPixelsInEachClass.length; i++) {
-//                    numPixels.add(numPixelsInEachClass[i]);
-//                }
-//                boolean flag = false;
-//                a = 0;
-//                do {
-//                    if (numPixels.get(a) == 0) {
-//                        centres.remove(a);
-//                        numPixels.remove(a);
-//                        flag = true;
-//                        a = -1;
-//                    }
-//                    a++;
-//                    if (a >= numPixels.size()) {
-//                        flag = false;
-//                    }
-//                } while (flag);
-//                
-//                numPixelsInEachClass = new long[numPixels.size()];
-//                for (i = 0; i < numPixels.size(); i++) {
-//                    numPixelsInEachClass[i] = numPixels.get(i);
-//                }
-//                
-//                // See if any of the class centroids are close enough to be merged.
-//                do {
-//                    flag = false;
-//                    for (a = 0; a < centres.size(); a++) {
-//                        if (flag) {
-//                            break;
-//                        }
-//                        classCentre = centres.get(a);
-//                        for (int b = 0; b < centres.size(); b++) {
-//                            if (b > a) {
-//                                double[] classCentre2 = centres.get(b);
-//                                dist = 0;
-//                                for (i = 0; i < numImages; i++) {
-//                                    dist += (classCentre[i] - classCentre2[i]) * (classCentre[i] - classCentre2[i]);
-//                                }
-//                                dist = Math.sqrt(dist);
-//                                if (dist < centroidMergeDist) {
-//                                    // these two clusters should be merged
-//                                    double[] classCentre3 = new double[numImages];
-//                                    long totalPix = numPixelsInEachClass[a] + numPixelsInEachClass[b];
-//                                    double weight1 = (double)numPixelsInEachClass[a] / totalPix;
-//                                    double weight2 = (double)numPixelsInEachClass[b] / totalPix;
-//                                    
-//                                    for (int k = 0; k < numImages; k++) {
-//                                        classCentre3[k] = classCentre[k] * weight1 + classCentre2[k] * weight2;
-//                                    }
-//                                    centres.remove(Math.max(a, b));
-//                                    centres.remove(Math.min(a, b));
-//                                    centres.add(classCentre3);
-//                                    flag = true;
-//                                }
-//                                if (flag) { 
-//                                    break; // once two have been merged, stop looking and start over.
-//                                }
-//                            }
-//                        }
-//                    }
-//                    numClasses = centres.size();
-//                } while (flag);
-//                
-                
-                percentChanged = (double)numCellsChanged / totalNumCells * 100;
+                percentChanged = (double)numPixelsChanged / totalNumCells * 100;
+                clusterHistory[j - 1] = numClasses;
+                changeHistory[j - 1] = percentChanged;
             } while ((percentChanged > percentChangedThreshold) && (j < maxIterations));
 
             // prepare the report
             double[] totalDeviations = new double[numClasses];
+            int numberOfUnassignedPixels = 0;
             for (row = 0; row < nRows; row++) {
                 for (i = 0; i < numImages; i++) {
                     data[i] = images[i].getRowValues(row);
                 }
                 for (col = 0; col < nCols; col++) {
-                    if (data[0][col] != noData) {
-                        whichClass = (int)(output.getValue(row, col));
-                        dist = 0;
-                        for (i = 0; i < numImages; i++) {
-                            dist += (data[i][col] - classCentres[whichClass][i]) * (data[i][col] - classCentres[whichClass][i]);
+                    isNoDataPixel = false;
+                    for (i = 0; i < numImages; i++) {
+                        if (data[i][col] == imageMetaData[i][0]) {
+                            isNoDataPixel = true;
+                            break;
                         }
-                        totalDeviations[whichClass] += dist;
+                    }
+                    if (!isNoDataPixel) {
+                        whichClass = (int) (output.getValue(row, col));
+                        if (whichClass != unassignedClass) {
+                            dist = 0;
+                            for (i = 0; i < numImages; i++) {
+                                dist += (data[i][col] - classCentres[whichClass][i]) * (data[i][col] - classCentres[whichClass][i]);
+                            }
+                            totalDeviations[whichClass] += dist;
+                        } else {
+                            numberOfUnassignedPixels++;
+                        }
                     } else {
                         output.setValue(row, col, noData);
                     }
@@ -550,6 +538,9 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                 retStr += "Cluster " + a + "\t" + str + df.format(standardDeviations[a]) + "\t" + numPixelsInEachClass[a] + "\t" + df.format((double)numPixelsInEachClass[a] / totalNumCells * 100) + "\n";
             }
             retStr += "\n";
+            retStr += "Number of unassigned pixels (class = -1): " + numberOfUnassignedPixels + "\n\n";
+            
+            
             for (i = 0; i < numImages; i++) {
                 retStr += "Image" + (i + 1) + " = " + images[i].getShortHeaderFile() + "\n";
             }
@@ -559,6 +550,7 @@ public class ModifiedKMeans implements WhiteboxPlugin {
                 retStr += "\tClus. " + a;
             }
             retStr += "\n";
+            
             //double[][] centroidDistances = new double[numClasses][numClasses];
             for (a = 0; a < numClasses; a++) {
                 retStr += "Cluster " + a;
@@ -577,11 +569,11 @@ public class ModifiedKMeans implements WhiteboxPlugin {
             }
             
             retStr += "\nCluster Merger History:\n";
-            retStr += "Iteration\tNumber of Clusters\n";
+            retStr += "Iteration\tNumber of Clusters\tPercent Changed\n";
             
             for (i = 0; i < maxIterations; i++) {
                 if (clusterHistory[i] > 0) {
-                    retStr += (i + 1) + "\t" + clusterHistory[i] + "\n";
+                    retStr += (i + 1) + "\t" + clusterHistory[i] + "\t" + changeHistory[i] + "\n";
                 } else {
                     break;
                 }
