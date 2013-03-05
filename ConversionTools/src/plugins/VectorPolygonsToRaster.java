@@ -231,7 +231,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
         ArrayList<Integer> edgeList = new ArrayList<Integer>();
         boolean useRecID = false;
         DecimalFormat df = new DecimalFormat("###,###,###,###");
-        double smallNumber = Float.NEGATIVE_INFINITY; // this value will be used
+        double smallNumber = -999999.0; // this value will be used
         // to ensure that when there is a hole in a polygon, the cell containing
         // the background value will be retreived from the priority queue second.
 
