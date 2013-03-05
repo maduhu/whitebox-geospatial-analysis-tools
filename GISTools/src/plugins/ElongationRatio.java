@@ -630,11 +630,10 @@ public class ElongationRatio implements WhiteboxPlugin {
 
                 bearing = 90 - Math.toDegrees(slope);
 
-
                 recNum = record.getRecordNumber() - 1;
                 Object[] recData = input.attributeTable.getRecord(recNum);
                 recData[recData.length - 2] = new Double(elongation); //(longAxis - shortAxis) / (longAxis + shortAxis));
-                recData[recData.length - 1] = new Double(bearing); 
+                recData[recData.length - 1] = new Double(bearing);
                 input.attributeTable.updateRecord(recNum, recData);
 
                 if (cancelOp) {
