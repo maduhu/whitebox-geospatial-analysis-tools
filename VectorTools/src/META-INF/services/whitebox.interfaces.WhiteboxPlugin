@@ -10,6 +10,7 @@ plugins.MinimumConvexHull
 plugins.ExtractNodes
 plugins.PolygonsToLines
 plugins.RemovePolygonHoles
+plugins.RemovePolygonNecks
 plugins.SimplifyLineOrPolygon
 plugins.Smooth
 plugins.SymmetricDifference

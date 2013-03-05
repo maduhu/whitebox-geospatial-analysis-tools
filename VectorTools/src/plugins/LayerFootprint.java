@@ -193,20 +193,6 @@ public class LayerFootprint implements WhiteboxPlugin {
         amIActive = true;
         String inputFile;
         String outputFile;
-        boolean flag;
-        int row, col;
-        double xCoord, yCoord;
-        int progress;
-        int i;
-        double value, z, zN1, zN2;
-        int FID = 0;
-        int[] rowVals = new int[2];
-        int[] colVals = new int[2];
-        int traceDirection = 0;
-        int previousTraceDirection = 0;
-        double currentHalfRow = 0, currentHalfCol = 0;
-        double[] inputValueData = new double[4];
-        long numPoints;
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
