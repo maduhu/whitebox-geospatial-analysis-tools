@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.RasterLayerInfo;
+import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
 import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.MapLayer;
@@ -381,6 +382,14 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
             return rli.getNoDataValue();
         } else {
             return -32768;
+        }
+    }
+    
+    public void deselectVectorFeatures() {
+        if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
+            VectorLayerInfo vli = (VectorLayerInfo)activeLayer;
+            vli.setSelectedFeatureNumber(-1);
+            System.out.println("Hello I'm here.");
         }
     }
 

@@ -81,6 +81,14 @@ public class PointZ implements Geometry {
     }
     
     @Override
+    public double[][] getPoints() {
+        double[][] points = new double[1][2];
+        points[0][0] = x;
+        points[0][1] = y;
+        return points;
+    }
+    
+    @Override
     public int getLength() {
         return 32;
     }

@@ -30,13 +30,13 @@ public interface Geometry {
      */
     int getLength();
     
+    double[][] getPoints();
+    
     ShapeType getShapeType();
     
     boolean isMappable(BoundingBox box, double minSize);
     
     boolean needsClipping(BoundingBox box);
-    
-    
     
     ByteBuffer toByteBuffer();
     

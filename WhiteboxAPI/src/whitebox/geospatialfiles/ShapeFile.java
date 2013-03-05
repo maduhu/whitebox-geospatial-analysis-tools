@@ -683,7 +683,8 @@ public class ShapeFile {
         }
     }
     
-    public boolean addRecord(Geometry recordGeometry, Object rowData[]) {
+    public void addRecord(Geometry recordGeometry, Object rowData[]) throws Exception {
+        try {
         if (recordGeometry.getShapeType() == shapeType) {
             numRecs++;
             int contentLength = (4 + recordGeometry.getLength()) / 2;
@@ -829,11 +830,16 @@ public class ShapeFile {
             try { 
                 this.attributeTable.addRecord(rowData);
             } catch (Exception e) {
-                return false;
+                throw e;
+                //return false;
             }
-            return true;
+            //return true;
         } else {
-            return false;
+            throw new Exception("Incorrect shape type.");
+            //return false;
+        }
+        } catch (Exception e) {
+            throw e;
         }
     }
     

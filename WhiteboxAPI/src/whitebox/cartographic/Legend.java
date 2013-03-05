@@ -31,7 +31,7 @@ public class Legend implements CartographicElement, Comparable<CartographicEleme
     private boolean selected = false;
     private int number = -1;
     private String label = "Legend";
-    private boolean borderVisible = true;
+    private boolean borderVisible = false;
     private boolean backgroundVisible = true;
     private int upperLeftX = -32768; // initialize with a large negative value
     private int upperLeftY = -32768;
