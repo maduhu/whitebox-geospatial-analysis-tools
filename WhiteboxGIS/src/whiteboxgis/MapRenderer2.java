@@ -1374,7 +1374,15 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             }
                                             mapArea.setXYUnits(XYUnits);
                                         }
-                                        int selectedFeature = layer.getSelectedFeatureNumber();
+                                        // is it the active layer?
+                                        int selectedFeature = -1;
+                                        boolean activeLayerBool = false;
+                                        if (mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
+                                            selectedFeature = layer.getSelectedFeatureNumber();
+                                            activeLayerBool = true;
+                                        } else if (layer.getSelectedFeatureNumber() >= 0) {
+                                            layer.setSelectedFeatureNumber(-1);
+                                        }
                                         float xPoint, yPoint;
                                         /*
                                          * minDistinguishableLength is used to
@@ -1473,10 +1481,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                         g2.setColor(colours[r]);
                                                                         g2.fill(gp);
                                                                     }
-                                                                    if (isOutlined && record.getRecordNumber() != selectedFeature) {
+                                                                    if (isOutlined) {
                                                                         g2.setColor(lineColour);
                                                                         g2.draw(gp);
-                                                                    } else if (record.getRecordNumber() == selectedFeature) {
+                                                                    }
+                                                                    if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
                                                                         g2.setColor(selectedFeatureColour);
                                                                         g2.draw(gp);
                                                                     }
@@ -1516,15 +1525,15 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                             gp.append(circle, true);
                                                                         }
                                                                     }
-                                                                    //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
                                                                     if (isFilled) {
                                                                         g2.setColor(colours[r]);
                                                                         g2.fill(gp);
                                                                     }
-                                                                    if (isOutlined && record.getRecordNumber() != selectedFeature) {
+                                                                    if (isOutlined) {
                                                                         g2.setColor(lineColour);
                                                                         g2.draw(gp);
-                                                                    } else if (record.getRecordNumber() == selectedFeature) {
+                                                                    }
+                                                                    if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
                                                                         g2.setColor(selectedFeatureColour);
                                                                         g2.draw(gp);
                                                                     }
@@ -1568,10 +1577,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                         g2.setColor(colours[r]);
                                                                         g2.fill(gp);
                                                                     }
-                                                                    if (isOutlined  && record.getRecordNumber() != selectedFeature) {
+                                                                    if (isOutlined) {
                                                                         g2.setColor(lineColour);
                                                                         g2.draw(gp);
-                                                                    } else if (record.getRecordNumber() == selectedFeature) {
+                                                                    }
+                                                                    if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
                                                                         g2.setColor(selectedFeatureColour);
                                                                         g2.draw(gp);
                                                                     }
@@ -1601,7 +1611,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                         x1 = (viewAreaULX + (x1 - leftCoord) / EWRange * viewAreaWidth);
                                                                         y1 = (viewAreaULY + (topCoord - y1) / NSRange * viewAreaHeight);
 
-                                                                        gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                                                        gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xyData.length);
                                                                         for (int a = 0; a < xyData.length; a++) {
                                                                             if (xyData[a][0] == 0) { // moveTo
                                                                                 gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
@@ -1617,10 +1627,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                             g2.setColor(colours[r]);
                                                                             g2.fill(gp);
                                                                         }
-                                                                        if (isOutlined && record.getRecordNumber() != selectedFeature) {
+                                                                        if (isOutlined) {
                                                                             g2.setColor(lineColour);
                                                                             g2.draw(gp);
-                                                                        } else if (record.getRecordNumber() == selectedFeature) {
+                                                                        }
+                                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
                                                                             g2.setColor(selectedFeatureColour);
                                                                             g2.draw(gp);
                                                                         }
@@ -1651,7 +1662,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                         x1 = (viewAreaULX + (x1 - leftCoord) / EWRange * viewAreaWidth);
                                                                         y1 = (viewAreaULY + (topCoord - y1) / NSRange * viewAreaHeight);
 
-                                                                        gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                                                        gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xyData.length);
                                                                         for (int a = 0; a < xyData.length; a++) {
                                                                             if (xyData[a][0] == 0) { // moveTo
                                                                                 gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
@@ -1667,10 +1678,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                             g2.setColor(colours[r]);
                                                                             g2.fill(gp);
                                                                         }
-                                                                        if (isOutlined && record.getRecordNumber() != selectedFeature) {
+                                                                        if (isOutlined) {
                                                                             g2.setColor(lineColour);
                                                                             g2.draw(gp);
-                                                                        } else if (record.getRecordNumber() == selectedFeature) {
+                                                                        }
+                                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
                                                                             g2.setColor(selectedFeatureColour);
                                                                             g2.draw(gp);
                                                                         }
@@ -1701,7 +1713,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                         x1 = (viewAreaULX + (x1 - leftCoord) / EWRange * viewAreaWidth);
                                                                         y1 = (viewAreaULY + (topCoord - y1) / NSRange * viewAreaHeight);
 
-                                                                        gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                                                        gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xyData.length);
                                                                         for (int a = 0; a < xyData.length; a++) {
                                                                             if (xyData[a][0] == 0) { // moveTo
                                                                                 gp.moveTo(x1 + xyData[a][1], y1 + xyData[a][2]);
@@ -1717,10 +1729,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                             g2.setColor(colours[r]);
                                                                             g2.fill(gp);
                                                                         }
-                                                                        if (isOutlined  && record.getRecordNumber() != selectedFeature) {
+                                                                        if (isOutlined) {
                                                                             g2.setColor(lineColour);
                                                                             g2.draw(gp);
-                                                                        } else if (record.getRecordNumber() == selectedFeature) {
+                                                                        }
+                                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
                                                                             g2.setColor(selectedFeatureColour);
                                                                             g2.draw(gp);
                                                                         }
@@ -1771,12 +1784,35 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                     for (int index = 1; index < xPoints.length; index++) {
                                                                         polyline.lineTo(xPoints[index], yPoints[index]);
                                                                     }
-                                                                    if (record.getRecordNumber() != selectedFeature) {
+                                                                    if (!activeLayerBool || record.getRecordNumber() != selectedFeature) {
                                                                         g2.setColor(colours[r]);
-                                                                    } else {
+                                                                    } else if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
                                                                         g2.setColor(selectedFeatureColour);
                                                                     }
                                                                     g2.draw(polyline);
+                                                                }
+                                                                
+                                                                if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_SELECT) {
+                                                                    BoundingBox bb = rec.getBox();
+                                                                    if (bb.isPointInBox(mapX, mapY)) {
+                                                                        g2.setColor(Color.LIGHT_GRAY);
+                                                                        polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+                                                                        xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                        yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
+                                                                        float xPoint2 = (float) (viewAreaULX + (bb.getMaxX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                        float yPoint2 = (float) (viewAreaULY + (topCoord - bb.getMaxY()) / NSRange * viewAreaHeight);
+                                                                        polyline.moveTo(xPoint, yPoint);
+                                                                        polyline.lineTo(xPoint, yPoint2);
+                                                                        polyline.lineTo(xPoint2, yPoint2);
+                                                                        polyline.lineTo(xPoint2, yPoint);
+                                                                        polyline.lineTo(xPoint, yPoint);
+                                                                        
+                                                                        g2.draw(polyline);
+                                                                        
+                                                                        Ellipse2D circle = new Ellipse2D.Double(xPoint + (xPoint2 - xPoint) / 2 - 2, yPoint + (yPoint2 - yPoint) / 2 - 2, 4, 4);
+                                                                        g2.fill(circle);
+                                                                        
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -1819,12 +1855,35 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                     for (int index = 1; index < xPoints.length; index++) {
                                                                         polyline.lineTo(xPoints[index], yPoints[index]);
                                                                     }
-                                                                    if (record.getRecordNumber() != selectedFeature) {
+                                                                    if (!activeLayerBool || record.getRecordNumber() != selectedFeature) {
                                                                         g2.setColor(colours[r]);
-                                                                    } else {
+                                                                    } else if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
                                                                         g2.setColor(selectedFeatureColour);
                                                                     }
                                                                     g2.draw(polyline);
+                                                                }
+                                                                
+                                                                if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_SELECT) {
+                                                                    BoundingBox bb = rec.getBox();
+                                                                    if (bb.isPointInBox(mapX, mapY)) {
+                                                                        g2.setColor(Color.LIGHT_GRAY);
+                                                                        polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+                                                                        xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                        yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
+                                                                        float xPoint2 = (float) (viewAreaULX + (bb.getMaxX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                        float yPoint2 = (float) (viewAreaULY + (topCoord - bb.getMaxY()) / NSRange * viewAreaHeight);
+                                                                        polyline.moveTo(xPoint, yPoint);
+                                                                        polyline.lineTo(xPoint, yPoint2);
+                                                                        polyline.lineTo(xPoint2, yPoint2);
+                                                                        polyline.lineTo(xPoint2, yPoint);
+                                                                        polyline.lineTo(xPoint, yPoint);
+                                                                        
+                                                                        g2.draw(polyline);
+                                                                        
+                                                                        Ellipse2D circle = new Ellipse2D.Double(xPoint + (xPoint2 - xPoint) / 2 - 2, yPoint + (yPoint2 - yPoint) / 2 - 2, 4, 4);
+                                                                        g2.fill(circle);
+                                                                        
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -1868,12 +1927,35 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                     for (int index = 1; index < xPoints.length; index++) {
                                                                         polyline.lineTo(xPoints[index], yPoints[index]);
                                                                     }
-                                                                    if (record.getRecordNumber() != selectedFeature) {
+                                                                    if (!activeLayerBool || record.getRecordNumber() != selectedFeature) {
                                                                         g2.setColor(colours[r]);
-                                                                    } else {
+                                                                    } else if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
                                                                         g2.setColor(selectedFeatureColour);
                                                                     }
                                                                     g2.draw(polyline);
+                                                                }
+                                                                
+                                                                if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_SELECT) {
+                                                                    BoundingBox bb = rec.getBox();
+                                                                    if (bb.isPointInBox(mapX, mapY)) {
+                                                                        g2.setColor(Color.LIGHT_GRAY);
+                                                                        polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+                                                                        xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                        yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
+                                                                        float xPoint2 = (float) (viewAreaULX + (bb.getMaxX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                        float yPoint2 = (float) (viewAreaULY + (topCoord - bb.getMaxY()) / NSRange * viewAreaHeight);
+                                                                        polyline.moveTo(xPoint, yPoint);
+                                                                        polyline.lineTo(xPoint, yPoint2);
+                                                                        polyline.lineTo(xPoint2, yPoint2);
+                                                                        polyline.lineTo(xPoint2, yPoint);
+                                                                        polyline.lineTo(xPoint, yPoint);
+                                                                        
+                                                                        g2.draw(polyline);
+                                                                        
+                                                                        Ellipse2D circle = new Ellipse2D.Double(xPoint + (xPoint2 - xPoint) / 2 - 2, yPoint + (yPoint2 - yPoint) / 2 - 2, 4, 4);
+                                                                        g2.fill(circle);
+                                                                        
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -1958,7 +2040,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             }
                                                             g2.setStroke(oldStroke);
                                                         }
-                                                        if (selectedFeature >= 0) {
+                                                        if (activeLayerBool && selectedFeature >= 0) {
                                                             g2.setColor(selectedFeatureColour);
                                                             for (ShapeFileRecord record : records) {
                                                                 if (record.getRecordNumber() == selectedFeature) {
@@ -1986,6 +2068,29 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                         }
                                                                         g2.draw(polyline);
                                                                     }
+                                                                }
+                                                                
+                                                                whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+                                                                BoundingBox bb = rec.getBox();
+                                                                if (bb.isPointInBox(mapX, mapY)) {
+                                                                    g2.setColor(Color.LIGHT_GRAY);
+                                                                    polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+                                                                    xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                    yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
+                                                                    float xPoint2 = (float) (viewAreaULX + (bb.getMaxX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                    float yPoint2 = (float) (viewAreaULY + (topCoord - bb.getMaxY()) / NSRange * viewAreaHeight);
+                                                                    polyline.moveTo(xPoint, yPoint);
+                                                                    polyline.lineTo(xPoint, yPoint2);
+                                                                    polyline.lineTo(xPoint2, yPoint2);
+                                                                    polyline.lineTo(xPoint2, yPoint);
+                                                                    polyline.lineTo(xPoint, yPoint);
+
+                                                                    g2.draw(polyline);
+
+                                                                    Ellipse2D circle = new Ellipse2D.Double(xPoint + (xPoint2 - xPoint) / 2 - 2, yPoint + (yPoint2 - yPoint) / 2 - 2, 4, 4);
+                                                                    g2.fill(circle);
+                                                                    
+                                                                    g2.setColor(selectedFeatureColour);
                                                                 }
                                                             }
                                                         }
@@ -2069,7 +2174,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.setStroke(oldStroke);
                                                         }
                                                         
-                                                        if (selectedFeature >= 0) {
+                                                        if (activeLayerBool && selectedFeature >= 0) {
                                                             g2.setColor(selectedFeatureColour);
                                                             for (ShapeFileRecord record : records) {
                                                                 if (record.getRecordNumber() == selectedFeature) {
@@ -2097,6 +2202,29 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                         }
                                                                         g2.draw(polyline);
                                                                     }
+                                                                }
+                                                                
+                                                                PolygonZ rec = (PolygonZ)(record.getGeometry());
+                                                                BoundingBox bb = rec.getBox();
+                                                                if (bb.isPointInBox(mapX, mapY)) {
+                                                                    g2.setColor(Color.LIGHT_GRAY);
+                                                                    polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+                                                                    xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                    yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
+                                                                    float xPoint2 = (float) (viewAreaULX + (bb.getMaxX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                    float yPoint2 = (float) (viewAreaULY + (topCoord - bb.getMaxY()) / NSRange * viewAreaHeight);
+                                                                    polyline.moveTo(xPoint, yPoint);
+                                                                    polyline.lineTo(xPoint, yPoint2);
+                                                                    polyline.lineTo(xPoint2, yPoint2);
+                                                                    polyline.lineTo(xPoint2, yPoint);
+                                                                    polyline.lineTo(xPoint, yPoint);
+
+                                                                    g2.draw(polyline);
+
+                                                                    Ellipse2D circle = new Ellipse2D.Double(xPoint + (xPoint2 - xPoint) / 2 - 2, yPoint + (yPoint2 - yPoint) / 2 - 2, 4, 4);
+                                                                    g2.fill(circle);
+                                                                    
+                                                                    g2.setColor(selectedFeatureColour);
                                                                 }
                                                             }
                                                         }
@@ -2179,7 +2307,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             }
                                                             g2.setStroke(oldStroke);
                                                         }
-                                                        if (selectedFeature >= 0) {
+                                                        if (activeLayerBool && selectedFeature >= 0) {
                                                             g2.setColor(selectedFeatureColour);
                                                             for (ShapeFileRecord record : records) {
                                                                 if (record.getRecordNumber() == selectedFeature) {
@@ -2207,6 +2335,29 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                         }
                                                                         g2.draw(polyline);
                                                                     }
+                                                                }
+                                                                
+                                                                PolygonM rec = (PolygonM)(record.getGeometry());
+                                                                BoundingBox bb = rec.getBox();
+                                                                if (bb.isPointInBox(mapX, mapY)) {
+                                                                    g2.setColor(Color.LIGHT_GRAY);
+                                                                    polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+                                                                    xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                    yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
+                                                                    float xPoint2 = (float) (viewAreaULX + (bb.getMaxX() - leftCoord) / EWRange * viewAreaWidth);
+                                                                    float yPoint2 = (float) (viewAreaULY + (topCoord - bb.getMaxY()) / NSRange * viewAreaHeight);
+                                                                    polyline.moveTo(xPoint, yPoint);
+                                                                    polyline.lineTo(xPoint, yPoint2);
+                                                                    polyline.lineTo(xPoint2, yPoint2);
+                                                                    polyline.lineTo(xPoint2, yPoint);
+                                                                    polyline.lineTo(xPoint, yPoint);
+
+                                                                    g2.draw(polyline);
+
+                                                                    Ellipse2D circle = new Ellipse2D.Double(xPoint + (xPoint2 - xPoint) / 2 - 2, yPoint + (yPoint2 - yPoint) / 2 - 2, 4, 4);
+                                                                    g2.fill(circle);
+                                                                    
+                                                                    g2.setColor(selectedFeatureColour);
                                                                 }
                                                             }
                                                         }
@@ -2530,6 +2681,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     }
                     myMode = MOUSE_MODE_MAPAREA;
                     
+//                    calculateMapXY(e, (MapArea)ce);
+                    
                     updateStatus(e, (MapArea)ce);
 
                 }
@@ -2580,7 +2733,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 ce.setSelectedOffsetX(x - ce.getUpperLeftX());
                 ce.setSelectedOffsetY(y - ce.getUpperLeftY());
             }
-
+            
+            if (myMode == MOUSE_MODE_MAPAREA) {
+                calculateMapXY(e, (MapArea)ce);
+            }
+        
         }
         if (!withinElement) {
             if (myMode == MOUSE_MODE_CARTO_ELEMENT
@@ -2596,6 +2753,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 whichCartoElement = -1;
                 this.repaint();
             }
+        }
+        if (myMode == MOUSE_MODE_MAPAREA && backgroundMouseMode == MOUSE_MODE_SELECT) { 
+            this.repaint(); 
         }
     }
 
@@ -2621,7 +2781,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             }
 
         } else if (clickCount == 1 && (myMode == MOUSE_MODE_CARTO_ELEMENT
-                || myMode == MOUSE_MODE_MAPAREA) && myMode != MOUSE_MODE_SELECT) {
+                || myMode == MOUSE_MODE_MAPAREA) && backgroundMouseMode != MOUSE_MODE_SELECT) {
             boolean isSelected = map.getCartographicElement(whichCartoElement).isSelected();
             if (!isSelected) {
                 if (!e.isShiftDown()) {
@@ -2655,18 +2815,16 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 }
             }
             this.repaint();
-        } else if (clickCount == 1 && (myMode != MOUSE_MODE_CARTO_ELEMENT
-                && myMode != MOUSE_MODE_MAPAREA)) {
+        } else if (clickCount == 1 && (myMode == MOUSE_MODE_MAPAREA
+                && backgroundMouseMode != MOUSE_MODE_SELECT)) {
             map.deslectAllCartographicElements();
             this.repaint();
-        }  else if (clickCount == 1 && myMode == MOUSE_MODE_SELECT) {
-            if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
+        }  else if (clickCount == 1 && backgroundMouseMode == MOUSE_MODE_SELECT) {
+            if (myMode == MOUSE_MODE_MAPAREA) { //map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                 MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
-                if (mapArea.isVisible() && mapExtent.getMinY() != mapExtent.getMaxY()
-                        && backgroundMouseMode == MOUSE_MODE_PAN && !mapArea.isSelected()) {
-                    int x2 = (int) ((e.getX() - pageLeft) / scale);
-                    int y2 = (int) ((e.getY() - pageTop) / scale);
-                    mapArea.deselectVectorFeatures();
+                if (mapArea != null) {
+                    mapArea.selectVectorFeatures(mapX, mapY);
+                    updateStatus(e, mapArea);
                 }
             }
         }
@@ -2729,7 +2887,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     }
                 }
             }
-
 
             this.requestFocus();
         } catch (Exception e) {
@@ -2841,6 +2998,36 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         //throw new UnsupportedOperationException("Not supported yet.");
     }
     
+    private void calculateMapXY(MouseEvent e, MapArea mapArea) {
+        BoundingBox currentExtent = mapArea.getCurrentMapExtent();
+        if (mapArea.isVisible() && currentExtent.getMinY() != currentExtent.getMaxY()) {
+            int x = (int) ((e.getX() - pageLeft) / scale);
+            int y = (int) ((e.getY() - pageTop) / scale);
+        
+            int referenceMarkSize = mapArea.getReferenceMarksSize();
+            int viewAreaULX = mapArea.getUpperLeftX() + referenceMarkSize;
+            int viewAreaULY = mapArea.getUpperLeftY() + referenceMarkSize;
+            int viewAreaLRX = mapArea.getLowerRightX() - referenceMarkSize;
+            int viewAreaLRY = mapArea.getLowerRightY() - referenceMarkSize;
+            double viewAreaWidth = viewAreaLRX - viewAreaULX;
+            double viewAreaHeight = viewAreaLRY - viewAreaULY;
+
+            if (mapArea.isSizeMaximizedToScreenSize() && !printingMap) {
+                viewAreaULX = (int)((-pageLeft / scale) + referenceMarkSize);
+                viewAreaULY = (int)((-pageTop / scale) + referenceMarkSize);
+                viewAreaLRX = viewAreaULX + (int) (w / scale - 2 * referenceMarkSize);
+                viewAreaLRY = viewAreaULY + (int) (h / scale - 2 * referenceMarkSize);
+                viewAreaWidth = viewAreaLRX - viewAreaULX;
+                viewAreaHeight = viewAreaLRY - viewAreaULY;
+            }
+            
+            double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+            double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
+
+            mapY = currentExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange; 
+            mapX = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
+        }
+    }
     
     private void updateStatus(MouseEvent e, MapArea mapArea) {
         BoundingBox currentExtent = mapArea.getCurrentMapExtent();
@@ -2873,15 +3060,16 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
             double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
 
-            double mapY = currentExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange; //- (e.getY() - borderWidth) / myHeight * (mapExtent.getMaxY() - mapExtent.getMinY());
-            double mapX = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;//(e.getX() - borderWidth) / myWidth * (mapExtent.getMaxX() - mapExtent.getMinX());
+            double mapY = currentExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange; 
+            double mapX = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
 
             DecimalFormat df = new DecimalFormat("###,###,###.0");
             String xStr = df.format(mapX);
             String yStr = df.format(mapY);
             
-            status.setMessage("E: " + xStr + "  N: " + yStr);
+            //status.setMessage("E: " + xStr + "  N: " + yStr);
 
+            if (!mapArea.isActiveLayerAVector()) {
             GridCell point = mapArea.getRowAndColumn(mapX, mapY);
             if (point.row >= 0) {
                 //double noDataValue = point.noDataValue;
@@ -2917,6 +3105,14 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 }
             } else if (!Double.isNaN(x) && !Double.isNaN(y)) {
                 status.setMessage("E: " + xStr + "  N: " + yStr);
+            }
+            } else {
+                int selectedFeature = mapArea.getSelectedFeatureFromActiveVector();
+                if (selectedFeature >= 0) {
+                    status.setMessage("E: " + xStr + "  N: " + yStr + "  Selected Feature: " + selectedFeature);
+                } else {
+                    status.setMessage("E: " + xStr + "  N: " + yStr);
+                }
             }
         }
     }

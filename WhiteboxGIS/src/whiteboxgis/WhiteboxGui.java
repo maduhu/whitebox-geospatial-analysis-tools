@@ -1499,6 +1499,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             layersPanel.setBackground(Color.white);
             updateLayersTab();
             tabs.insertTab("Layers", null, layersPanel, "", 1);
+            tabs.insertTab("Features", null, new JPanel(new BorderLayout()), "", 2);
+            
             return tabs;
         } catch (Exception e) {
             showFeedback(e.getStackTrace().toString());
@@ -3818,7 +3820,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             panMenuItem.setState(true);
             selectMenuItem.setState(false);
         } else if (actionCommand.equals("select")) {
-            showFeedback("Vector selection is under development.");
             drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_SELECT);
             zoomIntoBox.setBorderPainted(false);
             pan.setBorderPainted(false);
@@ -3835,7 +3836,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             pm.setVisible(true);
         } else if (actionCommand.equals("rasterCalculator")) {
             RasterCalculator rc = new RasterCalculator(this, false, workingDirectory);
-            //showFeedback("This feature is under development.");
         } else if (actionCommand.equals("selectAllText")) {
             textArea.selectAll();
         } else if (actionCommand.equals("copyText")) {
