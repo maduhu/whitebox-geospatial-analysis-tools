@@ -327,7 +327,22 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         this.selectedOffsetY = selectedOffsetY;
     }
     
+    public boolean isActiveLayerAVector() {
+        if (activeLayer != null) {
+            if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
+                return true;
+            }
+        }
+        return false;
+    }
     
+    public int getSelectedFeatureFromActiveVector() {
+        if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
+            VectorLayerInfo vli = (VectorLayerInfo)activeLayer;
+            return vli.getSelectedFeatureNumber();
+        }
+        return -1;
+    }
     
     
     public BoundingBox getFullExtent() {
@@ -389,7 +404,13 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
             VectorLayerInfo vli = (VectorLayerInfo)activeLayer;
             vli.setSelectedFeatureNumber(-1);
-            System.out.println("Hello I'm here.");
+        }
+    }
+    
+    public void selectVectorFeatures(double x, double y) {
+        if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
+            VectorLayerInfo vli = (VectorLayerInfo)activeLayer;
+            vli.selectFeatureByLocation(x, y);
         }
     }
 

@@ -31,6 +31,12 @@ import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGON;
+import whitebox.geospatialfiles.shapefile.*;
+import whitebox.geospatialfiles.shapefile.PolyLine;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POINT;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGONZ;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINE;
 import whitebox.interfaces.MapLayer;
 import whitebox.structures.BoundingBox;
 
@@ -198,6 +204,8 @@ public class VectorLayerInfo implements MapLayer {
         return shapeType;
     }
 
+    ArrayList<ShapeFileRecord> recs;
+    
     public ArrayList<ShapeFileRecord> getData() {
         return recs;
         
@@ -313,8 +321,6 @@ public class VectorLayerInfo implements MapLayer {
         return currentExtent.clone();
     }
 
-    ArrayList<ShapeFileRecord> recs;
-    
     @Override
     public final void setCurrentExtent(BoundingBox bb) {
         if (!bb.equals(currentExtent)) {
@@ -848,6 +854,153 @@ public class VectorLayerInfo implements MapLayer {
                 } catch (Exception e) {
                 }
             }
+        }
+    }
+    
+    public void selectFeatureByLocation(double x, double y) {
+        double minDist = Double.POSITIVE_INFINITY;
+        double dist, boxCentreX, boxCentreY;
+        int newSelectedFeatureNum = -1;
+        switch (shapeType) {
+            case POLYGON:
+                for (ShapeFileRecord record : recs) {
+                    Polygon poly = (Polygon) (record.getGeometry());
+                    BoundingBox bb = poly.getBox();
+                    if (bb.isPointInBox(x, y)) {
+                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
+                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
+                        dist = (boxCentreX - x) * (boxCentreX - x) + 
+                                (boxCentreY - y) * (boxCentreY - y);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            newSelectedFeatureNum = record.getRecordNumber();
+                        } 
+                    }
+                }
+                break;
+            case POLYGONZ:
+                for (ShapeFileRecord record : recs) {
+                    PolygonZ poly = (PolygonZ) (record.getGeometry());
+                    BoundingBox bb = poly.getBox();
+                    if (bb.isPointInBox(x, y)) {
+                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
+                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
+                        dist = (boxCentreX - x) * (boxCentreX - x) + 
+                                (boxCentreY - y) * (boxCentreY - y);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            newSelectedFeatureNum = record.getRecordNumber();
+                        } 
+                    }
+                }
+                break;
+            case POLYGONM:
+                for (ShapeFileRecord record : recs) {
+                    PolygonM poly = (PolygonM) (record.getGeometry());
+                    BoundingBox bb = poly.getBox();
+                    if (bb.isPointInBox(x, y)) {
+                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
+                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
+                        dist = (boxCentreX - x) * (boxCentreX - x) + 
+                                (boxCentreY - y) * (boxCentreY - y);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            newSelectedFeatureNum = record.getRecordNumber();
+                        } 
+                    }
+                }
+                break;
+            case POLYLINE:
+                for (ShapeFileRecord record : recs) {
+                    PolyLine poly = (PolyLine) (record.getGeometry());
+                    BoundingBox bb = poly.getBox();
+                    if (bb.isPointInBox(x, y)) {
+                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
+                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
+                        dist = (boxCentreX - x) * (boxCentreX - x) + 
+                                (boxCentreY - y) * (boxCentreY - y);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            newSelectedFeatureNum = record.getRecordNumber();
+                        } 
+                    }
+                }
+                break;
+            case POLYLINEZ:
+                for (ShapeFileRecord record : recs) {
+                    PolyLineZ poly = (PolyLineZ) (record.getGeometry());
+                    BoundingBox bb = poly.getBox();
+                    if (bb.isPointInBox(x, y)) {
+                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
+                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
+                        dist = (boxCentreX - x) * (boxCentreX - x) + 
+                                (boxCentreY - y) * (boxCentreY - y);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            newSelectedFeatureNum = record.getRecordNumber();
+                        } 
+                    }
+                }
+                break;
+            case POLYLINEM:
+                for (ShapeFileRecord record : recs) {
+                    PolyLineM poly = (PolyLineM) (record.getGeometry());
+                    BoundingBox bb = poly.getBox();
+                    if (bb.isPointInBox(x, y)) {
+                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
+                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
+                        dist = (boxCentreX - x) * (boxCentreX - x) + 
+                                (boxCentreY - y) * (boxCentreY - y);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            newSelectedFeatureNum = record.getRecordNumber();
+                        } 
+                    }
+                }
+                break;
+            case POINT:
+                for (ShapeFileRecord record : recs) {
+                    Point point = (Point) (record.getGeometry());
+                    dist = (point.getX() - x) * (point.getX() - x)
+                            + (point.getY() - y) * (point.getY() - y);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        newSelectedFeatureNum = record.getRecordNumber();
+                    }
+
+                }
+                break;
+            case POINTZ:
+                for (ShapeFileRecord record : recs) {
+                    PointZ point = (PointZ) (record.getGeometry());
+                    dist = (point.getX() - x) * (point.getX() - x)
+                            + (point.getY() - y) * (point.getY() - y);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        newSelectedFeatureNum = record.getRecordNumber();
+                    }
+
+                }
+                break;
+            case POINTM:
+                for (ShapeFileRecord record : recs) {
+                    PointM point = (PointM) (record.getGeometry());
+                    dist = (point.getX() - x) * (point.getX() - x)
+                            + (point.getY() - y) * (point.getY() - y);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        newSelectedFeatureNum = record.getRecordNumber();
+                    }
+
+                }
+                break;
+                
+            // have to add something here for multipoints.
+        }
+        if (newSelectedFeatureNum != selectedFeatureNumber) {
+            selectedFeatureNumber = newSelectedFeatureNum;
+        } else {
+            selectedFeatureNumber = -1;
         }
     }
     
