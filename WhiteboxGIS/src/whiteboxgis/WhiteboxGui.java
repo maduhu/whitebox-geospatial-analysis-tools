@@ -56,6 +56,7 @@ import whitebox.structures.BoundingBox;
 import whitebox.structures.ExtensionFileFilter;
 import whitebox.utilities.FileUtilities;
 import whitebox.geospatialfiles.VectorLayerInfo;
+import whiteboxgis.user_interfaces.FeatureSelectionPanel;
 
 /**
  *
@@ -1491,6 +1492,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private JPanel layersPanel;
+    private FeatureSelectionPanel featuresPanel;
     private JTabbedPane createTabbedPane() {
         try {
             JSplitPane wbTools = getToolbox();
@@ -1499,7 +1501,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             layersPanel.setBackground(Color.white);
             updateLayersTab();
             tabs.insertTab("Layers", null, layersPanel, "", 1);
-            tabs.insertTab("Features", null, new JPanel(new BorderLayout()), "", 2);
+            featuresPanel = new FeatureSelectionPanel();
+            tabs.insertTab("Features", null, featuresPanel, "", 2);
             
             return tabs;
         } catch (Exception e) {
@@ -1508,7 +1511,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
 
     }
-
+    
     ArrayList<LegendEntryPanel> legendEntries = new ArrayList<LegendEntryPanel>();
     JScrollPane scrollView = new JScrollPane();
     private void updateLayersTab() {
@@ -1661,6 +1664,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     if (j == mapArea.getActiveLayerOverlayNumber()) {
                         legendLayer = new LegendEntryPanel(layer, this, fonts.get("activeLayer"),
                                 i, mapArea.getElementNumber(), j, (j == selectedMapAndLayer[1]));
+                        if (layer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
+                            // get the name of the shapefile
+                            VectorLayerInfo vli = (VectorLayerInfo)layer;
+                            String fileName = vli.getFileName();
+                            // see if this is the current shapefile on the feature selection panel and
+                            // if not, update it.
+                            if (!featuresPanel.getShapeFileName().equals(fileName)) {
+                                featuresPanel.setVectorLayerInfo(vli);
+                            }
+                        }
                     } else {
                         legendLayer = new LegendEntryPanel(layer, this, fonts.get("inactiveLayer"),
                                 i, mapArea.getElementNumber(), j, (j == selectedMapAndLayer[1]));

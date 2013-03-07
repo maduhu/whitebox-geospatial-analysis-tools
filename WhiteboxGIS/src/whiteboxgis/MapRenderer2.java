@@ -81,6 +81,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     private boolean printingMap = false;
     private BoundingBox mapExtent = new BoundingBox();
     private Color selectedFeatureColour = Color.CYAN;
+    private Color selectionBoxColour = Color.GRAY;
 
     public MapRenderer2() {
         init();
@@ -1377,7 +1378,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                         // is it the active layer?
                                         int selectedFeature = -1;
                                         boolean activeLayerBool = false;
-                                        if (mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
+                                        if (backgroundMouseMode == MOUSE_MODE_SELECT && mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
                                             selectedFeature = layer.getSelectedFeatureNumber();
                                             activeLayerBool = true;
                                         } else if (layer.getSelectedFeatureNumber() >= 0) {
@@ -1795,7 +1796,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_SELECT) {
                                                                     BoundingBox bb = rec.getBox();
                                                                     if (bb.isPointInBox(mapX, mapY)) {
-                                                                        g2.setColor(Color.LIGHT_GRAY);
+                                                                        g2.setColor(selectionBoxColour);
                                                                         polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
                                                                         xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
                                                                         yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
@@ -1866,7 +1867,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_SELECT) {
                                                                     BoundingBox bb = rec.getBox();
                                                                     if (bb.isPointInBox(mapX, mapY)) {
-                                                                        g2.setColor(Color.LIGHT_GRAY);
+                                                                        g2.setColor(selectionBoxColour);
                                                                         polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
                                                                         xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
                                                                         yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
@@ -1938,7 +1939,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_SELECT) {
                                                                     BoundingBox bb = rec.getBox();
                                                                     if (bb.isPointInBox(mapX, mapY)) {
-                                                                        g2.setColor(Color.LIGHT_GRAY);
+                                                                        g2.setColor(selectionBoxColour);
                                                                         polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
                                                                         xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
                                                                         yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
@@ -2040,7 +2041,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             }
                                                             g2.setStroke(oldStroke);
                                                         }
-                                                        if (activeLayerBool && selectedFeature >= 0) {
+                                                        if (activeLayerBool) {
                                                             g2.setColor(selectedFeatureColour);
                                                             for (ShapeFileRecord record : records) {
                                                                 if (record.getRecordNumber() == selectedFeature) {
@@ -2073,7 +2074,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 whitebox.geospatialfiles.shapefile.Polygon rec = (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
                                                                 BoundingBox bb = rec.getBox();
                                                                 if (bb.isPointInBox(mapX, mapY)) {
-                                                                    g2.setColor(Color.LIGHT_GRAY);
+                                                                    g2.setColor(selectionBoxColour);
                                                                     polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
                                                                     xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
                                                                     yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
@@ -2174,7 +2175,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.setStroke(oldStroke);
                                                         }
                                                         
-                                                        if (activeLayerBool && selectedFeature >= 0) {
+                                                        if (activeLayerBool) {
                                                             g2.setColor(selectedFeatureColour);
                                                             for (ShapeFileRecord record : records) {
                                                                 if (record.getRecordNumber() == selectedFeature) {
@@ -2207,7 +2208,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 PolygonZ rec = (PolygonZ)(record.getGeometry());
                                                                 BoundingBox bb = rec.getBox();
                                                                 if (bb.isPointInBox(mapX, mapY)) {
-                                                                    g2.setColor(Color.LIGHT_GRAY);
+                                                                    g2.setColor(selectionBoxColour);
                                                                     polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
                                                                     xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
                                                                     yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
@@ -2307,7 +2308,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             }
                                                             g2.setStroke(oldStroke);
                                                         }
-                                                        if (activeLayerBool && selectedFeature >= 0) {
+                                                        if (activeLayerBool) {
                                                             g2.setColor(selectedFeatureColour);
                                                             for (ShapeFileRecord record : records) {
                                                                 if (record.getRecordNumber() == selectedFeature) {
@@ -2340,7 +2341,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 PolygonM rec = (PolygonM)(record.getGeometry());
                                                                 BoundingBox bb = rec.getBox();
                                                                 if (bb.isPointInBox(mapX, mapY)) {
-                                                                    g2.setColor(Color.LIGHT_GRAY);
+                                                                    g2.setColor(selectionBoxColour);
                                                                     polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
                                                                     xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
                                                                     yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
@@ -3030,8 +3031,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     }
     
     private void updateStatus(MouseEvent e, MapArea mapArea) {
+        if (status == null) { return; }
         BoundingBox currentExtent = mapArea.getCurrentMapExtent();
-        if (status != null && mapArea.isVisible() && currentExtent.getMinY() != currentExtent.getMaxY()) {
+        if (mapArea.isVisible() && currentExtent.getMinY() != currentExtent.getMaxY()) {
             int x = (int) ((e.getX() - pageLeft) / scale);
             int y = (int) ((e.getY() - pageTop) / scale);
         
