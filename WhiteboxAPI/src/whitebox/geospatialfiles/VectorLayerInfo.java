@@ -25,7 +25,6 @@ import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import whitebox.cartographic.PointMarkers.MarkerStyle;
-import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.attributes.DBFException;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
@@ -39,13 +38,15 @@ import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGONZ;
 import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINE;
 import whitebox.interfaces.MapLayer;
 import whitebox.structures.BoundingBox;
+import java.beans.PropertyChangeSupport;
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class VectorLayerInfo implements MapLayer {
-
+    public final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    
     private String fileName;
     private ShapeFile shapefile;
     private int overlayNumber;
@@ -440,7 +441,9 @@ public class VectorLayerInfo implements MapLayer {
     }
 
     public void setSelectedFeatureNumber(int selectedFeatureNumber) {
+        int oldValue = this.selectedFeatureNumber;
         this.selectedFeatureNumber = selectedFeatureNumber;
+        this.pcs.firePropertyChange("selectedFeatureNumber", oldValue, selectedFeatureNumber);
     }
     
     
@@ -857,7 +860,7 @@ public class VectorLayerInfo implements MapLayer {
         }
     }
     
-    public void selectFeatureByLocation(double x, double y) {
+    public int selectFeatureByLocation(double x, double y) {
         double minDist = Double.POSITIVE_INFINITY;
         double dist, boxCentreX, boxCentreY;
         int newSelectedFeatureNum = -1;
@@ -998,12 +1001,15 @@ public class VectorLayerInfo implements MapLayer {
             // have to add something here for multipoints.
         }
         if (newSelectedFeatureNum != selectedFeatureNumber) {
-            selectedFeatureNumber = newSelectedFeatureNum;
+            //selectedFeatureNumber = newSelectedFeatureNum;
+            setSelectedFeatureNumber(newSelectedFeatureNum);
         } else {
-            selectedFeatureNumber = -1;
+            setSelectedFeatureNumber(-1);
+            //selectedFeatureNumber = -1;
         }
+        return selectedFeatureNumber;
     }
-    
+
     public class LegendEntry {
         public Color legendColour;
         public String legendLabel;

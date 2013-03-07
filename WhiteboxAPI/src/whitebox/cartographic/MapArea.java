@@ -407,11 +407,12 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         }
     }
     
-    public void selectVectorFeatures(double x, double y) {
+    public int selectVectorFeatures(double x, double y) {
         if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
             VectorLayerInfo vli = (VectorLayerInfo)activeLayer;
-            vli.selectFeatureByLocation(x, y);
+            return vli.selectFeatureByLocation(x, y);
         }
+        return -1; // it should not hit this point
     }
 
     public void fitToData() {
