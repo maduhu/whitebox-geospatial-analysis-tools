@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.Box;
@@ -60,6 +61,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
         this.vli = vli;
         this.setShapeFileName(vli.getFileName());
         this.vli.pcs.addPropertyChangeListener("selectedFeatureNumber", this);
+        createGui();
     }
 
     public String getShapeFileName() {
@@ -88,13 +90,27 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
     private void createGui() {
         try {
             this.removeAll();
-
+            table = new JTable();
+            selectedFeature = -1;
             Box mainBox = Box.createVerticalBox();
+            mainBox.add(Box.createVerticalStrut(10));
+//            if (shape != null) {
+//                Box headerBox1 = Box.createHorizontalBox();
+//                headerBox1.add(new JLabel("Active Layer: " + shape.getShortName()));
+//                headerBox1.add(Box.createHorizontalGlue());
+//                mainBox.add(headerBox1);
+//                mainBox.add(Box.createVerticalStrut(5));
+//            
+//            }
             Box headerBox = Box.createHorizontalBox();
             //headerBox.add(Box.createHorizontalStrut(10));
-            headerBox.add(new JLabel("Selected Feature Attributes:"));
+            JLabel label = new JLabel("Selected Feature Attributes:");
+            Font newLabelFont=new Font(label.getFont().getName(),Font.BOLD,label.getFont().getSize());
+            label.setFont(newLabelFont);
+            headerBox.add(label);
             headerBox.add(Box.createHorizontalGlue());
             mainBox.add(headerBox);
+            mainBox.add(Box.createVerticalStrut(2));
             Box scrollBox = Box.createHorizontalBox();
             //scrollBox.add(Box.createHorizontalStrut(10));
             setBackground(Color.WHITE);
@@ -174,7 +190,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             for (int i = 0; i <= numColumns; i++) {
                 column = table.getColumnModel().getColumn(i);
                 if (i == 0) {
-                    column.setPreferredWidth(70);
+                    column.setPreferredWidth(80);
                 } else {
                     column.setPreferredWidth(100);
                 }
@@ -194,7 +210,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             DefaultTableModel tm = (DefaultTableModel)table.getModel();
             if (selectedFeature >= 0) {
                 tm.setValueAt(selectedFeature, 0, 1);
-                Object[] rowData = shape.attributeTable.getRecord(selectedFeature);
+                Object[] rowData = shape.attributeTable.getRecord(selectedFeature - 1);
                 for (int a = 0; a < rowData.length; a++) {
                     //tm.setValueAt(rowData[a], a, 1);
                     if (fields[a].getDataType() == DBFField.FIELD_TYPE_N ||

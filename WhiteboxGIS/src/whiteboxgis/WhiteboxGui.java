@@ -1664,7 +1664,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     if (j == mapArea.getActiveLayerOverlayNumber()) {
                         legendLayer = new LegendEntryPanel(layer, this, fonts.get("activeLayer"),
                                 i, mapArea.getElementNumber(), j, (j == selectedMapAndLayer[1]));
-                        if (layer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
+                        if (layer.getLayerType() == MapLayer.MapLayerType.VECTOR &&
+                                legendLayer.getMapArea() == openMaps.get(activeMap).getActiveMapArea().getElementNumber() &&
+                        legendLayer.getMapNum() == activeMap) {
                             // get the name of the shapefile
                             VectorLayerInfo vli = (VectorLayerInfo)layer;
                             String fileName = vli.getFileName();
