@@ -240,9 +240,9 @@ public class DialogReclassGrid extends JPanel implements ActionListener, DialogC
         @Override
         public void tableChanged(TableModelEvent evt) {
             if (evt.getType() == TableModelEvent.UPDATE) {
-                int column = evt.getColumn();
-                int row = evt.getFirstRow();
-                String val = (String)DialogReclassGrid.this.tableModel.getValueAt(row, column);
+//                int column = evt.getColumn();
+//                int row = evt.getFirstRow();
+//                String val = (String)DialogReclassGrid.this.tableModel.getValueAt(row, column);
 //                if (!validateValue(val)) {
 //                    hostDialog.showFeedback("Only numeric values can be entered into the reclass table.");
 //                    DialogReclassGrid.this.tableModel.setValueAt("", row, column);
@@ -250,7 +250,7 @@ public class DialogReclassGrid extends JPanel implements ActionListener, DialogC
 //                table.setColumnSelectionInterval(column + 1, column + 1);
 //                table.setRowSelectionInterval(row, row);
             } else { 
-                System.out.println(evt.getType());
+                //System.out.println(evt.getType());
             }
         }
     }

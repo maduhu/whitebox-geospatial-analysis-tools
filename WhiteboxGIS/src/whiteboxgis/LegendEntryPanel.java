@@ -204,6 +204,7 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
     private void createMapLayerLegendEntry() {
         try {
             this.removeAll();
+            int maxHeight = 0;
             boolean isVisible = mapLayer.isVisible();
 
             Box layerBox = Box.createVerticalBox();
@@ -258,14 +259,6 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
                     box5.add(box2);
                     box5.add(Box.createVerticalGlue());
                     layerBox.add(box5);
-//                } else if (!isVisible) {
-//                    layerBox.add(Box.createVerticalStrut(2));
-//                    Box box4 = Box.createHorizontalBox();
-//                    JLabel notShownLabel = new JLabel("(Not shown)");
-//                    notShownLabel.setFont(new Font("SanSerif", Font.ITALIC, 12));
-//                    box4.add(notShownLabel);
-//                    box4.add(Box.createHorizontalGlue());
-//                    layerBox.add(box4);
                 } else {
                     layerBox.add(Box.createVerticalStrut(2));
                     Box box4 = Box.createHorizontalBox();
@@ -289,6 +282,9 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
                     maxVal.setForeground(textForeground);
                     this.setBackground(textBackground);
                 }
+                
+                maxHeight = 80;
+                
             } else if (mapLayer.getLayerType() == MapLayerType.VECTOR) {
                 VectorLayerInfo vli = (VectorLayerInfo) mapLayer;
                 ShapeType st = vli.getShapeType();
@@ -317,14 +313,15 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
 
                     box2.add(Box.createHorizontalGlue());
                     layerBox.add(box2);
+                    maxHeight = 80;
                 } else {
                     Box sampleVecBox = Box.createHorizontalBox();
                     SampleVector sv = new SampleVector(st, vli, true);
                     sampleVecBox.add(sv);
                     sampleVecBox.add(Box.createHorizontalGlue());
                     layerBox.add(sampleVecBox);
+                    maxHeight = sv.getHeight();
                 }
-//                }
 
 
                 layerBox.add(Box.createVerticalStrut(5));
@@ -343,7 +340,7 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
             leftMarginBox.add(Box.createHorizontalStrut(leftMarginSize));
             leftMarginBox.add(layerBox);
             this.add(leftMarginBox);
-            this.setMaximumSize(new Dimension(1000, 20));
+            this.setMaximumSize(new Dimension(1000, maxHeight));
             this.addMouseListener(this);
             this.revalidate();
         } catch (Exception e) {

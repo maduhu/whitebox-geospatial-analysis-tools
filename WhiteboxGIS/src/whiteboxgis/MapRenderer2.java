@@ -1,7 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2011-2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package whiteboxgis;
 
 import java.awt.Point;
@@ -2693,33 +2706,42 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 withinElement = true;
 
                 // are you near the edge of a selected element?
-            } else if (ce.isSelected() && isBetween(x, ulX - 3, lrX + 3)
-                    && isBetween(y, ulY - 3, lrY + 3)) {
+            } else if (ce.isSelected() && isBetween(x, ulX - 8, lrX + 8)
+                    && isBetween(y, ulY - 8, lrY + 8)) {
                 if (myMode != MOUSE_MODE_RESIZE) {
+                    /*  public static final int RESIZE_MODE_N = 0;
+                        public static final int RESIZE_MODE_S = 1;
+                        public static final int RESIZE_MODE_E = 2;
+                        public static final int RESIZE_MODE_W = 3;
+                        public static final int RESIZE_MODE_NE = 4;
+                        public static final int RESIZE_MODE_NW = 5;
+                        public static final int RESIZE_MODE_SE = 6;
+                        public static final int RESIZE_MODE_SW = 7;
+                    */
                     if (isBetween(x, ulX, lrX) && (y < ulY)) {
                         this.setCursor(new Cursor(java.awt.Cursor.N_RESIZE_CURSOR));
-                        myResizeMode = 0;
+                        myResizeMode = RESIZE_MODE_N;
                     } else if (isBetween(x, ulX, lrX) && (y > lrY)) {
                         this.setCursor(new Cursor(java.awt.Cursor.S_RESIZE_CURSOR));
-                        myResizeMode = 1;
+                        myResizeMode = RESIZE_MODE_S;
                     } else if (isBetween(y, ulY, lrY) && (x > ulX)) {
                         this.setCursor(new Cursor(java.awt.Cursor.E_RESIZE_CURSOR));
-                        myResizeMode = 2;
+                        myResizeMode = RESIZE_MODE_E;
                     } else if (isBetween(y, ulY, lrY) && (x < lrX)) {
                         this.setCursor(new Cursor(java.awt.Cursor.W_RESIZE_CURSOR));
-                        myResizeMode = 3;
+                        myResizeMode = RESIZE_MODE_W;
                     } else if ((y < ulY) && (x < ulX)) {
                         this.setCursor(new Cursor(java.awt.Cursor.NW_RESIZE_CURSOR));
-                        myResizeMode = 5;
+                        myResizeMode = RESIZE_MODE_NW;
                     } else if ((y < ulY) && (x > lrX)) {
                         this.setCursor(new Cursor(java.awt.Cursor.NE_RESIZE_CURSOR));
-                        myResizeMode = 4;
+                        myResizeMode = RESIZE_MODE_NE;
                     } else if ((y > lrY) && (x < ulX)) {
                         this.setCursor(new Cursor(java.awt.Cursor.SW_RESIZE_CURSOR));
-                        myResizeMode = 7;
+                        myResizeMode = RESIZE_MODE_SW;
                     } else if ((y > lrY) && (x > lrX)) {
                         this.setCursor(new Cursor(java.awt.Cursor.SE_RESIZE_CURSOR));
-                        myResizeMode = 6;
+                        myResizeMode = RESIZE_MODE_SE;
                     }
                 }
 
@@ -2735,7 +2757,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 ce.setSelectedOffsetY(y - ce.getUpperLeftY());
             }
             
-            if (myMode == MOUSE_MODE_MAPAREA) {
+            if (myMode == MOUSE_MODE_MAPAREA && ce instanceof MapArea) {
                 calculateMapXY(e, (MapArea)ce);
             }
         
@@ -2750,6 +2772,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 } else if (backgroundMouseMode == MOUSE_MODE_PAN) {
                     myMode = MOUSE_MODE_PAN;
                     this.setCursor(panCursor);
+                } else if (backgroundMouseMode == MOUSE_MODE_SELECT) {
+                    myMode = MOUSE_MODE_SELECT;
+                    this.setCursor(selectCursor);
                 }
                 whichCartoElement = -1;
                 this.repaint();
@@ -2782,7 +2807,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             }
 
         } else if (clickCount == 1 && (myMode == MOUSE_MODE_CARTO_ELEMENT
-                || myMode == MOUSE_MODE_MAPAREA) && backgroundMouseMode != MOUSE_MODE_SELECT) {
+                || (myMode == MOUSE_MODE_MAPAREA && backgroundMouseMode != MOUSE_MODE_SELECT))) {
             boolean isSelected = map.getCartographicElement(whichCartoElement).isSelected();
             if (!isSelected) {
                 if (!e.isShiftDown()) {

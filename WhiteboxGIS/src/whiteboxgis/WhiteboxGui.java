@@ -1515,6 +1515,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     ArrayList<LegendEntryPanel> legendEntries = new ArrayList<LegendEntryPanel>();
     JScrollPane scrollView = new JScrollPane();
     private void updateLayersTab() {
+        try {
         int pos = scrollView.getVerticalScrollBar().getValue();
         layersPanel.removeAll();
         if (legendEntries.size() <= 0) {
@@ -1609,9 +1610,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     lep.setTitleFont(fonts.get("inactiveLayer"));
                 }
                 
-                JPanel layerBox = new JPanel();
-                layerBox.setLayout(new BoxLayout(layerBox, BoxLayout.X_AXIS));
-                layerBox.setMaximumSize(new Dimension(1000, 20));
+//                JPanel layerBox = new JPanel();
+//                layerBox.setLayout(new BoxLayout(layerBox, BoxLayout.X_AXIS));
+//                layerBox.setMaximumSize(new Dimension(1000, 20));
+                Box layerBox = Box.createHorizontalBox();
                 layerBox.setOpaque(false);
                 layerBox.add(Box.createHorizontalStrut(10));
                 layerBox.add(lep);
@@ -1629,6 +1631,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         layersPanel.repaint();
         
         scrollView.getVerticalScrollBar().setValue(pos);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
     
     private void getLegendEntries() {
@@ -1686,6 +1691,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             i++;
             
         }
+        
     }
     
 //    private void expandAll(JTree tree, TreePath parent, boolean expand) {
@@ -1810,6 +1816,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                             if (n.getChildCount() == 0) {
                                 label = selPath.getLastPathComponent().toString();
                                 showToolDescription(label);
+                            } else if (n.toString().equals("Available Tools")) {
+                                // set the message indicating the number of plugins that were located.
+                                status.setMessage(" " + plugInfo.size() + " plugins were located");
                             }
                         } else if (e.getClickCount() == 2) {
                             DefaultMutableTreeNode n = (DefaultMutableTreeNode) selPath.getLastPathComponent();
@@ -1817,25 +1826,24 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                 label = selPath.getLastPathComponent().toString();
                                 launchDialog(label);
                             }
-                        } else {
-                            System.out.println("click count: " + e.getClickCount());
-                        }
+                        }// else {
+                         //   System.out.println("click count: " + e.getClickCount());
+                        //}
                     }
                 }
             };
             tree.addMouseListener(ml);
-            //tree.setEditable(true);
-
+            
             ImageIcon leafIcon = new ImageIcon(graphicsDirectory + "tool.png", "");
             ImageIcon stemIcon = new ImageIcon(graphicsDirectory + "opentools.png", "");
-            if (leafIcon != null && stemIcon != null) {
-                DefaultTreeCellRenderer renderer =
-                        new DefaultTreeCellRenderer();
-                renderer.setLeafIcon(leafIcon);
-                renderer.setClosedIcon(stemIcon);
-                renderer.setOpenIcon(stemIcon);
-                tree.setCellRenderer(renderer);
-            }
+            //if (leafIcon != null && stemIcon != null) {
+            DefaultTreeCellRenderer renderer =
+                    new DefaultTreeCellRenderer();
+            renderer.setLeafIcon(leafIcon);
+            renderer.setClosedIcon(stemIcon);
+            renderer.setOpenIcon(stemIcon);
+            tree.setCellRenderer(renderer);
+            //}
 
             JScrollPane treeView = new JScrollPane(tree);
 
@@ -1863,8 +1871,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
                 }
             };
-
-
 
             //DefaultListModel model = new DefaultListModel();
             allTools = new JList();
