@@ -251,9 +251,6 @@ public class RasterStreamsToVector implements WhiteboxPlugin {
                 return;
             }
                         
-            // set up the output files of the shapefile and the dbf
-            ShapeFile output = new ShapeFile(outputFileName, ShapeType.POLYLINE);
-            
             DBFField fields[] = new DBFField[3];
 
             fields[0] = new DBFField();
@@ -273,11 +270,9 @@ public class RasterStreamsToVector implements WhiteboxPlugin {
             fields[2].setDataType(DBFField.FIELD_TYPE_N);
             fields[2].setFieldLength(10);
             fields[2].setDecimalCount(3);
-
-            String DBFName = output.getDatabaseFile();
-            DBFWriter writer = new DBFWriter(new File(DBFName)); /* this DBFWriter object is now in Syc Mode */
             
-            writer.setFields(fields);
+            // set up the output files of the shapefile and the dbf
+            ShapeFile output = new ShapeFile(outputFileName, ShapeType.POLYLINE, fields);
 
             byte numNeighbouringStreamCells;
             int FID = 0;
@@ -367,19 +362,17 @@ public class RasterStreamsToVector implements WhiteboxPlugin {
                                     xCoord = west + ((double)x / cols) * EWRange;
                                     yCoord = north - ((double)y / rows) * NSRange;
                                     points.addPoint(xCoord, yCoord);
-                                    
-                                    Object rowData[] = new Object[3];
-                                    rowData[0] = new Double(FID);
-                                    rowData[1] = new Double(streamValue);
-                                    rowData[2] = new Double(linkLength / 1000.0);
-                                    writer.addRecord(rowData);
                                 }
                                 
                             } while (flag);
                             
                             // add the line to the shapefile.
                             PolyLine line = new PolyLine(parts, points.getPointsArray());
-                            output.addRecord(line);
+                            Object rowData[] = new Object[3];
+                            rowData[0] = new Double(FID);
+                            rowData[1] = new Double(streamValue);
+                            rowData[2] = new Double(linkLength / 1000.0);
+                            output.addRecord(line, rowData);
                         }
                     }
                 }
@@ -392,7 +385,6 @@ public class RasterStreamsToVector implements WhiteboxPlugin {
             }
             output.write();
 
-            writer.write();
             pntr.close();
             streams.close();
 
