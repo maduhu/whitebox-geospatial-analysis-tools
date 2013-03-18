@@ -485,6 +485,8 @@ public class PatchOrientationVectorField implements WhiteboxPlugin {
                 double elongation = 0;
                 double bearing = 0;
                 final double rightAngle = Math.toRadians(90);
+                double boxCentreX = 0;
+                double boxCentreY = 0;
                 //double axisDirection = 0;
                 slope = 0;
                 for (ShapeFileRecord record : input.records) {
@@ -568,6 +570,11 @@ public class PatchOrientationVectorField implements WhiteboxPlugin {
                             } else {
                                 slope = -(rightAngle + psi);
                             }
+                            
+                            x = newBoundingBox[0] + newXAxis / 2;
+                            y = newBoundingBox[2] + newYAxis / 2;
+                            boxCentreX = midX + (x * Math.cos(-psi)) - (y * Math.sin(-psi));
+                            boxCentreY = midY + (x * Math.sin(-psi)) + (y * Math.cos(-psi));
                         }
                     }
                     longAxis = Math.max(axes[0], axes[1]);
@@ -578,18 +585,17 @@ public class PatchOrientationVectorField implements WhiteboxPlugin {
                     centroidX = (sumX / N) + midX;
                     centroidY = (sumY / N) + midY;
                      
-                    // calculate the centroid position
                     lineLength = maxLineLength * elongation;
 
                     double[][] points = new double[2][2];
                     deltaX = Math.cos(slope) * lineLength; 
                     deltaY = Math.sin(slope) * lineLength; 
 
-                    points[0][0] = centroidX - deltaX / 2.0;
-                    points[0][1] = centroidY - deltaY / 2.0;
+                    points[0][0] = boxCentreX - deltaX / 2.0;
+                    points[0][1] = boxCentreY - deltaY / 2.0;
 
-                    points[1][0] = centroidX + deltaX / 2.0;
-                    points[1][1] = centroidY + deltaY / 2.0;
+                    points[1][0] = boxCentreX + deltaX / 2.0;
+                    points[1][1] = boxCentreY + deltaY / 2.0;
 
                     PolyLine poly = new PolyLine(parts, points);
                     Object rowData[] = new Object[3];
