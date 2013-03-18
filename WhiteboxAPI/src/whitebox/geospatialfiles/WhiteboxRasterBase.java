@@ -587,6 +587,7 @@ public abstract class WhiteboxRasterBase {
         DataInputStream in = null;
         BufferedReader br = null;
         boolean byteOrderRead = false;
+        String delimiter = "\t";
         try {
             // Open the file that is the first command line parameter
             FileInputStream fstream = new FileInputStream(this.headerFile);
@@ -600,63 +601,75 @@ public abstract class WhiteboxRasterBase {
                 String[] str;
                 //Read File Line By Line
                 while ((line = br.readLine()) != null) {
-                    str = line.split("\t");
+                    str = line.split(delimiter);
+                    if (str.length == 1) {
+                        delimiter = " ";
+                        str = line.split(delimiter);
+                        if (str.length == 1) {
+                            delimiter = ";";
+                            str = line.split(delimiter);
+                        }
+                    }
+                    int dataCol = str.length - 1;
                     if (str[0].toLowerCase().contains("min:") && (!str[0].toLowerCase().contains("display"))) {
-                        this.minimumValue = Float.parseFloat(str[1]);
+                        this.minimumValue = Float.parseFloat(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("max:") && (!str[0].toLowerCase().contains("display"))) {
-                        this.maximumValue = Float.parseFloat(str[1]);
+                        this.maximumValue = Float.parseFloat(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("north")) {
-                        this.north = Double.parseDouble(str[1]);
+                        this.north = Double.parseDouble(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("south")) {
-                        this.south = Double.parseDouble(str[1]);
+                        this.south = Double.parseDouble(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("west")) {
-                        this.west = Double.parseDouble(str[1]);
+                        this.west = Double.parseDouble(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("east")) {
-                        this.east = Double.parseDouble(str[1]);
+                        this.east = Double.parseDouble(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("cols")) {
-                        this.numberColumns =  Integer.parseInt(str[1]);
+                        this.numberColumns =  Integer.parseInt(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("rows")) {
-                        this.numberRows =  Integer.parseInt(str[1]);
-                    } else if (str[0].toLowerCase().contains("data type")) {
+                        this.numberRows =  Integer.parseInt(str[dataCol]);
+                    } else if (str[0].toLowerCase().contains("data type") || 
+                            (str[0].toLowerCase().contains("data") && 
+                            str[1].toLowerCase().contains("type")) || 
+                            str[0].toLowerCase().contains("data:")) {
                         //this.setDataType(str[1]);
-                        if (str[1].toLowerCase().contains("double")) {
+                        if (str[dataCol].toLowerCase().contains("double")) {
                             this.setDataType(DataType.DOUBLE);
-                        } else if (str[1].toLowerCase().contains("float")) {
+                        } else if (str[dataCol].toLowerCase().contains("float")) {
                             this.setDataType(DataType.FLOAT);
-                        } else if (str[1].toLowerCase().contains("integer")) {
+                        } else if (str[dataCol].toLowerCase().contains("integer")) {
                             this.setDataType(DataType.INTEGER);
-                        } else if (str[1].toLowerCase().contains("byte")) {
+                        } else if (str[dataCol].toLowerCase().contains("byte")) {
                             this.setDataType(DataType.BYTE);
                         }
                     } else if (str[0].toLowerCase().contains("data scale")) {
-                        if (str[1].toLowerCase().contains("continuous")) {
+                        if (str[dataCol].toLowerCase().contains("continuous")) {
                             this.setDataScale(DataScale.CONTINUOUS); //DATA_SCALE_CONTINUOUS);
-                        } else if (str[1].toLowerCase().contains("categorical")) {
+                        } else if (str[dataCol].toLowerCase().contains("categorical")) {
                             this.setDataScale(DataScale.CATEGORICAL); //DATA_SCALE_CATEGORICAL);
-                        } else if (str[1].toLowerCase().contains("bool")) {
+                        } else if (str[dataCol].toLowerCase().contains("bool")) {
                             this.setDataScale(DataScale.BOOLEAN); //DATA_SCALE_BOOLEAN);
-                        } else if (str[1].toLowerCase().contains("rgb")) {
+                        } else if (str[dataCol].toLowerCase().contains("rgb")) {
                             this.setDataScale(DataScale.RGB); //DATA_SCALE_RGB);
                         }
                     } else if (str[0].toLowerCase().contains("z units")) {
-                        this.setZUnits(str[1]);
+                        this.setZUnits(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("xy units")) {
-                        this.setXYUnits(str[1]);
+                        this.setXYUnits(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("projection")) {
-                        this.projection = str[1];
+                        this.projection = str[dataCol];
                     } else if (str[0].toLowerCase().contains("display min")) {
-                        this.displayMinimum = Float.parseFloat(str[1]);
+                        this.displayMinimum = Float.parseFloat(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("display max")) {
-                        this.displayMaximum = Float.parseFloat(str[1]);
+                        this.displayMaximum = Float.parseFloat(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("preferred palette")) {
-                        this.preferredPalette = str[1].replace(".plt", ".pal");
+                        this.preferredPalette = str[dataCol].replace(".plt", ".pal");
                     } else if (str[0].toLowerCase().contains("byte order")) {
-                        this.setByteOrder(str[1]);
+                        this.setByteOrder(str[dataCol]);
                         byteOrderRead = true;
                     } else if (str[0].toLowerCase().contains("nodata")) {
-                        this.noDataValue = Float.parseFloat(str[1]);
+                        this.noDataValue = Float.parseFloat(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("metadata entry")) {
-                        if (str.length > 1) { this.addMetadataEntry(str[1]); }
+                        if (str.length > 1) { this.addMetadataEntry(str[dataCol]); }
                     }
                 }
                 if (this.displayMinimum == Float.POSITIVE_INFINITY) {
@@ -796,7 +809,7 @@ public abstract class WhiteboxRasterBase {
     
     protected void setPropertiesUsingAnotherRaster(String BaseRasterHeader, DataType dataType) {
         setDataType(dataType);
-
+        String delimiter = "\t";
         // Set the properties of this WhiteboxRaster to those of the base raster.
         DataInputStream in = null;
         BufferedReader br = null;
@@ -813,41 +826,50 @@ public abstract class WhiteboxRasterBase {
                 String[] str;
                 //Read File Line By Line
                 while ((line = br.readLine()) != null) {
-                    str = line.split("\t");
+                    str = line.split(delimiter);
+                    if (str.length == 1) {
+                        delimiter = " ";
+                        str = line.split(delimiter);
+                        if (str.length == 1) {
+                            delimiter = ";";
+                            str = line.split(delimiter);
+                        }
+                    }
+                    int dataCol = str.length - 1;
                     if (str[0].toLowerCase().contains("north")) {
-                        this.north = Double.parseDouble(str[1]);
+                        this.north = Double.parseDouble(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("south")) {
-                        this.south = Double.parseDouble(str[1]);
+                        this.south = Double.parseDouble(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("west")) {
-                        this.west = Double.parseDouble(str[1]);
+                        this.west = Double.parseDouble(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("east")) {
-                        this.east = Double.parseDouble(str[1]);
+                        this.east = Double.parseDouble(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("cols")) {
-                        this.numberColumns =  Integer.parseInt(str[1]);
+                        this.numberColumns =  Integer.parseInt(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("rows")) {
-                        this.numberRows =  Integer.parseInt(str[1]);
+                        this.numberRows =  Integer.parseInt(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("data scale")) {
-                        if (str[1].toLowerCase().contains("continuous")) {
+                        if (str[dataCol].toLowerCase().contains("continuous")) {
                             this.setDataScale(DataScale.CONTINUOUS);
                             //this.setDataScale(DATA_SCALE_CONTINUOUS);
-                        } else if (str[1].toLowerCase().contains("categorical")) {
+                        } else if (str[dataCol].toLowerCase().contains("categorical")) {
                             this.setDataScale(DataScale.CATEGORICAL);
                             //this.setDataScale(DATA_SCALE_CATEGORICAL);
-                        } else if (str[1].toLowerCase().contains("bool")) {
+                        } else if (str[dataCol].toLowerCase().contains("bool")) {
                             this.setDataScale(DataScale.BOOLEAN);
                             //this.setDataScale(DATA_SCALE_BOOLEAN);
-                        } else if (str[1].toLowerCase().contains("rgb")) {
+                        } else if (str[dataCol].toLowerCase().contains("rgb")) {
                             this.setDataScale(DataScale.RGB);
                             //this.setDataScale(DATA_SCALE_RGB);
                         }
                     } else if (str[0].toLowerCase().contains("xy units")) {
-                        this.xyUnits = str[1];
+                        this.xyUnits = str[dataCol];
                     } else if (str[0].toLowerCase().contains("projection")) {
-                        this.projection = str[1];
+                        this.projection = str[dataCol];
                     } else if (str[0].toLowerCase().contains("nodata")) {
-                        this.noDataValue = Double.parseDouble(str[1]);
+                        this.noDataValue = Double.parseDouble(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("palette")) {
-                        this.preferredPalette = str[1];
+                        this.preferredPalette = str[dataCol];
                     }
                 }
 

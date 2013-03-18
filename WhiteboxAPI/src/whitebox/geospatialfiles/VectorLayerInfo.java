@@ -81,6 +81,7 @@ public class VectorLayerInfo implements MapLayer {
     private double maximumValue = 0;
     private double cartographicGeneralizationLevel = 0.5;
     private int selectedFeatureNumber = -1;
+    private int maxDisplayedEntries = 25;
 //    private boolean dirty;
     
     public VectorLayerInfo(String fileName, String paletteDirectory, int alpha, int overlayNumber) {
@@ -295,6 +296,15 @@ public class VectorLayerInfo implements MapLayer {
         cartographicGeneralizationLevel = generalizeLevel;
         generalizationLevelDirty = true;
     }
+
+    public int getMaxDisplayedEntries() {
+        return maxDisplayedEntries;
+    }
+
+    public void setMaxDisplayedEntries(int maxDisplayedEntries) {
+        this.maxDisplayedEntries = maxDisplayedEntries;
+    }
+    
     
     @Override
     public String getLayerTitle() {

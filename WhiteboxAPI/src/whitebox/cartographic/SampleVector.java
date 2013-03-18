@@ -21,7 +21,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
 import whitebox.geospatialfiles.shapefile.ShapeType;
-import whitebox.cartographic.PointMarkers;
 import whitebox.geospatialfiles.VectorLayerInfo.LegendEntry;
 import whitebox.geospatialfiles.VectorLayerInfo;
 
@@ -47,6 +46,7 @@ public class SampleVector extends JPanel {
     private double margin = 7.0;
     private double sqrSize = 18.0;
     private double spacing = 3.0;
+    private int maxEntries = 25;
                         
     public SampleVector(ShapeType shapeType, VectorLayerInfo vli, boolean bentLine) {
         this.st = shapeType;
@@ -70,11 +70,15 @@ public class SampleVector extends JPanel {
         int width = 100;
         int height = 30;
         
+        maxEntries = vli.getMaxDisplayedEntries();
         
         if (!isFilledWithOneColour || !isOutlinedWithOneColour) {
             // how many legend entries are there?
             le = vli.getLegendEntries();
             numEntries = le.length;
+            if (numEntries > maxEntries) {
+                numEntries = maxEntries;
+            }
             height = (int)(margin + numEntries * (sqrSize + spacing) + margin);
             width = 170;
         }
