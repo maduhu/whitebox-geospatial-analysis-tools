@@ -16,13 +16,11 @@
  */
 package plugins;
 
-import java.io.File;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.*;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.utilities.FileUtilities;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.

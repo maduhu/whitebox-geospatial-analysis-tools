@@ -6,6 +6,7 @@ plugins.Fuse
 plugins.Intersect
 plugins.IsolateVectorFeaturesByLocation
 plugins.LayerFootprint
+plugins.MinimumBoundingBox
 plugins.MinimumConvexHull
 plugins.ExtractNodes
 plugins.PolygonsToLines

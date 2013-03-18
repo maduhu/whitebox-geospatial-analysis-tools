@@ -216,7 +216,7 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
         ShapeType shapeType, outputShapeType;
         List<KdTree.Entry<Double>> results;
         double[] entry;
-        double nodeGapThreshold = 1000; //0.65;
+        double nodeGapThreshold = 100; //0.65;
         int[] parts = {0};
         
         if (args.length <= 0) {
@@ -300,33 +300,6 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
                         whitebox.geospatialfiles.shapefile.Polygon recPoly =
                                     (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
                         vertices = recPoly.getPoints();
-//                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
-//                            int numParts = recPoly.getNumParts() - recPoly.getNumberOfHoles();
-//                            int[] outParts = new int[numParts];
-//                            int[] inParts = recPoly.getParts();
-//                            int numPoints = recPoly.getNumPoints();
-//                            int numPartsIn = recPoly.getNumParts();
-//                            boolean[] isHole = recPoly.getPartHoleData();
-//                            int outPartNum = 0;
-//                            for (int part = 0; part < inParts.length; part++) {
-//                                if (!isHole[part]) {
-//                                    outParts[outPartNum] = pnts.size();
-//                                    startingPointInPart = inParts[part];
-//                                    if (part < numPartsIn - 1) {
-//                                        endingPointInPart = inParts[part + 1];
-//                                    } else {
-//                                        endingPointInPart = numPoints;
-//                                    }
-//                                    for (int p = startingPointInPart; p < endingPointInPart; p++) {
-//                                        pnts.add(new ShapefilePoint(vertices[p][0], vertices[p][1]));
-//                                    }
-//                                    outPartNum++;
-//                                }
-//                            }
-//                            PointsList pl = new PointsList(pnts);
-//                            whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(outParts, pl.getPointsArray());
-//                            output.addRecord(wbPoly);
-                            
                         break;
                     case POLYGONZ:
                         PolygonZ recPolygonZ = (PolygonZ)(record.getGeometry());
@@ -368,33 +341,6 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
                     entry = new double[]{y, x};
                     
                     results = pointsTree.neighborsWithinRange(entry, neighbourhoodRadius);
-                    
-//                    results = pointsTree.nearestNeighbor(entry, 25, true);
-//                    
-//                    int numNeighbours = results.size();
-//                    double[][] neighbourIndices = new double[numNeighbours][3];
-//                    int k = 0;
-//                    double forwardDist, backwardDist, nodeDist;
-//                    double maxNodeDist = 0;
-//                    for (KdTree.Entry entry2 : results) {
-//                        double value = (double)entry2.value;
-//                        neighbourIndices[k][0] = value;
-//                        neighbourIndices[k][1] = (double)entry2.distance;
-//                        forwardDist = Math.abs(value - i);
-//                        backwardDist = Math.abs(value - (i + numPoints));
-//                        nodeDist = Math.min(forwardDist, backwardDist);
-//                        neighbourIndices[k][2] = nodeDist;
-//                        if (nodeDist > maxNodeDist) {
-//                            maxNodeDist = nodeDist;
-//                        }
-//                        k++;
-//                    }
-//                    
-//                    if (maxNodeDist > 1500) {
-//                        for (int a = numNeighbours - 1; a >= 0; a--) {
-//                            System.out.println(neighbourIndices[a][0] + "\t" + neighbourIndices[a][1] + "\t" + neighbourIndices[a][2]);
-//                        }
-//                    }
                     
                     double maxVal = 0;
                     double minVal = numPoints;
@@ -447,12 +393,25 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
                         }
                     }
                     
-                    if (maxGap > 1) {
-//                        z = (maxGap - 1) / range;
-                        if (maxGap >= nodeGapThreshold) {
+//                    if (maxGap <= 1) {
+                        if (maxGap < nodeGapThreshold) {
                             pnts.add(new ShapefilePoint(x, y));
                             lineLength++;
+                            if (i == numPoints - 1) {
+                                PointsList pl = new PointsList(pnts);
+                                whitebox.geospatialfiles.shapefile.PolyLine wbPoly = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
+                                Object[] rowData = new Object[1];
+                                rowData[0] = new Double(recordNum);
+                                output.addRecord(wbPoly, rowData);
+                                pnts.clear();
+                                lineLength = 0;
+                            }
                         } else if (lineLength > 1) {
+//                            k = (int)maxVal - 1;
+//                            if (k >= numPoints) {
+//                                k -= numPoints;
+//                            }
+//                            pnts.add(new ShapefilePoint(vertices[k][0], vertices[k][1]));
                             PointsList pl = new PointsList(pnts);
                             whitebox.geospatialfiles.shapefile.PolyLine wbPoly = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
                             Object[] rowData = new Object[1];
@@ -460,28 +419,54 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
                             output.addRecord(wbPoly, rowData);
                             pnts.clear();
                             lineLength = 0;
+//                            i = (int)maxVal;
+//                            pnts.add(new ShapefilePoint(vertices[i][0], vertices[i][1]));
+//                            lineLength++;
                         } else {
                             pnts.clear();
                             lineLength = 0;
                         }
-//                        Object[] rowData = new Object[3];
-//                        rowData[0] = new Double(z); 
-//                        rowData[1] = new Double(maxGap);
-//                        rowData[2] = new Double(range);
-//                        outputPnts.addRecord(new whitebox.geospatialfiles.shapefile.Point(x, y), rowData);
-                       
-                    } else if (lineLength > 1) {
-                        PointsList pl = new PointsList(pnts);
-                        whitebox.geospatialfiles.shapefile.PolyLine wbPoly = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                        Object[] rowData = new Object[1];
-                        rowData[0] = new Double(recordNum);
-                        output.addRecord(wbPoly, rowData);
-                        pnts.clear();
-                        lineLength = 0;
-                    } else if (lineLength == 1) {
-                        pnts.clear();
-                        lineLength = 0;
-                    }
+//                    } else if (lineLength > 1) {
+//                        PointsList pl = new PointsList(pnts);
+//                        whitebox.geospatialfiles.shapefile.PolyLine wbPoly = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
+//                        Object[] rowData = new Object[1];
+//                        rowData[0] = new Double(recordNum);
+//                        output.addRecord(wbPoly, rowData);
+//                        pnts.clear();
+//                        lineLength = 0;
+//                    } else if (lineLength == 1) {
+//                        pnts.clear();
+//                        lineLength = 0;
+//                    }
+                    
+//                    if (maxGap > 1) {
+//                        if (maxGap >= nodeGapThreshold) {
+//                            pnts.add(new ShapefilePoint(x, y));
+//                            lineLength++;
+//                        } else if (lineLength > 1) {
+//                            PointsList pl = new PointsList(pnts);
+//                            whitebox.geospatialfiles.shapefile.PolyLine wbPoly = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
+//                            Object[] rowData = new Object[1];
+//                            rowData[0] = new Double(recordNum);
+//                            output.addRecord(wbPoly, rowData);
+//                            pnts.clear();
+//                            lineLength = 0;
+//                        } else {
+//                            pnts.clear();
+//                            lineLength = 0;
+//                        }
+//                    } else if (lineLength > 1) {
+//                        PointsList pl = new PointsList(pnts);
+//                        whitebox.geospatialfiles.shapefile.PolyLine wbPoly = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
+//                        Object[] rowData = new Object[1];
+//                        rowData[0] = new Double(recordNum);
+//                        output.addRecord(wbPoly, rowData);
+//                        pnts.clear();
+//                        lineLength = 0;
+//                    } else if (lineLength == 1) {
+//                        pnts.clear();
+//                        lineLength = 0;
+//                    }
                     
                 }
                 
@@ -520,8 +505,8 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
     public static void main(String[] args) {
         args = new String[3];
         args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/large lakes no holes.shp";
-        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/large lakes no rivers3.shp";
-        args[2] = "300";
+        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/large lakes no rivers2.shp";
+        args[2] = "200";
 
         RemovePolygonNecks rpn = new RemovePolygonNecks();
         rpn.setArgs(args);
