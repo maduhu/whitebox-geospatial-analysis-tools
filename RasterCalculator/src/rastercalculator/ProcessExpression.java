@@ -1191,7 +1191,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
                                 args[0] = objs[0];
                             }
                             if (objs[1].contains("IMAGE")) {
-                                args[1] = images.get(objs[0]);
+                                args[1] = images.get(objs[1]);
                             } else {
                                 args[1] = objs[1];
                             }
@@ -1218,7 +1218,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
                                 args[0] = objs[0];
                             }
                             if (objs[1].contains("IMAGE")) {
-                                args[1] = images.get(objs[0]);
+                                args[1] = images.get(objs[1]);
                             } else {
                                 args[1] = objs[1];
                             }
@@ -1245,7 +1245,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
                                 args[0] = objs[0];
                             }
                             if (objs[1].contains("IMAGE")) {
-                                args[1] = images.get(objs[0]);
+                                args[1] = images.get(objs[1]);
                             } else {
                                 args[1] = objs[1];
                             }
@@ -1322,7 +1322,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
                                 args[0] = objs[0];
                             }
                             if (objs[1].contains("IMAGE")) {
-                                args[1] = images.get(objs[0]);
+                                args[1] = images.get(objs[1]);
                             } else {
                                 args[1] = objs[1];
                             }
@@ -1365,7 +1365,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
                                 args[0] = objs[0];
                             }
                             if (objs[1].contains("IMAGE")) {
-                                args[1] = images.get(objs[0]);
+                                args[1] = images.get(objs[1]);
                             } else {
                                 args[1] = objs[1];
                             }
@@ -1408,7 +1408,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
                                 args[0] = objs[0];
                             }
                             if (objs[1].contains("IMAGE")) {
-                                args[1] = images.get(objs[0]);
+                                args[1] = images.get(objs[1]);
                             } else {
                                 args[1] = objs[1];
                             }
@@ -1451,7 +1451,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
                                 args[0] = objs[0];
                             }
                             if (objs[1].contains("IMAGE")) {
-                                args[1] = images.get(objs[0]);
+                                args[1] = images.get(objs[1]);
                             } else {
                                 args[1] = objs[1];
                             }
