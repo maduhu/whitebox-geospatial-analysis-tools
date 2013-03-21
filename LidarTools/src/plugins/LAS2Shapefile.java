@@ -305,7 +305,7 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                         whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);
                         output.addRecord(wbGeometry);
                         
-                        Object rowData[] = new Object[6];
+                        Object[] rowData = new Object[6];
                         rowData[0] = new Double(numPoints + 1);
                         rowData[1] = new Double(z);
                         rowData[2] = new Double(intensity);
