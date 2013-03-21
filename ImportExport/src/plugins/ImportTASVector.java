@@ -295,7 +295,7 @@ public class ImportTASVector implements WhiteboxPlugin {
                         whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);
                         output.addRecord(wbGeometry);
                         
-                        Object rowData[] = new Object[2];
+                        Object[] rowData = new Object[2];
                         rowData[0] = new Double(featureNum);
                         rowData[1] = new Double(featureValue);
                         writer.addRecord(rowData);
@@ -321,7 +321,7 @@ public class ImportTASVector implements WhiteboxPlugin {
                         whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
                         output.addRecord(wbGeometry);
 
-                        Object rowData[] = new Object[2];
+                        Object[] rowData = new Object[2];
                         rowData[0] = new Double(featureNum);
                         rowData[1] = new Double(featureValue);
                         writer.addRecord(rowData);

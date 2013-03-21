@@ -263,7 +263,7 @@ public class ImportXYZToVectorPoints implements WhiteboxPlugin {
                             z = Double.parseDouble(str[2]);
                             
                             whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);
-                            Object rowData[] = new Object[1];
+                            Object[] rowData = new Object[1];
                             rowData[0] = new Double(z);
                             
                             output.addRecord(wbGeometry, rowData);
