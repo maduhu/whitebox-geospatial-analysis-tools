@@ -368,7 +368,7 @@ public class RasterStreamsToVector implements WhiteboxPlugin {
                             
                             // add the line to the shapefile.
                             PolyLine line = new PolyLine(parts, points.getPointsArray());
-                            Object rowData[] = new Object[3];
+                            Object[] rowData = new Object[3];
                             rowData[0] = new Double(FID);
                             rowData[1] = new Double(streamValue);
                             rowData[2] = new Double(linkLength / 1000.0);
