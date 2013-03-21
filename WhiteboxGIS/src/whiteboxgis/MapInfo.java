@@ -17,11 +17,14 @@
 
 package whiteboxgis;
 
+import com.google.gson.*;
+
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+
 import whitebox.cartographic.*;
 import whitebox.interfaces.CartographicElement;
 import whitebox.structures.BoundingBox;
@@ -880,8 +883,23 @@ public class MapInfo {
 //    }
     
     private boolean save() {
-        // I'm disabling this at the moment
+//        Gson gson = new Gson();
+//        String json = gson.toJson(listOfCartographicElements.get(listOfCartographicElements.size() - 1));
+//        
+//        System.out.println(json);
+        
+//        json = json.replace("\"markerSize\":35", "\"markerSize\":55");
+//        NorthArrow na = gson.fromJson(json, NorthArrow.class);
+// 
+//        String json2 = gson.toJson(na);
+        
+        
+//        String json3 = gson.toJson((VectorLayerInfo)(mapAreas.get(0).getActiveLayer()));
+//        System.out.println(json3);
         return false;
+        
+//        // I'm disabling this at the moment
+//        return false;
         
 //        if (fileName.equals("")) { return false; }
 //        try {

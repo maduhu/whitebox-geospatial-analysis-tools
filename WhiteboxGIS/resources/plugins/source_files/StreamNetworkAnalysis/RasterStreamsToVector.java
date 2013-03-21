@@ -368,7 +368,7 @@ public class RasterStreamsToVector implements WhiteboxPlugin {
                                     yCoord = north - ((double)y / rows) * NSRange;
                                     points.addPoint(xCoord, yCoord);
                                     
-                                    Object rowData[] = new Object[3];
+                                    Object[] rowData = new Object[3];
                                     rowData[0] = new Double(FID);
                                     rowData[1] = new Double(streamValue);
                                     rowData[2] = new Double(linkLength / 1000.0);

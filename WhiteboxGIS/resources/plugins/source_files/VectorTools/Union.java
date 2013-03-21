@@ -345,7 +345,7 @@ public class Union implements WhiteboxPlugin {
                         output.addRecord(wbGeometry);
 
                         FID++;
-                        Object rowData[] = new Object[1];
+                        Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
                         writer.addRecord(rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
@@ -385,7 +385,7 @@ public class Union implements WhiteboxPlugin {
                         output.addRecord(wbGeometry);
 
                         FID++;
-                        Object rowData[] = new Object[1];
+                        Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
                         writer.addRecord(rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
@@ -425,7 +425,7 @@ public class Union implements WhiteboxPlugin {
                         output.addRecord(wbGeometry);
 
                         FID++;
-                        Object rowData[] = new Object[1];
+                        Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
                         writer.addRecord(rowData);
                     } else {

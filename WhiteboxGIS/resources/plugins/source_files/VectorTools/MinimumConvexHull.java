@@ -288,7 +288,7 @@ public class MinimumConvexHull implements WhiteboxPlugin {
                                 whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
                                 output.addRecord(wbPoly);
 
-                                Object rowData[] = new Object[FID];
+                                Object[] rowData = new Object[FID];
                                 rowData[0] = new Double(1);
                                 writer.addRecord(rowData);
                             }
@@ -384,7 +384,7 @@ public class MinimumConvexHull implements WhiteboxPlugin {
                     whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
                     output.addRecord(wbPoly);
 
-                    Object rowData[] = new Object[1];
+                    Object[] rowData = new Object[1];
                     rowData[0] = new Double(1);
                     writer.addRecord(rowData);
                 }

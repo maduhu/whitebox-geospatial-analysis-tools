@@ -472,7 +472,7 @@ public class RasterToVectorLines implements WhiteboxPlugin {
                         if (points.size() >= minLineLength) {
                             PolyLine poly = new PolyLine(parts, points.getPointsArray());
                             output.addRecord(poly);
-                            Object rowData[] = new Object[2];
+                            Object[] rowData = new Object[2];
                             rowData[0] = new Double(FID);
                             rowData[1] = new Double(z);
                             writer.addRecord(rowData);

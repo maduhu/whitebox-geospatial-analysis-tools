@@ -22,7 +22,7 @@
         <DialogComponent type="DialogFile">
 		<Name>outputFile</Name>
 		<Description>Enter the name of the output file here</Description>
-		<LabelText>Output Cost-Accumulation Raster File:</LabelText>
+		<LabelText>Output Cost Path Raster File:</LabelText>
 		<DialogMode>Save File</DialogMode>
 		<Filter>Raster Files (*.dep), DEP</Filter>
 		<IsVisible>True</IsVisible>

@@ -287,7 +287,7 @@ public class Append implements WhiteboxPlugin {
                     output.addRecord(record.getGeometry());
                     
                     FID++;
-                    Object rowData[] = new Object[3];
+                    Object[] rowData = new Object[3];
                     rowData[0] = new Double(FID);
                     rowData[1] = shortFileName;
                     rowData[2] = new Double(k + 1);

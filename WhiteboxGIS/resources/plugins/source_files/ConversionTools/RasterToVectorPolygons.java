@@ -443,7 +443,7 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                                     // add the line to the shapefile.
                                     Polygon poly = new Polygon(parts, points.getPointsArray());
                                     output.addRecord(poly);
-                                    Object rowData[] = new Object[2];
+                                    Object[] rowData = new Object[2];
                                     rowData[0] = new Double(FID);
                                     rowData[1] = new Double(z);
                                     writer.addRecord(rowData);

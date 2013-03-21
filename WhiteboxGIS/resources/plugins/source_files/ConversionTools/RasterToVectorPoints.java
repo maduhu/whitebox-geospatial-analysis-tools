@@ -251,7 +251,7 @@ public class RasterToVectorPoints implements WhiteboxPlugin {
                                 new whitebox.geospatialfiles.shapefile.Point(xCoord, yCoord);
                         output.addRecord(pnt);
                         
-                        Object rowData[] = new Object[2];
+                        Object[] rowData = new Object[2];
                         rowData[0] = new Double(FID);
                         rowData[1] = new Double(value);
                         writer.addRecord(rowData);

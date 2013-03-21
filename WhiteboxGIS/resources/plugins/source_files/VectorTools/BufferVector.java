@@ -407,7 +407,7 @@ public class BufferVector implements WhiteboxPlugin {
                         output.addRecord(wbPoly);
 
                         FID++;
-                        Object rowData[] = new Object[1];
+                        Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
                         writer.addRecord(rowData);
 
@@ -460,7 +460,7 @@ public class BufferVector implements WhiteboxPlugin {
                     whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
                     output.addRecord(wbPoly);
 
-                    Object rowData[] = new Object[1];
+                    Object[] rowData = new Object[1];
                     rowData[0] = new Double(1);
                     writer.addRecord(rowData);
                 } else {
