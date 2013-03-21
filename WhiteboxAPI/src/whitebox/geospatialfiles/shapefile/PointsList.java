@@ -22,7 +22,7 @@ import java.util.ArrayList;
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class PointsList {
-    private ArrayList<ShapefilePoint> myList = new ArrayList<ShapefilePoint>();
+    private ArrayList<ShapefilePoint> myList = new ArrayList<>();
     boolean isClosedForAdding = false;
     
     public PointsList() {
@@ -67,6 +67,10 @@ public class PointsList {
         ShapefilePoint sfp = new ShapefilePoint(x, y);
         sfp.z = z;
         myList.add(sfp);
+    }
+    
+    public void clear() {
+        myList.clear();
     }
     
     public void removePoint(int i) {

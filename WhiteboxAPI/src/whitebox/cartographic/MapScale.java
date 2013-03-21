@@ -45,7 +45,7 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     Color borderColour = Color.BLACK;
     Color outlineColour = Color.BLACK;
     Color legendColour = Color.BLACK;
-    DecimalFormat dfScale = new DecimalFormat("###,###,###.#");
+    static DecimalFormat dfScale = new DecimalFormat("###,###,###.#");
     String representativeFraction;
     String lowerLabel = "0";
     String upperLabel = "5";

@@ -84,6 +84,11 @@ public class VectorLayerInfo implements MapLayer {
     private int maxDisplayedEntries = 25;
 //    private boolean dirty;
     
+    // Constructors
+    public VectorLayerInfo() {
+        
+    }
+    
     public VectorLayerInfo(String fileName, String paletteDirectory, int alpha, int overlayNumber) {
         this.fileName = fileName;
         File file = new File(fileName);

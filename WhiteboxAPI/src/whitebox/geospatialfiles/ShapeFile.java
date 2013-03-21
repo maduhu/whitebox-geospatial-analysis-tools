@@ -66,6 +66,10 @@ public class ShapeFile {
     public AttributeTable attributeTable = null;
     
     // Constructors
+    public ShapeFile() {
+        
+    }
+    
     public ShapeFile(String fileName) {
         setFileName(fileName);
         int extensionIndex = fileName.lastIndexOf(".");
@@ -683,7 +687,7 @@ public class ShapeFile {
         }
     }
     
-    public void addRecord(Geometry recordGeometry, Object rowData[]) throws Exception {
+    public void addRecord(Geometry recordGeometry, Object[] rowData) throws Exception {
         try {
         if (recordGeometry.getShapeType() == shapeType) {
             numRecs++;

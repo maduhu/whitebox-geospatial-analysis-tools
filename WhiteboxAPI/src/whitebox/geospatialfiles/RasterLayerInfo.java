@@ -42,6 +42,10 @@ public class RasterLayerInfo implements MapLayer {
     private double[] data = null;
 
     /* Constructors*/
+    public RasterLayerInfo() {
+        
+    }
+    
     public RasterLayerInfo(String headerFile, String paletteDirectory, String[] defaultPalettes, int alpha, int overlayNum) {
         // check to see that the file exists.
         File file = new File(headerFile);
