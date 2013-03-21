@@ -454,7 +454,7 @@ public class PatchOrientationVectorField implements WhiteboxPlugin {
                                 }
 
                                 PolyLine poly = new PolyLine(parts, points);
-                                Object rowData[] = new Object[3];
+                                Object[] rowData = new Object[3];
                                 rowData[0] = new Double(record.getRecordNumber());
                                 rowData[1] = new Double(rSquare);
                                 rowData[2] = new Double(slopeInDegrees);
@@ -598,7 +598,7 @@ public class PatchOrientationVectorField implements WhiteboxPlugin {
                     points[1][1] = boxCentreY + deltaY / 2.0;
 
                     PolyLine poly = new PolyLine(parts, points);
-                    Object rowData[] = new Object[3];
+                    Object[] rowData = new Object[3];
                     rowData[0] = new Double(record.getRecordNumber());
                     rowData[1] = new Double(elongation);
                     bearing = 90 - Math.toDegrees(slope);
