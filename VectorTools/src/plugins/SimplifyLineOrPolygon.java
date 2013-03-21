@@ -328,7 +328,7 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
 
                             PointsList pl = new PointsList(pnts);
                             whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                            Object rowData[] = new Object[numOutputFields];
+                            Object[] rowData = new Object[numOutputFields];
                             rowData[0] = new Double(recordNum - 1);
                             System.arraycopy(attData, 0, rowData, 1, numInputFields);
                             output.addRecord(wbPoly, rowData);
@@ -345,7 +345,7 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
 
                             PointsList pl = new PointsList(pnts);
                             whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                            Object rowData[] = new Object[numOutputFields];
+                            Object[] rowData = new Object[numOutputFields];
                             rowData[0] = new Double(recordNum - 1);
                             System.arraycopy(attData, 0, rowData, 1, numInputFields);
                             output.addRecord(wbGeometry, rowData);

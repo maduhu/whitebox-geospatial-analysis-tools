@@ -355,7 +355,7 @@ public class Intersect implements WhiteboxPlugin {
                         output.addRecord(wbGeometry);
 
                         FID++;
-                        Object rowData[] = new Object[1];
+                        Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
                         writer.addRecord(rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
@@ -395,7 +395,7 @@ public class Intersect implements WhiteboxPlugin {
                         output.addRecord(wbGeometry);
 
                         FID++;
-                        Object rowData[] = new Object[1];
+                        Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
                         writer.addRecord(rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
@@ -435,7 +435,7 @@ public class Intersect implements WhiteboxPlugin {
                         output.addRecord(wbGeometry);
 
                         FID++;
-                        Object rowData[] = new Object[1];
+                        Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
                         writer.addRecord(rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Point 
@@ -445,7 +445,7 @@ public class Intersect implements WhiteboxPlugin {
                         output.addRecord(wbGeometry);
 
                         FID++;
-                        Object rowData[] = new Object[1];
+                        Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
                         writer.addRecord(rowData);
                     } else {

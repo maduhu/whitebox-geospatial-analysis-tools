@@ -377,7 +377,7 @@ public class FindPolygonMidline implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                        Object rowData[] = new Object[1];
+                        Object[] rowData = new Object[1];
                         rowData[0] = new Double(record.getRecordNumber());
                         output.addRecord(wbPoly);
                     }// else if (g instanceof com.vividsolutions.jts.geom.MultiLineString) {
@@ -418,7 +418,7 @@ public class FindPolygonMidline implements WhiteboxPlugin {
 //
 //                        PointsList pl = new PointsList(pnts);
 //                        whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-//                        Object rowData[] = new Object[1];
+//                        Object[] rowData = new Object[1];
 //                        rowData[0] = new Double(record.getRecordNumber());
 //                        output.addRecord(wbPoly);
 //                    }

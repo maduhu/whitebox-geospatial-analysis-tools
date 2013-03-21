@@ -17,24 +17,15 @@
 package plugins;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.prep.PreparedGeometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
-import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder;
 import java.io.File;
-import java.util.ArrayList;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
 import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
-import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
-import whitebox.geospatialfiles.shapefile.ShapefilePoint;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.utilities.Topology;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.

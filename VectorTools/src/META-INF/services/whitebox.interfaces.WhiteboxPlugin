@@ -2,6 +2,7 @@ plugins.Append
 plugins.BufferVector
 plugins.CentroidVector
 plugins.Difference
+plugins.FindPolygonChains
 plugins.Fuse
 plugins.Intersect
 plugins.IsolateVectorFeaturesByLocation
@@ -11,7 +12,6 @@ plugins.MinimumConvexHull
 plugins.ExtractNodes
 plugins.PolygonsToLines
 plugins.RemovePolygonHoles
-plugins.RemovePolygonNecks
 plugins.SimplifyLineOrPolygon
 plugins.Smooth
 plugins.SymmetricDifference

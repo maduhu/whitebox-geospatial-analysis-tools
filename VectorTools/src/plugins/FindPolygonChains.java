@@ -44,7 +44,7 @@ public class FindPolygonChains implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "FindPolygonStrings";
+        return "FindPolygonChains";
     }
 
     /**
@@ -55,7 +55,7 @@ public class FindPolygonChains implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Find Polygon Strings";
+        return "Find Polygon Chains";
     }
 
     /**
@@ -204,7 +204,7 @@ public class FindPolygonChains implements WhiteboxPlugin {
         int i, n;
         double[][] vertices = null;
         int numPolys = 0;
-        ShapeType shapeType, outputShapeType = ShapeType.POLYLINE;
+        ShapeType shapeType; //, outputShapeType = ShapeType.POLYLINE;
         int[] parts = {0};
         double psi = 0;
         Object[] rowData;
@@ -221,9 +221,9 @@ public class FindPolygonChains implements WhiteboxPlugin {
         double boxCentreX, boxCentreY;
         double elongation;
         double elongationThreshold = 0.25;
-        double[][] points;
-        Geometry poly;
         double dist;
+        boolean outputChainVector = false;
+        PointsList points = new PointsList();
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -234,6 +234,10 @@ public class FindPolygonChains implements WhiteboxPlugin {
         String outputFile = args[1];
         neighbourhoodRadius = Double.parseDouble(args[2]);
         int minChainLength = Integer.parseInt(args[3]);
+        String outputChainVectorFile = args[4];
+        if (!outputChainVectorFile.toLowerCase().contains("not specified")) {
+            outputChainVector = true;
+        }
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputFile == null)) {
@@ -257,7 +261,7 @@ public class FindPolygonChains implements WhiteboxPlugin {
             pointAttributes = new int[numPolys * 2][4];
             int[][] polyAttributes = new int[numPolys][3];
 
-            DBFField fields[] = new DBFField[2];
+            DBFField[] fields = new DBFField[2];
 
             fields[0] = new DBFField();
             fields[0].setName("PARENT_ID");
@@ -272,6 +276,20 @@ public class FindPolygonChains implements WhiteboxPlugin {
             fields[1].setDecimalCount(0);
 
             ShapeFile output = new ShapeFile(outputFile, shapeType, fields);
+
+            ShapeFile chainVector = new ShapeFile();
+            if (outputChainVector) {
+                fields = new DBFField[1];
+
+                fields[0] = new DBFField();
+                fields[0].setName("GROUP_ID");
+                fields[0].setDataType(DBFField.FIELD_TYPE_N);
+                fields[0].setFieldLength(10);
+                fields[0].setDecimalCount(0);
+
+                chainVector = new ShapeFile(outputChainVectorFile, ShapeType.POLYLINE, fields);
+            }
+
 
             pointsTree = new KdTree.SqrEuclid(2, new Integer(numPolys * 2));
 
@@ -481,6 +499,7 @@ public class FindPolygonChains implements WhiteboxPlugin {
             }
 
             List<Integer> chainPolys = new ArrayList<Integer>();
+            List<Integer> chainKeyPoints = new ArrayList<Integer>();
             oldProgress = -1;
             int currentGroupID = 1;
             int activeNode = 0, lastNode = 0;
@@ -501,13 +520,18 @@ public class FindPolygonChains implements WhiteboxPlugin {
                     }
 
                     if (linkedEndNodes == 1) {
-                        
+
                         polyAttributes[i][0] = currentGroupID;
                         boolean flag = true;
                         currentPoly = i;
-                        
+
                         chainPolys.clear();
                         chainPolys.add(currentPoly);
+
+                        chainKeyPoints.clear();
+                        points.clear();
+                        points.addMPoint(pointLocations[lastNode][0], pointLocations[lastNode][1]);
+                        points.addMPoint(pointLocations[activeNode][0], pointLocations[activeNode][1]);
                         
                         do {
                             polyAttributes[currentPoly][0] = currentGroupID;
@@ -515,22 +539,30 @@ public class FindPolygonChains implements WhiteboxPlugin {
                                 // we've visited each of the two end nodes and it's time to seek
                                 // a connection to another poly from the active node.
 
-                                if (pointAttributes[activeNode][2] > 0) {
+                                if (pointAttributes[activeNode][2] > 0) { // there is a connecting poly
                                     currentPoly = pointAttributes[activeNode][2] - 1;
                                     lastNode = activeNode;
                                     activeNode = pointAttributes[activeNode][3];
                                     chainPolys.add(currentPoly);
-                                    
-                                } else {
+
+                                } else { // there is no connecting poly, output the chain
                                     if (chainPolys.size() >= minChainLength) {
                                         for (int c : chainPolys) {
                                             rowData = new Object[2];
                                             rowData[0] = new Double(c + 1);
                                             rowData[1] = new Double(currentGroupID);
-                                            output.addRecord(input.getRecord(c).getGeometry(), rowData);    
+                                            output.addRecord(input.getRecord(c).getGeometry(), rowData);
+
+                                        }
+                                        chainPolys.clear();
+
+                                        if (outputChainVector) {
+                                            rowData = new Object[1];
+                                            rowData[0] = new Double(currentGroupID);
+                                            chainVector.addRecord(new PolyLine(parts, points.getPointsArray()), rowData);
                                         }
                                         currentGroupID++;
-                                        chainPolys.clear();
+
                                     }
                                     flag = false;
                                 }
@@ -544,6 +576,8 @@ public class FindPolygonChains implements WhiteboxPlugin {
                                     lastNode = activeNode;
                                     activeNode--;
                                 }
+                                points.addMPoint(pointLocations[lastNode][0], pointLocations[lastNode][1]);
+                                points.addMPoint(pointLocations[activeNode][0], pointLocations[activeNode][1]);
                             }
                         } while (flag);
                     }
@@ -560,6 +594,12 @@ public class FindPolygonChains implements WhiteboxPlugin {
             }
 
             output.write();
+            if (outputChainVector) {
+                chainVector.write();
+            }
+            
+            // returning a header file string displays the image.
+            returnData(outputFile);
 
         } catch (Exception e) {
             showFeedback(e.getMessage());
@@ -670,11 +710,12 @@ public class FindPolygonChains implements WhiteboxPlugin {
 
     //This method is only used during testing.
     public static void main(String[] args) {
-        args = new String[4];
+        args = new String[5];
         args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/MediumLakes/medium lakes2.shp";
         args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/MediumLakes/tmp7.shp";
         args[2] = "1000";
-        args[3] = "4";
+        args[3] = "3";
+        args[4] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/MediumLakes/tmp6.shp";
 
         FindPolygonChains fps = new FindPolygonChains();
         fps.setArgs(args);

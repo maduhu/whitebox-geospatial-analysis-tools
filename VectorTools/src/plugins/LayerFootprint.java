@@ -263,7 +263,7 @@ public class LayerFootprint implements WhiteboxPlugin {
             
             Polygon poly = new Polygon(parts, points.getPointsArray());
             output.addRecord(poly);
-            Object rowData[] = new Object[1];
+            Object[] rowData = new Object[1];
             rowData[0] = new Double(1);
             writer.addRecord(rowData);
             
