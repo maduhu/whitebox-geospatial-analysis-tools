@@ -517,7 +517,7 @@ public class Contour implements WhiteboxPlugin {
                             // add the line to the shapefile.
                             PolyLine line = new PolyLine(parts, points.getPointsArray());
                             output.addRecord(line);
-                            Object rowData[] = new Object[2];
+                            Object[] rowData = new Object[2];
                             rowData[0] = new Double(FID);
                             rowData[1] = new Double(contourValue);
                             writer.addRecord(rowData);
@@ -726,7 +726,7 @@ public class Contour implements WhiteboxPlugin {
                             // add the line to the shapefile.
                             PolyLine line = new PolyLine(parts, points.getPointsArray());
                             output.addRecord(line);
-                            Object rowData[] = new Object[2];
+                            Object[] rowData = new Object[2];
                             rowData[0] = new Double(FID);
                             rowData[1] = new Double(contourValue);
                             writer.addRecord(rowData);
@@ -935,7 +935,7 @@ public class Contour implements WhiteboxPlugin {
                             // add the line to the shapefile.
                             PolyLine line = new PolyLine(parts, points.getPointsArray());
                             output.addRecord(line);
-                            Object rowData[] = new Object[2];
+                            Object[] rowData = new Object[2];
                             rowData[0] = new Double(FID);
                             rowData[1] = new Double(contourValue);
                             writer.addRecord(rowData);
@@ -1144,7 +1144,7 @@ public class Contour implements WhiteboxPlugin {
                             // add the line to the shapefile.
                             PolyLine line = new PolyLine(parts, points.getPointsArray());
                             output.addRecord(line);
-                            Object rowData[] = new Object[2];
+                            Object[] rowData = new Object[2];
                             rowData[0] = new Double(FID);
                             rowData[1] = new Double(contourValue);
                             writer.addRecord(rowData);
@@ -1356,7 +1356,7 @@ public class Contour implements WhiteboxPlugin {
                                 // add the line to the shapefile.
                                 PolyLine line = new PolyLine(parts, points.getPointsArray());
                                 output.addRecord(line);
-                                Object rowData[] = new Object[2];
+                                Object[] rowData = new Object[2];
                                 rowData[0] = new Double(FID);
                                 rowData[1] = new Double(contourValue);
                                 writer.addRecord(rowData);
