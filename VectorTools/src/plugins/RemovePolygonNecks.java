@@ -216,7 +216,7 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
         ShapeType shapeType, outputShapeType;
         List<KdTree.Entry<Double>> results;
         double[] entry;
-        double nodeGapThreshold = 100; //0.65;
+        double nodeGapThreshold = 5; //0.65;
         int[] parts = {0};
         
         if (args.length <= 0) {
@@ -227,6 +227,7 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
         inputFile = args[0];
         outputFile = args[1];
         neighbourhoodRadius = Double.parseDouble(args[2]);
+        nodeGapThreshold = Integer.parseInt(args[3]);
         
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputFile == null) || (outputFile == null)) {
@@ -294,34 +295,34 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
             for (ShapeFileRecord record : input.records) {
                 recordNum = record.getRecordNumber();
 //                Object[] attData = input.attributeTable.getRecord(recordNum - 1);
-                vertices = new double[0][0];
-                switch (shapeType) {
-                    case POLYGON:
-                        whitebox.geospatialfiles.shapefile.Polygon recPoly =
-                                    (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
-                        vertices = recPoly.getPoints();
-                        break;
-                    case POLYGONZ:
-                        PolygonZ recPolygonZ = (PolygonZ)(record.getGeometry());
-                        vertices = recPolygonZ.getPoints();
-                        break;
-                    case POLYGONM:
-                        PolygonM recPolygonM = (PolygonM)(record.getGeometry());
-                        vertices = recPolygonM.getPoints();
-                        break;
-                    case POLYLINE:
-                        PolyLine recPolyline = (PolyLine)(record.getGeometry());
-                        vertices = recPolyline.getPoints();
-                        break;
-                    case POLYLINEZ:
-                        PolyLineZ recPolylineZ = (PolyLineZ)(record.getGeometry());
-                        vertices = recPolylineZ.getPoints();
-                        break;
-                    case POLYLINEM:
-                        PolyLineM recPolylineM = (PolyLineM)(record.getGeometry());
-                        vertices = recPolylineM.getPoints();
-                        break;
-                }
+                vertices = record.getGeometry().getPoints(); //new double[0][0];
+//                switch (shapeType) {
+//                    case POLYGON:
+//                        whitebox.geospatialfiles.shapefile.Polygon recPoly =
+//                                    (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+//                        vertices = recPoly.getPoints();
+//                        break;
+//                    case POLYGONZ:
+//                        PolygonZ recPolygonZ = (PolygonZ)(record.getGeometry());
+//                        vertices = recPolygonZ.getPoints();
+//                        break;
+//                    case POLYGONM:
+//                        PolygonM recPolygonM = (PolygonM)(record.getGeometry());
+//                        vertices = recPolygonM.getPoints();
+//                        break;
+//                    case POLYLINE:
+//                        PolyLine recPolyline = (PolyLine)(record.getGeometry());
+//                        vertices = recPolyline.getPoints();
+//                        break;
+//                    case POLYLINEZ:
+//                        PolyLineZ recPolylineZ = (PolyLineZ)(record.getGeometry());
+//                        vertices = recPolylineZ.getPoints();
+//                        break;
+//                    case POLYLINEM:
+//                        PolyLineM recPolylineM = (PolyLineM)(record.getGeometry());
+//                        vertices = recPolylineM.getPoints();
+//                        break;
+//                }
                 numPoints = vertices.length;
                 KdTree<Double> pointsTree = new KdTree.SqrEuclid(2, new Integer(numPoints));
                 for (i = 0; i < numPoints; i++) {
@@ -332,7 +333,7 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
                     pointsTree.addPoint(entry, z);
                 }
                 
-                ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                ArrayList<ShapefilePoint> pnts = new ArrayList<>();
                 int lineLength = 0;
                 
                 for (i = 0; i < numPoints; i++) {
@@ -394,7 +395,7 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
                     }
                     
 //                    if (maxGap <= 1) {
-                        if (maxGap < nodeGapThreshold) {
+                        if (maxGap >= nodeGapThreshold) {
                             pnts.add(new ShapefilePoint(x, y));
                             lineLength++;
                             if (i == numPoints - 1) {
@@ -503,10 +504,11 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
     
      //This method is only used during testing.
     public static void main(String[] args) {
-        args = new String[3];
+        args = new String[4];
         args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/large lakes no holes.shp";
-        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/large lakes no rivers2.shp";
+        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp1.shp";
         args[2] = "200";
+        args[3] = "3"; // node gap threshold
 
         RemovePolygonNecks rpn = new RemovePolygonNecks();
         rpn.setArgs(args);

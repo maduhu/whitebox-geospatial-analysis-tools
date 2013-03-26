@@ -274,7 +274,7 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
                 //featureNum++;
                 recJTS = record.getGeometry().getJTSGeometries();
 
-                ArrayList<com.vividsolutions.jts.geom.Geometry> geomList = new ArrayList<com.vividsolutions.jts.geom.Geometry>();
+                ArrayList<com.vividsolutions.jts.geom.Geometry> geomList = new ArrayList<>();
                 for (int a = 0; a < recJTS.length; a++) {
                     geomList.add(recJTS[a]);
                 }
@@ -334,7 +334,7 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
                             output.addRecord(wbPoly, rowData);
                         } else if (g instanceof com.vividsolutions.jts.geom.LineString && !g.isEmpty()) {
                             LineString ls = (LineString) g;
-                            ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                            ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                             int[] parts = {0};
 
