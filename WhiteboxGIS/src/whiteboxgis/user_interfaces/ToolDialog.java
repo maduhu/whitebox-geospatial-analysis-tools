@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package whiteboxgis;
+package whiteboxgis.user_interfaces;
 
 /*
  * To change this template, choose Tools | Templates
@@ -44,6 +44,7 @@ import org.w3c.dom.NodeList;
 import whitebox.interfaces.Communicator;
 import whitebox.interfaces.DialogComponent;
 import whitebox.utilities.FileUtilities;
+import whiteboxgis.ViewCodeDialog;
 
 /**
  *

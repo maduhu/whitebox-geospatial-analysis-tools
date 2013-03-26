@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package whiteboxgis;
+package whiteboxgis.user_interfaces;
 
 import java.awt.Dimension;
 import java.awt.event.*;
@@ -90,6 +90,8 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
             box1.add(label);
             box1.add(Box.createHorizontalGlue());
             Box box2 = Box.createHorizontalBox();
+            text.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+                text.getPreferredSize().height));
             box2.add(text);
             if (showButton) {
                 String imgLocation = graphicsDirectory + "open.png";

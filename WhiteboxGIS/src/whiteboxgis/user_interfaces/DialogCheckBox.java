@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package whiteboxgis;
+package whiteboxgis.user_interfaces;
 
 //import java.awt.*;
 import java.awt.event.*;

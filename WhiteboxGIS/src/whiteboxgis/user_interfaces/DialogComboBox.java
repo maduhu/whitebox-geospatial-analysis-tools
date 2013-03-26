@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package whiteboxgis;
+package whiteboxgis.user_interfaces;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -27,89 +27,58 @@ import whitebox.interfaces.DialogComponent;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class DialogDataInput extends JPanel implements ActionListener, DialogComponent {
+public class DialogComboBox extends JPanel implements ActionListener, DialogComponent {
    
-    private int numArgs = 6;
+    private int numArgs = 5;
     private String name;
     private String description;
     private String value;
     private String label;
     private JLabel lbl = new JLabel();
-    private boolean makeOptional = false;
-    private boolean numericalInputOnly = false;
-    private JTextField text = new JTextField(25);
-    private String initialText = "";
+    private JComboBox comboBox = new JComboBox();
     
     private void createUI() {
         try {
             this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            Border border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+            this.setBorder(border);
+            JPanel panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+            
+            comboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+                comboBox.getPreferredSize().height));
+            comboBox.addActionListener(this);
+            lbl = new JLabel(label);
+            panel.add(lbl);
+            panel.add(Box.createHorizontalStrut(5));
+            panel.add(comboBox);
+            panel.setToolTipText(description);
+            this.setToolTipText(description);
+            comboBox.setToolTipText(description);
+            lbl.setToolTipText(description);
+            this.add(panel);
+            this.add(Box.createHorizontalGlue());
+            
             this.setMaximumSize(new Dimension(2500, 40));
             this.setPreferredSize(new Dimension(350, 40));
         
-            Border border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
-            this.setBorder(border);
-            lbl = new JLabel(label);
-            this.add(lbl);
-            this.add(Box.createHorizontalStrut(5));
-            text = new JTextField();
-            if (numericalInputOnly) { text.setHorizontalAlignment(JTextField.RIGHT); }
-            text.setText(initialText);
-            this.add(text);
-            this.setToolTipText(description);
-            this.setToolTipText(description);
-            text.setToolTipText(description);
-            lbl.setToolTipText(description);
-            
         } catch (Exception e) {
             System.out.println(e.getCause());
         }
     }
     
-    @Override
     public String getValue() {
-        if (validateValue(text.getText())) {
-            value = text.getText();
-        } else {
-            value = null;
-        }
-        if (value.equals("")) {
-            if (makeOptional) {
-                value = "not specified";
-            } else {
-                value = null;
-            }
-        }
-        return value;
+        return value.trim();
     }
     
-    private boolean validateValue(String val) {
-        String ret = "";
-        if (!numericalInputOnly) {
-            return true;
-        } else {
-            try {
-                if (!val.equals("")) {
-                    Double dbl = Double.parseDouble(val);
-                }
-                return true;
-            } catch (Exception e) {
-                text.setText("");
-                return false;
-            }
-        }
-    }
-    
-    @Override
     public String getComponentName() {
         return name;
     }
     
-    @Override
     public boolean getOptionalStatus() {
         return false;
     }
     
-    @Override
     public boolean setArgs(String[] args) {
         try {
             // first make sure that there are the right number of args
@@ -119,15 +88,13 @@ public class DialogDataInput extends JPanel implements ActionListener, DialogCom
             name = args[0];
             description = args[1];
             label = args[2];
-            initialText = args[3];
-            numericalInputOnly = Boolean.parseBoolean(args[4]);
-            makeOptional = Boolean.parseBoolean(args[5]);
-            
-            if (validateValue(initialText)) {
-                value = initialText;
-                text.setText(value);
+            String[] listItems = args[3].split(",");
+            for (int i = 0; i < listItems.length; i++) {
+                listItems[i] = listItems[i].trim();
             }
-            
+            comboBox = new JComboBox(listItems);
+            comboBox.setSelectedIndex(Integer.parseInt(args[4]));
+            value = (String)comboBox.getSelectedItem();
             createUI();
             return true;
         } catch (Exception e) {
@@ -141,9 +108,8 @@ public class DialogDataInput extends JPanel implements ActionListener, DialogCom
         argsDescriptors[0] = "String name";
         argsDescriptors[1] = "String description";
         argsDescriptors[2] = "String label";
-        argsDescriptors[3] = "String initialText";
-        argsDescriptors[4] = "boolean numericalInputOnly";
-        argsDescriptors[5] = "boolean makeOptional";
+        argsDescriptors[3] = "String[] listItems";
+        argsDescriptors[4] = "Int defaultItem (zero-based)";
         return argsDescriptors;
     }
     

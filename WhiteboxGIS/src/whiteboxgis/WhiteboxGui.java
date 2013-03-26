@@ -16,6 +16,7 @@
  */
 package whiteboxgis;
 
+import whiteboxgis.user_interfaces.ToolDialog;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.print.PageFormat;

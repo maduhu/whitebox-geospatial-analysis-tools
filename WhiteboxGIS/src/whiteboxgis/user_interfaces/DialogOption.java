@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package whiteboxgis;
+package whiteboxgis.user_interfaces;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -27,39 +27,63 @@ import whitebox.interfaces.DialogComponent;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class DialogComboBox extends JPanel implements ActionListener, DialogComponent {
+public class DialogOption extends JPanel implements ActionListener, DialogComponent {
    
     private int numArgs = 5;
     private String name;
     private String description;
     private String value;
     private String label;
-    private JLabel lbl = new JLabel();
-    private JComboBox comboBox = new JComboBox();
+    private String button1Label = "";
+    private String button2Label = "";
+    private JRadioButton button1 = new JRadioButton();
+    private JRadioButton button2 = new JRadioButton();
+    private JPanel panel = new JPanel();
     
     private void createUI() {
         try {
-            this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             Border border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
             this.setBorder(border);
-            JPanel panel = new JPanel();
-            panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
             
-            comboBox.addActionListener(this);
-            lbl = new JLabel(label);
-            panel.add(lbl);
-            panel.add(Box.createHorizontalStrut(5));
-            panel.add(comboBox);
-            panel.setToolTipText(description);
-            this.setToolTipText(description);
-            comboBox.setToolTipText(description);
-            lbl.setToolTipText(description);
+            this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            TitledBorder title = BorderFactory.createTitledBorder(
+                    BorderFactory.createLineBorder(Color.DARK_GRAY), label);
+            title.setTitleJustification(TitledBorder.LEFT);
+            panel.setBorder(title);
+            
+            button1 = new JRadioButton(button1Label);
+            button1.setActionCommand(button1Label);
+            button1.setSelected(true);
+            button2 = new JRadioButton(button2Label);
+            button2.setActionCommand(button2Label);
+            
+            ButtonGroup group = new ButtonGroup();
+            group.add(button1);
+            group.add(button2);
+            
+            button1.addActionListener(this);
+            button2.addActionListener(this);
+            
+            Box box1 = Box.createHorizontalBox();
+            box1.add(Box.createHorizontalStrut(5));
+            box1.add(button1);
+            box1.add(Box.createHorizontalGlue());
+            
+            Box box2 = Box.createHorizontalBox();
+            box2.add(Box.createHorizontalStrut(5));
+            box2.add(button2);
+            box2.add(Box.createHorizontalGlue());
+            
+            panel.add(box1);
+            panel.add(box2);
+            
             this.add(panel);
-            this.add(Box.createHorizontalGlue());
+            this.setToolTipText(description);
+            button1.setToolTipText(description);
+            button2.setToolTipText(description);
             
-            this.setMaximumSize(new Dimension(2500, 40));
-            this.setPreferredSize(new Dimension(350, 40));
-        
         } catch (Exception e) {
             System.out.println(e.getCause());
         }
@@ -86,13 +110,9 @@ public class DialogComboBox extends JPanel implements ActionListener, DialogComp
             name = args[0];
             description = args[1];
             label = args[2];
-            String[] listItems = args[3].split(",");
-            for (int i = 0; i < listItems.length; i++) {
-                listItems[i] = listItems[i].trim();
-            }
-            comboBox = new JComboBox(listItems);
-            comboBox.setSelectedIndex(Integer.parseInt(args[4]));
-            value = (String)comboBox.getSelectedItem();
+            button1Label = args[3];
+            button2Label = args[4];
+            value = button1Label;
             createUI();
             return true;
         } catch (Exception e) {
@@ -106,14 +126,13 @@ public class DialogComboBox extends JPanel implements ActionListener, DialogComp
         argsDescriptors[0] = "String name";
         argsDescriptors[1] = "String description";
         argsDescriptors[2] = "String label";
-        argsDescriptors[3] = "String[] listItems";
-        argsDescriptors[4] = "Int defaultItem (zero-based)";
+        argsDescriptors[3] = "String button1String";
+        argsDescriptors[4] = "String button2String";
         return argsDescriptors;
     }
     
     @Override
     public void actionPerformed(ActionEvent e) {
-        JComboBox cb = (JComboBox)e.getSource();
-        value = (String)cb.getSelectedItem();
+        value = e.getActionCommand();
     }
 }
