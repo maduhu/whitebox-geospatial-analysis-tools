@@ -60,6 +60,9 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
         if ((new File(fileName)).exists()) {
             (new File(fileName)).delete();
             (new File(fileName.replace(".dep", ".tas"))).delete();
+            if ((new File(fileName.replace(".dep", ".wstat"))).exists()) {
+                new File(fileName.replace(".dep", ".wstat")).delete();
+            }
         }
 
         imageKey = "IMAGE" + numberOfImages;
