@@ -79,7 +79,7 @@ public class PluginHost implements WhiteboxPluginHost, Communicator {
                 } while (helpDirectory == null && seedDirectory.length() > 0);
             }
             
-            pluginService = PluginServiceFactory.createPluginService(pluginsDirectory);
+            pluginService = PluginServiceFactory.createPluginService(applicationDirectory); //pluginsDirectory);
             pluginService.initPlugins();
             plugInfo = pluginService.getPluginList();
             return true;

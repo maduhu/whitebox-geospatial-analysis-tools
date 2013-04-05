@@ -111,7 +111,8 @@ public class VectorLayerInfo implements MapLayer {
                 layerTitle.toLowerCase().contains("transportation"))) {
             lineColour = Color.black;
         } else if (shapeType == ShapeType.POLYLINE && (layerTitle.toLowerCase().contains("stream") ||
-                layerTitle.toLowerCase().contains("river") || layerTitle.toLowerCase().contains("water"))) {
+                layerTitle.toLowerCase().contains("river") || layerTitle.toLowerCase().contains("water")
+                 || layerTitle.toLowerCase().contains("hydrology"))) {
             lineColour = Color.blue;
         } else if (shapeType == ShapeType.POLYGON && (layerTitle.toLowerCase().contains("lake") ||
                 layerTitle.toLowerCase().contains("water"))) {

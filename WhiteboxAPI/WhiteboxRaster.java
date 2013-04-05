@@ -1112,7 +1112,6 @@ public class WhiteboxRaster {
                         if (str.length > 1) { this.addMetadataEntry(str[1]); }
                     }
                 }
-                System.out.println("hello");
                 //Close the input stream
                 in.close();
                 br.close();
