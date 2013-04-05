@@ -249,9 +249,9 @@ public class SedimentTransportIndex implements WhiteboxPlugin {
                 area = areaImage.getRowValues(row);
                 slope = slopeImage.getRowValues(row);
                 for (col = 0; col < cols; col++) {
-                    if (area[row] != areaNoData && slope[row] != slopeNoData) {
-                        z = (SCAExponent - 1) * Math.pow((area[row] / 22.13), SCAExponent) 
-                        * Math.pow((Math.sin(Math.toRadians(slope[row])) / 0.0896), slopeExponentValue);
+                    if (area[col] != areaNoData && slope[col] != slopeNoData) {
+                        z = (SCAExponent - 1) * Math.pow((area[col] / 22.13), SCAExponent) 
+                        * Math.pow((Math.sin(Math.toRadians(slope[col])) / 0.0896), slopeExponentValue);
                         output.setValue(row, col, z);
                     } else {
                         output.setValue(row, col, areaNoData);

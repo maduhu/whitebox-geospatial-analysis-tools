@@ -22,12 +22,12 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import java.io.File;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.ShapeFile;
-import whitebox.geospatialfiles.shapefile.DBF.DBFField;
-import whitebox.geospatialfiles.shapefile.DBF.DBFWriter;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.geospatialfiles.shapefile.ShapefilePoint;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
+import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.utilities.Topology;
@@ -288,8 +288,8 @@ public class MinimumConvexHull implements WhiteboxPlugin {
                                 whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
                                 output.addRecord(wbPoly);
 
-                                Object[] rowData = new Object[FID];
-                                rowData[0] = new Double(1);
+                                Object[] rowData = new Object[1];
+                                rowData[0] = new Double(FID);
                                 writer.addRecord(rowData);
                             }
                         }
@@ -312,7 +312,9 @@ public class MinimumConvexHull implements WhiteboxPlugin {
                 n = 0;
                 oneHundredthTotal = numRecs / 100;
                 progress = 0;
+                FID = 0;
                 for (ShapeFileRecord record : input.records) {
+                    FID++;
                     if (record.getShapeType() != ShapeType.NULLSHAPE) {
                         recJTSPoly = record.getGeometry().getJTSGeometries();
                         for (i = 0; i < recJTSPoly.length; i++) {
@@ -385,7 +387,7 @@ public class MinimumConvexHull implements WhiteboxPlugin {
                     output.addRecord(wbPoly);
 
                     Object[] rowData = new Object[1];
-                    rowData[0] = new Double(1);
+                    rowData[0] = new Double(FID);
                     writer.addRecord(rowData);
                 }
             }

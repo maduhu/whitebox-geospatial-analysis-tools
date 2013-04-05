@@ -68,7 +68,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     StatusBar status = new StatusBar(this);
     // common variables
-    static private String versionNumber = "2.1.0";
+    static private String versionNumber = "2.1.0--BETA";
     private String applicationDirectory;
     private String resourcesDirectory;
     private String graphicsDirectory;
@@ -774,7 +774,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             saveMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             FileMenu.add(closeMap);
             closeMap.setActionCommand("closeMap");
-            closeMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            //closeMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             closeMap.addActionListener(this);
             FileMenu.addSeparator();
             JMenuItem printMap = new JMenuItem("Print Map", new ImageIcon(graphicsDirectory + "Print.png"));

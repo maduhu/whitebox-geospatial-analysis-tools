@@ -17,7 +17,13 @@
 package plugins;
 
 import java.util.Date;
+import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.shapefile.PolygonM;
+import whitebox.geospatialfiles.shapefile.PolygonZ;
+import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
+import whitebox.geospatialfiles.shapefile.ShapeType;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 /**
@@ -52,7 +58,7 @@ public class Perimeter implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Calculates the perimeter of polygons or classes within a raster image.";
+    	return "Calculates the perimeter of polygons or classes.";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
@@ -150,8 +156,7 @@ public class Perimeter implements WhiteboxPlugin {
         return amIActive;
     }
     
-    @Override
-    public void run() {
+    private void calculateRaster() {
         amIActive = true;
 
         String inputHeader = null;
@@ -344,4 +349,145 @@ public class Perimeter implements WhiteboxPlugin {
             myHost.pluginComplete();
         }
     }
+    
+    private void calculateVector() {
+        
+        /*
+         * Notice that this tool assumes that each record in the shapefile is an
+         * individual polygon. The feature can contain multiple parts only if it
+         * has holes, i.e. islands. A multipart record cannot contain multiple
+         * and seperate features. This is because it complicates the calculation
+         * of feature area and perimeter.
+         */
+
+        amIActive = true;
+
+        // Declare the variable.
+        String inputFile = null;
+        int progress;
+        double perimeter = 0;
+        int recNum;
+
+        if (args.length <= 0) {
+            showFeedback("Plugin parameters have not been set.");
+            return;
+        }
+
+        inputFile = args[0];
+        /*
+         * args[1], args[2], and args[3] are ignored by the vector tool
+         */
+
+        // check to see that the inputHeader and outputHeader are not null.
+        if (inputFile == null) {
+            showFeedback("One or more of the input parameters have not been set properly.");
+            return;
+        }
+
+        try {
+
+            ShapeFile input = new ShapeFile(inputFile);
+            double numberOfRecords = input.getNumberOfRecords();
+
+            if (input.getShapeType().getBaseType() != ShapeType.POLYGON) {
+                showFeedback("This function can only be applied to polygon type shapefiles.");
+                return;
+            }
+
+            /* create a new field in the input file's database 
+               to hold the fractal dimension. Put it at the end 
+               of the database. */
+            DBFField field = new DBFField();
+            field = new DBFField();
+            field.setName("PERIMETER");
+            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setFieldLength(10);
+            field.setDecimalCount(4);
+            input.attributeTable.addField(field);
+
+            // initialize the shapefile.
+            ShapeType inputType = input.getShapeType();
+
+            for (ShapeFileRecord record : input.records) {
+
+                switch (inputType) {
+                    case POLYGON:
+                        whitebox.geospatialfiles.shapefile.Polygon recPolygon =
+                                (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+                        perimeter = recPolygon.getPerimeter();
+                        break;
+                    case POLYGONZ:
+                        PolygonZ recPolygonZ = (PolygonZ) (record.getGeometry());
+                        perimeter = recPolygonZ.getPerimeter();
+                        break;
+                    case POLYGONM:
+                        PolygonM recPolygonM = (PolygonM) (record.getGeometry());
+                        perimeter = recPolygonM.getPerimeter();
+                        break;
+                }
+                
+                recNum = record.getRecordNumber() - 1;
+                Object[] recData = input.attributeTable.getRecord(recNum);
+                recData[recData.length - 1] = new Double(perimeter);
+                input.attributeTable.updateRecord(recNum, recData);
+
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (record.getRecordNumber() / numberOfRecords * 100);
+                updateProgress(progress);
+            }
+
+            // returning the database file will result in it being opened in the Whitebox GUI.
+            returnData(input.getDatabaseFile());
+
+
+        } catch (Exception e) {
+            showFeedback(e.getMessage());
+            showFeedback(e.getCause().toString());
+        } finally {
+            updateProgress("Progress: ", 0);
+            // tells the main application that this process is completed.
+            amIActive = false;
+            myHost.pluginComplete();
+        }
+    }
+    
+    @Override
+    public void run() {
+        amIActive = true;
+        String inputFile = args[0];
+        if (inputFile.toLowerCase().contains(".dep")) {
+            calculateRaster();
+        } else if (inputFile.toLowerCase().contains(".shp")) {
+            calculateVector();
+        } else {
+            showFeedback("There was a problem reading the input file.");
+        }
+    }
+    
+    // This method is only used during testing.
+    public static void main(String[] args) {
+
+        // vector-based test
+        args = new String[4];
+        /*
+         * specify the input args array as: args[0] = inputFile 
+         * args[1] = outputFile (parameter ignored in the vector algorithm)
+         * args[2] = blnTextOutput (This parameter is ignored in the
+         * vector algorithm...only used in the raster tool) 
+         * args[3] = zeroAsBackground (This parameter is ignored in the vector
+         * algorithm...only used in the raster tool)
+         */
+        args[0] = "/Users/johnlindsay/Documents/Data/Shapefiles/Water_Body_rmow.shp";
+        args[1] = "";
+        args[2] = "false";
+        args[3] = "false";
+
+        Perimeter perimeter = new Perimeter();
+        perimeter.setArgs(args);
+        perimeter.run();
+    }
+    
 }

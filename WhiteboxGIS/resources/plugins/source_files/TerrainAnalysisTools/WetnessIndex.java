@@ -241,9 +241,9 @@ public class WetnessIndex implements WhiteboxPlugin {
                 area = areaImage.getRowValues(row);
                 slope = slopeImage.getRowValues(row);
                 for (col = 0; col < cols; col++) {
-                    if (area[row] != areaNoData && slope[row] != slopeNoData) {
-                        if (slope[row] != 0) {
-                            z = Math.log(((area[row]) / (Math.tan(Math.toRadians(slope[row])))));
+                    if (area[col] != areaNoData && slope[col] != slopeNoData) {
+                        if (slope[col] != 0) {
+                            z = Math.log(((area[col]) / (Math.tan(Math.toRadians(slope[col])))));
                         } else {
                             z = areaNoData;
                         }

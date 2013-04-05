@@ -247,8 +247,8 @@ public class Hillshade implements WhiteboxPlugin {
             int cols = inputFile.getNumberColumns();
             gridRes = inputFile.getCellSizeX();
             eightGridRes = 8 * gridRes;
-            double Rad180 = 180 * degToRad;
-            double Rad90 = 90 * degToRad;
+            //double Rad180 = 180 * degToRad;
+            //double Rad90 = 90 * degToRad;
 
 
             double noData = inputFile.getNoDataValue();

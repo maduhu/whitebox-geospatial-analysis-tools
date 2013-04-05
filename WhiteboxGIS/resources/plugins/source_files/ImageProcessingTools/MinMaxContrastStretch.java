@@ -18,8 +18,6 @@
 package plugins;
 
 import java.util.Date;
-import java.io.File;
-import java.nio.*;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -174,6 +172,7 @@ public class MinMaxContrastStretch implements WhiteboxPlugin {
         minVal = Double.parseDouble(args[2]);
         maxVal = Double.parseDouble(args[3]);
         numBins = Integer.parseInt(args[4]);
+        int numBinsLessOne = numBins - 1;
         
         // check to see that the inputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
@@ -199,7 +198,7 @@ public class MinMaxContrastStretch implements WhiteboxPlugin {
                     if (data[col] != noData) {
                         z = (int)(data[col] - minVal) * scaleFactor;
                         if (z < 0) { z = 0; }
-                        if (z > (numBins - 1)) { z = (numBins - 1); }
+                        if (z > numBinsLessOne) { z = numBinsLessOne; }
                         output.setValue(row, col, z);
                     } else {
                         output.setValue(row, col, noData);

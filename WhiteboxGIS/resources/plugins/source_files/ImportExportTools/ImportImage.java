@@ -16,60 +16,59 @@
  */
 package plugins;
 
-import java.io.File;
-import java.io.DataInputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-import java.io.PrintWriter;
-import java.util.Date;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
+import java.io.*;
+import java.util.Date;
+import javax.imageio.ImageIO;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ImportImage implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "ImportImage";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
         return "Import Image";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
         return "Imports an image file (.png, .gif, .bmp, .jpg).";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
@@ -77,17 +76,23 @@ public class ImportImage implements WhiteboxPlugin {
         String[] ret = {"IOTools"};
         return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -97,8 +102,11 @@ public class ImportImage implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -108,8 +116,11 @@ public class ImportImage implements WhiteboxPlugin {
     }
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
@@ -121,8 +132,11 @@ public class ImportImage implements WhiteboxPlugin {
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -131,17 +145,21 @@ public class ImportImage implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
@@ -154,9 +172,12 @@ public class ImportImage implements WhiteboxPlugin {
         updateProgress("Progress: ", 0);
     }
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -180,7 +201,10 @@ public class ImportImage implements WhiteboxPlugin {
         double noData = -32768;
         InputStream inStream = null;
         OutputStream outStream = null;
-        
+        String dataType = "float";
+        String dataScale = "rgb";
+        DataInputStream in = null;
+        BufferedReader br = null;
         String str1 = null;
         FileWriter fw = null;
         BufferedWriter bw = null;
@@ -205,7 +229,7 @@ public class ImportImage implements WhiteboxPlugin {
         try {
 
             for (i = 0; i < numImages; i++) {
-                int progress = (int)(100f * i / (numImages - 1));
+                int progress = (int) (100f * i / (numImages - 1));
                 updateProgress("Loop " + (i + 1) + " of " + numImages + ":", (int) progress);
                 fileName = imageFiles[i];
                 // check to see if the file exists.
@@ -213,30 +237,40 @@ public class ImportImage implements WhiteboxPlugin {
                     showFeedback("Image file does not exist.");
                     break;
                 }
-                
+                File file = new File(fileName);
+                String fileExtension = whitebox.utilities.FileUtilities.getFileExtension(fileName).toLowerCase();
+                String[] formatNames = ImageIO.getReaderFormatNames();
+                boolean checkForSupportedFormat = false;
+                for (String str : formatNames) {
+                    if (str.toLowerCase().equals(fileExtension)) {
+                        checkForSupportedFormat = true;
+                        break;
+                    }
+                }
+                if (!checkForSupportedFormat) {
+                    showFeedback("This image file format is not currently supported by this tool.");
+                    return;
+                }
                 BufferedImage image = ImageIO.read(new File(fileName));
-                
+
                 rows = image.getHeight();
                 cols = image.getWidth();
                 //ColorModel cm = image.getColorModel();
                 if (image.getColorModel().getPixelSize() == 24) {
-                    System.out.println(image.getColorModel().getPixelSize());
+                    dataType = "float";
+                    dataScale = "rgb";
                 }
-                
-                int k = image.getRGB(45, 100);
-                int r = (int)k & 0xFF;
-                int g = ((int)k >> 8) & 0xFF;
-                int b = ((int)k >> 16) & 0xFF;
-                
+
                 int dot = imageFiles[i].lastIndexOf(".");
-                String imageExtension = imageFiles[i].substring(dot + 1); // either .tif or .tiff
+                String imageExtension = imageFiles[i].substring(dot + 1);
                 whiteboxHeaderFile = imageFiles[i].replace(imageExtension, "dep");
                 whiteboxDataFile = imageFiles[i].replace(imageExtension, "tas");
-                
+
                 char[] extChars = imageExtension.toCharArray();
                 boolean worldFileFound = false;
-                
-                String wfExtension = extChars[0] + extChars[2] + "w";
+
+                String wfExtension = Character.toString(extChars[0])
+                        + Character.toString(extChars[2]) + "w";
                 String worldFile = imageFiles[i].replace(imageExtension, wfExtension);
                 if ((new File(worldFile)).exists()) {
                     worldFileFound = true;
@@ -247,47 +281,203 @@ public class ImportImage implements WhiteboxPlugin {
                         worldFileFound = true;
                     } else {
                         wfExtension = ".wld";
-                        wfExtension = imageExtension + "w";
                         worldFile = imageFiles[i].replace(imageExtension, wfExtension);
                         if ((new File(worldFile)).exists()) {
                             worldFileFound = true;
                         }
                     }
                 }
+                if (worldFileFound) {
+                    double A = 0, B = 0, C = 0, D = 0, E = 0, F = 0; // these are six-parameter affine transformation values;
+                    // read it
+                    FileInputStream fstream = new FileInputStream(worldFile);
+                    in = new DataInputStream(fstream);
+                    br = new BufferedReader(new InputStreamReader(in));
+                    String line;
+                    int n = 0;
+                    //Read File Line By Line
+                    while ((line = br.readLine()) != null) {
+                        switch (n) {
+                            case 0:
+                                A = Double.parseDouble(line);
+                                break;
+                            case 1:
+                                D = Double.parseDouble(line);
+                                break;
+                            case 2:
+                                B = Double.parseDouble(line);
+                                break;
+                            case 3:
+                                E = Double.parseDouble(line);
+                                break;
+                            case 4:
+                                C = Double.parseDouble(line);
+                                break;
+                            case 5:
+                                F = Double.parseDouble(line);
+                                break;
+                        }
+                        n++;
+                    }
+                    if (B == 0 && D == 0) { // there is no rotation
+                        double west = A * 0 + B * 0 + C;
+                        double north = D * 0 + E * 0 + F;
+                        double east = A * (cols - 1) + B * (rows - 1) + C;
+                        double south = D * (cols - 1) + E * (rows - 1) + F;
 
-                // see if they exist, and if so, delete them.
-                (new File(whiteboxHeaderFile)).delete();
-                (new File(whiteboxDataFile)).delete();
+                        // see if they exist, and if so, delete them.
+                        (new File(whiteboxHeaderFile)).delete();
+                        (new File(whiteboxDataFile)).delete();
 
-                // create the whitebox header file.
-                fw = new FileWriter(whiteboxHeaderFile, false);
-                bw = new BufferedWriter(fw);
-                out = new PrintWriter(bw, true);
-                
-                // copy the data file.
-                File fromfile = new File(inputDataFile);
-                File tofile = new File(whiteboxDataFile);
-                inStream = new FileInputStream(fromfile);
-                outStream = new FileOutputStream(tofile);
-                byte[] buffer = new byte[1024];
-                int length;
-                //copy the file content in bytes 
-                while ((length = inStream.read(buffer)) > 0) {
-                    outStream.write(buffer, 0, length);
+                        // create the whitebox header file.
+                        fw = new FileWriter(whiteboxHeaderFile, false);
+                        bw = new BufferedWriter(fw);
+                        out = new PrintWriter(bw, true);
+
+                        String byteOrder = java.nio.ByteOrder.nativeOrder().toString();
+
+                        str1 = "Min:\t" + Double.toString(Integer.MAX_VALUE);
+                        out.println(str1);
+                        str1 = "Max:\t" + Double.toString(Integer.MIN_VALUE);
+                        out.println(str1);
+                        str1 = "North:\t" + Double.toString(north);
+                        out.println(str1);
+                        str1 = "South:\t" + Double.toString(south);
+                        out.println(str1);
+                        str1 = "East:\t" + Double.toString(east);
+                        out.println(str1);
+                        str1 = "West:\t" + Double.toString(west);
+                        out.println(str1);
+                        str1 = "Cols:\t" + Integer.toString(cols);
+                        out.println(str1);
+                        str1 = "Rows:\t" + Integer.toString(rows);
+                        out.println(str1);
+                        str1 = "Data Type:\t" + dataType;
+                        out.println(str1);
+                        str1 = "Z Units:\t" + "not specified";
+                        out.println(str1);
+                        str1 = "XY Units:\t" + "not specified";
+                        out.println(str1);
+                        str1 = "Projection:\t" + "not specified";
+                        out.println(str1);
+                        str1 = "Data Scale:\t" + dataScale;
+                        out.println(str1);
+                        str1 = "Preferred Palette:\t" + "greyscale.pal";
+                        out.println(str1);
+                        str1 = "NoData:\t-32768";
+                        out.println(str1);
+                        if (byteOrder.toLowerCase().contains("lsb")
+                                || byteOrder.toLowerCase().contains("little")) {
+                            str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
+                        } else {
+                            str1 = "Byte Order:\t" + "BIG_ENDIAN";
+                        }
+                        out.println(str1);
+
+                        // now create the data file
+
+                        output = new WhiteboxRaster(whiteboxHeaderFile, "rw");
+                        int z, r, g, b;
+                        for (row = 0; row < rows; row++) {
+                            for (col = 0; col < cols; col++) {
+                                z = image.getRGB(col, row);
+                                r = (int) z & 0xFF;
+                                g = ((int) z >> 8) & 0xFF;
+                                b = ((int) z >> 16) & 0xFF;
+                                output.setValue(row, col, (double) ((255 << 24) | (b << 16) | (g << 8) | r));
+                            }
+                        }
+
+
+                        output.findMinAndMaxVals();
+                        output.addMetadataEntry("Created by the "
+                                + getDescriptiveName() + " tool.");
+                        output.addMetadataEntry("Created on " + new Date());
+                        output.writeHeaderFile();
+                        output.close();
+                    } else { // rotated image
+                        showFeedback("We're sorry but Whitebox cannot currently handle the import of rotated images.");
+                        break;
+                    }
+                } else { // no world file found
+                    double west = 0;
+                    double north = rows - 1;
+                    double east = cols - 1;
+                    double south = 0;
+
+                    // see if they exist, and if so, delete them.
+                    (new File(whiteboxHeaderFile)).delete();
+                    (new File(whiteboxDataFile)).delete();
+
+                    // create the whitebox header file.
+                    fw = new FileWriter(whiteboxHeaderFile, false);
+                    bw = new BufferedWriter(fw);
+                    out = new PrintWriter(bw, true);
+
+                    String byteOrder = java.nio.ByteOrder.nativeOrder().toString();
+
+                    str1 = "Min:\t" + Double.toString(Integer.MAX_VALUE);
+                    out.println(str1);
+                    str1 = "Max:\t" + Double.toString(Integer.MIN_VALUE);
+                    out.println(str1);
+                    str1 = "North:\t" + Double.toString(north);
+                    out.println(str1);
+                    str1 = "South:\t" + Double.toString(south);
+                    out.println(str1);
+                    str1 = "East:\t" + Double.toString(east);
+                    out.println(str1);
+                    str1 = "West:\t" + Double.toString(west);
+                    out.println(str1);
+                    str1 = "Cols:\t" + Integer.toString(cols);
+                    out.println(str1);
+                    str1 = "Rows:\t" + Integer.toString(rows);
+                    out.println(str1);
+                    str1 = "Data Type:\t" + dataType;
+                    out.println(str1);
+                    str1 = "Z Units:\t" + "not specified";
+                    out.println(str1);
+                    str1 = "XY Units:\t" + "not specified";
+                    out.println(str1);
+                    str1 = "Projection:\t" + "not specified";
+                    out.println(str1);
+                    str1 = "Data Scale:\t" + dataScale;
+                    out.println(str1);
+                    str1 = "Preferred Palette:\t" + "greyscale.pal";
+                    out.println(str1);
+                    str1 = "NoData:\t-32768";
+                    out.println(str1);
+                    if (byteOrder.toLowerCase().contains("lsb")
+                            || byteOrder.toLowerCase().contains("little")) {
+                        str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
+                    } else {
+                        str1 = "Byte Order:\t" + "BIG_ENDIAN";
+                    }
+                    out.println(str1);
+
+                    // now create the data file
+
+                    output = new WhiteboxRaster(whiteboxHeaderFile, "rw");
+                    int z, r, g, b;
+                    for (row = 0; row < rows; row++) {
+                        for (col = 0; col < cols; col++) {
+                            z = image.getRGB(col, row);
+                            r = (int) z & 0xFF;
+                            g = ((int) z >> 8) & 0xFF;
+                            b = ((int) z >> 16) & 0xFF;
+                            output.setValue(row, col, (double) ((255 << 24) | (b << 16) | (g << 8) | r));
+                        }
+                    }
+
+
+                    output.findMinAndMaxVals();
+                    output.addMetadataEntry("Created by the "
+                            + getDescriptiveName() + " tool.");
+                    output.addMetadataEntry("Created on " + new Date());
+                    output.writeHeaderFile();
+                    output.close();
+                    // returning a header file string displays the image.
+                    returnData(whiteboxHeaderFile);
                 }
-                inStream.close();
-                outStream.close();
-
-                output = new WhiteboxRaster(whiteboxHeaderFile, "r");
-                output.findMinAndMaxVals();
-                output.addMetadataEntry("Created by the "
-                    + getDescriptiveName() + " tool.");
-                output.addMetadataEntry("Created on " + new Date());
-                output.writeHeaderFile();
-                output.close();
-
-                // returning a header file string displays the image.
-                returnData(whiteboxHeaderFile);
             }
 
 
@@ -303,163 +493,13 @@ public class ImportImage implements WhiteboxPlugin {
         }
     }
 
-    private boolean createHeaderFile(String idrisiHeaderFile, String whiteboxHeaderFile) {
-        int nrows = 0;
-        int ncols = 0;
-        double north = 0;
-        double east = 0;
-        double west = 0;
-        double south = 0;
-        double noData = 0;
-        String dataType = "float";
-        String dataScale = "continuous";
-        DataInputStream in = null;
-        BufferedReader br = null;
-        String delimiter = ":";
-        String byteOrder = java.nio.ByteOrder.nativeOrder().toString();
-        
-        String str1 = null;
-        FileWriter fw = null;
-        BufferedWriter bw = null;
-        PrintWriter out = null;
-        
-        try {
-            // Open the file that is the first command line parameter
-            FileInputStream fstream = new FileInputStream(idrisiHeaderFile);
-            // Get the object of DataInputStream
-            in = new DataInputStream(fstream);
-
-            br = new BufferedReader(new InputStreamReader(in));
-
-            if (idrisiHeaderFile != null) {
-                String line;
-                String[] str;
-                //Read File Line By Line
-                while ((line = br.readLine()) != null) {
-                    str = line.split(delimiter);
-                    if (str.length <= 1) {
-                        delimiter = " ";
-                        str = line.split(delimiter);
-                        if (str.length <= 1) {
-                            delimiter = "\t";
-                            str = line.split(delimiter);
-                        }
-                    }
-                    if (str[0].toLowerCase().contains("data type")) {
-                        if (str[str.length - 1].toLowerCase().contains("byte")) {
-                            showFeedback("This tool does not support byte file types. "
-                                    + "Please convert the file before importing. Only"
-                                    + " 16-bit integer and 32-bit real formats are "
-                                    + "supported.");
-                            return false;
-                        } else if (str[str.length - 1].toLowerCase().contains("int")) {
-                            dataType = "integer";
-                        } else if (str[str.length - 1].toLowerCase().contains("real")) {
-                            dataType = "float";
-                        } else if (str[str.length - 1].toLowerCase().contains("rbg")) {
-                            dataType = "float";
-                            dataScale = "rbg";
-                        }
-                    } else if (str[0].toLowerCase().contains("file type")) {
-                        if (!str[str.length - 1].toLowerCase().contains("binary")) {
-                            showFeedback("This tool only support binary file types. "
-                                    + "Please convert the file before importing.");
-                            return false;
-                        }
-                    } else if (str[0].toLowerCase().contains("columns")) {
-                        ncols = Integer.parseInt(str[str.length - 1].trim());
-                    } else if (str[0].toLowerCase().contains("rows")) {
-                        nrows = Integer.parseInt(str[str.length - 1].trim());
-                    } else if (str[0].toLowerCase().contains("min. x")) {
-                        west = Double.parseDouble(str[str.length - 1].trim());
-                    } else if (str[0].toLowerCase().contains("max. x")) {
-                        east = Double.parseDouble(str[str.length - 1].trim());
-                    } else if (str[0].toLowerCase().contains("min. y")) {
-                        south = Double.parseDouble(str[str.length - 1].trim());
-                    } else if (str[0].toLowerCase().contains("max. y")) {
-                        north = Double.parseDouble(str[str.length - 1].trim());
-                    }
-                }
-                //Close the input stream
-                in.close();
-                br.close();
-
-                fw = new FileWriter(whiteboxHeaderFile, false);
-                bw = new BufferedWriter(fw);
-                out = new PrintWriter(bw, true);
-
-                str1 = "Min:\t" + Double.toString(Integer.MAX_VALUE);
-                out.println(str1);
-                str1 = "Max:\t" + Double.toString(Integer.MIN_VALUE);
-                out.println(str1);
-                str1 = "North:\t" + Double.toString(north);
-                out.println(str1);
-                str1 = "South:\t" + Double.toString(south);
-                out.println(str1);
-                str1 = "East:\t" + Double.toString(east);
-                out.println(str1);
-                str1 = "West:\t" + Double.toString(west);
-                out.println(str1);
-                str1 = "Cols:\t" + Integer.toString(ncols);
-                out.println(str1);
-                str1 = "Rows:\t" + Integer.toString(nrows);
-                out.println(str1);
-                str1 = "Data Type:\t" + dataType;
-                out.println(str1);
-                str1 = "Z Units:\t" + "not specified";
-                out.println(str1);
-                str1 = "XY Units:\t" + "not specified";
-                out.println(str1);
-                str1 = "Projection:\t" + "not specified";
-                out.println(str1);
-                str1 = "Data Scale:\t" + dataScale;
-                out.println(str1);
-                str1 = "Preferred Palette:\t" + "spectrum.pal";
-                out.println(str1);
-                str1 = "NoData:\t-9999";
-                out.println(str1);
-                if (byteOrder.toLowerCase().contains("lsb") || 
-                        byteOrder.toLowerCase().contains("little")) {
-                    str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
-                } else {
-                    str1 = "Byte Order:\t" + "BIG_ENDIAN";
-                }
-                out.println(str1);
-
-            }
-            return true;
-        } catch (java.io.IOException e) {
-            System.err.println("Error: " + e.getMessage());
-            return false;
-        } catch (Exception e) { //Catch exception if any
-            System.err.println("Error: " + e.getMessage());
-            return false;
-        } finally {
-            try {
-                if (in != null || br != null) {
-                    in.close();
-                    br.close();
-                }
-            } catch (java.io.IOException ex) {
-            }
-            if (out != null || bw != null) {
-                out.flush();
-                out.close();
-            }
-
-        }
-
-    }
-    
-    // This method is only used during testing.
-    public static void main(String[] args) {
-        args = new String[2];
-        args[0] = "/Users/johnlindsay/Documents/Teaching/GEOG2420/Fall 2011/Labs/Lab2/A19411_15.JPG"
-                + ";/Users/johnlindsay/Documents/Teaching/GEOG2420/Fall 2011/Labs/Lab2/A19411_16.JPG";
-        args[1] = "//Users/johnlindsay/Documents/Teaching/GEOG2420/Fall 2011/Labs/Lab2/tmp1.JPG";
-        
-        ImportImage ii = new ImportImage();
-        ii.setArgs(args);
-        ii.run();
-    }
+//    // This method is only used during testing.
+//    public static void main(String[] args) {
+//        args = new String[1];
+//        args[0] = "/Users/johnlindsay/Documents/Teaching/GEOG2420/Fall 2011/Labs/Lab2/A19411_16.JPG";
+//
+//        ImportImage ii = new ImportImage();
+//        ii.setArgs(args);
+//        ii.run();
+//    }
 }

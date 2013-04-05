@@ -264,13 +264,13 @@ public class ImportSurferAsciiGrid implements WhiteboxPlugin {
                             }
                         } else if (i == 2) {
                             cols = Integer.parseInt(str[0]);
-                            rows = Integer.parseInt(str[1]);
+                            rows = Integer.parseInt(str[str.length - 1]);
                         } else if (i == 3) {
                             west = Double.parseDouble(str[0]);
-                            east = Double.parseDouble(str[1]);
+                            east = Double.parseDouble(str[str.length - 1]);
                         } else if (i == 4) {
                             south = Double.parseDouble(str[0]);
-                            north = Double.parseDouble(str[1]);
+                            north = Double.parseDouble(str[str.length - 1]);
                         } else {
                             break;
                         }
@@ -328,9 +328,9 @@ public class ImportSurferAsciiGrid implements WhiteboxPlugin {
                     delimiter = " ";
                     row = rows - 1;
                     col = 0;
-                    int a = 0;
+                    //int a = 5;
                     while ((line = br.readLine()) != null) {
-                        if (a > 4) {
+                        //if (a > 4) {
                             str = line.split(delimiter);
                             if (str.length <= 1) {
                                 delimiter = "\t";
@@ -347,17 +347,19 @@ public class ImportSurferAsciiGrid implements WhiteboxPlugin {
 
                             // read the data
                             for (i = 0; i < str.length; i++) {
-                                z = Double.parseDouble(str[i]);
-                                wbr.setValue(row, col, z);
-                                
-                                col++;
-                                if (col == cols) {
-                                    col = 0;
-                                    row--;
+                                if (!str[i].trim().isEmpty()) {
+                                    z = Double.parseDouble(str[i]);
+                                    wbr.setValue(row, col, z);
+
+                                    col++;
+                                    if (col == cols) {
+                                        col = 0;
+                                        row--;
+                                    }
                                 }
                             }
-                        }
-                        a++;
+                        //}
+                        //a++;
                     }
 
                     //Close the input stream
@@ -367,7 +369,8 @@ public class ImportSurferAsciiGrid implements WhiteboxPlugin {
                     wbr.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
                     wbr.addMetadataEntry("Created on " + new Date());
-                    //wbr.findMinAndMaxVals();
+                    wbr.flush();
+                    wbr.findMinAndMaxVals();
                     //wbr.writeHeaderFile();
                     wbr.close();
 

@@ -181,7 +181,6 @@ public class PrincipalComponentAnalysis implements WhiteboxPlugin {
         String outputName = null;
         String workingDirectory = null;
         WhiteboxRasterInfo[] images = null;
-        WhiteboxRaster ouptut = null;
         int nCols = 0;
         int nRows = 0;
         double z;

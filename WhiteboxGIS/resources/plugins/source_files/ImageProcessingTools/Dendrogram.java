@@ -226,7 +226,7 @@ class Dendrogram extends JPanel implements ActionListener, Printable, MouseMotio
                 }
             }
             if (endX == -1) {
-                endX = maxDist + 10;
+                endX = maxDist + maxDist * 0.1;
             }
             return new double[]{stX, endX};
         } catch (Exception e) {
@@ -263,7 +263,7 @@ class Dendrogram extends JPanel implements ActionListener, Printable, MouseMotio
         double activeHeight = getHeight() - topMargin - bottomMargin;
         int bottomY = getHeight() - bottomMargin;
         int rightX = getWidth() - rightMargin;
-        double xScale = (maxDist + 10) / activeWidth;
+        double xScale = (maxDist + maxDist * 0.1) / activeWidth;
         double yScale = (numClasses + 1) / activeHeight;
         int x1, x2, y1, y2;
         
@@ -276,7 +276,7 @@ class Dendrogram extends JPanel implements ActionListener, Printable, MouseMotio
         
         // draw ticks
         int tickSize = 4;
-        double range = 10;
+        double range = 1;
         if (maxDist < 1) {
             range = 0.1;
         } else if (maxDist < 10) {

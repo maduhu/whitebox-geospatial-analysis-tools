@@ -25,9 +25,9 @@ import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataType;
-import whitebox.geospatialfiles.shapefile.DBF.DBFException;
-import whitebox.geospatialfiles.shapefile.DBF.DBFField;
-import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
+import whitebox.geospatialfiles.shapefile.attributes.DBFException;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
+import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
 import whitebox.geospatialfiles.shapefile.PolygonM;
 import whitebox.geospatialfiles.shapefile.PolygonZ;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
@@ -231,7 +231,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
         ArrayList<Integer> edgeList = new ArrayList<Integer>();
         boolean useRecID = false;
         DecimalFormat df = new DecimalFormat("###,###,###,###");
-        double smallNumber = Float.NEGATIVE_INFINITY; // this value will be used
+        double smallNumber = -999999.0; // this value will be used
         // to ensure that when there is a hole in a polygon, the cell containing
         // the background value will be retreived from the priority queue second.
 
@@ -265,9 +265,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
             ShapeFile input = new ShapeFile(inputFile);
             int numRecs = input.getNumberOfRecords();
 
-            if (input.getShapeType() != ShapeType.POLYGON
-                    && input.getShapeType() != ShapeType.POLYGONZ
-                    && input.getShapeType() != ShapeType.POLYGONM) {
+            if (input.getShapeType().getBaseType() != ShapeType.POLYGON) {
                 showFeedback("The input shapefile must be of a 'polygon' data type.");
                 return;
             }

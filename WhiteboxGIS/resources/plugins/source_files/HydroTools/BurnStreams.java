@@ -16,17 +16,27 @@
  */
 package plugins;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.PriorityQueue;
+import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.WhiteboxRasterBase;
+import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.structures.BoundingBox;
+import whitebox.structures.RowPriorityGridCell;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class BurnStreams implements WhiteboxPlugin {
-    
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
     WhiteboxRaster DEM;
@@ -34,55 +44,71 @@ public class BurnStreams implements WhiteboxPlugin {
     WhiteboxRaster output;
     String outputHeader = null;
     String streamsHeader = null;
-    String inputHeader = null;
+    String demHeader = null;
     int rows = 0;
     int cols = 0;
     double noData = -32768;
     double gridRes = 0;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
-     */    
+     */
     @Override
     public String getName() {
         return "BurnStreams";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "Burn Streams";
+        return "Burn Streams";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "Decrements the elevations in a DEM along a stream network.";
+        return "Decrements the elevations in a DEM along a stream network.";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "DEMPreprocessing" };
-    	return ret;
+        String[] ret = {"DEMPreprocessing"};
+        return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -92,8 +118,11 @@ public class BurnStreams implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -101,24 +130,29 @@ public class BurnStreams implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
-
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -127,34 +161,39 @@ public class BurnStreams implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -164,68 +203,252 @@ public class BurnStreams implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
+
+        String inputStreamsFile;
         int row, col;
         int i;
-        float progress = 0;
-        double decrement = 0;
-        boolean applyGradientTowardStreams = false;
+        int topRow, bottomRow, leftCol, rightCol;
+        float progress;
+        double decrement;
         double decayCoefficient = 0;
-        double elevation = 0;
+        double elevation;
         double infVal = 9999999;
-    
+        double value;
+        double rowYCoord, colXCoord;
+        double[][] geometry;
+        BoundingBox box;
+        int numPoints, numParts, part;
+        int startingPointInPart, endingPointInPart;
+        double x1, y1, x2, y2, xPrime, yPrime;
+        DecimalFormat df = new DecimalFormat("###,###,###,###");
+        
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                streamsHeader = args[i];
-            } else if (i == 2) {
-                outputHeader = args[i];
-            } else if (i == 3) {
-                decrement = Double.parseDouble(args[i]);
-            } else if (i ==4) {
-                if (!args[i].toLowerCase().contains("not specified")) {
-                    decayCoefficient = Double.parseDouble(args[i]);
-                    if (decayCoefficient < 0) { decayCoefficient = 0; }
-                }
+
+        demHeader = args[0];
+        inputStreamsFile = args[1];
+        outputHeader = args[2];
+        decrement = Double.parseDouble(args[3]);
+        if (!args[4].toLowerCase().contains("not specified")) {
+            decayCoefficient = Double.parseDouble(args[4]);
+            if (decayCoefficient < 0) {
+                decayCoefficient = 0;
             }
         }
 
+
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader == null) || (outputHeader == null)) {
+        if ((demHeader == null) || (inputStreamsFile == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
 
         try {
-            DEM = new WhiteboxRaster(inputHeader, "r");
+            DEM = new WhiteboxRaster(demHeader, "r");
             rows = DEM.getNumberRows();
             cols = DEM.getNumberColumns();
             noData = DEM.getNoDataValue();
             gridRes = (DEM.getCellSizeX() + DEM.getCellSizeY()) / 2;
 
-            streams = new WhiteboxRaster(streamsHeader, "r");
-            
+            if (inputStreamsFile.toLowerCase().endsWith(".dep")) {
+                streamsHeader = inputStreamsFile;
+                streams = new WhiteboxRaster(streamsHeader, "r");
+            } else if (inputStreamsFile.toLowerCase().endsWith(".shp")) {
+                streamsHeader = inputStreamsFile.replace(".shp", "_temp.dep");
+
+                // convert the streams vector into a temporary raster
+                // initialize the shapefile input
+                ShapeFile input = new ShapeFile(inputStreamsFile);
+                int numRecs = input.getNumberOfRecords();
+
+                if (input.getShapeType() != ShapeType.POLYLINE
+                        && input.getShapeType() != ShapeType.POLYLINEZ
+                        && input.getShapeType() != ShapeType.POLYLINEM
+                        && input.getShapeType() != ShapeType.POLYGON
+                        && input.getShapeType() != ShapeType.POLYGONZ
+                        && input.getShapeType() != ShapeType.POLYGONM) {
+                    showFeedback("The input shapefile must be of a 'polyline' or "
+                            + "'polygon' data type.");
+                    return;
+                }
+
+                // initialize the output raster
+                streams = new WhiteboxRaster(streamsHeader, "rw",
+                        demHeader, WhiteboxRasterBase.DataType.INTEGER, 0);
+
+                streams.isTemporaryFile = true;
+
+
+                // first sort the records based on their maxY coordinate. This will
+                // help reduce the amount of disc IO for larger rasters.
+                ArrayList<RecordInfo> myList = new ArrayList<RecordInfo>();
+
+                for (ShapeFileRecord record : input.records) {
+                    i = record.getRecordNumber();
+                    box = getBoundingBoxFromShapefileRecord(record);
+                    myList.add(new RecordInfo(box.getMaxY(), i));
+                }
+
+                Collections.sort(myList);
+
+                long heapSize = Runtime.getRuntime().totalMemory();
+                int flushSize = (int) (heapSize / 32);
+                int j, numCellsToWrite;
+                PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<RowPriorityGridCell>(flushSize);
+                RowPriorityGridCell cell;
+                int numRecords = input.getNumberOfRecords();
+                int count = 0;
+                int progressCount = (int) (numRecords / 100.0);
+                if (progressCount <= 0) {
+                    progressCount = 1;
+                }
+                progress = 0;
+                ShapeFileRecord record;
+                for (RecordInfo ri : myList) {
+                    record = input.getRecord(ri.recNumber - 1);
+                    value = record.getRecordNumber();
+                    geometry = getXYFromShapefileRecord(record);
+                    numPoints = geometry.length;
+                    numParts = partData.length;
+
+                    for (part = 0; part < numParts; part++) {
+                        box = new BoundingBox();
+                        startingPointInPart = partData[part];
+                        if (part < numParts - 1) {
+                            endingPointInPart = partData[part + 1];
+                        } else {
+                            endingPointInPart = numPoints;
+                        }
+                        for (i = startingPointInPart; i < endingPointInPart; i++) {
+                            if (geometry[i][0] < box.getMinX()) {
+                                box.setMinX(geometry[i][0]);
+                            }
+                            if (geometry[i][0] > box.getMaxX()) {
+                                box.setMaxX(geometry[i][0]);
+                            }
+                            if (geometry[i][1] < box.getMinY()) {
+                                box.setMinY(geometry[i][1]);
+                            }
+                            if (geometry[i][1] > box.getMaxY()) {
+                                box.setMaxY(geometry[i][1]);
+                            }
+                        }
+                        topRow = streams.getRowFromYCoordinate(box.getMaxY());
+                        bottomRow = streams.getRowFromYCoordinate(box.getMinY());
+                        leftCol = streams.getColumnFromXCoordinate(box.getMinX());
+                        rightCol = streams.getColumnFromXCoordinate(box.getMaxX());
+
+                        // find each intersection with a row.
+                        for (row = topRow; row <= bottomRow; row++) {
+
+                            rowYCoord = streams.getYCoordinateFromRow(row);
+                            // find the x-coordinates of each of the line segments 
+                            // that intersect this row's y coordinate
+
+                            for (i = startingPointInPart; i < endingPointInPart - 1; i++) {
+                                if (isBetween(rowYCoord, geometry[i][1], geometry[i + 1][1])) {
+                                    y1 = geometry[i][1];
+                                    y2 = geometry[i + 1][1];
+                                    if (y2 != y1) {
+                                        x1 = geometry[i][0];
+                                        x2 = geometry[i + 1][0];
+
+                                        // calculate the intersection point
+                                        xPrime = x1 + (rowYCoord - y1) / (y2 - y1) * (x2 - x1);
+                                        col = streams.getColumnFromXCoordinate(xPrime);
+                                        //output.setValue(row, col, value);
+                                        pq.add(new RowPriorityGridCell(row, col, value));
+                                    }
+                                }
+                            }
+                        }
+
+                        // find each intersection with a column.
+                        for (col = leftCol; col <= rightCol; col++) {
+                            colXCoord = streams.getXCoordinateFromColumn(col);
+                            for (i = startingPointInPart; i < endingPointInPart - 1; i++) {
+                                if (isBetween(colXCoord, geometry[i][0], geometry[i + 1][0])) {
+                                    x1 = geometry[i][0];
+                                    x2 = geometry[i + 1][0];
+                                    if (x1 != x2) {
+                                        y1 = geometry[i][1];
+                                        y2 = geometry[i + 1][1];
+
+                                        // calculate the intersection point
+                                        yPrime = y1 + (colXCoord - x1) / (x2 - x1) * (y2 - y1);
+
+                                        row = streams.getRowFromYCoordinate(yPrime);
+                                        //output.setValue(row, col, value);
+                                        pq.add(new RowPriorityGridCell(row, col, value));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (pq.size() >= flushSize) {
+                        j = 0;
+                        numCellsToWrite = pq.size();
+                        do {
+                            cell = pq.poll();
+                            streams.setValue(cell.row, cell.col, cell.z);
+                            j++;
+                            if (j % 1000 == 0) {
+                                if (cancelOp) {
+                                    cancelOperation();
+                                    return;
+                                }
+                                updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                            }
+                        } while (pq.size() > 0);
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    count++;
+                    if (count % progressCount == 0) {
+                        progress++;
+                        updateProgress((int)progress);
+                    }
+                }
+
+                j = 0;
+                numCellsToWrite = pq.size();
+                do {
+                    cell = pq.poll();
+                    streams.setValue(cell.row, cell.col, cell.z);
+                    j++;
+                    if (j % 1000 == 0) {
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
+                        updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
+                    }
+                } while (pq.size() > 0);
+
+                streams.flush();
+
+            } else {
+                showFeedback("The input streams file must be either a Whitebox raster or shapefile.");
+                return;
+            }
+
             if (streams.getNumberColumns() != cols || streams.getNumberRows() != rows) {
                 showFeedback("The input files must have the same dimensions.");
                 return;
             }
-            
-            output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, infVal);
+
+            output = new WhiteboxRaster(outputHeader, "rw", demHeader, WhiteboxRaster.DataType.FLOAT, infVal);
             output.setPreferredPalette(DEM.getPreferredPalette());
-           
+
             if (decayCoefficient > 0) {
                 if (!CalculateDistance()) {
                     showFeedback("An error was encountered calculating distances.");
                     return;
                 }
-                double minVal = Float.MAX_VALUE;
-                double maxVal = Float.MIN_VALUE;
                 double distVal = 0;
                 double[] data;
                 for (row = 0; row < rows; row++) {
@@ -233,11 +456,9 @@ public class BurnStreams implements WhiteboxPlugin {
                     for (col = 0; col < cols; col++) {
                         if (data[col] != noData) {
                             distVal = output.getValue(row, col);
-                            elevation = data[col] - 
-                                    (Math.pow((gridRes / (gridRes + distVal)), 
+                            elevation = data[col]
+                                    - (Math.pow((gridRes / (gridRes + distVal)),
                                     decayCoefficient) * decrement);
-                            if (elevation < minVal) { minVal = elevation; }
-                            if (elevation > maxVal) { maxVal = elevation; }
                             output.setValue(row, col, elevation);
                         } else {
                             output.setValue(row, col, noData);
@@ -250,14 +471,16 @@ public class BurnStreams implements WhiteboxPlugin {
                     progress = (float) (100f * row / (rows - 1));
                     updateProgress("Burning Streams:", (int) progress);
                 }
-                
+
             } else {
-                double[] data;
+                double[] demData;
+                double[] streamData;
                 for (row = 0; row < rows; row++) {
-                    data = DEM.getRowValues(row);
+                    demData = DEM.getRowValues(row);
+                    streamData = streams.getRowValues(row);
                     for (col = 0; col < cols; col++) {
-                        if (data[col] != noData) {
-                            elevation = data[col] - decrement;
+                        if (demData[col] != noData && streamData[col] > 0) {
+                            elevation = demData[col] - decrement;
                             output.setValue(row, col, elevation);
                         } else {
                             output.setValue(row, col, noData);
@@ -272,21 +495,16 @@ public class BurnStreams implements WhiteboxPlugin {
                 }
 
             }
-            
-//            String ret = String.valueOf(output.getNumberOfDataFileReads()) + "\t" + 
-//                    String.valueOf(output.getNumberOfDataFileWrites());
-//            returnData(ret);
-//            
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
-            
+
             DEM.close();
             output.close();
-            
+
             // returning a header file string displays the DEM.
             returnData(outputHeader);
-            
+
 
         } catch (Exception e) {
             showFeedback(e.getMessage());
@@ -297,7 +515,7 @@ public class BurnStreams implements WhiteboxPlugin {
             myHost.pluginComplete();
         }
     }
-    
+
     private boolean CalculateDistance() {
         try {
             int row, col;
@@ -311,17 +529,17 @@ public class BurnStreams implements WhiteboxPlugin {
             int[] dY = new int[]{0, -1, -1, -1, 0, 1, 1, 1};
             int[] Gx = new int[]{1, 1, 0, 1, 1, 1, 0, 1};
             int[] Gy = new int[]{0, 1, 1, 1, 0, 1, 1, 1};
-            
-            WhiteboxRaster Rx = new WhiteboxRaster(outputHeader.replace(".dep", "_temp1.dep"), "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
+
+            WhiteboxRaster Rx = new WhiteboxRaster(outputHeader.replace(".dep", "_temp1.dep"), "rw", demHeader, WhiteboxRaster.DataType.FLOAT, 0);
             Rx.isTemporaryFile = true;
-            WhiteboxRaster Ry = new WhiteboxRaster(outputHeader.replace(".dep", "_temp2.dep"), "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
+            WhiteboxRaster Ry = new WhiteboxRaster(outputHeader.replace(".dep", "_temp2.dep"), "rw", demHeader, WhiteboxRaster.DataType.FLOAT, 0);
             Ry.isTemporaryFile = true;
-            
+
             double[] data;
             for (row = 0; row < rows; row++) {
                 data = streams.getRowValues(row);
                 for (col = 0; col < cols; col++) {
-                    if (data[col] !=0) { 
+                    if (data[col] > 0) {
                         output.setValue(row, col, 0);
                     }
                 }
@@ -382,7 +600,7 @@ public class BurnStreams implements WhiteboxPlugin {
                 updateProgress("Calculating Distance From Streams:", (int) progress);
             }
 
-            
+
             for (row = rows - 1; row >= 0; row--) {
                 for (col = cols - 1; col >= 0; col--) {
                     z = output.getValue(row, col);
@@ -431,7 +649,7 @@ public class BurnStreams implements WhiteboxPlugin {
                 progress = (float) (100f * (rows - 1 - row) / (rows - 1));
                 updateProgress("Calculating Distance From Streams:", (int) progress);
             }
-            
+
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     z = streams.getValue(row, col);
@@ -449,16 +667,130 @@ public class BurnStreams implements WhiteboxPlugin {
                 progress = (float) (100f * row / (rows - 1));
                 updateProgress("Calculating Distance From Streams:", (int) progress);
             }
-            
+
             streams.close();
             Rx.close();
             Ry.close();
-            
-            
+
+
             return true;
         } catch (Exception e) {
             return false;
         }
-        
+
+    }
+    int[] partData;
+
+    private double[][] getXYFromShapefileRecord(ShapeFileRecord record) {
+        double[][] ret;
+        ShapeType shapeType = record.getShapeType();
+        switch (shapeType) {
+            case POLYLINE:
+                whitebox.geospatialfiles.shapefile.PolyLine recPolyLine =
+                        (whitebox.geospatialfiles.shapefile.PolyLine) (record.getGeometry());
+                ret = recPolyLine.getPoints();
+                partData = recPolyLine.getParts();
+                break;
+            case POLYLINEZ:
+                PolyLineZ recPolyLineZ = (PolyLineZ) (record.getGeometry());
+                ret = recPolyLineZ.getPoints();
+                partData = recPolyLineZ.getParts();
+                break;
+            case POLYLINEM:
+                PolyLineM recPolyLineM = (PolyLineM) (record.getGeometry());
+                ret = recPolyLineM.getPoints();
+                partData = recPolyLineM.getParts();
+                break;
+            case POLYGON:
+                Polygon recPolygon = (Polygon) (record.getGeometry());
+                ret = recPolygon.getPoints();
+                partData = recPolygon.getParts();
+                break;
+            case POLYGONZ:
+                PolygonZ recPolygonZ = (PolygonZ) (record.getGeometry());
+                ret = recPolygonZ.getPoints();
+                partData = recPolygonZ.getParts();
+                break;
+            case POLYGONM:
+                PolygonM recPolygonM = (PolygonM) (record.getGeometry());
+                ret = recPolygonM.getPoints();
+                partData = recPolygonM.getParts();
+                break;
+            default:
+                ret = new double[1][2];
+                ret[1][0] = -1;
+                ret[1][1] = -1;
+                break;
+        }
+
+        return ret;
+    }
+
+    private BoundingBox getBoundingBoxFromShapefileRecord(ShapeFileRecord record) {
+        BoundingBox ret;
+        ShapeType shapeType = record.getShapeType();
+        switch (shapeType) {
+            case POLYLINE:
+                whitebox.geospatialfiles.shapefile.PolyLine recPolyLine =
+                        (whitebox.geospatialfiles.shapefile.PolyLine) (record.getGeometry());
+                return recPolyLine.getBox();
+            case POLYLINEZ:
+                PolyLineZ recPolyLineZ = (PolyLineZ) (record.getGeometry());
+                return recPolyLineZ.getBox();
+            case POLYLINEM:
+                PolyLineM recPolyLineM = (PolyLineM) (record.getGeometry());
+                return recPolyLineM.getBox();
+            case POLYGON:
+                Polygon recPolygon = (Polygon) (record.getGeometry());
+                return recPolygon.getBox();
+            case POLYGONZ:
+                PolygonZ recPolygonZ = (PolygonZ) (record.getGeometry());
+                return recPolygonZ.getBox();
+            case POLYGONM:
+                PolygonM recPolygonM = (PolygonM) (record.getGeometry());
+                return recPolygonM.getBox();
+            default:
+                return new BoundingBox(Double.NaN, Double.NaN, Double.NaN, Double.NaN);
+        }
+    }
+
+    private class RecordInfo implements Comparable<RecordInfo> {
+
+        public double maxY;
+        public int recNumber;
+
+        public RecordInfo(double maxY, int recNumber) {
+            this.maxY = maxY;
+            this.recNumber = recNumber;
+        }
+
+        @Override
+        public int compareTo(RecordInfo other) {
+            final int BEFORE = -1;
+            final int EQUAL = 0;
+            final int AFTER = 1;
+
+            if (this.maxY < other.maxY) {
+                return BEFORE;
+            } else if (this.maxY > other.maxY) {
+                return AFTER;
+            }
+
+            if (this.recNumber < other.recNumber) {
+                return BEFORE;
+            } else if (this.recNumber > other.recNumber) {
+                return AFTER;
+            }
+
+            return EQUAL;
+        }
+    }
+
+    // Return true if val is between theshold1 and theshold2.
+    private static boolean isBetween(double val, double threshold1, double threshold2) {
+        if (val == threshold1 || val == threshold2) {
+            return true;
+        }
+        return threshold2 > threshold1 ? val > threshold1 && val < threshold2 : val > threshold2 && val < threshold1;
     }
 }

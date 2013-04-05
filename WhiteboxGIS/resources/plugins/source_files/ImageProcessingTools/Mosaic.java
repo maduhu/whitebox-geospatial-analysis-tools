@@ -21,6 +21,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -272,67 +273,77 @@ public class Mosaic implements WhiteboxPlugin {
             nRows = (int)Math.round(Math.abs(north - south) / cellSizeY);
             nCols = (int)Math.round(Math.abs(east - west) / cellSizeX);
             
-            // create the whitebox header file.
-            fw = new FileWriter(destHeader, false);
-            bw = new BufferedWriter(fw);
-            out = new PrintWriter(bw, true);
-
-            str1 = "Min:\t" + Double.toString(Integer.MAX_VALUE);
-            out.println(str1);
-            str1 = "Max:\t" + Double.toString(Integer.MIN_VALUE);
-            out.println(str1);
-            str1 = "North:\t" + Double.toString(north);
-            out.println(str1);
-            str1 = "South:\t" + Double.toString(south);
-            out.println(str1);
-            str1 = "East:\t" + Double.toString(east);
-            out.println(str1);
-            str1 = "West:\t" + Double.toString(west);
-            out.println(str1);
-            str1 = "Cols:\t" + Integer.toString(nCols);
-            out.println(str1);
-            str1 = "Rows:\t" + Integer.toString(nRows);
-            out.println(str1);
-            str1 = "Data Type:\t" + "float";
-            out.println(str1);
-            str1 = "Z Units:\t" + "not specified";
-            out.println(str1);
-            str1 = "XY Units:\t" + "not specified";
-            out.println(str1);
-            str1 = "Projection:\t" + "not specified";
-            out.println(str1);
-            str1 = "Data Scale:\tcontinuous";
-            out.println(str1);
-            str1 = "Preferred Palette:\t" + "spectrum.pal";
-            out.println(str1);
-            str1 = "NoData:\t-32768";
-            out.println(str1);
-            if (java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN) {
-                str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
-            } else {
-                str1 = "Byte Order:\t" + "BIG_ENDIAN";
-            }
-            out.println(str1);
-
-            out.flush();
-            out.close();
+            destination = new WhiteboxRaster(destHeader, north, south, east, west, 
+                    nRows, nCols, WhiteboxRasterBase.DataScale.CONTINUOUS, 
+                    WhiteboxRasterBase.DataType.FLOAT, outputNoData, outputNoData);
             
-            destination = new WhiteboxRaster(destHeader, "rw");
             
-            // fill it with noData values.
-            outputNoData = destination.getNoDataValue();
+//            // create the whitebox header file.
+//            fw = new FileWriter(destHeader, false);
+//            bw = new BufferedWriter(fw);
+//            out = new PrintWriter(bw, true);
+//
+//            str1 = "Min:\t" + Double.toString(Integer.MAX_VALUE);
+//            out.println(str1);
+//            str1 = "Max:\t" + Double.toString(Integer.MIN_VALUE);
+//            out.println(str1);
+//            str1 = "North:\t" + Double.toString(north);
+//            out.println(str1);
+//            str1 = "South:\t" + Double.toString(south);
+//            out.println(str1);
+//            str1 = "East:\t" + Double.toString(east);
+//            out.println(str1);
+//            str1 = "West:\t" + Double.toString(west);
+//            out.println(str1);
+//            str1 = "Cols:\t" + Integer.toString(nCols);
+//            out.println(str1);
+//            str1 = "Rows:\t" + Integer.toString(nRows);
+//            out.println(str1);
+//            str1 = "Data Type:\t" + "float";
+//            out.println(str1);
+//            str1 = "Z Units:\t" + "not specified";
+//            out.println(str1);
+//            str1 = "XY Units:\t" + "not specified";
+//            out.println(str1);
+//            str1 = "Projection:\t" + "not specified";
+//            out.println(str1);
+//            str1 = "Data Scale:\tcontinuous";
+//            out.println(str1);
+//            str1 = "Preferred Palette:\t" + "spectrum.pal";
+//            out.println(str1);
+//            str1 = "NoData:\t-32768";
+//            out.println(str1);
+//            if (java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN) {
+//                str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
+//            } else {
+//                str1 = "Byte Order:\t" + "BIG_ENDIAN";
+//            }
+//            out.println(str1);
+//
+//            out.flush();
+//            out.close();
+//            
+//            
+//            destination = new WhiteboxRaster(destHeader, "rw");
+//            
+//            // fill it with noData values.
+//            outputNoData = destination.getNoDataValue();
+//            destination.reinitialize(outputNoData);
 
-            for (row = 0; row < nRows; row++) {
-                for (col = 0; col < nCols; col++) {
-                    destination.setValue(row, col, outputNoData);
-                }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
-                progress = (int) (100f * row / (nRows - 1));
-                updateProgress(progress);
-            }
+//            // this just sets up the new file.
+//            destination.setValue(0, 0, outputNoData);
+            
+//            for (row = 0; row < nRows; row++) {
+//                for (col = 0; col < nCols; col++) {
+//                    destination.setValue(row, col, outputNoData);
+//                }
+//                if (cancelOp) {
+//                    cancelOperation();
+//                    return;
+//                }
+//                progress = (int) (100f * row / (nRows - 1));
+//                updateProgress(progress);
+//            }
             
             int nColsLessOne = nCols - 1;
             int nRowsLessOne = nRows - 1;
@@ -359,13 +370,21 @@ public class Mosaic implements WhiteboxPlugin {
             if (resampleMethod.equals("nearest neighbour")) {
                 for (a = 0; a < numImages; a++) {
                     image = new WhiteboxRaster(imageFiles[a], "r");
-                    for (row = 0; row < nRows; row++) {
+                    int startRow = destination.getRowFromYCoordinate(image.getNorth()) - 1;
+                    int endRow = destination.getRowFromYCoordinate(image.getSouth()) + 1;
+                    int startCol = destination.getColumnFromXCoordinate(image.getWest()) - 1;
+                    int endCol = destination.getColumnFromXCoordinate(image.getEast()) + 1;
+                    if (startRow < 0) { startRow = 0; }
+                    if (startCol < 0) { startCol = 0; }
+                    if (endRow > nRows - 1) { endRow = nRows - 1; }
+                    if (endCol > nCols - 1) { endCol = nCols - 1; }
+                    for (row = startRow; row <= endRow; row++) {
                         y = northernEdge - (yRange * row) / nRowsLessOne;
-                        for (col = 0; col < nCols; col++) {
+                        for (col = startCol; col <= endCol; col++) {
                             x = westernEdge + (xRange * col) / nColsLessOne;
                             if (isBetween(y, imageData[a][0], imageData[a][1])
                                     && isBetween(x, imageData[a][2], imageData[a][3])) {
-                                 //what are the col and row of the image?
+                                 //what are the column and row of the image?
                                 sourceRow = (int) Math.round((imageData[a][0] - y) / imageData[a][10] * (imageData[a][4] - 0.5));
                                 sourceCol = (int) Math.round((x - imageData[a][3]) / imageData[a][9] * (imageData[a][5] - 0.5));
                                 z = image.getValue(sourceRow, sourceCol);
@@ -416,11 +435,19 @@ public class Mosaic implements WhiteboxPlugin {
                 
                 for (a = 0; a < numImages; a++) {
                     image = new WhiteboxRaster(imageFiles[a], "r");
-                    for (row = 0; row < nRows; row++) {
+                    int startRow = destination.getRowFromYCoordinate(image.getNorth()) - 1;
+                    int endRow = destination.getRowFromYCoordinate(image.getSouth()) + 1;
+                    int startCol = destination.getColumnFromXCoordinate(image.getWest()) - 1;
+                    int endCol = destination.getColumnFromXCoordinate(image.getEast()) + 1;
+                    if (startRow < 0) { startRow = 0; }
+                    if (startCol < 0) { startCol = 0; }
+                    if (endRow > nRows - 1) { endRow = nRows - 1; }
+                    if (endCol > nCols - 1) { endCol = nCols - 1; }
+                    for (row = startRow; row <= endRow; row++) {
                         y = northernEdge - (yRange * row) / nRowsLessOne;
-                        for (col = 0; col < nCols; col++) {
+                        for (col = startCol; col <= endCol; col++) {
                             x = westernEdge + (xRange * col) / nColsLessOne;
-                            // see if this x, y location falls within any of the input images
+                            // see if this x, y location falls within the input image
                             if (isBetween(y, imageData[a][0], imageData[a][1])
                                     && isBetween(x, imageData[a][2], imageData[a][3])) {
                                 imageNoData = imageData[a][8];
@@ -477,6 +504,7 @@ public class Mosaic implements WhiteboxPlugin {
             destination.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             destination.addMetadataEntry("Created on " + new Date());
+            
             destination.close();
 
             // returning a header file string displays the image.

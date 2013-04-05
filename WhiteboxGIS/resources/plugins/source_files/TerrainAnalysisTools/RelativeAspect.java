@@ -209,20 +209,13 @@ public class RelativeAspect implements WhiteboxPlugin {
             return;
         }
         
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                azimuth = Double.parseDouble(args[i]);
-                if (azimuth < 0 || azimuth > 360) {
-                    azimuth = 0;
-                }
-            } else if (i == 3) {
-                zFactor = Double.parseDouble(args[i]);
-            }
+        inputHeader = args[0];
+        outputHeader = args[1];
+        azimuth = Double.parseDouble(args[2]);
+        if (azimuth < 0 || azimuth > 360) {
+            azimuth = 0;
         }
+        zFactor = Double.parseDouble(args[3]);
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {

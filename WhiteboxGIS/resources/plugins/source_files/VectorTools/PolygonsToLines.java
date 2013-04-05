@@ -275,7 +275,8 @@ public class PolygonsToLines implements WhiteboxPlugin {
             
             output.write();
             
-            // returning a header file string displays the image.
+            // returning a header file string displays the vector.
+            updateProgress("Displaying vector: ", 0);
             returnData(outputFile);
             
             

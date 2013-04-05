@@ -24,8 +24,8 @@ import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataType;
-import whitebox.geospatialfiles.shapefile.DBF.DBFField;
-import whitebox.geospatialfiles.shapefile.DBF.DBFReader;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
+import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
 import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -219,7 +219,6 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
         BoundingBox box;
         double[][] geometry;
         int numPoints, numParts, i, part;
-        int stCol, endCol;
         int startingPointInPart, endingPointInPart;
         double x1, y1, x2, y2, xPrime, yPrime;
         boolean useRecID = false;

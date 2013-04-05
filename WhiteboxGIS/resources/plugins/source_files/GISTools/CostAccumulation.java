@@ -266,7 +266,7 @@ public class CostAccumulation implements WhiteboxPlugin {
             output.setPreferredPalette("spectrum.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
            
-            backLink = new WhiteboxRaster(outputHeader, "rw", backLinkHeader, WhiteboxRaster.DataType.INTEGER, noData);
+            backLink = new WhiteboxRaster(backLinkHeader, "rw", sourceHeader, WhiteboxRaster.DataType.INTEGER, noData);
             backLink.setPreferredPalette("spectrum.pal");
             backLink.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
            

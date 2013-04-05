@@ -19,8 +19,8 @@ package plugins;
 import java.io.File;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.geospatialfiles.shapefile.DBF.DBFField;
-import whitebox.geospatialfiles.shapefile.DBF.DBFWriter;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.Polygon;
 import whitebox.geospatialfiles.shapefile.ShapeType;
@@ -244,8 +244,7 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
             temp1.isTemporaryFile = true;
 
             // set up the output files of the shapefile and the dbf
-            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON);
-
+            
             DBFField fields[] = new DBFField[2];
 
             fields[0] = new DBFField();
@@ -260,12 +259,14 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
             fields[1].setFieldLength(10);
             fields[1].setDecimalCount(2);
 
-            String DBFName = output.getDatabaseFile();
-            DBFWriter writer = new DBFWriter(new File(DBFName)); /*
-             * this DBFWriter object is now in Syc Mode
-             */
-
-            writer.setFields(fields);
+            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON, fields);
+//
+//            String DBFName = output.getDatabaseFile();
+//            DBFWriter writer = new DBFWriter(new File(DBFName)); /*
+//             * this DBFWriter object is now in Syc Mode
+//             */
+//
+//            writer.setFields(fields);
 
             int[] parts = {0};
 
@@ -441,12 +442,11 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
 
                                 if (numPoints > 1) {
                                     // add the line to the shapefile.
-                                    Polygon poly = new Polygon(parts, points.getPointsArray());
-                                    output.addRecord(poly);
                                     Object[] rowData = new Object[2];
                                     rowData[0] = new Double(FID);
                                     rowData[1] = new Double(z);
-                                    writer.addRecord(rowData);
+                                    Polygon poly = new Polygon(parts, points.getPointsArray());
+                                    output.addRecord(poly, rowData);
                                 }
                             }
                         }
@@ -462,8 +462,8 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
 
             input.close();
             output.write();
-            //writer.write();
-
+            temp1.close();
+            
             // returning a header file string displays the image.
             returnData(outputFile);
 
@@ -477,14 +477,14 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
         }
     }
 
-//    // This method is only used during testing.
-//    public static void main(String[] args) {
-//        args = new String[3];
-//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/someLakes.dep";
-//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/someLakes2.shp";
-//
-//        RasterToVectorPolygons rtvp = new RasterToVectorPolygons();
-//        rtvp.setArgs(args);
-//        rtvp.run();
-//    }
+    // This method is only used during testing.
+    public static void main(String[] args) {
+        args = new String[3];
+        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp7.dep";
+        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp7.shp";
+
+        RasterToVectorPolygons rtvp = new RasterToVectorPolygons();
+        rtvp.setArgs(args);
+        rtvp.run();
+    }
 }

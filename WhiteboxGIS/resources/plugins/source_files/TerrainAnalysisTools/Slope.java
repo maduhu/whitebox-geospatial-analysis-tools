@@ -252,7 +252,7 @@ public class Slope implements WhiteboxPlugin {
                         }
                         fy = (N[6] - N[4] + 2 * (N[7] - N[3]) + N[0] - N[2]) / eightGridRes;
                         fx = (N[2] - N[4] + 2 * (N[1] - N[5]) + N[0] - N[6]) / eightGridRes;
-                        slope = (float) (Math.atan(Math.sqrt(fx * fx + fy * fy)) * radToDeg);
+                        slope = (float)(Math.atan(Math.sqrt(fx * fx + fy * fy)) * radToDeg);
                         outputFile.setValue(row, col, slope);
                     } else {
                         outputFile.setValue(row, col, noData);

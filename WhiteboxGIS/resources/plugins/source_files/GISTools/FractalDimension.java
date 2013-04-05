@@ -18,17 +18,23 @@ package plugins;
 
 import java.text.DecimalFormat;
 import java.util.Date;
+import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.shapefile.*;
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class FractalDimension implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost;
     private String[] args;
+
     /**
      * Used to retrieve the plugin tool's name. This is a short, unique name
      * containing no spaces.
@@ -39,44 +45,56 @@ public class FractalDimension implements WhiteboxPlugin {
     public String getName() {
         return "FractalDimension";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "Fractal Dimension";
+        return "Fractal Dimension";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "Measures the fractal "
-                + "dimension of patch raster polygons.";
+        return "Measures the fractal "
+                + "dimension of patch polygons.";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "PatchShapeTools" };
-    	return ret;
+        String[] ret = {"PatchShapeTools"};
+        return ret;
     }
 
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
-     */  
+     */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String feedback) {
@@ -86,8 +104,11 @@ public class FractalDimension implements WhiteboxPlugin {
             System.out.println(feedback);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -95,8 +116,11 @@ public class FractalDimension implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
@@ -107,8 +131,11 @@ public class FractalDimension implements WhiteboxPlugin {
             System.out.println(progressLabel + " " + progress + "%");
         }
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -118,42 +145,46 @@ public class FractalDimension implements WhiteboxPlugin {
             System.out.println("Progress: " + progress + "%");
         }
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
         return amIActive;
     }
-    
-    @Override
-    public void run() {
+
+    private void calculateFractalDimensionRaster() {
         amIActive = true;
 
         String inputHeader = null;
@@ -222,17 +253,10 @@ public class FractalDimension implements WhiteboxPlugin {
             return;
         }
 
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                blnTextOutput = Boolean.parseBoolean(args[i]);
-            } else if (i == 3) {
-                zeroAsBackground = Boolean.parseBoolean(args[i]);
-            }
-        }
+        inputHeader = args[0];
+        outputHeader = args[1];
+        blnTextOutput = Boolean.parseBoolean(args[2]);
+        zeroAsBackground = Boolean.parseBoolean(args[3]);
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
@@ -248,13 +272,13 @@ public class FractalDimension implements WhiteboxPlugin {
             double noData = image.getNoDataValue();
             gridRes = (image.getCellSizeX() + image.getCellSizeY()) / 2;
             XYUnits = image.getXYUnits();
-            
+
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
             output.setPreferredPalette("spectrum.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
 
-            int minValue = (int)(image.getMinimumValue());
-            int maxValue = (int)(image.getMaximumValue());
+            int minValue = (int) (image.getMinimumValue());
+            int maxValue = (int) (image.getMaximumValue());
             range = maxValue - minValue;
 
             double[] perimeter = new double[range + 1];
@@ -316,7 +340,7 @@ public class FractalDimension implements WhiteboxPlugin {
                     perimeter[a] = (double) ((2 * Math.log(perimeter[a] * gridRes)) / (Math.log(area[a] * gridRes * gridRes)));
                 }
             }
-        
+
             updateProgress("Loop 3 of 3:", 0);
             for (row = 0; row < numRows; row++) {
                 data = image.getRowValues(row);
@@ -335,7 +359,7 @@ public class FractalDimension implements WhiteboxPlugin {
                 progress = (float) (100f * row / (numRows - 1));
                 updateProgress("Loop 3 of 3:", (int) progress);
             }
-         
+
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
@@ -360,8 +384,8 @@ public class FractalDimension implements WhiteboxPlugin {
 
             // returning a header file string displays the image.
             returnData(outputHeader);
-            
-            
+
+
         } catch (Exception e) {
             showFeedback(e.getMessage());
             showFeedback(e.getCause().toString());
@@ -371,5 +395,156 @@ public class FractalDimension implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+
+    private void calculateFractalDimensionVector() {
+
+        /*
+         * Notice that this tool assumes that each record in the shapefile is an
+         * individual polygon. The feature can contain multiple parts only if it
+         * has holes, i.e. islands. A multipart record cannot contain multiple
+         * and seperate features. This is because it complicates the calculation
+         * of feature area and perimeter.
+         */
+
+        amIActive = true;
+
+        // Declare the variable.
+        String inputFile = null;
+        int progress;
+        double FD = 0;
+        double area = 0;
+        double perimeter = 0;
+        int recNum;
+
+        if (args.length <= 0) {
+            showFeedback("Plugin parameters have not been set.");
+            return;
+        }
+
+        inputFile = args[0];
+        /*
+         * args[1], args[2], and args[3] are ignored by the vector tool
+         */
+
+        // check to see that the inputHeader and outputHeader are not null.
+        if (inputFile == null) {
+            showFeedback("One or more of the input parameters have not been set properly.");
+            return;
+        }
+
+        try {
+
+            ShapeFile input = new ShapeFile(inputFile);
+            double numberOfRecords = input.getNumberOfRecords();
+
+            if (input.getShapeType().getBaseType() != ShapeType.POLYGON) {
+                showFeedback("This function can only be applied to polygon type shapefiles.");
+                return;
+            }
+
+            /* create a new field in the input file's database 
+               to hold the fractal dimension. Put it at the end 
+               of the database. */
+            DBFField field = new DBFField();
+            field = new DBFField();
+            field.setName("FRACTAL_D");
+            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setFieldLength(10);
+            field.setDecimalCount(4);
+            input.attributeTable.addField(field);
+
+            // initialize the shapefile.
+            ShapeType inputType = input.getShapeType();
+
+            for (ShapeFileRecord record : input.records) {
+
+                switch (inputType) {
+                    case POLYGON:
+                        whitebox.geospatialfiles.shapefile.Polygon recPolygon =
+                                (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+                        area = recPolygon.getArea();
+                        perimeter = recPolygon.getPerimeter();
+                        break;
+                    case POLYGONZ:
+                        PolygonZ recPolygonZ = (PolygonZ) (record.getGeometry());
+                        area = recPolygonZ.getArea();
+                        perimeter = recPolygonZ.getPerimeter();
+                        break;
+                    case POLYGONM:
+                        PolygonM recPolygonM = (PolygonM) (record.getGeometry());
+                        area = recPolygonM.getArea();
+                        perimeter = recPolygonM.getPerimeter();
+                        break;
+                }
+                if (area > 0 && perimeter > 0) {
+                    FD = (double) ((2 * Math.log(perimeter)) / (Math.log(area)));
+                } else {
+                    FD = 0;
+                }
+
+                recNum = record.getRecordNumber() - 1;
+                Object[] recData = input.attributeTable.getRecord(recNum);
+                recData[recData.length - 1] = new Double(FD);
+                input.attributeTable.updateRecord(recNum, recData);
+
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (record.getRecordNumber() / numberOfRecords * 100);
+                updateProgress(progress);
+            }
+
+            // returning the database file will result in it being opened in the Whitebox GUI.
+            returnData(input.getDatabaseFile());
+
+
+        } catch (Exception e) {
+            showFeedback(e.getMessage());
+            showFeedback(e.getCause().toString());
+        } finally {
+            updateProgress("Progress: ", 0);
+            // tells the main application that this process is completed.
+            amIActive = false;
+            myHost.pluginComplete();
+        }
+    }
+
+    @Override
+    public void run() {
+        amIActive = true;
+        String inputFile = args[0];
+        if (inputFile.toLowerCase().contains(".dep")) {
+            calculateFractalDimensionRaster();
+        } else if (inputFile.toLowerCase().contains(".shp")) {
+            calculateFractalDimensionVector();
+        } else {
+            showFeedback("There was a problem reading the input file.");
+        }
+
+    }
+
+    // This method is only used during testing.
+    public static void main(String[] args) {
+
+        // vector-based test
+        args = new String[4];
+        /*
+         * specify the input args array as: args[0] = inputFile 
+         * args[1] = outputFile (parameter ignored in the vector algorithm)
+         * args[2] = blnTextOutput (This parameter is ignored in the
+         * vector algorithm...only used in the raster tool) 
+         * args[3] = zeroAsBackground (This parameter is ignored in the vector
+         * algorithm...only used in the raster tool)
+         */
+        args[0] = "/Users/johnlindsay/Documents/Data/Shapefiles/Water_Body_rmow.shp";
+        args[1] = "";
+        args[2] = "false";
+        args[3] = "false";
+
+        FractalDimension fd = new FractalDimension();
+        fd.setArgs(args);
+        fd.run();
     }
 }

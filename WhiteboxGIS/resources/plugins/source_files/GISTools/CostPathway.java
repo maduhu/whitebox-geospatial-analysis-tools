@@ -215,8 +215,8 @@ public class CostPathway implements WhiteboxPlugin {
 
             output = new WhiteboxRaster(outputHeader, "rw", backLinkHeader, 
                     WhiteboxRaster.DataType.FLOAT, noData);
-            output.setPreferredPalette("qual.pal");
-            output.setDataScale(WhiteboxRaster.DataScale.CATEGORICAL);
+            output.setPreferredPalette("spectrum.pal");
+            output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
             
             double[] data;
             for (row = 0; row < rows; row++) {
