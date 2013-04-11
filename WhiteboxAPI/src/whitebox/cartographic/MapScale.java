@@ -45,6 +45,7 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     Color borderColour = Color.BLACK;
     Color outlineColour = Color.BLACK;
     Color legendColour = Color.BLACK;
+    Color fontColour = Color.BLACK;
     static DecimalFormat dfScale = new DecimalFormat("###,###,###.#");
     String representativeFraction;
     String lowerLabel = "0";
@@ -54,6 +55,7 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     private MapArea mapArea = null;
     private int selectedOffsetX;
     private int selectedOffsetY;
+    boolean outlineVisible = false;
 
     public MapScale(String name) {
         this.name = name;
@@ -153,17 +155,25 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     @Override
     public void setVisible(boolean visible) {
         this.visible = visible;
-        upperLeftX = -99;
-        upperLeftY = -99;
+//        upperLeftX = -99;
+//        upperLeftY = -99;
+    }
+    
+    public boolean isOutlineVisible() {
+        return outlineVisible;
     }
 
+    public void setOutlineVisible(boolean outlineVisible) {
+        this.outlineVisible = outlineVisible;
+    }
+    
     public double getBarLength() {
         return barLength;
     }
 
-    public void setBarLength(double barLength) {
-        this.barLength = barLength;
-    }
+//    public void setBarLength(double barLength) {
+//        this.barLength = barLength;
+//    }
 
     public int getHeight() {
         return height;
@@ -213,6 +223,13 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
         this.legendColour = legendColour;
     }
     
+    public Color getFontColour() {
+        return fontColour;
+    }
+
+    public void setFontColour(Color fontColour) {
+        this.fontColour = fontColour;
+    }
     
     public boolean isBorderVisible() {
         return borderVisible;

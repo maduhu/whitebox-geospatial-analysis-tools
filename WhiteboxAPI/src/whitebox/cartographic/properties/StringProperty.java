@@ -116,6 +116,8 @@ public class StringProperty extends JComponent implements MouseListener  {
         this.add(Box.createHorizontalGlue());
         text = new JTextField(value, textboxWidth);
         text.setText(value);
+        text.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+                text.getPreferredSize().height));
         // Listen for changes in the text
         text.getDocument().addDocumentListener(new DocumentListener() {
 

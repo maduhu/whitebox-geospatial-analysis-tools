@@ -43,7 +43,7 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
     boolean neatlineVisible = false;
     Color borderColour = Color.BLACK;
     Color fontColour = Color.BLACK;
-    Color backgroundCOlour = Color.WHITE;
+    Color backgroundColour = Color.WHITE;
     Font labelFont = new Font("SanSerif", Font.PLAIN, 10);
     int number = -1;
     String name = "MapArea";
@@ -219,12 +219,12 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         this.lineWidth = lineWidth;
     }
 
-    public Color getBackgroundCOlour() {
-        return backgroundCOlour;
+    public Color getBackgroundColour() {
+        return backgroundColour;
     }
 
-    public void setBackgroundCOlour(Color backgroundCOlour) {
-        this.backgroundCOlour = backgroundCOlour;
+    public void setBackgroundColour(Color backgroundClour) {
+        this.backgroundColour = backgroundClour;
     }
 
     public boolean isBackgroundVisible() {

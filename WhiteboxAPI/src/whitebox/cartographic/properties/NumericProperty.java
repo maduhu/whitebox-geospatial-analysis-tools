@@ -156,10 +156,16 @@ public class NumericProperty extends JComponent implements MouseListener,
         this.add(label);
         this.add(Box.createHorizontalGlue());
         formattedTextField = new JFormattedTextField(numberFormat);
-        formattedTextField.setMaximumSize(new Dimension(5000, 24));
+        //formattedTextField.setMaximumSize(new Dimension(5000, 24));
+        formattedTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+                formattedTextField.getPreferredSize().height));
         formattedTextField.setColumns(textboxWidth);
         formattedTextField.setHorizontalAlignment(JTextField.RIGHT);
-        formattedTextField.setValue(new Integer(value));
+        if (parseIntegersOnly) {
+            formattedTextField.setValue(new Integer(value));
+        } else {
+            formattedTextField.setValue(new Double(value));
+        }
         formattedTextField.addPropertyChangeListener("value", this);
         this.add(formattedTextField);
         //formattedTextField.revalidate();
