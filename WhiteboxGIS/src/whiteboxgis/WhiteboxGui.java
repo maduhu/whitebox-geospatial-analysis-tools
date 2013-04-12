@@ -68,7 +68,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     StatusBar status = new StatusBar(this);
     // common variables
-    static private String versionNumber = "2.1.0--BETA";
+    static private String versionNumber = "2.1.0 BETA";
     private String applicationDirectory;
     private String resourcesDirectory;
     private String graphicsDirectory;
@@ -3510,7 +3510,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void callSplashScreen() {
-        String splashFile = graphicsDirectory + "SplashScreen.png";
+        String splashFile = graphicsDirectory + "WhiteboxLogo.png"; //"SplashScreen.png";
         SplashWindow sw = new SplashWindow(splashFile, 2000, versionNumber);
         long t0, t1;
         t0 = System.currentTimeMillis();

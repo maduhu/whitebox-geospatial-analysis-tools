@@ -1286,7 +1286,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             }
 
                             if (mapArea.isBackgroundVisible()) {
-                                g2.setColor(mapArea.getBackgroundCOlour());
+                                g2.setColor(mapArea.getBackgroundColour());
 
                                 g2.fillRect(mapAreaULX, mapAreaULY,
                                         mapAreaWidth, mapAreaHeight);

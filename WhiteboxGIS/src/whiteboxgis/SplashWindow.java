@@ -122,7 +122,7 @@ public class SplashWindow extends JWindow {
             int y = 320;
             int dY = metrics.getHeight() + 1;
             
-            String str = "Version " + versionNumber + " released 2012";
+            String str = "Version " + versionNumber + " released 2013";
             g2d.drawString(str, x, y);
             str = "Dr. John Lindsay (Lead Developer)";
             g2d.drawString(str, x, y + 2 * dY);

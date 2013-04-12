@@ -887,12 +887,12 @@ public class MapInfo {
 //        String json = gson.toJson(listOfCartographicElements.get(listOfCartographicElements.size() - 1));
 //        
 //        System.out.println(json);
-        
+//        
 //        json = json.replace("\"markerSize\":35", "\"markerSize\":55");
 //        NorthArrow na = gson.fromJson(json, NorthArrow.class);
 // 
 //        String json2 = gson.toJson(na);
-        
+//        
         
 //        String json3 = gson.toJson((VectorLayerInfo)(mapAreas.get(0).getActiveLayer()));
 //        System.out.println(json3);

@@ -64,7 +64,7 @@ public class AboutWhitebox extends JDialog implements ActionListener {
         
         JPanel textPane = new JPanel();
         
-        JLabel label4 = new JLabel("Version " + versionNumber + " released 2012");
+        JLabel label4 = new JLabel("Version " + versionNumber + " released 2013");
         Box box4 = Box.createHorizontalBox();
         box4.add(label4);
         textPane.add(box4);
