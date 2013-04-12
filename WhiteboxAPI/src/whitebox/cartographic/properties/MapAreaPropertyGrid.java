@@ -171,7 +171,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             neatlineVisible = new BooleanProperty("Is the neatline visible?", mapArea.isNeatlineVisible());
             neatlineVisible.setLeftMargin(leftMargin);
             neatlineVisible.setRightMargin(rightMargin);
-            neatlineVisible.setBackColour(Color.WHITE);
+            neatlineVisible.setBackColour(backColour);
             neatlineVisible.setPreferredWidth(preferredWidth);
             neatlineVisible.revalidate();
             neatlineVisible.addPropertyChangeListener("value", this);
@@ -180,7 +180,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mapAreaWidth = new NumericProperty("Map Area Width:", String.valueOf(mapArea.getWidth()));
             mapAreaWidth.setLeftMargin(leftMargin);
             mapAreaWidth.setRightMargin(rightMargin);
-            mapAreaWidth.setBackColour(backColour);
+            mapAreaWidth.setBackColour(Color.WHITE);
             mapAreaWidth.setPreferredWidth(preferredWidth);
             mapAreaWidth.setParseIntegersOnly(true);
             mapAreaWidth.setTextboxWidth(5);
@@ -192,7 +192,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mapAreaHeight = new NumericProperty("Map Area Height:", String.valueOf(mapArea.getHeight()));
             mapAreaHeight.setLeftMargin(leftMargin);
             mapAreaHeight.setRightMargin(rightMargin);
-            mapAreaHeight.setBackColour(Color.WHITE);
+            mapAreaHeight.setBackColour(backColour);
             mapAreaHeight.setPreferredWidth(preferredWidth);
             mapAreaHeight.setParseIntegersOnly(true);
             mapAreaHeight.setTextboxWidth(5);
