@@ -278,7 +278,7 @@ public class EdgeProportion implements WhiteboxPlugin {
                 DecimalFormat df;
                 df = new DecimalFormat("0.0000");
             
-                String retstr = "Edge Proportion\nPatch ID\tLinearity";
+                String retstr = "Edge Proportion\nPatch ID\tValue";
 
                 for (a = 0; a <= range; a++) {
                     if (proportionData[1][a] > 0) {
