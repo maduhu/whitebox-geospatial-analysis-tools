@@ -202,7 +202,8 @@ public class FindNoFlowCells implements WhiteboxPlugin {
                     if (z != noData) {
                         hasLowerNeighbour = 1;
                         for (i = 0; i < 8; i++) {
-                            if (DEM.getValue(row + dY[i], col + dX[i]) < z) {
+                            z2 = DEM.getValue(row + dY[i], col + dX[i]);
+                            if (z2 < z && z2 != noData) {
                                 hasLowerNeighbour = noData;
                             }
                         }
