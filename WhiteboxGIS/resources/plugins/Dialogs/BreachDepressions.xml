@@ -39,4 +39,14 @@
 		<MakeOptional>True</MakeOptional>
 		<Width>60</Width>
 	</DialogComponent>
+        <DialogComponent type="DialogDataInput">
+		<Name>aSmallNumber</Name>
+		<Description>Enter the minimum channel slope, i.e. elevation drop, here</Description>
+		<LabelText>Minimum elevation drop (Optional):</LabelText>
+		<IsVisible>True</IsVisible>
+		<InitialText></InitialText>
+		<NumericalInputOnly>True</NumericalInputOnly>
+		<MakeOptional>True</MakeOptional>
+		<Width>60</Width>
+	</DialogComponent>
 </Dialog>

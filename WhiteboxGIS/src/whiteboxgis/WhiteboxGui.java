@@ -26,6 +26,7 @@ import java.awt.print.PrinterJob;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -101,7 +102,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JTabbedPane qlTabs = null;
     private JTabbedPane tb = null;
     private MapRenderer2 drawingArea = new MapRenderer2();
-    private ArrayList<MapInfo> openMaps = new ArrayList<MapInfo>();
+    private ArrayList<MapInfo> openMaps = new ArrayList<>();
     private int activeMap = 0;
     private int numOpenMaps = 1;
     private JPopupMenu layersPopup = null;
@@ -1045,6 +1046,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             helpAbout.setActionCommand("helpAbout");
             helpAbout.addActionListener(this);
             HelpMenu.add(helpAbout);
+            
+            HelpMenu.addSeparator();
+            
+            JMenuItem helpReport = new JMenuItem("Help Completeness Report");
+            helpReport.setActionCommand("helpReport");
+            helpReport.addActionListener(this);
+            HelpMenu.add(helpReport);
+            
             menubar.add(HelpMenu);
 
 
@@ -3720,6 +3729,45 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         }
     }
+    
+    private void helpReport() {
+        String pluginName;
+        String fileName;
+        ArrayList<String> pluginsWithoutHelpFiles = new ArrayList<>();
+        
+        for (int i = 0; i < plugInfo.size(); i++) {
+            plugInfo.get(i).setSortMode(PluginInfo.SORT_MODE_NAMES);
+        }
+        Collections.sort(plugInfo);
+        
+        for (PluginInfo pi : plugInfo) {
+            pluginName = pi.getName();
+            fileName = helpDirectory + pluginName + ".html";
+            File helpFile = new File(fileName);
+            if (!helpFile.exists()) {
+                pluginsWithoutHelpFiles.add(pi.getDescriptiveName()); //pluginName);
+            }
+        }
+        DecimalFormat df = new DecimalFormat("###.0");
+        String percentWithoutHelp = df.format((double)pluginsWithoutHelpFiles.size() / plugInfo.size() * 100.0);
+        String reportOutput;
+        reportOutput = "HELP COMPLETENESS REPORT:\n\n" + "We're working hard to ensure that Whitebox's help files are "
+                + "complete. Currently, " + pluginsWithoutHelpFiles.size() + " (" + percentWithoutHelp + 
+                "%) plugins don't have help files.\n";
+        if (pluginsWithoutHelpFiles.size() > 0) {
+            reportOutput += "These include the following plugins:\n\n";
+            for (int i = 0; i < pluginsWithoutHelpFiles.size(); i++) {
+                reportOutput += pluginsWithoutHelpFiles.get(i) + "\n";
+            }
+        }
+        
+        reportOutput += "\nYou can contribute by writing a help entry for a plugin tool that doesn't currently have "
+                + "one (press the 'Create new help entry' button on the tool's dialog) or by improving the help entry "
+                + "for a tool that already has one. Email your work to jlindsay@uoguelph.ca.";
+        
+        returnData(reportOutput);
+        
+    }
 
 //    private void toggleDataAndCartoView(boolean cartoView) {
 //        if (selectedMapAndLayer[0] == - 1) {
@@ -3956,6 +4004,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             fitToPage();
         } else if (actionCommand.equals("maximizeMapAreaScreenSize")) {
             maximizeMapAreaScreenSize();
+        } else if (actionCommand.equals("helpReport")) {
+            helpReport();
         }
 
     }

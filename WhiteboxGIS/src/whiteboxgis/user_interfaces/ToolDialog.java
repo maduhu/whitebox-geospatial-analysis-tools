@@ -57,8 +57,8 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     private JButton back = new JButton();
     private JButton forward = new JButton();
     private JButton newHelp = new JButton("Create New Help Entry");
+    private JButton modifyHelp = new JButton("Modify Help Entry");
     private JEditorPane helpPane = new JEditorPane();
-    //private FramePanel helpPane = new FramePanel();
     private JScrollPane mainScrollPane = null; //new JScrollPane();
     private JPanel mainPanel = new JPanel();
     private String helpFile = "";
@@ -144,6 +144,14 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         box2.add(newHelp);
         box2.add(Box.createHorizontalStrut(5));
         
+        // create the newHelp button
+        modifyHelp.setActionCommand("modifyHelp");
+        modifyHelp.setToolTipText("Modify the help entry for this tool.");
+        modifyHelp.addActionListener(this);
+        modifyHelp.setVisible(false);
+        box2.add(modifyHelp);
+        box2.add(Box.createHorizontalStrut(5));
+        
         // create the back button
         imgLocation = graphicsDirectory + "HelpBack.png";
         image = new ImageIcon(imgLocation, "");
@@ -193,6 +201,8 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             // use the NoHelp.html file.
             helpFile = resourcesDirectory + "Help" + pathSep + "NoHelp.html";
             newHelp.setVisible(true);
+        } else {
+            modifyHelp.setVisible(true);
         }
         
         helpPane.setEditable(false);
@@ -573,7 +583,6 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         }
     }
     
-    
     private void newHelp() {
         String helpDirectory = host.getResourcesDirectory() + "Help" + pathSep;
         String fileName = helpDirectory + pluginName + ".html";
@@ -596,6 +605,21 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             showFeedback("Could not read default help file (\'NewHelp.txt\') correctly.");
             return;
         }
+    }
+    
+    private void modifyHelp() {
+        String helpDirectory = host.getResourcesDirectory() + "Help" + pathSep;
+        String fileName = helpDirectory + pluginName + ".html";
+        
+        // grab the text within the "NewHelp.txt" file in the helpDirectory;
+        if (!(new File(fileName)).exists()) {
+            showFeedback("Could not find help file in help directory.");
+            return;
+        }
+        ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(fileName), true);
+        vcd.setSize(new Dimension(800, 600));
+        vcd.setVisible(true);
+        
     }
     
     @Override
@@ -621,6 +645,8 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             vcd.setVisible(true);
         } else if (actionCommand.equals("newHelp")) {
             newHelp();
+        } else if (actionCommand.equals("modifyHelp")) {
+            modifyHelp();
         }
     }
     

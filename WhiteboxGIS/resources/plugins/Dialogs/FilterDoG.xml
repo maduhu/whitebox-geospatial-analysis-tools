@@ -24,7 +24,7 @@
 		<Description>Enter the first standard deviation, in pixels</Description>
 		<LabelText>Standard Deviation 1 (in pixels):</LabelText>
 		<IsVisible>True</IsVisible>
-		<InitialText>0.75</InitialText>
+		<InitialText>2.0</InitialText>
 		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
@@ -33,7 +33,7 @@
 		<Description>Enter the second standard deviation, in pixels</Description>
 		<LabelText>Standard Deviation 2 (in pixels):</LabelText>
 		<IsVisible>True</IsVisible>
-		<InitialText>1.5</InitialText>
+		<InitialText>4.0</InitialText>
 		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>

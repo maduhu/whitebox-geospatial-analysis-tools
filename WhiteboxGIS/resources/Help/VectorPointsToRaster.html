@@ -14,10 +14,12 @@ specify the name of the input shapefile and the output raster file. The 'Field N
 the attributes table, i.e. DBF file, from which the tool will retrieve the information to assign to 
 grid cells in the output raster. Note that if this field contains numerical data with no decimals, the 
 output raster data type will be INTEGER; if it contains decimals it will be of a FLOAT data type. The 
-field must contain numerical data. The assignment operation determines how the situation of multiple 
-points contained within the same grid cell is handled. The background value is the value that is 
-assigned to grid cells in the output raster that do not correspond to the location of any points in the 
-input vector. This value can be any numerical value (e.g. 0) or the string 'NoData', which is the default. 
+field must contain numerical data. If the user does not supply a Field Name parameter, each feature in 
+the raster will be assigned the record number of the feature. The assignment operation determines how 
+the situation of multiple points contained within the same grid cell is handled. The background value is 
+the value that is assigned to grid cells in the output raster that do not correspond to the location of 
+any points in the input vector. This value can be any numerical value (e.g. 0) or the string 'NoData', 
+which is the default. 
 </p>
 <p>If the user optionally specifies the Cell Size parameter then the coordinates will be determined by the 
 input vector (i.e. the bounding box) and the specified Cell Size. This will also determine the number of 
