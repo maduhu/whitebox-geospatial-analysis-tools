@@ -43,7 +43,7 @@ public class FilterDoG implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Difference-of-Gaussian Filter";
+    	return "Difference-of-Gaussians Filter";
     }
     /**
      * Used to retrieve a short description of what the plugin tool does.
@@ -51,7 +51,7 @@ public class FilterDoG implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Performs a Difference-of-Gaussian filter on an image.";
+    	return "Performs a Difference-of-Gaussians filter on an image.";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.

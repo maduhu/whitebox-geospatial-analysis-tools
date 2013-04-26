@@ -83,7 +83,7 @@ public class PrincipalComponentAnalysis implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-        String[] ret = {"ImageTransformations", "ChangeDetection"};
+        String[] ret = {"ImageTransformations", "ChangeDetection", "StatisticalTools"};
         return ret;
     }
     /**
