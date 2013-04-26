@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2011-2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 
 package plugins;
 
-import java.io.*;
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
@@ -29,7 +28,7 @@ import whitebox.interfaces.WhiteboxPlugin;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class HistogramMatching implements WhiteboxPlugin{
+public class TwoImageHistogramMatching implements WhiteboxPlugin{
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -42,7 +41,7 @@ public class HistogramMatching implements WhiteboxPlugin{
      */
     @Override
     public String getName() {
-        return "HistogramMatching";
+        return "TwoImageHistogramMatching";
     }
 
     /**
@@ -53,7 +52,7 @@ public class HistogramMatching implements WhiteboxPlugin{
      */
     @Override
     public String getDescriptiveName() {
-    	return "Histogram Matching";
+    	return "Histogram Matching (Two Images)";
     }
 
     /**
@@ -63,7 +62,7 @@ public class HistogramMatching implements WhiteboxPlugin{
      */
     @Override
     public String getToolDescription() {
-    	return "This tool alters the statistical distribution of a raster image, matching it to a specified cdf.";
+    	return "This tool alters the cumululative distribution function of a raster image to that of another image.";
     }
 
     /**
@@ -191,21 +190,21 @@ public class HistogramMatching implements WhiteboxPlugin{
     public void run() {
         amIActive = true;
         
-        String inputHeader = null;
-        String outputHeader = null;
-        String referenceHistoFile = null;
-    	
+        String inputHeader1 = null;
+        String inputHeader2 = null;
+    	String outputHeader = null;
+        
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
         
-        inputHeader = args[0];
-        referenceHistoFile = args[1];
+        inputHeader1 = args[0];
+        inputHeader2 = args[1];
         outputHeader = args[2];
         
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader == null) || (outputHeader == null) || (referenceHistoFile == null)) {
+        if ((inputHeader1 == null) || (outputHeader == null) || (inputHeader2 == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
@@ -214,109 +213,113 @@ public class HistogramMatching implements WhiteboxPlugin{
             int row, col;
             double z;
             float progress = 0;
-            int numCells = 0;
+            int numCells1 = 0;
+            int numCells2 = 0;
             int i = 0;
             
-            WhiteboxRasterInfo inputFile = new WhiteboxRasterInfo(inputHeader);
+            WhiteboxRasterInfo inputFile1 = new WhiteboxRasterInfo(inputHeader1);
+            int rows1 = inputFile1.getNumberRows();
+            int cols1 = inputFile1.getNumberColumns();
+            double noData1 = inputFile1.getNoDataValue();
             
-            int rows = inputFile.getNumberRows();
-            int cols = inputFile.getNumberColumns();
+            WhiteboxRasterInfo inputFile2 = new WhiteboxRasterInfo(inputHeader2);
+            int rows2 = inputFile2.getNumberRows();
+            int cols2 = inputFile2.getNumberColumns();
+            double noData2 = inputFile2.getNoDataValue();
+
+            WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader1, WhiteboxRaster.DataType.FLOAT, noData1);
+            outputFile.setPreferredPalette(inputFile1.getPreferredPalette());
+
             
-            double noData = inputFile.getNoDataValue();
-
-            WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
-            outputFile.setPreferredPalette(inputFile.getPreferredPalette());
-
-            int numBins = 50000;
-            double minValue = inputFile.getMinimumValue();
-            double maxValue = inputFile.getMaximumValue();
-            double binSize = (maxValue - minValue) / numBins;
-            long[] histogram = new long[numBins];
+            double minValue1 = inputFile1.getMinimumValue();
+            double maxValue1 = inputFile1.getMaximumValue();
+            int numBins1 = Math.max(2 * (int)Math.ceil(maxValue1 - minValue1 + 1), 
+                    (int)Math.ceil(Math.pow(rows1 * cols1, 1.0 / 3)));
+            double binSize = (maxValue1 - minValue1) / numBins1;
+            long[] histogram = new long[numBins1];
             int binNum;
-            int numBinsLessOne = numBins - 1;
+            int numBinsLessOne1 = numBins1 - 1;
             double[] data;
             
             updateProgress("Loop 1 of 3: ", 0);
-            for (row = 0; row < rows; row++) {
-                data = inputFile.getRowValues(row);
-                for (col = 0; col < cols; col++) {
+            for (row = 0; row < rows1; row++) {
+                data = inputFile1.getRowValues(row);
+                for (col = 0; col < cols1; col++) {
                     z = data[col];
-                    if (z != noData) {
-                        numCells++;
-                        binNum = (int)((z - minValue) / binSize);
-                        if (binNum > numBinsLessOne) { binNum = numBinsLessOne; }
+                    if (z != noData1) {
+                        numCells1++;
+                        binNum = (int)((z - minValue1) / binSize);
+                        if (binNum > numBinsLessOne1) { binNum = numBinsLessOne1; }
                         histogram[binNum]++;
                     }
 
                 }
                 if (cancelOp) { cancelOperation(); return; }
-                progress = (float) (100f * row / (rows - 1));    
+                progress = (float) (100f * row / (rows1 - 1));    
                 updateProgress("Loop 1 of 3: ", (int)progress);
             }
             
             updateProgress("Loop 2 of 3: ", 0);
             
-            double[] cdf = new double[numBins];
+            double[] cdf = new double[numBins1];
             cdf[0] = histogram[0]; 
-            for (i = 1; i < numBins; i++) {
+            for (i = 1; i < numBins1; i++) {
                 cdf[i] = cdf[i - 1] + histogram[i];
             }
-            histogram = null;
-            for (i = 0; i < numBins; i++) {
-                cdf[i] = cdf[i] / numCells;
+            
+            for (i = 0; i < numBins1; i++) {
+                cdf[i] = cdf[i] / numCells1;
             }
  
             
-            String line;
-            String[] str;
-            String[] delimiters = { "\t", " ", ",", ":", ";" };
-            int delimiterNum = 0;
-            File file = new File(referenceHistoFile);
-            RandomAccessFile raf = null;
-            raf = new RandomAccessFile(file, "r");
-            int numLines = 0;
-            while ((line = raf.readLine()) != null) {
-                if (!line.trim().equals("")) {
-                    numLines++;
-                }
-            }
+            double minValue2 = inputFile2.getMinimumValue();
+            double maxValue2 = inputFile2.getMaximumValue();
             
-            double[][] referenceCDF = new double[numLines][2];
+            int numBins2 = Math.max(2 * (int)Math.ceil(maxValue2 - minValue2 + 1), 
+                    (int)Math.ceil(Math.pow(rows2 * cols2, 1.0 / 3)));
+            int numBinsLessOne2 = numBins2 - 1;
+            long[] histogram2 = new long[numBins2];
+            double[][] referenceCDF = new double[numBins2][2];
             
-            raf.seek(0);
-
-            //Read File Line By Line
-            i = 0;
-            while ((line = raf.readLine()) != null) {
-                str = line.split(delimiters[delimiterNum]);
-                while (str.length < 2) {
-                    delimiterNum++;
-                    if (delimiterNum == delimiters.length) {
-                        showFeedback("the histogram file does not appear to be properly formated.\n"
-                                + "It must be delimited using a tab, space, comma, colon, or semicolon.");
-                        return;
+            for (row = 0; row < rows2; row++) {
+                data = inputFile2.getRowValues(row);
+                for (col = 0; col < cols2; col++) {
+                    z = data[col];
+                    if (z != noData2) {
+                        numCells2++;
+                        binNum = (int)((z - minValue2) / binSize);
+                        if (binNum > numBinsLessOne2) { binNum = numBinsLessOne2; }
+                        histogram2[binNum]++;
                     }
-                    str = line.split(delimiters[delimiterNum]);
+
                 }
-                referenceCDF[i][0] = Double.parseDouble(str[0]); // x value
-                referenceCDF[i][1] = Double.parseDouble(str[1]); // frequency value
-                i++;
+                if (cancelOp) { cancelOperation(); return; }
+                progress = (float) (100f * row / (rows1 - 1));    
+                updateProgress("Loop 2 of 3: ", (int)progress);
             }
-            
-            raf.close();
             
             // convert the reference histogram to a cdf.
-            for (i = 1; i < numLines; i++) {
-                referenceCDF[i][1] += referenceCDF[i - 1][1];
+            referenceCDF[0][1] = histogram2[0]; 
+            for (i = 1; i < numBins2; i++) {
+                referenceCDF[i][1] = referenceCDF[i - 1][1] + histogram2[i];
             }
-            double totalFrequency = referenceCDF[numLines - 1][1];
-            for (i = 0; i < numLines; i++) {
-                referenceCDF[i][1] = referenceCDF[i][1] / totalFrequency;
+            
+            for (i = 0; i < numBins2; i++) {
+                referenceCDF[i][0] = minValue2 + (i / (float)numBins2) * (maxValue2 - minValue2);
+                referenceCDF[i][1] = referenceCDF[i][1] / numCells2;
             }
+            
+//            for (i = 1; i < numBins2; i++) {
+//                referenceCDF[i][1] += referenceCDF[i - 1][1];
+//            }
+//            double totalFrequency = referenceCDF[numBins2 - 1][1];
+//            for (i = 0; i < numBins2; i++) {
+//                referenceCDF[i][1] = referenceCDF[i][1] / totalFrequency;
+//            }
             
             int[] startingVals = new int[11];
             double pVal = 0;
-            for (i = 0; i < numLines; i++) {
+            for (i = 0; i < numBins2; i++) {
                 pVal = referenceCDF[i][1];
                 if (pVal < 0.1) {
                     startingVals[1] = i;
@@ -354,16 +357,16 @@ public class HistogramMatching implements WhiteboxPlugin{
             int j = 0;
             double xVal = 0;
             double x1, x2, p1, p2;
-            for (row = 0; row < rows; row++) {
-                data = inputFile.getRowValues(row);
-                for (col = 0; col < cols; col++) {
+            for (row = 0; row < rows1; row++) {
+                data = inputFile1.getRowValues(row);
+                for (col = 0; col < cols1; col++) {
                     z = data[col];
-                    if (z != noData) {
-                        binNum = (int)((z - minValue) / binSize);
-                        if (binNum > numBinsLessOne) { binNum = numBinsLessOne; }
+                    if (z != noData1) {
+                        binNum = (int)((z - minValue1) / binSize);
+                        if (binNum > numBinsLessOne1) { binNum = numBinsLessOne1; }
                         pVal = cdf[binNum];
                         j = (int)(Math.floor(pVal * 10));
-                        for (i = startingVals[j]; i < numLines; i++) {
+                        for (i = startingVals[j]; i < numBins2; i++) {
                             if (referenceCDF[i][1] > pVal) {
                                 if (i > 0) {
                                     x1 = referenceCDF[i - 1][0];
@@ -382,13 +385,14 @@ public class HistogramMatching implements WhiteboxPlugin{
                                 
                             }
                         }
+                        
                         outputFile.setValue(row, col, xVal);
                     }
 
                 }
                 
                 if (cancelOp) { cancelOperation(); return; }
-                progress = (float) (100f * row / (rows - 1));
+                progress = (float) (100f * row / (rows1 - 1));
                 updateProgress("Loop 3 of 3: ", (int)progress);
             }
             
@@ -396,7 +400,7 @@ public class HistogramMatching implements WhiteboxPlugin{
                     + getDescriptiveName() + " tool.");
             outputFile.addMetadataEntry("Created on " + new Date());
 
-            inputFile.close();
+            inputFile1.close();
             outputFile.close();
 
             // returning a header file string displays the image.
@@ -410,5 +414,25 @@ public class HistogramMatching implements WhiteboxPlugin{
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+    
+    // This method is only used during testing.
+    public static void main(String[] args) {
+
+        // vector-based test
+        args = new String[3];
+        /*
+         * specify the input args array as: 
+         * args[0] = image to be adjusted
+         * args[1] = target image
+         * args[2] = output image
+         */
+        args[0] = "/Users/johnlindsay/Documents/Data/LandsatData/band5_cropped.dep";
+        args[1] = "/Users/johnlindsay/Documents/Data/LandsatData/band1.dep";
+        args[2] = "/Users/johnlindsay/Documents/Data/LandsatData/tmp1.dep";
+
+        TwoImageHistogramMatching tihm = new TwoImageHistogramMatching();
+        tihm.setArgs(args);
+        tihm.run();
     }
 }

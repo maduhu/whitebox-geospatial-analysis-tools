@@ -17,5 +17,6 @@ plugins.NumberOfGridCells
 plugins.PCAForAttributes
 plugins.TestForNormality
 plugins.TurningBands
+plugins.TwoImageHistogramMatching
 plugins.RandomSample
 plugins.ZScores
