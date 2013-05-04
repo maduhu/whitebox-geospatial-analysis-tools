@@ -1,0 +1,354 @@
+{
+  "mapName": "Map1",
+  "fileName": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/Guelph/GuelphMap.wmap",
+  "pageVisible": true,
+  "margin": 0.5,
+  "pageFormat": {
+    "mPaper": {
+      "mHeight": 792.0,
+      "mWidth": 612.0,
+      "mImageableHeight": 648.0,
+      "mImageableWidth": 468.0,
+      "mImageableX": 72.0,
+      "mImageableY": 72.0
+    },
+    "mOrientation": 0
+  },
+  "cartographicElementList": [
+    {
+      "cartographicElementType": "NEATLINE",
+      "elementNumber": 0,
+      "lowerRightX": 756,
+      "lowerRightY": 576,
+      "upperLeftX": 36,
+      "upperLeftY": 36,
+      "name": "Neatline1",
+      "isSelected": false,
+      "isVisible": true,
+      "doubleLineGap": 2,
+      "height": 540,
+      "width": 720,
+      "innerLineWidth": 0.75,
+      "outerLineWidth": 1.5,
+      "isBackgroundVisible": false,
+      "isBorderVisible": true,
+      "isDoubleLine": true,
+      "backgroundColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      }
+    },
+    {
+      "cartographicElementType": "MAPAREA",
+      "elementNumber": 1,
+      "lowerRightX": 622,
+      "lowerRightY": 568,
+      "upperLeftX": 44,
+      "upperLeftY": 61,
+      "name": "MapArea1",
+      "isSelected": false,
+      "isVisible": true,
+      "height": 507,
+      "width": 578,
+      "lineWidth": 0.75,
+      "numLayers": 3,
+      "referenceMarksSize": 12,
+      "rotation": 0.0,
+      "isBackgroundVisible": true,
+      "isBorderVisible": true,
+      "isNeatlineVisible": false,
+      "isReferenceMarksVisible": true,
+      "isSizeMaximizedToScreenSize": false,
+      "activeLayerOverlayNumber": 0,
+      "currentExtent": {
+        "maxY": 4829726.812838158,
+        "maxX": 573016.3062314829,
+        "minY": 4810734.135942945,
+        "minX": 551898.3300475413
+      },
+      "currentMapExtent": {
+        "maxY": 4829726.812838158,
+        "maxX": 573349.5986777602,
+        "minY": 4810734.135942945,
+        "minX": 551565.037601264
+      },
+      "backgroundColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 0,
+        "size": 10,
+        "pointSize": 10.0,
+        "fontSerializedDataVersion": 1
+      },
+      "layersList": [
+        {
+          "layerType": "VECTOR",
+          "layerTitle": "hydrology",
+          "overlayNumber": 1,
+          "isVisible": true,
+          "fileName": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/Guelph/hydrology.shp",
+          "alpha": 255,
+          "fillAttribute": "",
+          "lineAttribute": "",
+          "lineThickness": 1.0,
+          "markerSize": 6.0,
+          "maximumValue": 0.0,
+          "minimumValue": 0.0,
+          "nonlinearity": 1.0,
+          "paletteFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/palettes/categorical1.pal",
+          "xyUnits": "metres",
+          "isDashed": false,
+          "isFilled": true,
+          "isFilledWithOneColour": true,
+          "isOutlined": true,
+          "isOutlinedWithOneColour": true,
+          "isPaletteScaled": false,
+          "fillColour": {
+            "value": -65536,
+            "falpha": 0.0
+          },
+          "lineColour": {
+            "value": -13395457,
+            "falpha": 0.0
+          },
+          "markerStyle": "CIRCLE"
+        },
+        {
+          "layerType": "VECTOR",
+          "layerTitle": "parcels",
+          "overlayNumber": 0,
+          "isVisible": true,
+          "fileName": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/Guelph/parcels.shp",
+          "alpha": 255,
+          "fillAttribute": "",
+          "lineAttribute": "",
+          "lineThickness": 1.0,
+          "markerSize": 6.0,
+          "maximumValue": 0.0,
+          "minimumValue": 0.0,
+          "nonlinearity": 1.0,
+          "paletteFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/palettes/categorical1.pal",
+          "xyUnits": "metres",
+          "isDashed": false,
+          "isFilled": false,
+          "isFilledWithOneColour": true,
+          "isOutlined": true,
+          "isOutlinedWithOneColour": true,
+          "isPaletteScaled": false,
+          "fillColour": {
+            "value": -9372533,
+            "falpha": 0.0
+          },
+          "lineColour": {
+            "value": -16777216,
+            "falpha": 0.0
+          },
+          "markerStyle": "CIRCLE"
+        },
+        {
+          "layerType": "VECTOR",
+          "layerTitle": "water_hydrant",
+          "overlayNumber": 2,
+          "isVisible": true,
+          "fileName": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/Guelph/water_hydrant.shp",
+          "alpha": 255,
+          "fillAttribute": "",
+          "lineAttribute": "",
+          "lineThickness": 1.0,
+          "markerSize": 4.0,
+          "maximumValue": 0.0,
+          "minimumValue": 0.0,
+          "nonlinearity": 1.0,
+          "paletteFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/palettes/categorical1.pal",
+          "xyUnits": "metres",
+          "isDashed": false,
+          "isFilled": true,
+          "isFilledWithOneColour": true,
+          "isOutlined": true,
+          "isOutlinedWithOneColour": true,
+          "isPaletteScaled": false,
+          "fillColour": {
+            "value": -65536,
+            "falpha": 0.0
+          },
+          "lineColour": {
+            "value": -16777216,
+            "falpha": 0.0
+          },
+          "markerStyle": "CIRCLE"
+        }
+      ]
+    },
+    {
+      "cartographicElementType": "MAPTITLE",
+      "elementNumber": 2,
+      "lowerRightX": 511,
+      "lowerRightY": 67,
+      "upperLeftX": 289,
+      "upperLeftY": 35,
+      "name": "MapTitle1",
+      "isSelected": false,
+      "isVisible": true,
+      "label": "City of Guelph, Canada",
+      "fontHeight": 0,
+      "height": 32,
+      "width": 222,
+      "lineWidth": 0.75,
+      "margin": 5,
+      "isBackgroundVisible": false,
+      "isBorderVisible": false,
+      "isOutlineVisible": false,
+      "backColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "outlineColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 1,
+        "size": 18,
+        "pointSize": 18.0,
+        "fontSerializedDataVersion": 1
+      }
+    },
+    {
+      "cartographicElementType": "NORTHARROW",
+      "elementNumber": 3,
+      "lowerRightX": 578,
+      "lowerRightY": 534,
+      "upperLeftX": 543,
+      "upperLeftY": 499,
+      "name": "NorthArrow1",
+      "isSelected": false,
+      "isVisible": true,
+      "height": 35,
+      "width": 35,
+      "lineWidth": 0.75,
+      "margin": 4,
+      "markerSize": 35,
+      "isBackgroundVisible": false,
+      "isBorderVisible": false,
+      "backColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "outlineColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      }
+    },
+    {
+      "cartographicElementType": "LEGEND",
+      "elementNumber": 4,
+      "lowerRightX": 740,
+      "lowerRightY": 290,
+      "upperLeftX": 629,
+      "upperLeftY": 175,
+      "name": "Legend1",
+      "isSelected": false,
+      "isVisible": true,
+      "label": "Legend",
+      "borderWidth": 0.75,
+      "fontHeight": 0,
+      "height": 115,
+      "width": 111,
+      "lineWidth": 0.75,
+      "margin": 5,
+      "numberOfLegendEntries": 3,
+      "backgroundVisible": true,
+      "borderVisible": false,
+      "backgroundColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 0,
+        "size": 10,
+        "pointSize": 10.0,
+        "fontSerializedDataVersion": 1
+      }
+    },
+    {
+      "cartographicElementType": "MAPSCALE",
+      "elementNumber": 5,
+      "lowerRightX": 751,
+      "lowerRightY": 367,
+      "upperLeftX": 601,
+      "upperLeftY": 317,
+      "name": "MapScale1",
+      "isSelected": false,
+      "isVisible": true,
+      "barLength": 4000.0,
+      "conversionToMetres": 1.0,
+      "height": 50,
+      "width": 150,
+      "lineWidth": 0.75,
+      "lowerLabel": "0",
+      "margin": 10,
+      "numberDivisions": 4,
+      "representativeFraction": "Scale 1:114,572.7",
+      "scale": 111464.88277747095,
+      "units": "metres",
+      "backgroundVisible": false,
+      "borderVisible": false,
+      "outlineVisible": false,
+      "representativeFractionVisible": false,
+      "backColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "outlineColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "mapAreaElementNumber": 1
+    }
+  ]
+}

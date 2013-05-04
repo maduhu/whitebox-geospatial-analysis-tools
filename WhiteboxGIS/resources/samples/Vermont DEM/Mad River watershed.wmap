@@ -1,0 +1,241 @@
+{
+  "mapName": "Mad River Watershed",
+  "fileName": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/Vermont DEM/Mad River watershed.wmap",
+  "pageVisible": true,
+  "margin": 0.0,
+  "pageFormat": {
+    "mPaper": {
+      "mHeight": 792.0,
+      "mWidth": 612.0,
+      "mImageableHeight": 648.0,
+      "mImageableWidth": 468.0,
+      "mImageableX": 72.0,
+      "mImageableY": 72.0
+    },
+    "mOrientation": 0
+  },
+  "cartographicElementList": [
+    {
+      "cartographicElementType": "NEATLINE",
+      "elementNumber": 0,
+      "lowerRightX": 742,
+      "lowerRightY": 596,
+      "upperLeftX": 52,
+      "upperLeftY": 18,
+      "name": "Neatline1",
+      "isSelected": false,
+      "isVisible": true,
+      "doubleLineGap": 2,
+      "height": 578,
+      "width": 690,
+      "innerLineWidth": 0.75,
+      "outerLineWidth": 1.5,
+      "isBackgroundVisible": false,
+      "isBorderVisible": true,
+      "isDoubleLine": true,
+      "backgroundColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      }
+    },
+    {
+      "cartographicElementType": "MAPAREA",
+      "elementNumber": 1,
+      "lowerRightX": 452,
+      "lowerRightY": 580,
+      "upperLeftX": 72,
+      "upperLeftY": 33,
+      "name": "MapArea1",
+      "isSelected": false,
+      "isVisible": true,
+      "height": 547,
+      "width": 380,
+      "lineWidth": 0.75,
+      "numLayers": 2,
+      "referenceMarksSize": 12,
+      "rotation": 0.0,
+      "isBackgroundVisible": true,
+      "isBorderVisible": true,
+      "isNeatlineVisible": false,
+      "isReferenceMarksVisible": true,
+      "isSizeMaximizedToScreenSize": false,
+      "activeLayerOverlayNumber": 1,
+      "currentExtent": {
+        "maxY": 4910722.43170145,
+        "maxX": 686073.2043878232,
+        "minY": 4877511.94963511,
+        "minX": 663467.2165950567
+      },
+      "currentMapExtent": {
+        "maxY": 4910722.43170145,
+        "maxX": 686073.2043878234,
+        "minY": 4877511.94963511,
+        "minX": 663467.2165950566
+      },
+      "backgroundColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 0,
+        "size": 10,
+        "pointSize": 10.0,
+        "fontSerializedDataVersion": 1
+      },
+      "layersList": [
+        {
+          "layerType": "RASTER",
+          "layerTitle": "hillshade",
+          "overlayNumber": 0,
+          "isVisible": true,
+          "headerFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/Vermont DEM/hillshade.dep",
+          "displayMinVal": 0.27541069445179034,
+          "displayMaxVal": 0.8643231662055467,
+          "nonlinearity": 1.0,
+          "paletteFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/palettes/grey.pal",
+          "alpha": 255,
+          "isPaletteReversed": false
+        },
+        {
+          "layerType": "RASTER",
+          "layerTitle": "Vermont DEM",
+          "overlayNumber": 1,
+          "isVisible": true,
+          "headerFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/Vermont DEM/Vermont DEM.dep",
+          "displayMinVal": 138.32029724121094,
+          "displayMaxVal": 1164.5294189453125,
+          "nonlinearity": 1.0,
+          "paletteFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/palettes/high_relief.pal",
+          "alpha": 174,
+          "isPaletteReversed": false
+        }
+      ]
+    },
+    {
+      "cartographicElementType": "MAPTITLE",
+      "elementNumber": 2,
+      "lowerRightX": 695,
+      "lowerRightY": 77,
+      "upperLeftX": 488,
+      "upperLeftY": 45,
+      "name": "MapTitle1",
+      "isSelected": false,
+      "isVisible": true,
+      "label": "Mad River Watershed",
+      "fontHeight": 0,
+      "height": 32,
+      "width": 207,
+      "lineWidth": 0.75,
+      "margin": 5,
+      "isBackgroundVisible": false,
+      "isBorderVisible": false,
+      "isOutlineVisible": false,
+      "backColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -3407872,
+        "falpha": 0.0
+      },
+      "outlineColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 1,
+        "size": 18,
+        "pointSize": 18.0,
+        "fontSerializedDataVersion": 1
+      }
+    },
+    {
+      "cartographicElementType": "LEGEND",
+      "elementNumber": 3,
+      "lowerRightX": 629,
+      "lowerRightY": 164,
+      "upperLeftX": 546,
+      "upperLeftY": 94,
+      "name": "Legend1",
+      "isSelected": false,
+      "isVisible": true,
+      "label": "Legend",
+      "borderWidth": 0.75,
+      "fontHeight": 0,
+      "height": 70,
+      "width": 83,
+      "lineWidth": 0.75,
+      "margin": 5,
+      "numberOfLegendEntries": 2,
+      "backgroundVisible": true,
+      "borderVisible": false,
+      "backgroundColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 0,
+        "size": 10,
+        "pointSize": 10.0,
+        "fontSerializedDataVersion": 1
+      }
+    },
+    {
+      "cartographicElementType": "NORTHARROW",
+      "elementNumber": 4,
+      "lowerRightX": 597,
+      "lowerRightY": 212,
+      "upperLeftX": 562,
+      "upperLeftY": 177,
+      "name": "NorthArrow1",
+      "isSelected": false,
+      "isVisible": true,
+      "height": 35,
+      "width": 35,
+      "lineWidth": 0.75,
+      "margin": 4,
+      "markerSize": 35,
+      "isBackgroundVisible": false,
+      "isBorderVisible": false,
+      "backColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "outlineColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      }
+    }
+  ]
+}

@@ -12,7 +12,7 @@ XY Units:	metres
 Projection:	not specified
 Data Scale:	continuous
 Display Min:	138.32029724121094
-Display Max:	1164.529381229001
+Display Max:	1164.5294189453125
 Preferred Palette:	high_relief.pal
 NoData:	-32768.0
 Byte Order:	LITTLE_ENDIAN

@@ -1,0 +1,367 @@
+{
+  "mapName": "Guelph Landsat Data",
+  "fileName": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/LandsatData/Guelph Landsat Data.wmap",
+  "pageVisible": true,
+  "margin": 0.0,
+  "pageFormat": {
+    "mPaper": {
+      "mHeight": 792.0,
+      "mWidth": 612.0,
+      "mImageableHeight": 648.0,
+      "mImageableWidth": 468.0,
+      "mImageableX": 72.0,
+      "mImageableY": 72.0
+    },
+    "mOrientation": 0
+  },
+  "cartographicElementList": [
+    {
+      "cartographicElementType": "MAPAREA",
+      "elementNumber": 0,
+      "lowerRightX": 766,
+      "lowerRightY": 256,
+      "upperLeftX": 552,
+      "upperLeftY": 74,
+      "name": "MapArea1",
+      "isSelected": false,
+      "isVisible": true,
+      "height": 182,
+      "width": 214,
+      "lineWidth": 0.75,
+      "numLayers": 2,
+      "referenceMarksSize": 12,
+      "rotation": 0.0,
+      "isBackgroundVisible": false,
+      "isBorderVisible": true,
+      "isNeatlineVisible": false,
+      "isReferenceMarksVisible": false,
+      "isSizeMaximizedToScreenSize": false,
+      "activeLayerOverlayNumber": 0,
+      "currentExtent": {
+        "maxY": 64.47524468450467,
+        "maxX": -71.0017500927988,
+        "minY": 40.270881026534056,
+        "minX": -99.38528445430391
+      },
+      "currentMapExtent": {
+        "maxY": 64.47524468450467,
+        "maxX": -70.6402606437589,
+        "minY": 40.270881026534056,
+        "minX": -99.74677390334382
+      },
+      "backgroundColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 0,
+        "size": 10,
+        "pointSize": 10.0,
+        "fontSerializedDataVersion": 1
+      },
+      "layersList": [
+        {
+          "layerType": "VECTOR",
+          "layerTitle": "Guelph Location",
+          "overlayNumber": 1,
+          "isVisible": true,
+          "fileName": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/LandsatData/GuelphLatLong.shp",
+          "alpha": 255,
+          "fillAttribute": "",
+          "lineAttribute": "",
+          "lineThickness": 1.0,
+          "markerSize": 7.0,
+          "maximumValue": 0.0,
+          "minimumValue": 0.0,
+          "nonlinearity": 1.0,
+          "paletteFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/palettes/categorical1.pal",
+          "xyUnits": "",
+          "isDashed": false,
+          "isFilled": true,
+          "isFilledWithOneColour": true,
+          "isOutlined": true,
+          "isOutlinedWithOneColour": true,
+          "isPaletteScaled": false,
+          "fillColour": {
+            "value": -65536,
+            "falpha": 0.0
+          },
+          "lineColour": {
+            "value": -16777216,
+            "falpha": 0.0
+          },
+          "markerStyle": "SQUARE"
+        },
+        {
+          "layerType": "VECTOR",
+          "layerTitle": "Canada Map",
+          "overlayNumber": 0,
+          "isVisible": true,
+          "fileName": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/LandsatData/PROVINCE.SHP",
+          "alpha": 255,
+          "fillAttribute": "",
+          "lineAttribute": "",
+          "lineThickness": 1.0,
+          "markerSize": 6.0,
+          "maximumValue": 0.0,
+          "minimumValue": 0.0,
+          "nonlinearity": 1.0,
+          "paletteFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/palettes/categorical1.pal",
+          "xyUnits": "",
+          "isDashed": false,
+          "isFilled": true,
+          "isFilledWithOneColour": true,
+          "isOutlined": true,
+          "isOutlinedWithOneColour": true,
+          "isPaletteScaled": false,
+          "fillColour": {
+            "value": -3342388,
+            "falpha": 0.0
+          },
+          "lineColour": {
+            "value": -16777216,
+            "falpha": 0.0
+          },
+          "markerStyle": "CIRCLE"
+        }
+      ]
+    },
+    {
+      "cartographicElementType": "MAPAREA",
+      "elementNumber": 1,
+      "lowerRightX": 544,
+      "lowerRightY": 587,
+      "upperLeftX": 31,
+      "upperLeftY": 58,
+      "name": "MapArea2",
+      "isSelected": false,
+      "isVisible": true,
+      "height": 529,
+      "width": 513,
+      "lineWidth": 0.75,
+      "numLayers": 1,
+      "referenceMarksSize": 12,
+      "rotation": 0.0,
+      "isBackgroundVisible": true,
+      "isBorderVisible": true,
+      "isNeatlineVisible": false,
+      "isReferenceMarksVisible": true,
+      "isSizeMaximizedToScreenSize": false,
+      "activeLayerOverlayNumber": 0,
+      "currentExtent": {
+        "maxY": 4829250.0,
+        "maxX": 568800.0,
+        "minY": 4812150.0,
+        "minX": 552180.0
+      },
+      "currentMapExtent": {
+        "maxY": 4829281.901840491,
+        "maxX": 568800.0,
+        "minY": 4812118.098159509,
+        "minX": 552180.0
+      },
+      "backgroundColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 0,
+        "size": 10,
+        "pointSize": 10.0,
+        "fontSerializedDataVersion": 1
+      },
+      "layersList": [
+        {
+          "layerType": "RASTER",
+          "layerTitle": "Landsat Data",
+          "overlayNumber": 0,
+          "isVisible": true,
+          "headerFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/samples/LandsatData/natural colour.dep",
+          "displayMinVal": -1.6777216E7,
+          "displayMaxVal": -1.0,
+          "nonlinearity": 1.0,
+          "paletteFile": "/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/palettes/rgb.pal",
+          "alpha": 255,
+          "isPaletteReversed": false
+        }
+      ]
+    },
+    {
+      "cartographicElementType": "MAPTITLE",
+      "elementNumber": 2,
+      "lowerRightX": 405,
+      "lowerRightY": 43,
+      "upperLeftX": 164,
+      "upperLeftY": 8,
+      "name": "MapTitle1",
+      "isSelected": false,
+      "isVisible": true,
+      "label": "Guelph Landsat Image",
+      "fontHeight": 0,
+      "height": 35,
+      "width": 241,
+      "lineWidth": 0.75,
+      "margin": 5,
+      "isBackgroundVisible": false,
+      "isBorderVisible": false,
+      "isOutlineVisible": false,
+      "backColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "outlineColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 1,
+        "size": 20,
+        "pointSize": 20.0,
+        "fontSerializedDataVersion": 1
+      }
+    },
+    {
+      "cartographicElementType": "NORTHARROW",
+      "elementNumber": 3,
+      "lowerRightX": 679,
+      "lowerRightY": 349,
+      "upperLeftX": 644,
+      "upperLeftY": 314,
+      "name": "NorthArrow1",
+      "isSelected": false,
+      "isVisible": true,
+      "height": 35,
+      "width": 35,
+      "lineWidth": 0.75,
+      "margin": 4,
+      "markerSize": 35,
+      "isBackgroundVisible": false,
+      "isBorderVisible": false,
+      "backColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "outlineColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      }
+    },
+    {
+      "cartographicElementType": "MAPSCALE",
+      "elementNumber": 4,
+      "lowerRightX": 743,
+      "lowerRightY": 297,
+      "upperLeftX": 582,
+      "upperLeftY": 247,
+      "name": "MapScale1",
+      "isSelected": false,
+      "isVisible": true,
+      "barLength": 4.0,
+      "conversionToMetres": 1000.0,
+      "height": 50,
+      "width": 161,
+      "lineWidth": 0.75,
+      "lowerLabel": "0",
+      "margin": 10,
+      "numberDivisions": 4,
+      "representativeFraction": "Scale 1:96,343.2",
+      "scale": 96343.22385276073,
+      "units": "km",
+      "backgroundVisible": false,
+      "borderVisible": false,
+      "outlineVisible": false,
+      "representativeFractionVisible": false,
+      "backColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "outlineColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "mapAreaElementNumber": 1
+    },
+    {
+      "cartographicElementType": "MAPTITLE",
+      "elementNumber": 5,
+      "lowerRightX": 718,
+      "lowerRightY": 85,
+      "upperLeftX": 596,
+      "upperLeftY": 58,
+      "name": "MapTitle2",
+      "isSelected": false,
+      "isVisible": true,
+      "label": "Ontario, Canada",
+      "fontHeight": 0,
+      "height": 27,
+      "width": 122,
+      "lineWidth": 0.75,
+      "margin": 5,
+      "isBackgroundVisible": false,
+      "isBorderVisible": false,
+      "isOutlineVisible": false,
+      "backColour": {
+        "value": -1,
+        "falpha": 0.0
+      },
+      "borderColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "fontColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "outlineColour": {
+        "value": -16777216,
+        "falpha": 0.0
+      },
+      "labelFont": {
+        "name": "SanSerif",
+        "style": 0,
+        "size": 14,
+        "pointSize": 14.0,
+        "fontSerializedDataVersion": 1
+      }
+    }
+  ]
+}

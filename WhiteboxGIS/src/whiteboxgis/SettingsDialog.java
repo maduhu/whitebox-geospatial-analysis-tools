@@ -16,6 +16,7 @@
  */
 package whiteboxgis;
 
+import whitebox.cartographic.MapInfo;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;

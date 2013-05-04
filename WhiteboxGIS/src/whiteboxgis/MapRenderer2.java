@@ -17,6 +17,7 @@
 
 package whiteboxgis;
 
+import whitebox.cartographic.MapInfo;
 import java.awt.Point;
 import java.awt.*;
 import java.awt.event.*;
@@ -37,6 +38,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.font.GlyphVector;
+import whitebox.cartographic.MapArea;
 import whitebox.cartographic.*;
 import whitebox.geospatialfiles.RasterLayerInfo;
 import whitebox.geospatialfiles.VectorLayerInfo;

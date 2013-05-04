@@ -11,8 +11,8 @@ Z Units:	not specified
 XY Units:	metres
 Projection:	not specified
 Data Scale:	continuous
-Display Min:	0.0
-Display Max:	1.0
+Display Min:	0.27541069445179034
+Display Max:	0.8643231662055467
 Preferred Palette:	grey.pal
 NoData:	-32768.0
 Byte Order:	LITTLE_ENDIAN

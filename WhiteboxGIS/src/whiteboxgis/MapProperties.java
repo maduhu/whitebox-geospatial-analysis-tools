@@ -17,6 +17,7 @@
 
 package whiteboxgis;
 
+import whitebox.cartographic.MapInfo;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.print.PageFormat;
