@@ -89,7 +89,7 @@ public class BurnStreams implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-        String[] ret = {"DEMPreprocessing"};
+        String[] ret = {"DEMPreprocessing", "StreamAnalysis"};
         return ret;
     }
 
