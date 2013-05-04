@@ -27,7 +27,9 @@ import whitebox.interfaces.CartographicElement;
  *
  * @author johnlindsay
  */
-public class MapTitle implements CartographicElement, Comparable<CartographicElement> {
+public class MapTitle implements CartographicElement, Comparable<CartographicElement>, java.io.Serializable {
+    private String cartoElementType = "MapTitle";
+    
     boolean visible = true;
     boolean selected = false;
     String name = "MapTitle";
@@ -68,8 +70,8 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
         measureFontSizes();
     }
     
-    int[] fontHeights = new int[300];
-    int[] fontWidths = new int[300];
+    static int[] fontHeights = new int[300];
+    static int[] fontWidths = new int[300];
     private void measureFontSizes() {
         fontHeights = new int[maxFontSize];
         fontWidths = new int[maxFontSize];
@@ -452,5 +454,10 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
                 break;
                 
         }
+    }
+    
+    @Override
+    public CartographicElementType getCartographicElementType() {
+        return CartographicElementType.MAPTITLE;
     }
 }

@@ -159,6 +159,18 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
 //        upperLeftY = -99;
     }
     
+    int mapAreaElementNumber = -1;
+    public int getMapAreaElementNumber() {
+        if (mapAreaElementNumber < 0) {
+            mapAreaElementNumber = mapArea.getElementNumber();
+        }
+        return mapAreaElementNumber;
+    }
+    
+    public void setMapAreaElementNumber(int num) {
+        this.mapAreaElementNumber = num;
+    }
+    
     public boolean isOutlineVisible() {
         return outlineVisible;
     }
@@ -525,5 +537,10 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
                 }
                 break;
         }
+    }
+    
+    @Override
+    public CartographicElementType getCartographicElementType() {
+        return CartographicElementType.MAPSCALE;
     }
 }

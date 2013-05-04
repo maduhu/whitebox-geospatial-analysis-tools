@@ -28,6 +28,8 @@ import whitebox.interfaces.CartographicElement;
  * @author johnlindsay
  */
 public class NorthArrow implements CartographicElement, Comparable<CartographicElement> {
+    private String cartoElementType = "NorthArrow";
+    
     boolean visible = true;
     boolean selected = false;
     String name = "north arrow";
@@ -372,5 +374,10 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
                 }
                 break;
         }
+    }
+    
+    @Override
+    public CartographicElementType getCartographicElementType() {
+        return CartographicElementType.NORTHARROW;
     }
 }

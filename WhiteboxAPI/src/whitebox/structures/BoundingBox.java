@@ -20,7 +20,7 @@ package whitebox.structures;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class BoundingBox implements Comparable<BoundingBox>  {
+public class BoundingBox implements Comparable<BoundingBox>, java.io.Serializable {
     
     public BoundingBox() {
         this.maxY = Float.NEGATIVE_INFINITY;

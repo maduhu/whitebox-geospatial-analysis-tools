@@ -33,6 +33,8 @@ public interface CartographicElement extends Comparable<CartographicElement> {
     
     public void setElementNumber(int number);
     
+    public CartographicElementType getCartographicElementType();
+    
     public String getName();
     
     public void setName(String name);
@@ -62,4 +64,10 @@ public interface CartographicElement extends Comparable<CartographicElement> {
     
     public int getSelectedOffsetY();
     
+    /**
+     * An enum of cartographic element types.
+     */
+    public enum CartographicElementType {
+        LEGEND, MAPAREA, MAPSCALE, MAPTITLE, NEATLINE, NORTHARROW
+    }
 }

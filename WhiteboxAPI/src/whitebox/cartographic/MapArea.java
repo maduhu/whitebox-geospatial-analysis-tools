@@ -4,6 +4,7 @@
  */
 package whitebox.cartographic;
 
+
 import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
@@ -19,17 +20,19 @@ import whitebox.structures.GridCell;
  *
  * @author johnlindsay
  */
-public class MapArea implements CartographicElement, Comparable<CartographicElement> {
-    private MapLayer activeLayer = null;
+public class MapArea implements CartographicElement, Comparable<CartographicElement>, java.io.Serializable {
+    private String cartoElementType = "MapArea";
+    
+    private transient MapLayer activeLayer = null;
     private int activeLayerOverlayNumber = -1;
     private int activeLayerIndex = -1;
-    private ArrayList<MapLayer> layers = new ArrayList<MapLayer>();
+    private ArrayList<MapLayer> layers = new ArrayList<>();
     private int numLayers = 0;
     private BoundingBox currentExtent = null;
     private int listOfExtentsIndex = -1;
-    private ArrayList<BoundingBox> listOfExtents = new ArrayList<BoundingBox>();
+    private ArrayList<BoundingBox> listOfExtents = new ArrayList<>();
     private BoundingBox fullExtent = null;
-    private boolean dirty = false; 
+    private transient boolean dirty = false; 
     private String XYUnits = "";
     int upperLeftX = -32768;
     int upperLeftY = -32768;
@@ -48,7 +51,7 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
     int number = -1;
     String name = "MapArea";
     float lineWidth = 0.75f;
-    private double ppm = java.awt.Toolkit.getDefaultToolkit().getScreenResolution() * 39.3701;
+    private static double ppm = java.awt.Toolkit.getDefaultToolkit().getScreenResolution() * 39.3701;
     private double scale = 0;
     private int referenceMarkSize = 10;
     private int selectedOffsetX;
@@ -633,7 +636,7 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
     public void addLayer(MapLayer newLayer) {
         layers.add(newLayer);
         numLayers = layers.size();
-        if (currentExtent.getMinX() > currentExtent.getMaxX()) {
+        if (currentExtent == null || currentExtent.getMinX() > currentExtent.getMaxX()) {
             currentExtent = calculateFullExtent();
             listOfExtents.add(currentExtent.clone());
             listOfExtentsIndex = listOfExtents.size() - 1;
@@ -949,5 +952,11 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
                 }
                 break;
         }
+    }
+    
+    
+    @Override
+    public CartographicElementType getCartographicElementType() {
+        return CartographicElementType.MAPAREA;
     }
 }

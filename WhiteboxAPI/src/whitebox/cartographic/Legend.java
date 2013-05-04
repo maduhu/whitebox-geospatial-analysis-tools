@@ -395,4 +395,9 @@ public class Legend implements CartographicElement, Comparable<CartographicEleme
                 break;
         }
     }
+
+    @Override
+    public CartographicElementType getCartographicElementType() {
+        return CartographicElementType.LEGEND;
+    }
 }
