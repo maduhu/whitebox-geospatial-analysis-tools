@@ -152,6 +152,7 @@ public class Polygon implements Geometry {
         return numPoints;
     }
 
+    @Override
     public double[][] getPoints() {
         return points;
     }

@@ -316,6 +316,9 @@ public class MapInfo implements java.io.Serializable{
         this.margin = margin;
     }
     
+    public int getNumberOfCartographicElements() {
+        return listOfCartographicElements.size();
+    }
     
     // Methods
     private int activeMapArea = -1;
