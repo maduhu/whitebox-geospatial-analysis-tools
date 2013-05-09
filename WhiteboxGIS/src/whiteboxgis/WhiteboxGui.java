@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import whiteboxgis.user_interfaces.ToolDialog;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.print.Book;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.PrinterException;
@@ -553,7 +554,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 Paper paper = defaultPageFormat.getPaper();
                 paper.setSize(width, height);
                 defaultPageFormat.setPaper(paper);
-                printResolution = Integer.parseInt(props.getProperty("printResolution"));
+                if (props.containsKey("printResolution")) {
+                    printResolution = Integer.parseInt(props.getProperty("printResolution"));
+                }
 
                 // retrieve the plugin usage information
                 String[] pluginNames = props.getProperty("pluginNames").split(",");
@@ -2479,12 +2482,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             setAsActiveMap();
         }
         PrinterJob job = PrinterJob.getPrinterJob();
+//        PageFormat pf = openMaps.get(selectedMapAndLayer[0]).getPageFormat();
+//        Book book = new Book();//java.awt.print.Book
+//        book.append(drawingArea, pf);
+//        job.setPageable(book);
         PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
-        //PageFormat pf = job.pageDialog(aset);
-        job.setPrintable(drawingArea);
+//        job.setPrintable(drawingArea);
         boolean ok = job.printDialog(aset);
         if (ok) {
             try {
+                PageFormat pf = job.defaultPage();
+                Book book = new Book();//java.awt.print.Book
+                book.append(drawingArea, pf);
+                job.setPageable(book);
                 job.print(aset);
             } catch (PrinterException ex) {
                 showFeedback("An error was encountered while printing." + ex);

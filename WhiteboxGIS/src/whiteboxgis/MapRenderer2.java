@@ -275,34 +275,41 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     public int print(Graphics g, PageFormat pf, int page) throws PrinterException {
 //        host.showFeedback("Map printing has been temporarily disabled.");
 //        return -1;
+        try {
 
-        if (page > 0) {
-            return NO_SUCH_PAGE;
-        }
+            if (page > 0) {
+                return NO_SUCH_PAGE;
+            }
 
 //        int i = pf.getOrientation();
 
-        // get the size of the page
-//        double pageWidth = pf.getImageableWidth();
-//        double pageHeight = pf.getImageableHeight();
-        w = (int)(printResolution * pf.getWidth() / 72); 
-        h = (int)(printResolution * pf.getHeight() / 72);
+            // get the size of the page
+        double pageWidth = pf.getImageableWidth();
+        double pageHeight = pf.getImageableHeight();
+            w = (int) (printResolution * pageWidth / 72);
+            h = (int) (printResolution * pageHeight / 72);
 //        double myWidth = this.getWidth();// - borderWidth * 2;
 //        double myHeight = this.getHeight();// - borderWidth * 2;
 //        double scaleX = pageWidth / w; //myWidth;
 //        double scaleY = pageHeight / h; //myHeight;
-//        double minScale = Math.min(scaleX, scaleY);
+        double minScale = 72d / printResolution; //Math.min(scaleX, scaleY);
+            
+//            w = (int)
+            printingMap = true;
+            map.deslectAllCartographicElements();
 
-        printingMap = true;
-        map.deslectAllCartographicElements();
-             
-//        Graphics2D g2d = (Graphics2D) g;
-        //g2d.translate(pf.getImageableX(), pf.getImageableY());
-//        g2d.scale(minScale, minScale);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.translate(pf.getImageableX(), pf.getImageableY());
+            g2d.scale(minScale, minScale);
+            
+            drawMap(g);
 
-        drawMap(g);
-
-        return PAGE_EXISTS;
+            printingMap = false;
+            
+            return PAGE_EXISTS;
+        } catch (Exception e) {
+            throw new PrinterException("Something went wrong during printing.");
+        }
     }
     
     private int printResolution = 600;
