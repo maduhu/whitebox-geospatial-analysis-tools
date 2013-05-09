@@ -22,6 +22,7 @@ public class StringProperty extends JComponent implements MouseListener  {
     private int preferredWidth = 200;
     private int preferredHeight = 24;
     private int textboxWidth = 15;
+    private boolean showTextArea = false;
     
     private JTextField text = new JTextField();
     
@@ -102,6 +103,15 @@ public class StringProperty extends JComponent implements MouseListener  {
     public void setTextboxWidth(int textboxWidth) {
         this.textboxWidth = textboxWidth;
     }
+
+    public boolean isShowTextArea() {
+        return showTextArea;
+    }
+
+    public void setShowTextArea(boolean showTextArea) {
+        this.showTextArea = showTextArea;
+    }
+    
     
     @Override
     public final void revalidate() {
@@ -138,11 +148,6 @@ public class StringProperty extends JComponent implements MouseListener  {
 
             public void update() {
                 setValue(text.getText());
-//                if (Integer.parseInt(text.getText()) <= 0) {
-//                    JOptionPane.showMessageDialog(null,
-//                            "Error: Please enter number bigger than 0", "Error Massage",
-//                            JOptionPane.ERROR_MESSAGE);
-//                }
             }
         });
         this.add(text);
