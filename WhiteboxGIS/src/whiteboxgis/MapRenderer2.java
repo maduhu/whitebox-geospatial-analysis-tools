@@ -30,7 +30,13 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.io.File;
+import java.text.AttributedString;
 import java.text.DecimalFormat;
+import java.awt.font.TextAttribute;
+import java.awt.font.LineBreakMeasurer;
+import java.text.AttributedCharacterIterator;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
 import java.util.ArrayList;
 import java.util.Collections;
 import javax.imageio.ImageIO;
@@ -266,27 +272,67 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     }
 
     @Override
-    public int print(Graphics grphcs, PageFormat pf, int i) throws PrinterException {
-        host.showFeedback("Map printing has been temporarily disabled.");
-        return -1;
+    public int print(Graphics g, PageFormat pf, int page) throws PrinterException {
+//        host.showFeedback("Map printing has been temporarily disabled.");
+//        return -1;
+
+        if (page > 0) {
+            return NO_SUCH_PAGE;
+        }
+
+//        int i = pf.getOrientation();
+
+        // get the size of the page
+//        double pageWidth = pf.getImageableWidth();
+//        double pageHeight = pf.getImageableHeight();
+        w = (int)(printResolution * pf.getWidth() / 72); 
+        h = (int)(printResolution * pf.getHeight() / 72);
+//        double myWidth = this.getWidth();// - borderWidth * 2;
+//        double myHeight = this.getHeight();// - borderWidth * 2;
+//        double scaleX = pageWidth / w; //myWidth;
+//        double scaleY = pageHeight / h; //myHeight;
+//        double minScale = Math.min(scaleX, scaleY);
+
+        printingMap = true;
+        map.deslectAllCartographicElements();
+             
+//        Graphics2D g2d = (Graphics2D) g;
+        //g2d.translate(pf.getImageableX(), pf.getImageableY());
+//        g2d.scale(minScale, minScale);
+
+        drawMap(g);
+
+        return PAGE_EXISTS;
+    }
+    
+    private int printResolution = 600;
+
+    public int getPrintResolution() {
+        return printResolution;
     }
 
+    public void setPrintResolution(int resolution) {
+        this.printResolution = resolution;
+    }
+    
     public boolean saveToImage(String fileName) {
         try {
-            //int width = (int) this.getWidth();
-            //int height = (int) this.getHeight();
             // get the page size information
             PageFormat pageFormat = map.getPageFormat();
-            int width = (int) pageFormat.getWidth();
-            int height = (int) pageFormat.getHeight();
+            double pageWidthInInches = pageFormat.getWidth() / 72;
+            double pageHeightInInches = pageFormat.getHeight() / 72;
+            
+            w = (int)(printResolution * pageWidthInInches); 
+            h = (int)(printResolution * pageHeightInInches); 
 
             // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
             // into integer pixels
-            BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            BufferedImage bi = new BufferedImage((int)w, (int)h, BufferedImage.TYPE_INT_ARGB);
 
             Graphics ig = bi.createGraphics();
             printingMap = true;
             map.deslectAllCartographicElements();
+             
             drawMap(ig);
             String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toUpperCase();
             if (!ImageIO.write(bi, extension, new File(fileName))) {
@@ -294,15 +340,18 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             }
             printingMap = false;
             return true;
-        } catch (Exception ex) {
+        } catch (Exception e) {
             return false;
         }
     }
 
     @Override
     public void paint(Graphics g) {
+        w = this.getWidth();
+        h = this.getHeight();
         drawMap(g);
     }
+    
     private double scale = 0;
     private double pageTop = 0;
     private double pageLeft = 0;
@@ -311,14 +360,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
     private void drawMap(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-
+       
         try {
 
             AffineTransform old = g2.getTransform();
 
             // get the drawing area's width and height
-            w = this.getWidth();
-            h = this.getHeight();
+            
             Stroke oldStroke;
 
             RenderingHints rh = new RenderingHints(
@@ -330,7 +378,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
             g2.setColor(Color.white);
             g2.fillRect(0, 0, (int) w, (int) h);
-
+            
             if (map != null && map.getNumberOfCartographicElements() > 0) {
 
                 DecimalFormat df = new DecimalFormat("###,###,###.#");
@@ -349,18 +397,30 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 double pageHeight = pageFormat.getHeight();
 
                 // set the page scale
-
-                int pageShadowSize = 6;
-
                 BoundingBox pageExtent = map.getPageExtent();
-                if (pageExtent.getMaxY() == Float.NEGATIVE_INFINITY) {
-                    // it hasn't yet been initialized
-                    pageExtent.setMinX(-pageShadowSize);
-                    pageExtent.setMinY(-pageShadowSize);
-                    pageExtent.setMaxX(pageWidth + 1.25 * pageShadowSize);
-                    pageExtent.setMaxY(pageHeight + 1.25 * pageShadowSize);
+                int pageShadowSize;
+                if (!printingMap) {
+                    pageShadowSize = 6;
+                    if (pageExtent.getMaxY() == Float.NEGATIVE_INFINITY) {
+                        // it hasn't yet been initialized
+                        pageExtent.setMinX(-pageShadowSize);
+                        pageExtent.setMinY(-pageShadowSize);
+                        pageExtent.setMaxX(pageWidth + 1.25 * pageShadowSize);
+                        pageExtent.setMaxY(pageHeight + 1.25 * pageShadowSize);
 
-                    map.setPageExtent(pageExtent);
+                        map.setPageExtent(pageExtent);
+                    }
+                } else {
+                    pageShadowSize = 0;
+                    if (pageExtent.getMaxY() == Float.NEGATIVE_INFINITY) {
+                        // it hasn't yet been initialized
+                        pageExtent.setMinX(0);
+                        pageExtent.setMinY(0);
+                        pageExtent.setMaxX(pageWidth - 1);
+                        pageExtent.setMaxY(pageHeight - 1);
+
+                        map.setPageExtent(pageExtent);
+                    }
                 }
 
 
@@ -434,7 +494,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     }
 
                 }
-
+                
                 //***************************
                 // Draw cartographic elements
                 //***************************
@@ -700,6 +760,54 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             g2.setFont(oldFont);
                         }
 
+                    } else if (ce instanceof MapTextArea) {
+                        MapTextArea mapTextArea = (MapTextArea) ce;
+                        // Map title
+                        if (mapTextArea.isVisible()) {
+                            int x1, y1, x2, y2;
+                            int labelMargin = mapTextArea.getMargin();
+                            float interlineSpace = mapTextArea.getInterlineSpace();
+                            x1 = mapTextArea.getUpperLeftX() + labelMargin;
+                            y1 = mapTextArea.getUpperLeftY() + labelMargin;
+                            x2 = mapTextArea.getLowerRightX() - labelMargin;
+                            y2 = mapTextArea.getLowerRightY() - labelMargin;
+                            
+                            if (mapTextArea.isBackgroundVisible()) {
+                                g2.setColor(mapTextArea.getBackColour());
+
+                                g2.fillRect(mapTextArea.getUpperLeftX(), 
+                                        mapTextArea.getUpperLeftY(),
+                                        mapTextArea.getWidth(),
+                                        mapTextArea.getHeight());
+                            }
+
+                            if (mapTextArea.isBorderVisible() || mapTextArea.isSelected()) {
+                                oldStroke = g2.getStroke();
+                                if (mapTextArea.isSelected() && !printingMap) {
+                                    g2.setColor(selectedColour);
+                                    g2.setStroke(dashed);
+                                } else {
+                                    g2.setColor(mapTextArea.getBorderColour());
+                                    g2.setStroke(new BasicStroke(mapTextArea.getLineWidth()));
+                                }
+
+                                g2.drawRect(mapTextArea.getUpperLeftX(), 
+                                        mapTextArea.getUpperLeftY(),
+                                        mapTextArea.getWidth(),
+                                        mapTextArea.getHeight());
+                                g2.setStroke(oldStroke);
+                            }
+                            Font newFont = mapTextArea.getLabelFont();
+                            g2.setColor(mapTextArea.getFontColour());
+                            oldFont = g2.getFont();
+                            g2.setFont(newFont);
+                            
+                            drawStringRect(g2, x1, y1, x2, y2, interlineSpace, 
+                                    mapTextArea.getLabel());
+                            g2.setFont(oldFont);
+
+                            g2.setFont(oldFont);
+                        }
                     } else if (ce instanceof NeatLine) {
                         NeatLine neatLine = (NeatLine) ce;
                         if (neatLine.isVisible()) {
@@ -2606,7 +2714,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     }
 
                 }
-
+                
                 if (mouseDragged && (myMode == MOUSE_MODE_ZOOM
                         || backgroundMouseMode == MOUSE_MODE_ZOOM)
                         && !(myMode == MOUSE_MODE_RESIZE)) {
@@ -2647,6 +2755,28 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         }
     }
 
+    private void drawStringRect(Graphics2D graphics, int x1, int y1, int x2, 
+            int y2, float interline, String txt) {
+        if (txt.isEmpty()) { return; }
+        AttributedString as = new AttributedString(txt);
+        as.addAttribute(TextAttribute.FOREGROUND, graphics.getPaint());
+        as.addAttribute(TextAttribute.FONT, graphics.getFont());
+        AttributedCharacterIterator aci = as.getIterator();
+        FontRenderContext frc = new FontRenderContext(null, true, false);
+        LineBreakMeasurer lbm = new LineBreakMeasurer(aci, frc);
+        float width = x2 - x1;
+
+        while (lbm.getPosition() < txt.length()) {
+            TextLayout tl = lbm.nextLayout(width);
+            y1 += tl.getAscent();
+            tl.draw(graphics, x1, y1);
+            y1 += tl.getDescent() + tl.getLeading() + (interline - 1.0f) * tl.getAscent();
+            if (y1 > y2) {
+                break;
+            }
+        }
+    }
+    
     private double calculateArea() {
         int numPoints;
         double x1, y1, x2, y2;
@@ -2759,6 +2889,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         int x = (int) ((e.getX() - pageLeft) / scale);
         int y = (int) ((e.getY() - pageTop) / scale);
         boolean withinElement = false;
+        int nearDist = 8;
         for (CartographicElement ce : map.getCartographicElementList()) {
             int ulX = ce.getUpperLeftX();
             int ulY = ce.getUpperLeftY();
@@ -2793,8 +2924,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 withinElement = true;
 
                 // are you near the edge of a selected element?
-            } else if (ce.isSelected() && isBetween(x, ulX - 8, lrX + 8)
-                    && isBetween(y, ulY - 8, lrY + 8)) {
+            } else if (ce.isSelected() && isBetween(x, ulX - nearDist, lrX + nearDist)
+                    && isBetween(y, ulY - nearDist, lrY + nearDist)) {
                 if (myMode != MOUSE_MODE_RESIZE) {
                     /*  public static final int RESIZE_MODE_N = 0;
                      public static final int RESIZE_MODE_S = 1;

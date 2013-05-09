@@ -60,37 +60,14 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     private static double margin;
     
     private ArrayList<CartographicElement> listOfCartographicElements;
-    
     private JList mapElementsList;
-    
-    private JCheckBox checkScaleVisible = new JCheckBox();
-    private JCheckBox checkScaleBorderVisible = new JCheckBox();
-    private JCheckBox checkScaleShowRF = new JCheckBox();
-    private JCheckBox checkScaleBackgroundVisible = new JCheckBox();
-    private JTextField scaleUnitText = null;
-    private JTextField scaleWidthText = null;
-    private JTextField scaleHeightText = null;
-    private JTextField scaleMarginText = null;
-    
     private ColourProperty outlineColourBox;
-    
     private JCheckBox checkNeatlineVisible = new JCheckBox();
     private JCheckBox checkNeatlineDoubleLine = new JCheckBox();
     private JCheckBox checkNeatlineBackgroundVisible = new JCheckBox();
-    
-    private JCheckBox checkMapAreaVisible = new JCheckBox();
-    private JCheckBox checkMapAreaBorderVisible = new JCheckBox();
-    private JCheckBox checkMapAreaBackgroundVisible = new JCheckBox();
-    private JCheckBox checkMapAreaReferenceMarksVisible = new JCheckBox();
-    private JCheckBox checkMapAreaNeatlineVisible = new  JCheckBox();
-    
     private JPanel elementPropertiesPanel = new JPanel();
     private JList possibleElementsList = new JList(new DefaultListModel());
-    
     private int activeElement;
-    
-    private int sampleWidth = 30;
-    private int sampleHeight = 15;
     
     public MapProperties(Frame owner, boolean modal, MapInfo map) {
         super(owner, modal);
@@ -224,14 +201,13 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             possibleElementsList.addMouseListener(ml1);
 
             DefaultListModel model = new DefaultListModel();
-            model.add(0, "Title");
-            model.add(1, "Scale");
-            model.add(2, "Legend");
+            model.add(0, "Legend");
+            model.add(1, "Map Area");
+            model.add(2, "Neatline");
             model.add(3, "North Arrow");
-            model.add(4, "Neatline");
-            model.add(5, "Text Box");
-            model.add(6, "Map Area");
-            model.add(7, "Label");
+            model.add(4, "Scale");
+            model.add(5, "Text Area");
+            model.add(6, "Title");
             
             possibleElementsList.setModel(model);
             
@@ -305,7 +281,6 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             hbox3.add(label);
             hbox3.add(Box.createHorizontalGlue());
             vbox3.add(hbox3);
-            //mainBox.add(hbox);
             
             elementPropertiesPanel.setBackground(Color.WHITE);
             JScrollPane scroll = new JScrollPane(elementPropertiesPanel);
@@ -315,13 +290,8 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             mainBox.add(vbox3);
             mainBox.add(Box.createVerticalGlue());
             
-            //mainBox.add(Box.createVerticalStrut(330));
-            
-            //JScrollPane scroll = new JScrollPane(mainBox);
-            //elementsPanel.setLayout(new BoxLayout(elementsPanel, BoxLayout.Y_AXIS));
             elementsPanel.setLayout(new BorderLayout());
             elementsPanel.add(mainBox, BorderLayout.NORTH);
-            //elementsPanel.add(scroll, BorderLayout.CENTER);
             elementsPanel.add(Box.createVerticalGlue());
             
             if (listOfCartographicElements.size() > 0) {
@@ -342,8 +312,6 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         if (index > listOfCartographicElements.size()) { index = listOfCartographicElements.size(); }
         CartographicElement ce = listOfCartographicElements.get(index);
         elementPropertiesPanel.removeAll();
-        //Box box = Box.createHorizontalBox();
-        //JScrollPane scroller = new JScrollPane();
         if (ce instanceof MapTitle) {
             elementPropertiesPanel.add(getTitleBox((MapTitle)ce), BorderLayout.CENTER);
         } else if (ce instanceof MapScale) {
@@ -354,6 +322,8 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             elementPropertiesPanel.add(getNeatlineBox((NeatLine) ce), BorderLayout.CENTER);
         } else if (ce instanceof MapArea) {
             elementPropertiesPanel.add(getMapAreaBox((MapArea) ce), BorderLayout.CENTER);
+        } else if (ce instanceof MapTextArea) {
+            elementPropertiesPanel.add(getMapTextArea((MapTextArea) ce), BorderLayout.CENTER);
         }
         elementPropertiesPanel.validate();
         elementPropertiesPanel.repaint();
@@ -382,6 +352,12 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     
     private JPanel getTitleBox(MapTitle mapTitle) {
         whitebox.cartographic.properties.MapTitlePropertyGrid obj = new whitebox.cartographic.properties.MapTitlePropertyGrid(mapTitle, host);
+        obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
+        return obj;        
+    }
+    
+    private JPanel getMapTextArea(MapTextArea mapTextArea) {
+        whitebox.cartographic.properties.MapTextAreaPropertyGrid obj = new whitebox.cartographic.properties.MapTextAreaPropertyGrid(mapTextArea, host);
         obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
         return obj;        
     }
@@ -677,69 +653,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     }
     
     private void updateMap() {
-        if (tabs.getSelectedIndex() == 0) {
-            // which element is currently selected?
-            int whichElement = listOfCartographicElements.size() - 1 - mapElementsList.getSelectedIndex();
-            CartographicElement ce = map.getCartographicElement(whichElement);
-            if (ce instanceof MapScale) {
-                MapScale mapScale = (MapScale) ce;
-                if (mapScale.isVisible() != checkScaleVisible.isSelected()) {
-                    mapScale.setVisible(checkScaleVisible.isSelected());
-                }
-                if (mapScale.isBorderVisible() != checkScaleBorderVisible.isSelected()) {
-                    mapScale.setBorderVisible(checkScaleBorderVisible.isSelected());
-                }
-                if (mapScale.isBackgroundVisible() != checkScaleBackgroundVisible.isSelected()) {
-                    mapScale.setBackgroundVisible(checkScaleBackgroundVisible.isSelected());
-                }
-                if (mapScale.isRepresentativeFractionVisible() != checkScaleShowRF.isSelected()) {
-                    mapScale.setRepresentativeFractionVisible(checkScaleShowRF.isSelected());
-                }
-                if (!mapScale.getUnits().equals(scaleUnitText.getText())) {
-                    mapScale.setUnits(scaleUnitText.getText());
-                }
-                if (mapScale.getHeight() != Integer.parseInt(scaleHeightText.getText())) {
-                    mapScale.setHeight(Integer.parseInt(scaleHeightText.getText()));
-                }
-                if (mapScale.getWidth() != Integer.parseInt(scaleWidthText.getText())) {
-                    mapScale.setWidth(Integer.parseInt(scaleWidthText.getText()));
-                }
-                if (mapScale.getMargin() != Integer.parseInt(scaleMarginText.getText())) {
-                    mapScale.setMargin(Integer.parseInt(scaleMarginText.getText()));
-                }
-                //mapScale.setScale(mapScale.getScale()); // this is just to refresh the map scale.
-                map.modifyElement(whichElement, ce);
-            } else if (ce instanceof NeatLine) {
-                NeatLine neatline = (NeatLine)ce;
-                if (neatline.isVisible() != checkNeatlineVisible.isSelected()) {
-                    neatline.setVisible(checkNeatlineVisible.isSelected());
-                }
-                if (neatline.isBackgroundVisible() != checkNeatlineBackgroundVisible.isSelected()) {
-                    neatline.setBackgroundVisible(checkNeatlineBackgroundVisible.isSelected());
-                }
-                if (neatline.isDoubleLine() != checkNeatlineDoubleLine.isSelected()) {
-                    neatline.setDoubleLine(checkNeatlineDoubleLine.isSelected());
-                }
-                
-            } else if (ce instanceof MapArea) {
-                MapArea mapArea = (MapArea)ce;
-                if (mapArea.isVisible() != checkMapAreaVisible.isSelected()) {
-                    mapArea.setVisible(checkMapAreaVisible.isSelected());
-                }
-                if (mapArea.isBackgroundVisible() != checkMapAreaBackgroundVisible.isSelected()) {
-                    mapArea.setBackgroundVisible(checkMapAreaBackgroundVisible.isSelected());
-                }
-                if (mapArea.isReferenceMarksVisible() != checkMapAreaReferenceMarksVisible.isSelected()) {
-                    mapArea.setReferenceMarksVisible(checkMapAreaReferenceMarksVisible.isSelected());
-                }
-                if (mapArea.isNeatlineVisible() != checkMapAreaNeatlineVisible.isSelected()) {
-                    mapArea.setNeatlineVisible(checkMapAreaNeatlineVisible.isSelected());
-                }
-                if (mapArea.isBorderVisible() != checkMapAreaBorderVisible.isSelected()) {
-                    mapArea.setBorderVisible(checkMapAreaBorderVisible.isSelected());
-                }
-            }
-        } else if (tabs.getSelectedIndex() == 1) {
+        if (tabs.getSelectedIndex() == 1) {
             map.setPageVisible(checkPageVisible.isSelected());
 
             PageFormat pf = map.getPageFormat();
@@ -794,28 +708,23 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         return paper;
     }
     
-    private static MediaSize lookupMediaSize(final Media media) {
-
-        if (media instanceof MediaSizeName) {
-            return MediaSize.getMediaSizeForName((MediaSizeName) media);
-        } else if (media instanceof MediaName) {
-            if (media.equals(MediaName.ISO_A4_TRANSPARENT)
-                    || media.equals(MediaName.ISO_A4_WHITE)) {
-                return MediaSize.getMediaSizeForName(MediaSizeName.ISO_A4);
-            } else if (media.equals(MediaName.NA_LETTER_TRANSPARENT)
-                    || media.equals(MediaName.NA_LETTER_WHITE)) {
-                return MediaSize.getMediaSizeForName(MediaSizeName.NA_LETTER);
-            }
-        }
-        return null;
-    }
+//    private static MediaSize lookupMediaSize(final Media media) {
+//
+//        if (media instanceof MediaSizeName) {
+//            return MediaSize.getMediaSizeForName((MediaSizeName) media);
+//        } else if (media instanceof MediaName) {
+//            if (media.equals(MediaName.ISO_A4_TRANSPARENT)
+//                    || media.equals(MediaName.ISO_A4_WHITE)) {
+//                return MediaSize.getMediaSizeForName(MediaSizeName.ISO_A4);
+//            } else if (media.equals(MediaName.NA_LETTER_TRANSPARENT)
+//                    || media.equals(MediaName.NA_LETTER_WHITE)) {
+//                return MediaSize.getMediaSizeForName(MediaSizeName.NA_LETTER);
+//            }
+//        }
+//        return null;
+//    }
     
     public MediaPrintableArea getMediaPrintableArea(MediaSize size, int MM) {
-//        return new MediaPrintableArea(getX1(MM),
-//                getY1(MM),
-//                size.getX(MM) - getX1(MM) - getX2(MM),
-//                size.getY(MM) - getY1(MM) - getY2(MM),
-//                MM);
         return new MediaPrintableArea(MM,
                 MM,
                 size.getX(MM) - MM - MM,
@@ -825,24 +734,35 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     
     private void addElement() {
         String label = possibleElementsList.getSelectedValue().toString();
-        if (label.toLowerCase().equals("scale")) {
-            map.addMapScale();
-            populateElementsList();
-        } else if (label.toLowerCase().equals("legend")) {
-            map.addLegend();
-            populateElementsList();
-        } else if (label.toLowerCase().equals("north arrow")) {
-            map.addNorthArrow();
-            populateElementsList();
-        } else if (label.toLowerCase().equals("map area")) {
-            map.addMapArea();
-            populateElementsList();
-        } else if (label.toLowerCase().equals("title")) {
-            map.addMapTitle();
-            populateElementsList();
-        } else if (label.toLowerCase().equals("neatline")) {
-            map.addNeatline();
-            populateElementsList();
+        switch (label.toLowerCase()) {
+            case "scale":
+                map.addMapScale();
+                populateElementsList();
+                break;
+            case "legend":
+                map.addLegend();
+                populateElementsList();
+                break;
+            case "north arrow":
+                map.addNorthArrow();
+                populateElementsList();
+                break;
+            case "map area":
+                map.addMapArea();
+                populateElementsList();
+                break;
+            case "title":
+                map.addMapTitle();
+                populateElementsList();
+                break;
+            case "neatline":
+                map.addNeatline();
+                populateElementsList();
+                break;
+            case "text area":
+                map.addMapTextArea();
+                populateElementsList();
+                break;
         }
         mapElementsList.setSelectedIndex(0);
         updateElementPropertiesPanel();
