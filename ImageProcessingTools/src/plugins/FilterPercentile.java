@@ -61,7 +61,7 @@ public class FilterPercentile implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "Filters" };
+    	String[] ret = { "Filters", "ElevResiduals" };
     	return ret;
     }
     /**
