@@ -18,6 +18,7 @@ package whitebox.cartographic;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -52,7 +53,7 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     Color borderColour = Color.BLACK;
     Color fontColour = Color.BLACK;
     Font labelFont = new Font("SanSerif", Font.PLAIN, 12);
-    Font[] availableFonts;
+//    Font[] availableFonts; // = {"Serif", "SanSerif", "Monospaced", "Dialog", "DialogInput"};
     int fontHeight = 0;
     int maxFontSize = 300;
     float lineWidth = 0.75f;
@@ -62,11 +63,13 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
 
     public MapTextArea() {
         measureFontSizes();
+//        findAvailableFonts();
     }
 
     public MapTextArea(String name) {
         this.name = name;
         measureFontSizes();
+//        findAvailableFonts();
     }
 
     public MapTextArea(String label, String name) {
@@ -75,6 +78,7 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
         //Font[] availableFonts = e.getAllFonts();
         this.name = name;
         measureFontSizes();
+//        findAvailableFonts();
     }
     static int[] fontHeights = new int[300];
     static int[] fontWidths = new int[300];
@@ -302,6 +306,10 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     public void setInterlineSpace(float interlineSpace) {
         this.interlineSpace = interlineSpace;
     }
+
+//    public Font[] getAvailableFonts() {
+//        return availableFonts;
+//    }
     
     @Override
     public int compareTo(CartographicElement other) {
@@ -405,4 +413,12 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     public CartographicElement.CartographicElementType getCartographicElementType() {
         return CartographicElement.CartographicElementType.MAPTEXTAREA;
     }
+    
+//    private void findAvailableFonts() {
+//        GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
+//        availableFonts = e.getAllFonts();
+////        for (Font f : availableFonts) {
+////            System.out.println(f.getFontName());
+////        }
+//    }
 }

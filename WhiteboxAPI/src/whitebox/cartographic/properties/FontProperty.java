@@ -17,49 +17,49 @@
 package whitebox.cartographic.properties;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.*;
-
+import whitebox.ui.JFontChooser;
 /**
  *
- * @author johnlindsay
+ * @author jlindsay
  */
-public class ColourProperty extends JComponent implements MouseListener {
+public class FontProperty extends JComponent implements MouseListener {
     private String labelText;
-    private Color value;
+    private Font value;
     private int leftMargin = 10;
     private int rightMargin  = 10;
     private int preferredWidth = 180;
     private int preferredHeight = 24;
     private Color backColour = Color.WHITE;
+    private JFontChooser fontChooser;
+    private JTextField fontName = new JTextField();
+    private int textboxWidth = 15;
     
-    private SampleColour colourPanel;
-    private int sampleWidth = 30;
-    private int sampleHeight = 15;
-    
-    public ColourProperty() {
+    public FontProperty() {
         this.setOpaque(true);
         revalidate();
     }
     
-    public ColourProperty(String labelText, Color colour) {
+    public FontProperty(String labelText, Font font) {
         this.labelText = labelText;
-        this.value = colour;
+       this.value = font;
         this.setOpaque(true);
         revalidate();
     }
 
-    public Color getValue() {
+    public Font getValue() {
         return value;
     }
 
-    public void setValue(Color colour) {
-        Color oldColour = this.value;
-        this.value = colour;
-        firePropertyChange("value", oldColour, colour);
+    public void setValue(Font font) {
+        Font oldFont = this.value;
+        this.value = font;
+        firePropertyChange("value", oldFont, font);
     }
 
     public String getLabelText() {
@@ -76,7 +76,6 @@ public class ColourProperty extends JComponent implements MouseListener {
 
     public void setLeftMargin(int leftMargin) {
         this.leftMargin = leftMargin;
-        //createUI();
     }
 
     public int getRightMargin() {
@@ -85,7 +84,6 @@ public class ColourProperty extends JComponent implements MouseListener {
 
     public void setRightMargin(int rightMargin) {
         this.rightMargin = rightMargin;
-        //createUI();
     }
 
     public int getPreferredHeight() {
@@ -94,7 +92,6 @@ public class ColourProperty extends JComponent implements MouseListener {
 
     public void setPreferredHeight(int preferredHeight) {
         this.preferredHeight = preferredHeight;
-        //createUI();
     }
 
     public int getPreferredWidth() {
@@ -103,7 +100,6 @@ public class ColourProperty extends JComponent implements MouseListener {
 
     public void setPreferredWidth(int preferredWidth) {
         this.preferredWidth = preferredWidth;
-        //createUI();
     }
 
     public Color getBackColour() {
@@ -112,7 +108,14 @@ public class ColourProperty extends JComponent implements MouseListener {
 
     public void setBackColour(Color backColour) {
         this.backColour = backColour;
-        //createUI();
+    }
+    
+    public int getTextboxWidth() {
+        return textboxWidth;
+    }
+
+    public void setTextboxWidth(int textboxWidth) {
+        this.textboxWidth = textboxWidth;
     }
     
     
@@ -126,11 +129,12 @@ public class ColourProperty extends JComponent implements MouseListener {
         label.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
         this.add(label);
         this.add(Box.createHorizontalGlue());
-        colourPanel = new SampleColour(sampleWidth, sampleHeight, value);
-        colourPanel.setToolTipText("Click to select new color.");
-        colourPanel.addMouseListener(this);
-        this.add(colourPanel);
+        fontName = new JTextField(value.getFontName(), textboxWidth);
+        fontName.setToolTipText("Click to select new font.");
+        fontName.addMouseListener(this);
+        this.add(fontName);
         this.add(Box.createHorizontalStrut(rightMargin));
+        fontChooser = new JFontChooser();
         super.revalidate();
     }
     
@@ -151,12 +155,11 @@ public class ColourProperty extends JComponent implements MouseListener {
     @Override
     public void mousePressed(MouseEvent e) {
         Object source = e.getSource();
-        if (source == colourPanel) {
-            Color newColour = JColorChooser.showDialog(this, "Choose Color", value);
-            if (newColour != null) {
-                //colour = newColour;
-                this.setValue(newColour);
-                colourPanel.setBackColour(newColour);
+        if (source == fontName) {
+            Font newFont = fontChooser.showDialog(this, "Choose a font");
+            if (newFont != null) {
+                this.setValue(newFont);
+                fontName.setText(newFont.getFontName());
             }
             
         }

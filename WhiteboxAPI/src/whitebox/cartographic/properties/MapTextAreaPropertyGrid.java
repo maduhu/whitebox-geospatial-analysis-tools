@@ -48,6 +48,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
     private NumericProperty marginSize;
     private NumericProperty fontSizeBox;
     private NumericProperty interlineSpacing;
+    private FontProperty fontProperty;
     
     public MapTextAreaPropertyGrid() {
         createUI();
@@ -245,6 +246,16 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             interlineSpacing.revalidate();
             mainBox.add(interlineSpacing);
             
+            fontProperty = new FontProperty("Font:", mapTextArea.getLabelFont());
+            fontProperty.setLeftMargin(leftMargin);
+            fontProperty.setRightMargin(rightMargin);
+            fontProperty.setBackColour(Color.WHITE);
+            fontProperty.setTextboxWidth(10);
+            fontProperty.setPreferredWidth(preferredWidth);
+            fontProperty.addPropertyChangeListener("value", this);
+            fontProperty.revalidate();
+            mainBox.add(fontProperty);
+            
             super.revalidate();
         } catch (Exception e) {
             //host.showFeedback(e.getMessage());
@@ -330,6 +341,9 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             didSomething = true;
         } else if (source == interlineSpacing) {
             mapTextArea.setInterlineSpace(Float.parseFloat((String) evt.getNewValue()));
+            didSomething = true;
+        } else if (source == fontProperty) {
+            mapTextArea.setLabelFont((Font)evt.getNewValue());
             didSomething = true;
         }
 

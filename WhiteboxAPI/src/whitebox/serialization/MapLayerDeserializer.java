@@ -127,7 +127,7 @@ public class MapLayerDeserializer implements JsonDeserializer<MapLayer> {
                     flag = true;
                     findFile(new File(workingDirectory), new File(fileName).getName());
                     if (!retFile.equals("")) {
-                        headerFile = retFile;
+                        fileName = retFile;
                     } else {
                         throw new JsonParseException("Could not locate data file referred to in map file.");
                     }
