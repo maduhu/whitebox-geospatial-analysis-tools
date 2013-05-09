@@ -68,6 +68,6 @@ public interface CartographicElement extends Comparable<CartographicElement> {
      * An enum of cartographic element types.
      */
     public enum CartographicElementType {
-        LEGEND, MAPAREA, MAPSCALE, MAPTITLE, NEATLINE, NORTHARROW
+        LEGEND, MAPAREA, MAPSCALE, MAPTITLE, NEATLINE, NORTHARROW, MAPTEXTAREA
     }
 }

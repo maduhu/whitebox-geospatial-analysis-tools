@@ -162,6 +162,17 @@ public class MapInfo implements java.io.Serializable{
         addNewCartographicElement(ce);
     }
     
+    public void addMapTextArea() {
+        // how many map titles are there already?
+        int i = 0;
+        for (CartographicElement ce : listOfCartographicElements) {
+            if (ce instanceof MapTextArea) { i++; }
+        }
+        String name = "MapTextArea" + (i + 1);
+        CartographicElement ce = new MapTextArea(name);
+        addNewCartographicElement(ce);
+    }
+    
     public void addMapScale() {
         // how many map scales are there already?
         int i = 0;

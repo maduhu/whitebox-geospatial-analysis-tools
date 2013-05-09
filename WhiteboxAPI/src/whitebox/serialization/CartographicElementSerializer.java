@@ -91,7 +91,22 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.add("fontColour", gson.toJsonTree(mt.getFontColour()));
                     jo.add("outlineColour", gson.toJsonTree(mt.getOutlineColour()));
                     jo.add("labelFont", gson.toJsonTree(mt.getLabelFont()));
-                    
+                    break;
+                case MAPTEXTAREA:
+                    MapTextArea mta = (MapTextArea) t;
+                    jo.addProperty("label", mta.getLabel());
+                    jo.addProperty("fontHeight", mta.getFontHeight());
+                    jo.addProperty("height", mta.getHeight());
+                    jo.addProperty("width", mta.getWidth());
+                    jo.addProperty("lineWidth", mta.getLineWidth());
+                    jo.addProperty("margin", mta.getMargin());
+                    jo.addProperty("isBackgroundVisible", mta.isBackgroundVisible());
+                    jo.addProperty("isBorderVisible", mta.isBorderVisible());
+                    jo.addProperty("interlineSpace", mta.getInterlineSpace());
+                    jo.add("backColour", gson.toJsonTree(mta.getBackColour()));
+                    jo.add("borderColour", gson.toJsonTree(mta.getBorderColour()));
+                    jo.add("fontColour", gson.toJsonTree(mta.getFontColour()));
+                    jo.add("labelFont", gson.toJsonTree(mta.getLabelFont()));
                     break;
                 case NEATLINE:
                     NeatLine nl = (NeatLine) t;

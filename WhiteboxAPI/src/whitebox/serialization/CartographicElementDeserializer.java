@@ -135,6 +135,27 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 mt.setLabelFont(font);
                 return mt;
 
+           case "MAPTEXTAREA":
+                MapTextArea mta = new MapTextArea(name);
+                mta.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
+                mta.setLabel(jo.getAsJsonPrimitive("label").getAsString());
+                mta.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
+                mta.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
+                mta.setElementNumber(jo.getAsJsonPrimitive("elementNumber").getAsInt());
+                mta.setHeight(jo.getAsJsonPrimitive("height").getAsInt());
+                mta.setMargin(jo.getAsJsonPrimitive("margin").getAsInt());
+                mta.setBackgroundVisible(jo.getAsJsonPrimitive("isBackgroundVisible").getAsBoolean());
+                mta.setBorderVisible(jo.getAsJsonPrimitive("isBorderVisible").getAsBoolean());
+                clr = gson.fromJson(jo.get("backColour"), clrType);
+                mta.setBackColour(clr);
+                clr = gson.fromJson(jo.get("borderColour"), clrType);
+                mta.setBorderColour(clr);
+                clr = gson.fromJson(jo.get("fontColour"), clrType);
+                mta.setFontColour(clr);
+                font = gson.fromJson(jo.get("labelFont"), fontType);
+                mta.setLabelFont(font);
+                return mta;
+
             case "NORTHARROW":
                 NorthArrow na = new NorthArrow(name);
                 na.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());

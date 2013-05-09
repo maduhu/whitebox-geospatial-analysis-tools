@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package whitebox.cartographic.properties;
 
 import java.awt.Color;
@@ -22,26 +21,24 @@ import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
-import whitebox.cartographic.MapTitle;
+import whitebox.cartographic.MapTextArea;
 import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  *
  * @author johnlindsay
  */
-public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListener {
+public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeListener {
     
-    private MapTitle mapTitle;
+    private MapTextArea mapTextArea;
     private int rightMargin = 10;
     private int leftMargin = 10;
     private Color backColour = new Color(225, 245, 255);
     private WhiteboxPluginHost host = null;
     
     private StringProperty titleString;
-    private ColourProperty outlineColourBox;
     private BooleanProperty titleVisible;
     private ColourProperty fontColourBox;
-    private BooleanProperty outlineVisible;
     private BooleanProperty fontBold;
     private BooleanProperty fontItalics;
     private BooleanProperty backgroundVisible;
@@ -50,23 +47,24 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
     private ColourProperty borderColour;
     private NumericProperty marginSize;
     private NumericProperty fontSizeBox;
+    private NumericProperty interlineSpacing;
     
-    public MapTitlePropertyGrid() {
+    public MapTextAreaPropertyGrid() {
         createUI();
     }
     
-    public MapTitlePropertyGrid(MapTitle mapTitle, WhiteboxPluginHost host) {
-        this.mapTitle = mapTitle;
+    public MapTextAreaPropertyGrid(MapTextArea mapTextArea, WhiteboxPluginHost host) {
+        this.mapTextArea = mapTextArea;
         this.host = host;
         createUI();
     }
 
-    public MapTitle getMapTitle() {
-        return mapTitle;
+    public MapTextArea getMapTextArea() {
+        return mapTextArea;
     }
 
-    public void setMapTitle(MapTitle mapTitle) {
-        this.mapTitle = mapTitle;
+    public void setMapTitle(MapTextArea mapTextArea) {
+        this.mapTextArea = mapTextArea;
     }
 
     public int getLeftMargin() {
@@ -117,10 +115,10 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             
             //this.setPreferredSize(new Dimension(this.getParent().getPreferredSize().width, 500));
             
-            Font labelFont = mapTitle.getLabelFont();
+            Font labelFont = mapTextArea.getLabelFont();
             
             titleString = new StringProperty("Label text", 
-                    mapTitle.getLabel());
+                    mapTextArea.getLabel());
             titleString.setLeftMargin(leftMargin);
             titleString.setRightMargin(rightMargin);
             titleString.setBackColour(Color.WHITE);
@@ -131,7 +129,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             mainBox.add(titleString);
             
             titleVisible = new BooleanProperty("Is the title visible?", 
-                    mapTitle.isVisible());
+                    mapTextArea.isVisible());
             titleVisible.setLeftMargin(leftMargin);
             titleVisible.setRightMargin(rightMargin);
             titleVisible.setBackColour(backColour);
@@ -177,7 +175,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             mainBox.add(fontItalics);
       
             fontColourBox = new ColourProperty("Font colour", 
-                    mapTitle.getFontColour());
+                    mapTextArea.getFontColour());
             fontColourBox.setLeftMargin(leftMargin);
             fontColourBox.setRightMargin(rightMargin);
             fontColourBox.setBackColour(backColour);
@@ -186,28 +184,8 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             fontColourBox.addPropertyChangeListener("value", this);
             mainBox.add(fontColourBox);
             
-            outlineVisible = new BooleanProperty("Is the outline visible?", 
-                    mapTitle.isOutlineVisible());
-            outlineVisible.setLeftMargin(leftMargin);
-            outlineVisible.setRightMargin(rightMargin);
-            outlineVisible.setBackColour(Color.WHITE);
-            outlineVisible.setPreferredWidth(preferredWidth);
-            outlineVisible.revalidate();
-            outlineVisible.addPropertyChangeListener("value", this);
-            mainBox.add(outlineVisible);
-            
-            outlineColourBox = new ColourProperty("Outline colour", 
-                    mapTitle.getOutlineColour());
-            outlineColourBox.setLeftMargin(leftMargin);
-            outlineColourBox.setRightMargin(rightMargin);
-            outlineColourBox.setBackColour(backColour);
-            outlineColourBox.setPreferredWidth(preferredWidth);
-            outlineColourBox.revalidate();
-            outlineColourBox.addPropertyChangeListener("value", this);
-            mainBox.add(outlineColourBox);
-            
             backgroundVisible = new BooleanProperty("Is the background visible?", 
-                    mapTitle.isBackgroundVisible());
+                    mapTextArea.isBackgroundVisible());
             backgroundVisible.setLeftMargin(leftMargin);
             backgroundVisible.setRightMargin(rightMargin);
             backgroundVisible.setBackColour(Color.WHITE);
@@ -217,7 +195,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             mainBox.add(backgroundVisible);
             
             backgroundColourBox = new ColourProperty("Background colour", 
-                    mapTitle.getBackColour());
+                    mapTextArea.getBackColour());
             backgroundColourBox.setLeftMargin(leftMargin);
             backgroundColourBox.setRightMargin(rightMargin);
             backgroundColourBox.setBackColour(backColour);
@@ -227,7 +205,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             mainBox.add(backgroundColourBox);
             
             borderVisible = new BooleanProperty("Is the border visible?", 
-                    mapTitle.isBorderVisible());
+                    mapTextArea.isBorderVisible());
             borderVisible.setLeftMargin(leftMargin);
             borderVisible.setRightMargin(rightMargin);
             borderVisible.setBackColour(Color.WHITE);
@@ -237,7 +215,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             mainBox.add(borderVisible);
             
             borderColour = new ColourProperty("Border colour", 
-                    mapTitle.getBorderColour());
+                    mapTextArea.getBorderColour());
             borderColour.setLeftMargin(leftMargin);
             borderColour.setRightMargin(rightMargin);
             borderColour.setBackColour(backColour);
@@ -247,7 +225,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             mainBox.add(borderColour);
             
             marginSize = new NumericProperty("Margin size (points)", 
-                    String.valueOf(mapTitle.getMargin()));
+                    String.valueOf(mapTextArea.getMargin()));
             marginSize.setLeftMargin(leftMargin);
             marginSize.setRightMargin(rightMargin);
             marginSize.setBackColour(Color.WHITE);
@@ -257,6 +235,21 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             marginSize.setPreferredWidth(preferredWidth);
             marginSize.revalidate();
             mainBox.add(marginSize);
+            
+            
+            interlineSpacing = new NumericProperty("Interline spacing:", 
+                    String.valueOf(mapTextArea.getInterlineSpace()));
+            interlineSpacing.setLeftMargin(leftMargin);
+            interlineSpacing.setRightMargin(rightMargin);
+            interlineSpacing.setBackColour(backColour);
+            interlineSpacing.setTextboxWidth(3);
+            interlineSpacing.setPreferredWidth(preferredWidth);
+            interlineSpacing.setParseIntegersOnly(false);
+            interlineSpacing.setMinValue(0);
+            interlineSpacing.setMaxValue(10);
+            interlineSpacing.addPropertyChangeListener("value", this);
+            interlineSpacing.revalidate();
+            mainBox.add(interlineSpacing);
             
             super.revalidate();
         } catch (Exception e) {
@@ -272,24 +265,18 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             return;
         }
         if (source == titleString) {
-            mapTitle.setLabel((String) evt.getNewValue());
-            didSomething = true;
-        } else if (source == outlineColourBox) {
-            mapTitle.setOutlineColour(outlineColourBox.getValue());
+            mapTextArea.setLabel((String) evt.getNewValue());
             didSomething = true;
         } else if (source == titleVisible) {
-            mapTitle.setVisible((Boolean) evt.getNewValue());
+            mapTextArea.setVisible((Boolean) evt.getNewValue());
             didSomething = true;
         } else if (source == fontColourBox) {
-            mapTitle.setFontColour(fontColourBox.getValue());
-            didSomething = true;
-        } else if (source == outlineVisible) {
-            mapTitle.setOutlineVisible((Boolean) evt.getNewValue());
+            mapTextArea.setFontColour(fontColourBox.getValue());
             didSomething = true;
         } else if (source == fontBold) {
             Boolean fontBolded = (Boolean) evt.getNewValue();
 
-            Font labelFont = mapTitle.getLabelFont();
+            Font labelFont = mapTextArea.getLabelFont();
             int fontSize = (Integer) (labelFont.getSize());
             int style = 0;
             if (fontBolded) {
@@ -300,14 +287,14 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             }
             Font newFont = new Font(labelFont.getName(), style, fontSize);
             if (!labelFont.equals(newFont)) {
-                mapTitle.setLabelFont(newFont);
+                mapTextArea.setLabelFont(newFont);
             }
 
             didSomething = true;
         } else if (source == fontItalics) {
             Boolean fontItalicized = (Boolean) evt.getNewValue();
 
-            Font labelFont = mapTitle.getLabelFont();
+            Font labelFont = mapTextArea.getLabelFont();
             int fontSize = (Integer) (labelFont.getSize());
             int style = 0;
             if ((labelFont.getStyle() & Font.BOLD) > 0) {
@@ -318,34 +305,37 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             }
             Font newFont = new Font(labelFont.getName(), style, fontSize);
             if (!labelFont.equals(newFont)) {
-                mapTitle.setLabelFont(newFont);
+                mapTextArea.setLabelFont(newFont);
             }
 
             didSomething = true;
         } else if (source == fontSizeBox) {
             int fontSize = Integer.parseInt(String.valueOf(evt.getNewValue()));
-            Font labelFont = mapTitle.getLabelFont();
+            Font labelFont = mapTextArea.getLabelFont();
             int style = labelFont.getStyle();
             Font newFont = new Font(labelFont.getName(), style, fontSize);
             if (!labelFont.equals(newFont)) {
-                mapTitle.setLabelFont(newFont);
+                mapTextArea.setLabelFont(newFont);
             }
 
             didSomething = true;
         } else if (source == backgroundColourBox) {
-            mapTitle.setBackColour(backgroundColourBox.getValue());
+            mapTextArea.setBackColour(backgroundColourBox.getValue());
             didSomething = true;
         } else if (source == backgroundVisible) {
-            mapTitle.setBackgroundVisible((Boolean) evt.getNewValue());
+            mapTextArea.setBackgroundVisible((Boolean) evt.getNewValue());
             didSomething = true;
         } else if (source == borderVisible) {
-            mapTitle.setBorderVisible((Boolean) evt.getNewValue());
+            mapTextArea.setBorderVisible((Boolean) evt.getNewValue());
             didSomething = true;
         } else if (source == borderColour) {
-            mapTitle.setBorderColour((Color) evt.getNewValue());
+            mapTextArea.setBorderColour((Color) evt.getNewValue());
             didSomething = true;
         } else if (source == marginSize) {
-            mapTitle.setMargin(Integer.parseInt((String) evt.getNewValue()));
+            mapTextArea.setMargin(Integer.parseInt((String) evt.getNewValue()));
+            didSomething = true;
+        } else if (source == interlineSpacing) {
+            mapTextArea.setInterlineSpace(Float.parseFloat((String) evt.getNewValue()));
             didSomething = true;
         }
 
