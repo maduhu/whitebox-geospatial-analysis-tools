@@ -19,7 +19,7 @@ package whitebox.plugins;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.Communicator;
 import whitebox.interfaces.WhiteboxPlugin;
-import whitebox.plugins.dialog.ToolDialog;
+import whitebox.ui.plugin_dialog.ToolDialog;
 import java.util.ArrayList;
 import java.io.File;
 import java.util.Collections;

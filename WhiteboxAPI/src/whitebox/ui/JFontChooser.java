@@ -10,7 +10,6 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.HeadlessException;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -67,7 +66,7 @@ public class JFontChooser extends JComponent {
 
     /** The list of possible font sizes. */
     private static final Integer[] SIZES =
-            {8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 24, 26, 28, 32, 36, 40, 48, 56, 64, 72};
+            {5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 24, 26, 28, 32, 36, 40, 48, 56, 64, 72};
 
     /** The list of possible fonts. */
     private static final String[] FONTS = GraphicsEnvironment.getLocalGraphicsEnvironment()
@@ -215,7 +214,7 @@ public class JFontChooser extends JComponent {
     private void init(Font font) {
         setLayout(new GridBagLayout());
 
-        Insets ins = new Insets(2, 2, 2, 2);
+        Insets ins = new Insets(5, 5, 5, 5);
 
         fontList = new JList(FONTS);
         fontList.setVisibleRowCount(10);
@@ -223,6 +222,13 @@ public class JFontChooser extends JComponent {
         add(new JScrollPane(fontList), new GridBagConstraints(0, 0, 1, 1, 2, 2,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 ins, 0, 0));
+        int i = 0;
+        for (String fnt : FONTS) {
+            if (fnt.equals(font.getFontName())) {
+                fontList.setSelectedIndex(i);
+            }
+            i++;
+        }
 
         sizeList = new JList(SIZES);
         ((JLabel)sizeList.getCellRenderer()).setHorizontalAlignment(JLabel.RIGHT);
@@ -231,18 +237,27 @@ public class JFontChooser extends JComponent {
         add(new JScrollPane(sizeList), new GridBagConstraints(1, 0, 1, 1, 1, 2,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 ins, 0, 0));
-
+        i = 0;
+        for (int sz : SIZES) {
+            if (sz == font.getSize()) {
+                sizeList.setSelectedIndex(i);
+            }
+            i++;
+        }
+        
         boldCheckBox = new JCheckBox("Bold");
+        boldCheckBox.setSelected(font.isBold());
         add(boldCheckBox, new GridBagConstraints(0, 1, 2, 1, 1, 0,
                 GridBagConstraints.WEST, GridBagConstraints.NONE,
                 ins, 0, 0));
 
         italicCheckBox = new JCheckBox("Italic");
+        italicCheckBox.setSelected(font.isItalic());
         add(italicCheckBox, new GridBagConstraints(0, 2, 2, 1, 1, 0,
                 GridBagConstraints.WEST, GridBagConstraints.NONE,
                 ins, 0, 0));
 
-        previewLabel = new JLabel("");
+        previewLabel = new JLabel(font.getFontName());
         previewLabel.setHorizontalAlignment(JLabel.CENTER);
         previewLabel.setVerticalAlignment(JLabel.CENTER);
         add(new JScrollPane(previewLabel), new GridBagConstraints(0, 3, 2, 1, 1, 1,
@@ -260,13 +275,12 @@ public class JFontChooser extends JComponent {
     private Font buildFont() {
         String fontName = (String)fontList.getSelectedValue();
         if (fontName == null) {
-            return null;
+            fontName = selectionModel.getSelectedFont().getFontName();
         }
         Integer sizeInt = (Integer)sizeList.getSelectedValue();
         if (sizeInt == null) {
-            return null;
+            sizeInt = selectionModel.getSelectedFont().getSize();
         }
-
 
         return new Font(fontName,
                 (italicCheckBox.isSelected() ? Font.ITALIC : Font.PLAIN)

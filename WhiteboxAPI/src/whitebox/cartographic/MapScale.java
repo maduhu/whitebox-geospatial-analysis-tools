@@ -17,6 +17,7 @@
 package whitebox.cartographic;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.text.DecimalFormat;
 import whitebox.interfaces.CartographicElement;
 
@@ -56,6 +57,7 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     private int selectedOffsetX;
     private int selectedOffsetY;
     boolean outlineVisible = false;
+    Font labelFont = new Font("SanSerif", Font.PLAIN, 10);
 
     public MapScale(String name) {
         this.name = name;
@@ -251,6 +253,14 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
         this.borderVisible = borderVisible;
     }
 
+    public Font getLabelFont() {
+        return labelFont;
+    }
+
+    public void setLabelFont(Font labelFont) {
+        this.labelFont = labelFont;
+    }
+    
     public double getScale() {
         return scale;
 //        if (mapArea != null) {

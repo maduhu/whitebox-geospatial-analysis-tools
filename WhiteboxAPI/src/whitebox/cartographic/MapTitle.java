@@ -48,7 +48,7 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     Color fontColour = Color.BLACK;
     Color outlineColour = Color.BLACK;
     Font labelFont = new Font("SanSerif", Font.BOLD, 20);
-    Font[] availableFonts;
+//    Font[] availableFonts;
     int fontHeight = 0;
     int maxFontSize = 300;
     float lineWidth = 0.75f;
