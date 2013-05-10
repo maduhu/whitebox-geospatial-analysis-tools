@@ -32,8 +32,9 @@ import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.*;
 import javax.swing.*;
 import whitebox.cartographic.*;
+import whitebox.cartographic.Neatline;
 import whitebox.ui.carto_properties.ColourProperty;
-import whitebox.ui.carto_properties.NorthArrowPropertyGrid;
+import whitebox.ui.carto_properties.*;
 import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.BoundingBox;
@@ -318,12 +319,14 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             elementPropertiesPanel.add(getScaleBox((MapScale)ce), BorderLayout.CENTER);
         } else if (ce instanceof NorthArrow) {
             elementPropertiesPanel.add(getNorthArrowBox((NorthArrow) ce), BorderLayout.CENTER);
-        } else if (ce instanceof NeatLine) {
-            elementPropertiesPanel.add(getNeatlineBox((NeatLine) ce), BorderLayout.CENTER);
+        } else if (ce instanceof Neatline) {
+            elementPropertiesPanel.add(getNeatlineBox((Neatline) ce), BorderLayout.CENTER);
         } else if (ce instanceof MapArea) {
             elementPropertiesPanel.add(getMapAreaBox((MapArea) ce), BorderLayout.CENTER);
         } else if (ce instanceof MapTextArea) {
             elementPropertiesPanel.add(getMapTextArea((MapTextArea) ce), BorderLayout.CENTER);
+        } else if (ce instanceof Legend) {
+            elementPropertiesPanel.add(getLegendBox((Legend)ce), BorderLayout.CENTER);
         }
         elementPropertiesPanel.validate();
         elementPropertiesPanel.repaint();
@@ -522,66 +525,70 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         return obj;
     }
     
-    private JPanel getNeatlineBox(NeatLine neatLine) {
-        JPanel panel = new JPanel();
-        try {
-            JLabel label = null;
-            Box mainBox = Box.createVerticalBox();
-            JScrollPane scroll = new JScrollPane(mainBox);
-            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            panel.add(scroll);
-            
-            // neatline visibility
-            JPanel nlVisibleBox = new JPanel();
-            nlVisibleBox.setLayout(new BoxLayout(nlVisibleBox, BoxLayout.X_AXIS));
-            nlVisibleBox.setBackground(backColour);
-            nlVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is the neatline visible?");
-            label.setPreferredSize(new Dimension(200, 24));
-            nlVisibleBox.add(label);
-            nlVisibleBox.add(Box.createHorizontalGlue());
-            checkNeatlineVisible.setSelected(neatLine.isVisible());
-            checkNeatlineVisible.addActionListener(this);
-            nlVisibleBox.add(checkNeatlineVisible);
-            nlVisibleBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(nlVisibleBox);
-            
-            // neatline background visibility
-            JPanel neatlineBackVisibleBox = new JPanel();
-            neatlineBackVisibleBox.setLayout(new BoxLayout(neatlineBackVisibleBox, BoxLayout.X_AXIS));
-            neatlineBackVisibleBox.setBackground(Color.WHITE);
-            neatlineBackVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is the neatline background visible?");
-            label.setPreferredSize(new Dimension(220, 24));
-            neatlineBackVisibleBox.add(label);
-            neatlineBackVisibleBox.add(Box.createHorizontalGlue());
-            checkNeatlineBackgroundVisible.setSelected(neatLine.isBackgroundVisible());
-            checkNeatlineBackgroundVisible.addActionListener(this);
-            neatlineBackVisibleBox.add(checkNeatlineBackgroundVisible);
-            neatlineBackVisibleBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(neatlineBackVisibleBox);
-            
-            // Title border visibility
-            JPanel neatlineDoubleLineBox = new JPanel();
-            neatlineDoubleLineBox.setLayout(new BoxLayout(neatlineDoubleLineBox, BoxLayout.X_AXIS));
-            neatlineDoubleLineBox.setBackground(backColour);
-            neatlineDoubleLineBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Use double line?");
-            label.setPreferredSize(new Dimension(220, 24));
-            neatlineDoubleLineBox.add(label);
-            neatlineDoubleLineBox.add(Box.createHorizontalGlue());
-            checkNeatlineDoubleLine.setSelected(neatLine.isDoubleLine());
-            checkNeatlineDoubleLine.addActionListener(this);
-            neatlineDoubleLineBox.add(checkNeatlineDoubleLine);
-            neatlineDoubleLineBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(neatlineDoubleLineBox);
-            
-            
-        } catch (Exception e) {
-            host.showFeedback(e.getMessage());
-        } finally {
-            return panel;
-        }
+    private JPanel getNeatlineBox(Neatline neatline) {
+        whitebox.ui.carto_properties.NeatlinePropertyGrid obj = new whitebox.ui.carto_properties.NeatlinePropertyGrid(neatline, host);
+        obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
+        return obj;
+//        
+//        JPanel panel = new JPanel();
+//        try {
+//            JLabel label = null;
+//            Box mainBox = Box.createVerticalBox();
+//            JScrollPane scroll = new JScrollPane(mainBox);
+//            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+//            panel.add(scroll);
+//            
+//            // neatline visibility
+//            JPanel nlVisibleBox = new JPanel();
+//            nlVisibleBox.setLayout(new BoxLayout(nlVisibleBox, BoxLayout.X_AXIS));
+//            nlVisibleBox.setBackground(backColour);
+//            nlVisibleBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel("Is the neatline visible?");
+//            label.setPreferredSize(new Dimension(200, 24));
+//            nlVisibleBox.add(label);
+//            nlVisibleBox.add(Box.createHorizontalGlue());
+//            checkNeatlineVisible.setSelected(neatLine.isVisible());
+//            checkNeatlineVisible.addActionListener(this);
+//            nlVisibleBox.add(checkNeatlineVisible);
+//            nlVisibleBox.add(Box.createHorizontalStrut(10));
+//            mainBox.add(nlVisibleBox);
+//            
+//            // neatline background visibility
+//            JPanel neatlineBackVisibleBox = new JPanel();
+//            neatlineBackVisibleBox.setLayout(new BoxLayout(neatlineBackVisibleBox, BoxLayout.X_AXIS));
+//            neatlineBackVisibleBox.setBackground(Color.WHITE);
+//            neatlineBackVisibleBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel("Is the neatline background visible?");
+//            label.setPreferredSize(new Dimension(220, 24));
+//            neatlineBackVisibleBox.add(label);
+//            neatlineBackVisibleBox.add(Box.createHorizontalGlue());
+//            checkNeatlineBackgroundVisible.setSelected(neatLine.isBackgroundVisible());
+//            checkNeatlineBackgroundVisible.addActionListener(this);
+//            neatlineBackVisibleBox.add(checkNeatlineBackgroundVisible);
+//            neatlineBackVisibleBox.add(Box.createHorizontalStrut(10));
+//            mainBox.add(neatlineBackVisibleBox);
+//            
+//            // Title border visibility
+//            JPanel neatlineDoubleLineBox = new JPanel();
+//            neatlineDoubleLineBox.setLayout(new BoxLayout(neatlineDoubleLineBox, BoxLayout.X_AXIS));
+//            neatlineDoubleLineBox.setBackground(backColour);
+//            neatlineDoubleLineBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel("Use double line?");
+//            label.setPreferredSize(new Dimension(220, 24));
+//            neatlineDoubleLineBox.add(label);
+//            neatlineDoubleLineBox.add(Box.createHorizontalGlue());
+//            checkNeatlineDoubleLine.setSelected(neatLine.isDoubleLine());
+//            checkNeatlineDoubleLine.addActionListener(this);
+//            neatlineDoubleLineBox.add(checkNeatlineDoubleLine);
+//            neatlineDoubleLineBox.add(Box.createHorizontalStrut(10));
+//            mainBox.add(neatlineDoubleLineBox);
+//            
+//            
+//        } catch (Exception e) {
+//            host.showFeedback(e.getMessage());
+//        } finally {
+//            return panel;
+//        }
         
     }
     
@@ -592,35 +599,38 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         
     }
     
-    private JPanel getLegendBox() {
-        JPanel panel = new JPanel();
-        try {
-            JLabel label = null;
-            Box mainBox = Box.createVerticalBox();
-            JScrollPane scroll = new JScrollPane(mainBox);
-            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            panel.add(scroll);
-            
-            JPanel underConstructionBox = new JPanel();
-            underConstructionBox.setLayout(new BoxLayout(underConstructionBox, BoxLayout.X_AXIS));
-            underConstructionBox.setBackground(Color.WHITE);
-            underConstructionBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("This feature is under active development");
-            Font f = label.getFont();
-            label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
-            //label.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
-            underConstructionBox.add(label);
-            underConstructionBox.add(Box.createHorizontalGlue());
-            underConstructionBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(underConstructionBox);
-            
-            //mainBox.add(Box.createVerticalStrut(330));
-            
-        } catch (Exception e) {
-            host.showFeedback(e.getMessage());
-        } finally {
-            return panel;
-        }
+    private JPanel getLegendBox(Legend legend) {
+        LegendPropertyGrid obj = new LegendPropertyGrid(legend, host);
+        obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
+        return obj;
+//        JPanel panel = new JPanel();
+//        try {
+//            JLabel label = null;
+//            Box mainBox = Box.createVerticalBox();
+//            JScrollPane scroll = new JScrollPane(mainBox);
+//            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+//            panel.add(scroll);
+//            
+//            JPanel underConstructionBox = new JPanel();
+//            underConstructionBox.setLayout(new BoxLayout(underConstructionBox, BoxLayout.X_AXIS));
+//            underConstructionBox.setBackground(Color.WHITE);
+//            underConstructionBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel("This feature is under active development");
+//            Font f = label.getFont();
+//            label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
+//            //label.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
+//            underConstructionBox.add(label);
+//            underConstructionBox.add(Box.createHorizontalGlue());
+//            underConstructionBox.add(Box.createHorizontalStrut(10));
+//            mainBox.add(underConstructionBox);
+//            
+//            //mainBox.add(Box.createVerticalStrut(330));
+//            
+//        } catch (Exception e) {
+//            host.showFeedback(e.getMessage());
+//        } finally {
+//            return panel;
+//        }
         
     }
     

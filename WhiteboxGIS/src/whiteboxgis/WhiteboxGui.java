@@ -2710,12 +2710,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
+    private int numExportedImages = 0;
     private void exportMapAsImage() {
         if (numOpenMaps < 1) {
             return;
         } // do nothing
         if (selectedMapAndLayer[0] == - 1) {
             selectedMapAndLayer[0] = activeMap;
+        }
+        
+        if (numExportedImages == 0) {
+            showFeedback("The current print resolution is " + printResolution 
+                    + " dpi.\nTo change this value, select View => Options and Settings.");
         }
 
         // get the title of the active map.
@@ -2775,6 +2781,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
         selectedMapAndLayer[2] = -1;
+        
+        numExportedImages++;
     }
 
     private void setAsActiveLayer() {

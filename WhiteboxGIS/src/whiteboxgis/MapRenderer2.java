@@ -42,8 +42,10 @@ import java.util.Collections;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JPopupMenu;
 import java.awt.font.GlyphVector;
 import whitebox.cartographic.MapArea;
+import whitebox.cartographic.Neatline;
 import whitebox.cartographic.*;
 import whitebox.geospatialfiles.RasterLayerInfo;
 import whitebox.geospatialfiles.VectorLayerInfo;
@@ -815,8 +817,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                             g2.setFont(oldFont);
                         }
-                    } else if (ce instanceof NeatLine) {
-                        NeatLine neatLine = (NeatLine) ce;
+                    } else if (ce instanceof Neatline) {
+                        Neatline neatLine = (Neatline) ce;
                         if (neatLine.isVisible()) {
                             if (neatLine.getUpperLeftY() == -32768) {
                                 neatLine.setWidth((int) (pageWidth - 2 * margin));
@@ -3019,10 +3021,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     }
     ArrayList<XYPoint> distPoints = new ArrayList<>();
     double calculatedDistance;
-
+    JPopupMenu popupMenu = new JPopupMenu();
     @Override
     public void mouseClicked(MouseEvent e) {
         int clickCount = e.getClickCount();
+        int button = e.getButton();
+        boolean isPopupTrigger = e.isPopupTrigger();
+        
         if (clickCount == 2 && (myMode == MOUSE_MODE_CARTO_ELEMENT
                 || myMode == MOUSE_MODE_MAPAREA) && !usingDistanceTool) {
             if (host instanceof WhiteboxGui) { //SwingUtilities.getRoot(this) instanceof WhiteboxGui) {
@@ -3030,7 +3035,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 wb.showMapProperties(whichCartoElement);
             }
 
-        } else if (clickCount == 1 && modifyingPixels && myMode != MOUSE_MODE_CARTO_ELEMENT) {
+        } else if (clickCount == 1 && modifyingPixels && myMode != MOUSE_MODE_CARTO_ELEMENT && 
+                button != 3 && !isPopupTrigger) {
             if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                 MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
                 BoundingBox currentExtent = mapArea.getCurrentMapExtent();
@@ -3086,32 +3092,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 }
 
             }
-//            modifyPixelsX = (int) ((e.getX() - pageLeft) / scale);
-//            modifyPixelsY = (int) ((e.getY() - pageTop) / scale);
-//            double myWidth = this.getWidth() - borderWidth * 2;
-//            double myHeight = this.getHeight() - borderWidth * 2;
-//            double y = mapExtent.getMaxY() - (modifyPixelsY - borderWidth) / myHeight * (mapExtent.getMaxY() - mapExtent.getMinY());
-//            double x = mapExtent.getMinX() + (modifyPixelsX - borderWidth) / myWidth * (mapExtent.getMaxX() - mapExtent.getMinX());
-//            GridCell point = mapinfo.getRowAndColumn(x, y);
-//            if (point.row >= 0) {
-//                host.refreshMap(false);
-//                RasterLayerInfo rli = (RasterLayerInfo) (mapinfo.getLayer(point.layerNum));
-//                String fileName = new File(rli.getHeaderFile()).getName();
-//                ModifyPixel mp = new ModifyPixel((Frame) findWindow(this), true, point, fileName);
-//                if (mp.wasSuccessful()) {
-//                    point = mp.getValue();
-//                    rli.setDataValue(point.row, point.col, point.z);
-//                    rli.update();
-//                    host.refreshMap(false);
-//                    //mapinfo.setRowAndColumn(mp.getValue());
-//                }
-//            } else {
-//                modifyPixelsX = -1;
-//                modifyPixelsY = -1;
-//                host.refreshMap(false);
-//            }
 
-        } else if (clickCount == 1 && usingDistanceTool) {
+        } else if (clickCount == 1 && usingDistanceTool && button != 3 && !isPopupTrigger) {
             if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                 MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
                 BoundingBox currentExtent = mapArea.getCurrentMapExtent();
@@ -3152,7 +3134,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 host.refreshMap(true);
             }
         } else if (clickCount == 1 && (myMode == MOUSE_MODE_CARTO_ELEMENT
-                || (myMode == MOUSE_MODE_MAPAREA && backgroundMouseMode != MOUSE_MODE_SELECT))) {
+                || (myMode == MOUSE_MODE_MAPAREA && backgroundMouseMode != MOUSE_MODE_SELECT))
+                && button != 3 && !isPopupTrigger) {
             boolean isSelected = map.getCartographicElement(whichCartoElement).isSelected();
             if (!isSelected) {
                 if (!e.isShiftDown()) {
@@ -3187,10 +3170,12 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             }
             this.repaint();
         } else if (clickCount == 1 && (myMode == MOUSE_MODE_MAPAREA
-                && backgroundMouseMode != MOUSE_MODE_SELECT)) {
+                && backgroundMouseMode != MOUSE_MODE_SELECT) &&
+                button != 3 && !isPopupTrigger) {
             map.deslectAllCartographicElements();
             this.repaint();
-        } else if (clickCount == 1 && backgroundMouseMode == MOUSE_MODE_SELECT) {
+        } else if (clickCount == 1 && backgroundMouseMode == MOUSE_MODE_SELECT &&
+                button != 3 && !isPopupTrigger) {
             if (myMode == MOUSE_MODE_MAPAREA) { //map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                 MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
                 if (mapArea != null) {
@@ -3202,6 +3187,31 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             if (usingDistanceTool) {
                 distPoints.clear();
             }
+        } else if ((button == 3 || isPopupTrigger) && 
+                (myMode == MOUSE_MODE_CARTO_ELEMENT || 
+                myMode == MOUSE_MODE_MAPAREA) && clickCount == 1) {
+            CartographicElement ce = map.getCartographicElement(whichCartoElement);
+            popupMenu = new JPopupMenu();
+            popupMenu.setOpaque(true);
+            popupMenu.setLightWeightPopupEnabled(true);
+            if (ce instanceof MapTitle) {
+                popupMenu.add(new whitebox.ui.carto_properties.MapTitlePropertyGrid((MapTitle)ce, host));
+            } else if (ce instanceof MapArea) {
+                popupMenu.add(new whitebox.ui.carto_properties.MapAreaPropertyGrid((MapArea)ce, host));
+            } else if (ce instanceof MapTextArea) {
+                popupMenu.add(new whitebox.ui.carto_properties.MapTextAreaPropertyGrid((MapTextArea)ce, host));
+            } else if (ce instanceof NorthArrow) {
+                popupMenu.add(new whitebox.ui.carto_properties.NorthArrowPropertyGrid((NorthArrow)ce, host));
+            } else if (ce instanceof MapScale) {
+                popupMenu.add(new whitebox.ui.carto_properties.ScalePropertyGrid((MapScale)ce, host));
+            } else if (ce instanceof Neatline) {
+                popupMenu.add(new whitebox.ui.carto_properties.NeatlinePropertyGrid((Neatline)ce, host));
+            } else if (ce instanceof Legend) {
+                popupMenu.add(new whitebox.ui.carto_properties.LegendPropertyGrid((Legend)ce, host));
+            }
+            popupMenu.setPreferredSize(new Dimension(300, popupMenu.getPreferredSize().height));
+            popupMenu.show(e.getComponent(),
+                       e.getX(), e.getY());
         }
 
         this.requestFocus();
