@@ -247,15 +247,17 @@ public class JFontChooser extends JComponent {
         
         boldCheckBox = new JCheckBox("Bold");
         boldCheckBox.setSelected(font.isBold());
-        add(boldCheckBox, new GridBagConstraints(0, 1, 2, 1, 1, 0,
+        add(boldCheckBox, new GridBagConstraints(0, 1, 2, 1, 0, 0,
                 GridBagConstraints.WEST, GridBagConstraints.NONE,
                 ins, 0, 0));
 
         italicCheckBox = new JCheckBox("Italic");
         italicCheckBox.setSelected(font.isItalic());
-        add(italicCheckBox, new GridBagConstraints(0, 2, 2, 1, 1, 0,
-                GridBagConstraints.WEST, GridBagConstraints.NONE,
+        add(italicCheckBox, new GridBagConstraints(1, 1, 2, 1, 1, 0,
+                GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                 ins, 0, 0));
+        
+        
 
         previewLabel = new JLabel(font.getFontName());
         previewLabel.setHorizontalAlignment(JLabel.CENTER);

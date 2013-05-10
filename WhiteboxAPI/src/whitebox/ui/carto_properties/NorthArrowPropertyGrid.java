@@ -1,8 +1,23 @@
+/*
+ * Copyright (C) 2013 johnlindsay
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package whitebox.ui.carto_properties;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
@@ -89,11 +104,9 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
             Box mainBox = Box.createVerticalBox();
             //JScrollPane scroll = new JScrollPane(mainBox);
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-            int preferredWidth = 270;
-            //scroll.setMaximumSize(new Dimension(1000, preferredWidth));
-            //this.add(scroll);
+            int preferredWidth = 470;
             this.add(mainBox);
-            this.setPreferredSize(new Dimension(preferredWidth, 500));
+//            this.setPreferredSize(new Dimension(preferredWidth, 500));
             
             
             northArrowVisible = new BooleanProperty("Is the title visible?", 

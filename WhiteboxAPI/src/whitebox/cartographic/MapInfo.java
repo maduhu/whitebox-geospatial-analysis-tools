@@ -200,11 +200,11 @@ public class MapInfo implements java.io.Serializable{
         // how many neat lines are there already?
         int i = 0;
         for (CartographicElement ce : listOfCartographicElements) {
-            if (ce instanceof NeatLine) { i++; }
+            if (ce instanceof Neatline) { i++; }
             ce.setElementNumber(ce.getElementNumber() + 1);
         }
         String name = "Neatline" + (i + 1);
-        CartographicElement ce = new NeatLine(name);
+        CartographicElement ce = new Neatline(name);
         ce.setElementNumber(0); // neatlines are added to the bottom of the list
         listOfCartographicElements.add(ce);
     }

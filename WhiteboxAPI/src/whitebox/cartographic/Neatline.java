@@ -11,7 +11,7 @@ import whitebox.interfaces.CartographicElement;
  *
  * @author johnlindsay
  */
-public class NeatLine implements CartographicElement, Comparable<CartographicElement> {
+public class Neatline implements CartographicElement, Comparable<CartographicElement> {
     private String cartoElementType = "NeatLine";
     
     int upperLeftX = -32768;
@@ -33,7 +33,7 @@ public class NeatLine implements CartographicElement, Comparable<CartographicEle
     private int selectedOffsetX;
     private int selectedOffsetY;
     
-    public NeatLine(String name) {
+    public Neatline(String name) {
         this.name = name;
     }
     

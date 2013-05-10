@@ -176,7 +176,7 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 return na;
 
             case "NEATLINE":
-                NeatLine nl = new NeatLine(name);
+                Neatline nl = new Neatline(name);
                 nl.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
                 nl.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
                 nl.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());

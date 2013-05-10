@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 johnlindsay
+ * Copyright (C) 2013 johnlindsay
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -152,7 +152,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mainBox.add(borderVisible);
 
             borderColourBox = new ColourProperty("Border colour", 
-                    mapArea.getFontColour());
+                    mapArea.getBorderColour());
             borderColourBox.setLeftMargin(leftMargin);
             borderColourBox.setRightMargin(rightMargin);
             borderColourBox.setBackColour(backColour);
@@ -185,7 +185,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mapAreaWidth.setBackColour(Color.WHITE);
             mapAreaWidth.setPreferredWidth(preferredWidth);
             mapAreaWidth.setParseIntegersOnly(true);
-            mapAreaWidth.setTextboxWidth(5);
+            mapAreaWidth.setTextboxWidth(10);
             mapAreaWidth.revalidate();
             mapAreaWidth.addPropertyChangeListener("value", this);
             mainBox.add(mapAreaWidth);
@@ -197,7 +197,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mapAreaHeight.setBackColour(backColour);
             mapAreaHeight.setPreferredWidth(preferredWidth);
             mapAreaHeight.setParseIntegersOnly(true);
-            mapAreaHeight.setTextboxWidth(5);
+            mapAreaHeight.setTextboxWidth(10);
             mapAreaHeight.revalidate();
             mapAreaHeight.addPropertyChangeListener("value", this);
             mainBox.add(mapAreaHeight);

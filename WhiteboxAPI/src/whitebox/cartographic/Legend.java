@@ -94,8 +94,8 @@ public class Legend implements CartographicElement, Comparable<CartographicEleme
 
     public void setLabelFont(Font labelFont) {
         this.labelFont = labelFont;
-        width = -1;
-        height = -1;
+//        width = -1;
+//        height = -1;
     }
     
     public int getHeight() {
@@ -112,8 +112,8 @@ public class Legend implements CartographicElement, Comparable<CartographicEleme
 
     public void setMargin(int margin) {
         this.margin = margin;
-        width = -1;
-        height = -1;
+//        width = -1;
+//        height = -1;
     }
 
     public Color getBorderColour() {
@@ -199,10 +199,10 @@ public class Legend implements CartographicElement, Comparable<CartographicEleme
     @Override
     public void setVisible(boolean visible) {
         this.visible = visible;
-        width = -1;
-        height = -1;
-        upperLeftX = -9999;
-        upperLeftY = -9999;
+//        width = -1;
+//        height = -1;
+//        upperLeftX = -9999;
+//        upperLeftY = -9999;
     }
 
     public int getWidth() {
@@ -219,8 +219,8 @@ public class Legend implements CartographicElement, Comparable<CartographicEleme
 
     public void setLabel(String label) {
         this.label = label;
-        width = -1;
-        height = -1;
+//        width = -1;
+//        height = -1;
     }
 
     public int getFontHeight() {

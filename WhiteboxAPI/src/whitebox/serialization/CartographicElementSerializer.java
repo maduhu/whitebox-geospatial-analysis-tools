@@ -109,7 +109,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.add("labelFont", gson.toJsonTree(mta.getLabelFont()));
                     break;
                 case NEATLINE:
-                    NeatLine nl = (NeatLine) t;
+                    Neatline nl = (Neatline) t;
                     jo.addProperty("doubleLineGap", nl.getDoubleLineGap());
                     jo.addProperty("height", nl.getHeight());
                     jo.addProperty("width", nl.getWidth());

@@ -104,16 +104,10 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             
             this.setBackground(Color.WHITE);
             
-            //JLabel label = null;
             Box mainBox = Box.createVerticalBox();
-            //JScrollPane scroll = new JScrollPane(mainBox);
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             int preferredWidth = 470;
-            //scroll.setMaximumSize(new Dimension(1000, preferredWidth));
-            //this.add(scroll);
             this.add(mainBox);
-            
-            //this.setPreferredSize(new Dimension(this.getParent().getPreferredSize().width, 500));
             
             Font labelFont = mapTitle.getLabelFont();
             
@@ -138,7 +132,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             titleVisible.revalidate();
             mainBox.add(titleVisible);
 
-            fontProperty = new FontProperty("Font:", mapTitle.getLabelFont());
+            fontProperty = new FontProperty("Font:", labelFont);
             fontProperty.setLeftMargin(leftMargin);
             fontProperty.setRightMargin(rightMargin);
             fontProperty.setBackColour(Color.WHITE);
