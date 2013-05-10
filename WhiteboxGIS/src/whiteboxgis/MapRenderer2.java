@@ -560,7 +560,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 g2.setColor(mapScale.getOutlineColour());
 
                                 // set up the font
-                                Font newfont = new Font("SanSerif", Font.PLAIN, 10);
+                                Font newfont = mapScale.getLabelFont(); //new Font("SanSerif", Font.PLAIN, 10);
                                 g2.setFont(newfont);
                                 metrics = g2.getFontMetrics(newfont);
 
@@ -2574,7 +2574,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 g2.setStroke(oldStroke);
 
                                 if (numLayers > 0) {
-                                    Font labelFont = new Font("SanSerif", Font.PLAIN, 10);
+                                    Font labelFont = mapArea.getLabelFont(); //new Font("SanSerif", Font.PLAIN, 10);
                                     XYUnits = mapArea.getXYUnits();
                                     // labels
                                     df = new DecimalFormat("###,###,###.#");

@@ -32,7 +32,7 @@ import javax.swing.*;
 import whitebox.interfaces.Communicator;
 import whitebox.interfaces.DialogComponent;
 import whitebox.utilities.FileUtilities;
-import whitebox.cartographic.properties.NumericProperty;
+import whitebox.ui.carto_properties.NumericProperty;
 import whiteboxgis.WhiteboxGui;
 
 /**

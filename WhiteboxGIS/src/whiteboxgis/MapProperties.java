@@ -32,8 +32,8 @@ import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.*;
 import javax.swing.*;
 import whitebox.cartographic.*;
-import whitebox.cartographic.properties.ColourProperty;
-import whitebox.cartographic.properties.NorthArrowPropertyGrid;
+import whitebox.ui.carto_properties.ColourProperty;
+import whitebox.ui.carto_properties.NorthArrowPropertyGrid;
 import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.BoundingBox;
@@ -351,13 +351,13 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     }
     
     private JPanel getTitleBox(MapTitle mapTitle) {
-        whitebox.cartographic.properties.MapTitlePropertyGrid obj = new whitebox.cartographic.properties.MapTitlePropertyGrid(mapTitle, host);
+        whitebox.ui.carto_properties.MapTitlePropertyGrid obj = new whitebox.ui.carto_properties.MapTitlePropertyGrid(mapTitle, host);
         obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
         return obj;        
     }
     
     private JPanel getMapTextArea(MapTextArea mapTextArea) {
-        whitebox.cartographic.properties.MapTextAreaPropertyGrid obj = new whitebox.cartographic.properties.MapTextAreaPropertyGrid(mapTextArea, host);
+        whitebox.ui.carto_properties.MapTextAreaPropertyGrid obj = new whitebox.ui.carto_properties.MapTextAreaPropertyGrid(mapTextArea, host);
         obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
         return obj;        
     }
@@ -517,7 +517,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     }
     
     private JPanel getMapAreaBox(MapArea mapArea) {
-        whitebox.cartographic.properties.MapAreaPropertyGrid obj = new whitebox.cartographic.properties.MapAreaPropertyGrid(mapArea, host);
+        whitebox.ui.carto_properties.MapAreaPropertyGrid obj = new whitebox.ui.carto_properties.MapAreaPropertyGrid(mapArea, host);
         obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
         return obj;
     }
@@ -625,7 +625,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     }
     
     private JPanel getScaleBox(MapScale mapScale) {
-        whitebox.cartographic.properties.ScalePropertyGrid obj = new whitebox.cartographic.properties.ScalePropertyGrid(mapScale, host);
+        whitebox.ui.carto_properties.ScalePropertyGrid obj = new whitebox.ui.carto_properties.ScalePropertyGrid(mapScale, host);
         obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
         return obj;
     }
