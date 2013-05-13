@@ -69,6 +69,10 @@ public class MapLayerDeserializer implements JsonDeserializer<MapLayer> {
         String layerTitle = jo.getAsJsonPrimitive("layerTitle").getAsString();
         int overlayNumber = jo.getAsJsonPrimitive("overlayNumber").getAsInt();
         boolean isVisible = jo.getAsJsonPrimitive("isVisible").getAsBoolean();
+        boolean isVisibleInLegend = true;
+        if (jo.has("isVisibleInLegend")) {
+            isVisibleInLegend = jo.getAsJsonPrimitive("isVisibleInLegend").getAsBoolean();
+        }
         switch (layerType) {
             case "RASTER":
                 // find the header file
@@ -115,7 +119,7 @@ public class MapLayerDeserializer implements JsonDeserializer<MapLayer> {
                 rli.setLayerTitle(layerTitle);
                 rli.setPaletteReversed(isPaletteReversed);
                 rli.setVisible(isVisible);
-                
+                rli.setVisibleInLegend(isVisibleInLegend);
                 return rli;
             case "VECTOR":
                 // find the header file
@@ -164,6 +168,9 @@ public class MapLayerDeserializer implements JsonDeserializer<MapLayer> {
                 }
                 
                 VectorLayerInfo vli = new VectorLayerInfo(fileName, paletteDirectory, alpha, overlayNumber);
+                vli.setVisible(isVisible);
+                vli.setVisibleInLegend(isVisibleInLegend);
+                vli.setNonlinearity(nonlinearity);
                 vli.setFillAttribute(fillAttribute);
                 vli.setLineAttribute(lineAttribute);
                 vli.setLineThickness(lineThickness);

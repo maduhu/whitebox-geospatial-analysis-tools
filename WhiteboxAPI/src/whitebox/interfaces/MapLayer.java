@@ -83,6 +83,18 @@ public interface MapLayer {
     public void setOverlayNumber(int value);
 
     /**
+     * Used to determine whether this layers should be visible in a legend.
+     * @return 
+     */
+    public boolean isVisibleInLegend();
+    
+    /**
+     * Used to set whether this layer is visible in a map legend.
+     * @param value a boolean value.
+     */
+    public void setVisibleInLegend(boolean value);
+    
+    /**
      * An enum of map layer types.
      */
     public enum MapLayerType {

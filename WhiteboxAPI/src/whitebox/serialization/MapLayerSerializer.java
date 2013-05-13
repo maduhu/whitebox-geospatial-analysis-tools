@@ -41,6 +41,7 @@ public class MapLayerSerializer implements JsonSerializer<MapLayer> {
         jo.addProperty("layerTitle", t.getLayerTitle());
         jo.addProperty("overlayNumber", t.getOverlayNumber());
         jo.addProperty("isVisible", t.isVisible());
+        jo.addProperty("isVisibleInLegend", t.isVisibleInLegend());
         
         if (t.getLayerType() == MapLayer.MapLayerType.RASTER) {
             RasterLayerInfo rli = (RasterLayerInfo)t;

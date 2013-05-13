@@ -16,8 +16,6 @@
  */
 package whitebox.cartographic;
 
-import java.io.*;
-
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 //import java.io.File;
@@ -44,6 +42,7 @@ public class MapInfo implements java.io.Serializable {
     private double margin = 0.0;
     private int numMapAreas = 0;
     private BoundingBox pageBox = new BoundingBox();
+    private boolean showInLegend = true;
     private ArrayList<CartographicElement> listOfCartographicElements = new ArrayList<>();
 
     /**
@@ -331,6 +330,11 @@ public class MapInfo implements java.io.Serializable {
     public int getNumberOfCartographicElements() {
         return listOfCartographicElements.size();
     }
+
+    
+    
+    
+    
     // Methods
     private int activeMapArea = -1;
 

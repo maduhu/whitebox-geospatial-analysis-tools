@@ -40,6 +40,7 @@ public class RasterLayerInfo implements MapLayer {
     private boolean dirty = true;
     private String[] defaultPalettes;
     private double[] data = null;
+    private boolean visibleInLegend = true;
 
     /* Constructors*/
     public RasterLayerInfo() {
@@ -874,5 +875,15 @@ public class RasterLayerInfo implements MapLayer {
     @Override
     public void setVisible(boolean value) {
         visible = value;
+    }
+
+    @Override
+    public boolean isVisibleInLegend() {
+        return visibleInLegend;
+    }
+
+    @Override
+    public void setVisibleInLegend(boolean value) {
+        this.visibleInLegend = value;
     }
 }

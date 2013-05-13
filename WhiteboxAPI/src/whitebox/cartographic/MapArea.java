@@ -855,6 +855,13 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         }
     }
     
+    public void toggleLayerVisibilityInLegend(int overlayNumber) {
+        // which layer has an overlayNumber equal to overlayNumber?
+        int layerToToggle = findLayerIndexByOverlayNum(overlayNumber);
+        boolean value = layers.get(layerToToggle).isVisible();
+        layers.get(layerToToggle).setVisibleInLegend(!value);
+    }
+    
     public void reversePaletteOfLayer(int overlayNumber) {
         // which layer has an overlayNumber equal to overlayNumber?
         int layerToChange = findLayerIndexByOverlayNum(overlayNumber);

@@ -82,7 +82,7 @@ public class VectorLayerInfo implements MapLayer {
     private double cartographicGeneralizationLevel = 0.5;
     private int selectedFeatureNumber = -1;
     private int maxDisplayedEntries = 25;
-//    private boolean dirty;
+    private boolean visibleInLegend = true;
     
     // Constructors
     public VectorLayerInfo() {
@@ -1024,6 +1024,16 @@ public class VectorLayerInfo implements MapLayer {
             //selectedFeatureNumber = -1;
         }
         return selectedFeatureNumber;
+    }
+
+    @Override
+    public boolean isVisibleInLegend() {
+        return visibleInLegend;
+    }
+
+    @Override
+    public void setVisibleInLegend(boolean value) {
+        this.visibleInLegend = value;
     }
 
     public class LegendEntry {
