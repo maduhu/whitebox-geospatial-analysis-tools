@@ -120,6 +120,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JPopupMenu textPopup = null;
     private JButton pan = null;
     private JButton zoomIntoBox = null;
+    private JButton zoomOut = null;
     private JButton select = null;
     private JButton modifyPixelsVals = null;
     private JButton distanceToolButton = null;
@@ -872,7 +873,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // View menu
             JMenu viewMenu = new JMenu("View");
-            zoomToBox = new JCheckBoxMenuItem("Zoom to Box", new ImageIcon(graphicsDirectory + "ZoomInToBox.png"));
+            zoomToBox = new JCheckBoxMenuItem("Zoom to Box", new ImageIcon(graphicsDirectory + "ZoomIn.png"));
             viewMenu.add(zoomToBox);
             zoomToBox.addActionListener(this);
             zoomToBox.setActionCommand("zoomToBox");
@@ -884,21 +885,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewMenu.add(selectMenuItem);
             selectMenuItem.addActionListener(this);
             selectMenuItem.setActionCommand("select");
-            JMenuItem zoomToFullExtent = new JMenuItem("Zoom to Full Extent", new ImageIcon(graphicsDirectory + "Globe.png"));
+            JMenuItem zoomToFullExtent = new JMenuItem("Zoom Map Area to Full Extent", new ImageIcon(graphicsDirectory + "Globe.png"));
             zoomToFullExtent.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             viewMenu.add(zoomToFullExtent);
             zoomToFullExtent.addActionListener(this);
             zoomToFullExtent.setActionCommand("zoomToFullExtent");
-            JMenuItem zoomToActiveLayer = new JMenuItem("Zoom to Active Layer", new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
-            viewMenu.add(zoomToActiveLayer);
-            zoomToActiveLayer.addActionListener(this);
-            zoomToActiveLayer.setActionCommand("zoomToLayer");
-            zoomToActiveLayer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            JMenuItem zoomIn = new JMenuItem("Zoom In", new ImageIcon(graphicsDirectory + "ZoomIn.png"));
-            viewMenu.add(zoomIn);
-            zoomIn.addActionListener(this);
-            zoomIn.setActionCommand("zoomIn");
-            zoomIn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+//            JMenuItem zoomToActiveLayer = new JMenuItem("Zoom to Active Layer", new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
+//            viewMenu.add(zoomToActiveLayer);
+//            zoomToActiveLayer.addActionListener(this);
+//            zoomToActiveLayer.setActionCommand("zoomToLayer");
+//            zoomToActiveLayer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+//            JMenuItem zoomIn = new JMenuItem("Zoom In", new ImageIcon(graphicsDirectory + "ZoomIn.png"));
+//            viewMenu.add(zoomIn);
+//            zoomIn.addActionListener(this);
+//            zoomIn.setActionCommand("zoomIn");
+//            zoomIn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             JMenuItem zoomOut = new JMenuItem("Zoom Out", new ImageIcon(graphicsDirectory + "ZoomOut.png"));
             viewMenu.add(zoomOut);
             zoomOut.addActionListener(this);
@@ -1457,24 +1458,26 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JButton layerToBottom = makeToolBarButton("LayerToBottom.png", "layerToBottom", "Layer To Bottom", "Layer To Bottom");
             toolbar.add(layerToBottom);
             toolbar.addSeparator();
-            zoomIntoBox = makeToolBarButton("ZoomInToBox.png", "zoomToBox", "Zoom To Box", "Zoom");
-            zoomIntoBox.setBorderPainted(true);
-            toolbar.add(zoomIntoBox);
-            pan = makeToolBarButton("Pan2.png", "pan", "Pan", "Pan");
-            toolbar.add(pan);
-            select = makeToolBarButton("select.png", "select", "Select", "Select");
-            toolbar.add(select);
-            toolbar.addSeparator();
             JButton zoomToPage = makeToolBarButton("ZoomFullExtent3.png", "zoomToPage", "Zoom To Page", "Zoom To Page");
             toolbar.add(zoomToPage);
-            JButton zoomToFullExtent = makeToolBarButton("Globe.png", "zoomToFullExtent", "Zoom To Full Extent", "Zoom To Full Extent");
-            toolbar.add(zoomToFullExtent);
-            JButton zoomToActiveLayer = makeToolBarButton("ZoomToActiveLayer.png", "zoomToLayer", "Zoom To Active Layer", "Zoom To Active");
-            toolbar.add(zoomToActiveLayer);
-            JButton zoomIn = makeToolBarButton("ZoomIn.png", "zoomIn", "Zoom In", "Zoom In");
-            toolbar.add(zoomIn);
-            JButton zoomOut = makeToolBarButton("ZoomOut.png", "zoomOut", "Zoom Out", "Zoom Out");
+            toolbar.addSeparator();
+            select = makeToolBarButton("select.png", "select", "Select", "Select");
+            toolbar.add(select);
+            // Feature selection should go here.
+            pan = makeToolBarButton("Pan2.png", "pan", "Pan", "Pan");
+            toolbar.add(pan);
+            zoomIntoBox = makeToolBarButton("ZoomIn.png", "zoomToBox", "Zoom In To Box", "Zoom");
+            zoomIntoBox.setBorderPainted(true);
+            toolbar.add(zoomIntoBox);
+            zoomOut = makeToolBarButton("ZoomOut.png", "zoomOut", "Zoom Out", "Zoom Out");
+            zoomOut.setBorderPainted(false);
             toolbar.add(zoomOut);
+            JButton zoomToFullExtent = makeToolBarButton("Globe.png", "zoomToFullExtent", "Zoom Map Area To Full Extent", "Zoom To Full Extent");
+            toolbar.add(zoomToFullExtent);
+//            JButton zoomToActiveLayer = makeToolBarButton("ZoomToActiveLayer.png", "zoomToLayer", "Zoom To Active Layer", "Zoom To Active");
+//            toolbar.add(zoomToActiveLayer);
+//            JButton zoomIn = makeToolBarButton("ZoomIn.png", "zoomIn", "Zoom In", "Zoom In");
+//            toolbar.add(zoomIn);
             JButton previousExtent = makeToolBarButton("back.png", "previousExtent", "Previous Extent", "Prev Extent");
             toolbar.add(previousExtent);
             JButton nextExtent = makeToolBarButton("forward.png", "nextExtent", "Next Extent", "Next Extent");
@@ -4018,7 +4021,17 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("zoomIn")) {
             zoomIn();
         } else if (actionCommand.equals("zoomOut")) {
-            zoomOut();
+//            zoomOut();
+            openMaps.get(activeMap).deslectAllCartographicElements();
+            refreshMap(false);
+            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOMOUT);
+            zoomIntoBox.setBorderPainted(false);
+            zoomOut.setBorderPainted(true);
+            pan.setBorderPainted(false);
+            select.setBorderPainted(false);
+            zoomToBox.setState(true);
+            panMenuItem.setState(false);
+            selectMenuItem.setState(false);
         } else if (actionCommand.equals("panUp")) {
             panUp();
         } else if (actionCommand.equals("panDown")) {
@@ -4028,8 +4041,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("panRight")) {
             panRight();
         } else if (actionCommand.equals("zoomToBox")) {
+            openMaps.get(activeMap).deslectAllCartographicElements();
+            refreshMap(false);
             drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOM);
             zoomIntoBox.setBorderPainted(true);
+            zoomOut.setBorderPainted(false);
             pan.setBorderPainted(false);
             select.setBorderPainted(false);
             zoomToBox.setState(true);
@@ -4038,6 +4054,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("pan")) {
             drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_PAN);
             zoomIntoBox.setBorderPainted(false);
+            zoomOut.setBorderPainted(false);
             pan.setBorderPainted(true);
             select.setBorderPainted(false);
             zoomToBox.setState(false);
@@ -4046,6 +4063,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (actionCommand.equals("select")) {
             drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_SELECT);
             zoomIntoBox.setBorderPainted(false);
+            zoomOut.setBorderPainted(false);
             pan.setBorderPainted(false);
             select.setBorderPainted(true);
             zoomToBox.setState(false);

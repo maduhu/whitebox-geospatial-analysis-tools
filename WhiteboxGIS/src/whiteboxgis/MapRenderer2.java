@@ -89,6 +89,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     public static final int MOUSE_MODE_MAPAREA = 5;
     public static final int MOUSE_MODE_RESIZE = 6;
     public static final int MOUSE_MODE_DIGITIZE = 7;
+    public static final int MOUSE_MODE_ZOOMOUT = 8;
+    public static final int MOUSE_MODE_FEATURE_SELECT = 9;
     private int myMode = 0;
     public static final int RESIZE_MODE_N = 0;
     public static final int RESIZE_MODE_S = 1;
@@ -149,14 +151,14 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             Point cursorHotSpot = new Point(0, 0);
             Point cursorHotSpot2 = new Point(11, 11);
-            
+
             if (!OSFinder.isWindows()) {
                 zoomCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "ZoomToBoxCursor.png"), cursorHotSpot, "zoomCursor");
                 panCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "Pan3.png"), cursorHotSpot, "panCursor");
                 panClosedHandCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "Pan4.png"), cursorHotSpot, "panCursor");
                 selectCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "select.png"), cursorHotSpot, "selectCursor");
                 digitizeCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "DigitizeCursor2.png"), cursorHotSpot2, "digitizeCursor");
-                
+
             } else {
                 // windows requires 32 x 32 cursors. Otherwise they look terrible.
                 zoomCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "ZoomToBoxCursorWin.png"), cursorHotSpot, "zoomCursor");
@@ -164,7 +166,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 panClosedHandCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "Pan4Win.png"), cursorHotSpot, "panCursor");
                 selectCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "selectWin.png"), cursorHotSpot, "selectCursor");
                 digitizeCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "DigitizeCursorWin2.png"), new Point(16, 16), "digitizeCursor");
-                
+
             }
             this.setCursor(zoomCursor);
             this.addMouseMotionListener(this);
@@ -249,13 +251,15 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         }
 
     }
-
     boolean digitizing = false;
+
     public void setUsingDistanceTool(boolean val) {
         usingDistanceTool = val;
         if (!usingDistanceTool) {
             distPoints.clear();
-            if (!modifyingPixels) { digitizing = false; }
+            if (!modifyingPixels) {
+                digitizing = false;
+            }
         } else {
             digitizing = true;
         }
@@ -270,7 +274,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         if (val) {
             digitizing = true;
         } else {
-            if (!usingDistanceTool) { digitizing = false; }
+            if (!usingDistanceTool) {
+                digitizing = false;
+            }
         }
     }
 
@@ -1074,7 +1080,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             metrics = g2.getFontMetrics(newFont);
             int fontHeight = metrics.getHeight() - metrics.getDescent();
             int gap = 10;
-            
+
             int imageHeight = 35;
             int imageWidth = 12;
             top += fontHeight;
@@ -3008,7 +3014,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     myMode = MOUSE_MODE_CARTO_ELEMENT;
 
                 } else {
-                    if (ce.isSelected() && myMode != MOUSE_MODE_MAPAREA 
+                    if (ce.isSelected() && myMode != MOUSE_MODE_MAPAREA
                             && !digitizing) {
                         this.setCursor(panCursor);
                     } else if (digitizing) {
@@ -3127,6 +3133,20 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 wb.showMapProperties(whichCartoElement);
             }
 
+        } else if (clickCount == 1 && backgroundMouseMode == MOUSE_MODE_ZOOMOUT
+                && !usingDistanceTool) {
+            if (myMode != MOUSE_MODE_MAPAREA) {
+                int x = (int) ((e.getX() - pageLeft) / scale);
+                int y = (int) ((e.getY() - pageTop) / scale);
+                map.zoomOut(x, y);
+            }
+        } else if (clickCount == 1 && backgroundMouseMode == MOUSE_MODE_ZOOM
+                && !usingDistanceTool) {
+            if (myMode != MOUSE_MODE_MAPAREA) {
+                int x = (int) ((e.getX() - pageLeft) / scale);
+                int y = (int) ((e.getY() - pageTop) / scale);
+                map.zoomIn(x, y);
+            }
         } else if (clickCount == 1 && modifyingPixels && myMode != MOUSE_MODE_CARTO_ELEMENT
                 && button != 3 && !isPopupTrigger) {
             if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
@@ -3232,11 +3252,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             if (!isSelected) {
                 if (!e.isShiftDown()) {
                     map.deslectAllCartographicElements();
-                } //else {
-//                    WhiteboxGui wb = (WhiteboxGui)host;
-//                    wb.setCartoElementToolbarVisibility(true);
-//                }
-                WhiteboxGui wb = (WhiteboxGui)host;
+                }
+                WhiteboxGui wb = (WhiteboxGui) host;
                 wb.setCartoElementToolbarVisibility(true);
                 map.getCartographicElement(whichCartoElement).setSelected(true);
                 this.setCursor(panCursor);
@@ -3264,7 +3281,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 }
             }
             if (map.howManyElementsAreSelected() == 0) {
-                WhiteboxGui wb = (WhiteboxGui)host;
+                WhiteboxGui wb = (WhiteboxGui) host;
                 if (wb.isHideAlignToolbar()) {
                     wb.setCartoElementToolbarVisibility(false);
                 }
