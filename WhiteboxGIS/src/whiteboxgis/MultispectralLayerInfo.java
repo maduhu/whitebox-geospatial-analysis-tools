@@ -35,6 +35,7 @@ public class MultispectralLayerInfo implements MapLayer {
     public boolean increasesNorthward = false;
     public boolean isDirty = false;
     private ArrayList<String> headerFiles = new ArrayList<String>();
+    private boolean visibleInLegend = true;
     
     public MultispectralLayerInfo(String[] headerFiles, String layerTitle, int alpha, int overlayNum) {
         this.layerTitle = layerTitle;
@@ -357,5 +358,15 @@ public class MultispectralLayerInfo implements MapLayer {
     @Override
     public void setVisible(boolean value) {
         visible = value;
+    }
+
+    @Override
+    public boolean isVisibleInLegend() {
+        return visibleInLegend;
+    }
+
+    @Override
+    public void setVisibleInLegend(boolean value) {
+        this.visibleInLegend = value;
     }
 }

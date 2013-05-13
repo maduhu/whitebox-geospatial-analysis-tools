@@ -1074,6 +1074,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             metrics = g2.getFontMetrics(newFont);
             int fontHeight = metrics.getHeight() - metrics.getDescent();
             int gap = 10;
+            
             int imageHeight = 35;
             int imageWidth = 12;
             top += fontHeight;
@@ -1086,7 +1087,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 for (int k = ma.getNumLayers() - 1; k >= 0; k--) {
                     MapLayer mapLayer = ma.getLayer(k);
                     //for (MapLayer mapLayer : ma.getLayersList()) {
-                    if (mapLayer.isVisible()) {
+                    if (mapLayer.isVisible() && mapLayer.isVisibleInLegend()) {
                         top += gap;
 //                                        g2.setColor(ma.getFontColour());
 //                                        g2.drawString(mapLayer.getLayerTitle(), left, top);

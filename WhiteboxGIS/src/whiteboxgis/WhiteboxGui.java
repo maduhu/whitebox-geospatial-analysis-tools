@@ -1124,6 +1124,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         menuReversePalette.addActionListener(this);
         menuReversePalette.setActionCommand("reversePalette");
         layersPopup.add(menuReversePalette);
+        
+        mi = new JMenuItem("Toggle Layer Visibility In Legend");
+        mi.addActionListener(this);
+        mi.setActionCommand("toggleLayerVisibilityInLegend");
+        layersPopup.add(mi);
 
         layersPopup.addSeparator();
 
@@ -2925,6 +2930,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         selectedMapAndLayer[2] = -1;
     }
 
+    private void toggleLayerVisibilityInLegend() {
+        openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]).toggleLayerVisibilityInLegend(selectedMapAndLayer[1]);
+        drawingArea.repaint();
+        updateLayersTab();
+        selectedMapAndLayer[0] = -1;
+        selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
+    }
+    
     private void setAsActiveMap() {
         if (selectedMapAndLayer[0] != -1) {
             activeMap = selectedMapAndLayer[0];
@@ -3973,6 +3987,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             allLayersVisibile();
         } else if (actionCommand.equals("allLayersInvisible")) {
             allLayersInvisibile();
+        } else if (actionCommand.equals("toggleLayerVisibilityInLegend")) {
+            toggleLayerVisibilityInLegend();
         } else if (actionCommand.equals("setAsActiveMap")) {
             setAsActiveMap();
         } else if (actionCommand.equals("renameMap")) {
