@@ -49,6 +49,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
     private NumericProperty mapAreaHeight;
     private StringProperty xyUnits;
     private FontProperty fontProperty;
+    private BooleanProperty fitToData;
     
     public MapAreaPropertyGrid() {
         createUI();
@@ -223,6 +224,16 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             fontProperty.revalidate();
             mainBox.add(fontProperty);
             
+            fitToData = new BooleanProperty("Fit to data?", 
+                    mapArea.isFitToData());
+            fitToData.setLeftMargin(leftMargin);
+            fitToData.setRightMargin(rightMargin);
+            fitToData.setBackColour(Color.WHITE);
+            fitToData.setPreferredWidth(preferredWidth);
+            fitToData.revalidate();
+            fitToData.addPropertyChangeListener("value", this);
+            mainBox.add(fitToData);
+            
             super.revalidate();
         } catch (Exception e) {
             //host.showFeedback(e.getMessage());
@@ -266,9 +277,14 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
         } else if (source == xyUnits) {
             mapArea.setXYUnits(evt.getNewValue().toString());
             didSomething = true;
-        }  else if (source == fontProperty) {
+        } else if (source == fontProperty) {
             mapArea.setLabelFont((Font)evt.getNewValue());
             didSomething = true;
+        } else if (source == fitToData) {
+            if ((Boolean)evt.getNewValue()) {
+                mapArea.setFitToData();
+                didSomething = true;
+            }
         }
 
         if (didSomething && host != null) {

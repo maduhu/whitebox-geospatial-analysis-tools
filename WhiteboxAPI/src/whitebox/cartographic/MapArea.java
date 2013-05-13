@@ -418,6 +418,22 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         return -1; // it should not hit this point
     }
 
+    public boolean isFitToData() {
+        if (numLayers > 0) {
+            calculateFullExtent();
+            double targetAspectRatio = fullExtent.getWidth() / fullExtent.getHeight();
+            double currentAspectRatio = (double)(width - 2 * referenceMarkSize) / (height - 2 * referenceMarkSize);
+            if (Math.abs(currentAspectRatio - targetAspectRatio) < 0.005) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public void setFitToData() {
+        fitToData();
+    }
+    
     public void fitToData() {
         if (numLayers > 0) {
             calculateFullExtent();

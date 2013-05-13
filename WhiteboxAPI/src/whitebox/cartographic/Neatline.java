@@ -20,7 +20,7 @@ public class Neatline implements CartographicElement, Comparable<CartographicEle
     int width = -1; // in points
     boolean visible = true;
     boolean borderVisible = true;
-    boolean backgroundVisible = false;
+    boolean backgroundVisible = true;
     boolean selected = false;
     boolean doubleLine = true;
     int doubleLineGap = 2;

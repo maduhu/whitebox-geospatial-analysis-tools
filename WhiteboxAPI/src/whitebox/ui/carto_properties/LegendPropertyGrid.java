@@ -133,8 +133,6 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             height.setBackColour(backColour);
             height.setTextboxWidth(10);
             height.setParseIntegersOnly(true);
-            height.setMinValue(1);
-            height.setMaxValue(250);
             height.addPropertyChangeListener("value", this);
             height.setPreferredWidth(preferredWidth);
             height.revalidate();
@@ -147,8 +145,6 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             width.setBackColour(Color.WHITE);
             width.setTextboxWidth(10);
             width.setParseIntegersOnly(true);
-            width.setMinValue(1);
-            width.setMaxValue(250);
             width.addPropertyChangeListener("value", this);
             width.setPreferredWidth(preferredWidth);
             width.revalidate();
@@ -161,8 +157,6 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             upperLeftX.setBackColour(backColour);
             upperLeftX.setTextboxWidth(10);
             upperLeftX.setParseIntegersOnly(true);
-            upperLeftX.setMinValue(1);
-            upperLeftX.setMaxValue(250);
             upperLeftX.addPropertyChangeListener("value", this);
             upperLeftX.setPreferredWidth(preferredWidth);
             upperLeftX.revalidate();
@@ -175,8 +169,6 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             upperLeftY.setBackColour(Color.WHITE);
             upperLeftY.setTextboxWidth(10);
             upperLeftY.setParseIntegersOnly(true);
-            upperLeftY.setMinValue(1);
-            upperLeftY.setMaxValue(250);
             upperLeftY.addPropertyChangeListener("value", this);
             upperLeftY.setPreferredWidth(preferredWidth);
             upperLeftY.revalidate();
@@ -259,7 +251,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             borderWidth.setBackColour(Color.WHITE);
             borderWidth.setTextboxWidth(10);
             borderWidth.setParseIntegersOnly(false);
-            borderWidth.setMinValue(1);
+            borderWidth.setMinValue(0);
             borderWidth.setMaxValue(250);
             borderWidth.addPropertyChangeListener("value", this);
             borderWidth.setPreferredWidth(preferredWidth);
@@ -271,7 +263,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             marginSize.setLeftMargin(leftMargin);
             marginSize.setRightMargin(rightMargin);
             marginSize.setBackColour(backColour);
-            marginSize.setTextboxWidth(5);
+            marginSize.setTextboxWidth(10);
             marginSize.setParseIntegersOnly(true);
             marginSize.addPropertyChangeListener("value", this);
             marginSize.setPreferredWidth(preferredWidth);
@@ -285,7 +277,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             lineWidth.setBackColour(Color.WHITE);
             lineWidth.setTextboxWidth(10);
             lineWidth.setParseIntegersOnly(false);
-            lineWidth.setMinValue(1);
+            lineWidth.setMinValue(0);
             lineWidth.setMaxValue(250);
             lineWidth.addPropertyChangeListener("value", this);
             lineWidth.setPreferredWidth(preferredWidth);

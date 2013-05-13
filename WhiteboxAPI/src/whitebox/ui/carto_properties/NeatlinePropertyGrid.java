@@ -17,7 +17,6 @@
 package whitebox.ui.carto_properties;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
@@ -127,8 +126,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             height.setBackColour(Color.WHITE);
             height.setTextboxWidth(5);
             height.setParseIntegersOnly(true);
-            height.setMinValue(1);
-            height.setMaxValue(250);
+            height.setMinValue(0);
             height.addPropertyChangeListener("value", this);
             height.setPreferredWidth(preferredWidth);
             height.revalidate();
@@ -141,8 +139,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             width.setBackColour(backColour);
             width.setTextboxWidth(5);
             width.setParseIntegersOnly(true);
-            width.setMinValue(1);
-            width.setMaxValue(250);
+            width.setMinValue(0);
             width.addPropertyChangeListener("value", this);
             width.setPreferredWidth(preferredWidth);
             width.revalidate();
@@ -205,7 +202,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             doubleLineGap.setBackColour(backColour);
             doubleLineGap.setTextboxWidth(5);
             doubleLineGap.setParseIntegersOnly(true);
-            doubleLineGap.setMinValue(1);
+            doubleLineGap.setMinValue(0);
             doubleLineGap.setMaxValue(250);
             doubleLineGap.addPropertyChangeListener("value", this);
             doubleLineGap.setPreferredWidth(preferredWidth);
@@ -219,7 +216,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             innerLineWidth.setBackColour(Color.WHITE);
             innerLineWidth.setTextboxWidth(5);
             innerLineWidth.setParseIntegersOnly(false);
-            innerLineWidth.setMinValue(1);
+            innerLineWidth.setMinValue(0);
             innerLineWidth.setMaxValue(250);
             innerLineWidth.addPropertyChangeListener("value", this);
             innerLineWidth.setPreferredWidth(preferredWidth);
@@ -233,7 +230,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             outerLineThickness.setBackColour(backColour);
             outerLineThickness.setTextboxWidth(5);
             outerLineThickness.setParseIntegersOnly(false);
-            outerLineThickness.setMinValue(1);
+            outerLineThickness.setMinValue(0);
             outerLineThickness.setMaxValue(250);
             outerLineThickness.addPropertyChangeListener("value", this);
             outerLineThickness.setPreferredWidth(preferredWidth);
