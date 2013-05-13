@@ -138,7 +138,35 @@ public class MapInfo implements java.io.Serializable {
         pageBox.setMaxX(Float.NEGATIVE_INFINITY);
         pageBox.setMaxY(Float.NEGATIVE_INFINITY);
     }
-
+    
+    /**
+     * Used to zoom out of the map page
+     * @param x, x-coordinate of the new centre point
+     * @param y, y-coordinate of the new centre point
+     */
+    public void zoomOut(int x, int y) {
+        double rangeX = Math.abs(pageBox.getMaxX() - pageBox.getMinX());
+        double rangeY = Math.abs(pageBox.getMaxY() - pageBox.getMinY());
+        pageBox.setMinX(x - (rangeX * 1.1) / 2.0);
+        pageBox.setMinY(y - (rangeY * 1.1) / 2.0);
+        pageBox.setMaxX(x + (rangeX * 1.1) / 2.0);
+        pageBox.setMaxY(y + (rangeY * 1.1) / 2.0);
+    }
+    
+    /**
+     * Used to zoom into the map page
+     * @param x, x-coordinate of the new centre point
+     * @param y, y-coordinate of the new centre point
+     */
+    public void zoomIn(int x, int y) {
+        double rangeX = Math.abs(pageBox.getMaxX() - pageBox.getMinX());
+        double rangeY = Math.abs(pageBox.getMaxY() - pageBox.getMinY());
+        pageBox.setMinX(x - (rangeX * 0.9) / 2.0);
+        pageBox.setMinY(y - (rangeY * 0.9) / 2.0);
+        pageBox.setMaxX(x + (rangeX * 0.9) / 2.0);
+        pageBox.setMaxY(y + (rangeY * 0.9) / 2.0);
+    }
+    
     public void addMapTitle() {
         // how many map titles are there already?
         int i = 0;
