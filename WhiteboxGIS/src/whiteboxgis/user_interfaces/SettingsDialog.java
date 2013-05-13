@@ -32,7 +32,7 @@ import javax.swing.*;
 import whitebox.interfaces.Communicator;
 import whitebox.interfaces.DialogComponent;
 import whitebox.utilities.FileUtilities;
-import whitebox.ui.carto_properties.NumericProperty;
+import whitebox.ui.carto_properties.*;
 import whiteboxgis.WhiteboxGui;
 
 /**
@@ -51,6 +51,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     private String applicationDirectory = "";
     private String resourcesDirectory = "";
     private NumericProperty printResolution;
+    private BooleanProperty autoHideAlignToolbar;
 
     public SettingsDialog(Frame owner, boolean modal) {
         super(owner, modal);
@@ -65,9 +66,9 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         if (System.getProperty("os.name").contains("Mac")) {
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         }
-        
+
         this.setTitle("Whitebox Settings");
-        
+
         Box box2 = Box.createHorizontalBox();
         box2.add(Box.createHorizontalStrut(10));
         box2.add(ok);
@@ -91,7 +92,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
 
         Box mainBox = Box.createVerticalBox();
         int preferredWidth = 410;
-        
+
         // print resolution
         printResolution = new NumericProperty("Print resolution:", String.valueOf(host.getPrintResolution()));
         printResolution.setLeftMargin(leftMargin);
@@ -103,11 +104,21 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         printResolution.revalidate();
         printResolution.addPropertyChangeListener("value", this);
         mainBox.add(printResolution);
-        
+
+        autoHideAlignToolbar = new BooleanProperty("Automatically hide align toolbar?",
+                host.isHideAlignToolbar());
+        autoHideAlignToolbar.setLeftMargin(leftMargin);
+        autoHideAlignToolbar.setRightMargin(rightMargin);
+        autoHideAlignToolbar.setBackColour(Color.WHITE);
+        autoHideAlignToolbar.setPreferredWidth(preferredWidth);
+        autoHideAlignToolbar.revalidate();
+        autoHideAlignToolbar.addPropertyChangeListener("value", this);
+        mainBox.add(autoHideAlignToolbar);
+
         mainPanel.add(mainBox);
-        
+
         this.getContentPane().add(mainPanel, BorderLayout.CENTER);
-        
+
         pack();
 
         // Centre the dialog on the screen.
@@ -194,6 +205,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         }
         if (source == printResolution) {
             host.setPrintResolution(Integer.parseInt((String) evt.getNewValue()));
+        } else if (source == autoHideAlignToolbar) {
+            host.setHideAlignToolbar((Boolean) evt.getNewValue());
         }
     }
 }

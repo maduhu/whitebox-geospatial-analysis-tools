@@ -45,6 +45,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
+import javax.swing.plaf.basic.BasicToolBarUI;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -96,6 +97,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private int qlTabsIndex = 0;
     private int[] selectedMapAndLayer = new int[3];
     private boolean linkAllOpenMaps = false;
+    private boolean hideAlignToolbar = true;
     // Gui items.
     private JList allTools;
     private JList recentTools;
@@ -135,8 +137,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JMenuItem menuReversePalette = null;
     private HashMap<String, ImageIcon> icons = new HashMap<String, ImageIcon>();
     private HashMap<String, Font> fonts = new HashMap<String, Font>();
-    //private JCheckBoxMenuItem dataView = null;
-    //private JCheckBoxMenuItem cartographicView = null;
     private JTextField scaleText = new JTextField();
     private PageFormat defaultPageFormat = new PageFormat();
 
@@ -150,6 +150,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
             //System.setProperty("Xdock:name", "Whitebox");
             System.setProperty("apple.awt.fileDialogForDirectories", "true");
+
+            System.setProperty("apple.awt.textantialiasing", "true");
+
+            System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
         }
 
         WhiteboxGui wb = new WhiteboxGui();
@@ -195,15 +199,20 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private static String getSystemLookAndFeelName() {
-        String className = UIManager.getSystemLookAndFeelClassName();
-        String name = null;
-        for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-            if (className.equals(info.getClassName())) {
-                name = info.getName();
-                break;
+        try {
+            String className = UIManager.getSystemLookAndFeelClassName();
+            String name = null;
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if (className.equals(info.getClassName())) {
+                    name = info.getName();
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
             }
+            return name;
+        } catch (Exception e) {
+            return null;
         }
-        return name;
     }
 
     public WhiteboxGui() {
@@ -545,8 +554,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 qlTabsIndex = Integer.parseInt(props.getProperty("qlTabsIndex"));
                 defaultQuantPalette = props.getProperty("defaultQuantPalette");
                 defaultQualPalette = props.getProperty("defaultQualPalette");
-                defaultQuantPalette.replace(".plt", ".pal"); // just in case the old style palette is specified.
-                defaultQualPalette.replace(".plt", ".pal");
+                defaultQuantPalette = defaultQuantPalette.replace(".plt", ".pal"); // just in case the old style palette is specified.
+                defaultQualPalette = defaultQualPalette.replace(".plt", ".pal");
                 userName = props.getProperty("userName");
                 defaultPageFormat.setOrientation(Integer.parseInt(props.getProperty("defaultPageOrientation")));
                 double width = Float.parseFloat(props.getProperty("defaultPageWidth"));
@@ -557,7 +566,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (props.containsKey("printResolution")) {
                     printResolution = Integer.parseInt(props.getProperty("printResolution"));
                 }
-
+                if (props.containsKey("hideAlignToolbar")) {
+                    hideAlignToolbar = Boolean.parseBoolean(props.getProperty("hideAlignToolbar"));
+                }
                 // retrieve the plugin usage information
                 String[] pluginNames = props.getProperty("pluginNames").split(",");
                 String[] pluginUsage = props.getProperty("pluginUsage").split(",");
@@ -617,7 +628,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("defaultPageHeight", Double.toString(defaultPageFormat.getPaper().getHeight()));
         props.setProperty("defaultPageWidth", Double.toString(defaultPageFormat.getPaper().getWidth()));
         props.setProperty("printResolution", Integer.toString(getPrintResolution()));
-        
+        props.setProperty("hideAlignToolbar", Boolean.toString(hideAlignToolbar));
+
         // set the tool usage properties
 
         // first sort plugInfo alphabetacally.
@@ -670,17 +682,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             createMenu();
             createPopupMenus();
             createToolbar();
+            createCartoElementToolbar();
 
             MapInfo mapinfo = new MapInfo("Map1");
             mapinfo.setMapName("Map1");
             mapinfo.setPageFormat(defaultPageFormat);
             mapinfo.setWorkingDirectory(workingDirectory);
-            
+
             MapArea ma = new MapArea("MapArea1");
             ma.setUpperLeftX(-32768);
             ma.setUpperLeftY(-32768);
             mapinfo.addNewCartographicElement(ma);
-            
+
             openMaps.add(mapinfo);
             activeMap = 0;
             drawingArea.setMapInfo(mapinfo);
@@ -701,9 +714,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JScrollPane scrollText = new JScrollPane(textArea);
             scrollText.setMinimumSize(new Dimension(0, 0));
             splitPane3 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, drawingArea, scrollText);
-            //splitPane3.setDividerLocation(splitterLocTextArea);
             splitPane3.setResizeWeight(1.0);
-            //splitPane3.setDividerSize(6);
             splitPane3.setOneTouchExpandable(true);
             splitPane3.setDividerLocation(1.0);
 
@@ -991,7 +1002,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             cartoMenu.add(insertMapArea);
             insertMapArea.addActionListener(this);
             insertMapArea.setActionCommand("insertMapArea");
-            
+
             JMenuItem insertTextArea = new JMenuItem("Insert Text Area");
             cartoMenu.add(insertTextArea);
             insertTextArea.addActionListener(this);
@@ -1367,6 +1378,52 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         textPopup.setOpaque(true);
         textPopup.setLightWeightPopupEnabled(true);
 
+    }
+    JToolBar cartoToolbar = new JToolBar();
+
+    private void createCartoElementToolbar() {
+        this.getContentPane().add(cartoToolbar, BorderLayout.EAST);
+
+        JButton alignRight = makeToolBarButton("AlignRight.png", "alignRight", "alignRight", "alignRight");
+        cartoToolbar.add(alignRight);
+
+        JButton centerVerticalBtn = makeToolBarButton("CenterVertical.png",
+                "centerVertical", "Center Vertical", "centerVertical");
+        cartoToolbar.add(centerVerticalBtn);
+
+        JButton alignLeft = makeToolBarButton("AlignLeft.png", "alignLeft",
+                "alignLeft", "alignLeft");
+        cartoToolbar.add(alignLeft);
+
+        JButton alignTop = makeToolBarButton("AlignTop.png", "alignTop",
+                "alignTop", "alignTop");
+        cartoToolbar.add(alignTop);
+
+        JButton centerHorizontalBtn = makeToolBarButton("CenterHorizontal.png",
+                "centerHorizontal", "Center Horizontal", "centerHorizontal");
+        cartoToolbar.add(centerHorizontalBtn);
+
+        JButton alignBottom = makeToolBarButton("AlignBottom.png", "alignBottom",
+                "Align Bottom", "alignBottom");
+        cartoToolbar.add(alignBottom);
+
+        cartoToolbar.addSeparator();
+
+        JButton distributeVertically = makeToolBarButton("DistributeVertically.png",
+                "distributeVertically", "Distribute Vertically", "distributeVertically");
+        cartoToolbar.add(distributeVertically);
+
+        JButton distributeHorizontally = makeToolBarButton("DistributeHorizontally.png",
+                "distributeHorizontally", "Distribute Horizontally", "distributeHorizontally");
+        cartoToolbar.add(distributeHorizontally);
+
+        cartoToolbar.setOrientation(1);
+        cartoToolbar.setVisible(false);
+
+    }
+
+    public void setCartoElementToolbarVisibility(boolean value) {
+        cartoToolbar.setVisible(value);
     }
 
     private void createToolbar() {
@@ -2162,14 +2219,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 MapInfo mapinfo = new MapInfo("Map");
                 mapinfo.setMapName("Map");
                 mapinfo.setWorkingDirectory(workingDirectory);
-                
+
                 MapArea ma = new MapArea("MapArea1");
                 ma.setUpperLeftX(-32768);
                 ma.setUpperLeftY(-32768);
                 mapinfo.addNewCartographicElement(ma);
-                
+
                 openMaps.add(mapinfo); //new MapInfo(str));
-                
+
                 activeMap = numOpenMaps - 1;
                 drawingArea.setMapInfo(openMaps.get(activeMap));
 
@@ -2409,12 +2466,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapinfo.setMapName(str);
             mapinfo.setWorkingDirectory(workingDirectory);
             mapinfo.setPageFormat(defaultPageFormat);
-            
+
             MapArea ma = new MapArea("MapArea1");
             ma.setUpperLeftX(-32768);
             ma.setUpperLeftY(-32768);
             mapinfo.addNewCartographicElement(ma);
-                
+
             openMaps.add(mapinfo); //new MapInfo(str));
             activeMap = numOpenMaps - 1;
             drawingArea.setMapInfo(openMaps.get(activeMap));
@@ -2679,7 +2736,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     // now use gson to create a new MapInfo object by deserialization
                     GsonBuilder gsonBuilder = new GsonBuilder();
                     gsonBuilder.setPrettyPrinting();
-                    gsonBuilder.registerTypeAdapter(MapInfo.class, 
+                    gsonBuilder.registerTypeAdapter(MapInfo.class,
                             new MapInfoDeserializer(workingDirectory, paletteDirectory));
                     Gson gson = gsonBuilder.create();
 
@@ -2709,8 +2766,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             //refreshMap();
         }
     }
-
     private int numExportedImages = 0;
+
     private void exportMapAsImage() {
         if (numOpenMaps < 1) {
             return;
@@ -2718,9 +2775,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         if (selectedMapAndLayer[0] == - 1) {
             selectedMapAndLayer[0] = activeMap;
         }
-        
+
         if (numExportedImages == 0) {
-            showFeedback("The current print resolution is " + printResolution 
+            showFeedback("The current print resolution is " + printResolution
                     + " dpi.\nTo change this value, select View => Options and Settings.");
         }
 
@@ -2781,7 +2838,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
         selectedMapAndLayer[2] = -1;
-        
+
         numExportedImages++;
     }
 
@@ -3862,39 +3919,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         returnData(reportOutput);
 
     }
-    
     int printResolution = 600;
+
     public void setPrintResolution(int resolution) {
         this.printResolution = resolution;
         drawingArea.setPrintResolution(resolution);
     }
-    
+
     public int getPrintResolution() {
         return printResolution;
     }
 
-//    private void toggleDataAndCartoView(boolean cartoView) {
-//        if (selectedMapAndLayer[0] == - 1) {
-//            selectedMapAndLayer[0] = activeMap;
-//        }
-//        // all open maps should be updated.
-//        for (MapInfo map : openMaps) {
-//            map.setPageVisible(cartoView);
-//        }
-//        //openMaps.get(selectedMapAndLayer[0]).setCartoView(cartoView);
-//        if (cartoView) {
-//            dataView.setState(false);
-//            cartographicView.setState(true);
-//        } else {
-//            dataView.setState(true);
-//            cartographicView.setState(false);
-//        }
-//        
-//        refreshMap(false);
-//        selectedMapAndLayer[0] = -1;
-//        selectedMapAndLayer[1] = -1;
-//        selectedMapAndLayer[2] = -1;
-//    }
+    public boolean isHideAlignToolbar() {
+        return hideAlignToolbar;
+    }
+
+    public void setHideAlignToolbar(boolean hideAlignToolbar) {
+        this.hideAlignToolbar = hideAlignToolbar;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         //Object source = e.getSource();
@@ -4063,10 +4106,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             newHelp();
         } else if (actionCommand.equals("mapProperties")) {
             showMapProperties(0);
-//        } else if (actionCommand.equals("cartoView")) {
-//            toggleDataAndCartoView(true);
-//        } else if (actionCommand.equals("dataView")) {
-//            toggleDataAndCartoView(false);
         } else if (actionCommand.equals("mapAreaProperties")) {
             showMapAreaProperties();
         } else if (actionCommand.equals("pageProps")) {
@@ -4109,6 +4148,38 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             maximizeMapAreaScreenSize();
         } else if (actionCommand.equals("helpReport")) {
             helpReport();
+        } else if (actionCommand.equals("centerVertical")) {
+            if (openMaps.get(activeMap).centerSelectedElementsVertically()) {
+                refreshMap(false);
+            }
+        } else if (actionCommand.equals("centerHorizontal")) {
+            if (openMaps.get(activeMap).centerSelectedElementsHorizontally()) {
+                refreshMap(false);
+            }
+        } else if (actionCommand.equals("alignTop")) {
+            if (openMaps.get(activeMap).alignSelectedElementsTop()) {
+                refreshMap(false);
+            }
+        } else if (actionCommand.equals("alignBottom")) {
+            if (openMaps.get(activeMap).alignSelectedElementsBottom()) {
+                refreshMap(false);
+            }
+        } else if (actionCommand.equals("alignRight")) {
+            if (openMaps.get(activeMap).alignSelectedElementsRight()) {
+                refreshMap(false);
+            }
+        } else if (actionCommand.equals("alignLeft")) {
+            if (openMaps.get(activeMap).alignSelectedElementsLeft()) {
+                refreshMap(false);
+            }
+        } else if (actionCommand.equals("distributeVertically")) {
+            if (openMaps.get(activeMap).distributeSelectedElementsVertically()) {
+                refreshMap(false);
+            }
+        } else if (actionCommand.equals("distributeHorizontally")) {
+            if (openMaps.get(activeMap).distributeSelectedElementsHorizontally()) {
+                refreshMap(false);
+            }
         }
 
     }
