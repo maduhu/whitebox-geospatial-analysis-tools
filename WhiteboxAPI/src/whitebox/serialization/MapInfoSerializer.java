@@ -36,17 +36,19 @@ import whitebox.interfaces.CartographicElement;
 public class MapInfoSerializer implements JsonSerializer<MapInfo> { 
     @Override
     public JsonElement serialize(MapInfo t, Type type, JsonSerializationContext jsc) {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(PageFormat.class, new PageFormatSerializer());
+        gsonBuilder.registerTypeAdapter(CartographicElement.class, new CartographicElementSerializer());
+        Gson gson = gsonBuilder.create();
+        
         JsonObject jo = new JsonObject();
         
         jo.addProperty("mapName", t.getMapName());
         jo.addProperty("fileName", t.getFileName());
         jo.addProperty("pageVisible", t.isPageVisible());
         jo.addProperty("margin", t.getMargin());
+        jo.add("defaultFont", gson.toJsonTree(t.getDefaultFont()));
         
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.registerTypeAdapter(PageFormat.class, new PageFormatSerializer());
-        gsonBuilder.registerTypeAdapter(CartographicElement.class, new CartographicElementSerializer());
-        Gson gson = gsonBuilder.create();
         jo.add("pageFormat", gson.toJsonTree(t.getPageFormat()));
         Type listOfCartographicElementsObject = new TypeToken<List<CartographicElement>>(){}.getType();
         jo.add("cartographicElementList", gson.toJsonTree(t.getCartographicElementList(), listOfCartographicElementsObject));

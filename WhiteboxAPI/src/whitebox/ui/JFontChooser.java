@@ -226,6 +226,7 @@ public class JFontChooser extends JComponent {
         for (String fnt : FONTS) {
             if (fnt.equals(font.getName())) {
                 fontList.setSelectedIndex(i);
+                break;
             }
             i++;
         }
@@ -241,6 +242,7 @@ public class JFontChooser extends JComponent {
         for (int sz : SIZES) {
             if (sz == font.getSize()) {
                 sizeList.setSelectedIndex(i);
+                break;
             }
             i++;
         }

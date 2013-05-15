@@ -41,6 +41,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
     private BooleanProperty neatlineVisible;
     private BooleanProperty mapAreaVisible;
     private BooleanProperty referenceMarksVisible;
+    private NumericProperty referenceMarkSize;
     private ColourProperty borderColourBox;
     private BooleanProperty backgroundVisible;
     private ColourProperty backgroundColourBox;
@@ -171,19 +172,30 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             referenceMarksVisible.addPropertyChangeListener("value", this);
             mainBox.add(referenceMarksVisible);
             
+            referenceMarkSize = new NumericProperty("Reference mark size", String.valueOf(mapArea.getReferenceMarksSize()));
+            referenceMarkSize.setLeftMargin(leftMargin);
+            referenceMarkSize.setRightMargin(rightMargin);
+            referenceMarkSize.setBackColour(backColour);
+            referenceMarkSize.setPreferredWidth(preferredWidth);
+            referenceMarkSize.setParseIntegersOnly(true);
+            referenceMarkSize.setTextboxWidth(10);
+            referenceMarkSize.revalidate();
+            referenceMarkSize.addPropertyChangeListener("value", this);
+            mainBox.add(referenceMarkSize);
+            
             neatlineVisible = new BooleanProperty("Is the neatline visible?", mapArea.isNeatlineVisible());
             neatlineVisible.setLeftMargin(leftMargin);
             neatlineVisible.setRightMargin(rightMargin);
-            neatlineVisible.setBackColour(backColour);
+            neatlineVisible.setBackColour(Color.WHITE);
             neatlineVisible.setPreferredWidth(preferredWidth);
             neatlineVisible.revalidate();
             neatlineVisible.addPropertyChangeListener("value", this);
             mainBox.add(neatlineVisible);
             
-            mapAreaWidth = new NumericProperty("Map Area Width:", String.valueOf(mapArea.getWidth()));
+            mapAreaWidth = new NumericProperty("Map area width", String.valueOf(mapArea.getWidth()));
             mapAreaWidth.setLeftMargin(leftMargin);
             mapAreaWidth.setRightMargin(rightMargin);
-            mapAreaWidth.setBackColour(Color.WHITE);
+            mapAreaWidth.setBackColour(backColour);
             mapAreaWidth.setPreferredWidth(preferredWidth);
             mapAreaWidth.setParseIntegersOnly(true);
             mapAreaWidth.setTextboxWidth(10);
@@ -192,10 +204,10 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mainBox.add(mapAreaWidth);
             
             // scale height
-            mapAreaHeight = new NumericProperty("Map Area Height:", String.valueOf(mapArea.getHeight()));
+            mapAreaHeight = new NumericProperty("Map area height", String.valueOf(mapArea.getHeight()));
             mapAreaHeight.setLeftMargin(leftMargin);
             mapAreaHeight.setRightMargin(rightMargin);
-            mapAreaHeight.setBackColour(backColour);
+            mapAreaHeight.setBackColour(Color.WHITE);
             mapAreaHeight.setPreferredWidth(preferredWidth);
             mapAreaHeight.setParseIntegersOnly(true);
             mapAreaHeight.setTextboxWidth(10);
@@ -204,20 +216,20 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mainBox.add(mapAreaHeight);
             
             // xy units
-            xyUnits = new StringProperty("X-Y Units:", mapArea.getXYUnits());
+            xyUnits = new StringProperty("X-Y units", mapArea.getXYUnits());
             xyUnits.setLeftMargin(leftMargin);
             xyUnits.setRightMargin(rightMargin);
-            xyUnits.setBackColour(Color.WHITE);
+            xyUnits.setBackColour(backColour);
             xyUnits.setPreferredWidth(preferredWidth);
             xyUnits.setTextboxWidth(10);
             xyUnits.revalidate();
             xyUnits.addPropertyChangeListener("value", this);
             mainBox.add(xyUnits);
             
-            fontProperty = new FontProperty("Font:", mapArea.getLabelFont());
+            fontProperty = new FontProperty("Font", mapArea.getLabelFont());
             fontProperty.setLeftMargin(leftMargin);
             fontProperty.setRightMargin(rightMargin);
-            fontProperty.setBackColour(backColour);
+            fontProperty.setBackColour(Color.WHITE);
             fontProperty.setTextboxWidth(15);
             fontProperty.setPreferredWidth(preferredWidth);
             fontProperty.addPropertyChangeListener("value", this);
@@ -228,7 +240,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
                     mapArea.isFitToData());
             fitToData.setLeftMargin(leftMargin);
             fitToData.setRightMargin(rightMargin);
-            fitToData.setBackColour(Color.WHITE);
+            fitToData.setBackColour(backColour);
             fitToData.setPreferredWidth(preferredWidth);
             fitToData.revalidate();
             fitToData.addPropertyChangeListener("value", this);
@@ -285,6 +297,9 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
                 mapArea.setFitToData();
                 didSomething = true;
             }
+        } else if (source == referenceMarkSize) {
+            mapArea.setReferenceMarksSize(Integer.parseInt((String) evt.getNewValue()));
+            didSomething = true;
         }
 
         if (didSomething && host != null) {

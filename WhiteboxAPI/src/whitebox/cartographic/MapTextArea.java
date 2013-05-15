@@ -53,7 +53,6 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     Color borderColour = Color.BLACK;
     Color fontColour = Color.BLACK;
     Font labelFont = new Font("SanSerif", Font.PLAIN, 12);
-//    Font[] availableFonts; // = {"Serif", "SanSerif", "Monospaced", "Dialog", "DialogInput"};
     int fontHeight = 0;
     int maxFontSize = 300;
     float lineWidth = 0.75f;

@@ -459,6 +459,10 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
             listOfExtents.add(extent.clone());
             listOfExtentsIndex = listOfExtents.size() - 1;
         }
+        if (listOfExtents.size() > 25) {
+            listOfExtents.remove(0);
+            listOfExtentsIndex--;
+        }
     }
     
     public boolean previousExtent() {

@@ -26,6 +26,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import java.awt.Color;
 import java.awt.Font;
+import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -174,8 +175,22 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 clr = gson.fromJson(jo.get("outlineColour"), clrType);
                 na.setOutlineColour(clr);
                 return na;
+                
             case "MAPIMAGE":
                 String fileName = jo.getAsJsonPrimitive("fileName").getAsString();
+                
+                // see whether it exists, and if it doesn't, see whether a file of the same
+                // name exists in the working directory or any of its subdirectories.
+                if (!new File(fileName).exists()) {
+                    flag = true;
+                    findFile(new File(workingDirectory), new File(fileName).getName());
+                    if (!retFile.equals("")) {
+                        fileName = retFile;
+                    } else {
+                        throw new JsonParseException("Could not locate image file referred to in map file.");
+                    }
+                }
+                
                 MapImage mi = new MapImage(name, fileName);
                 mi.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
                 mi.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
@@ -265,5 +280,22 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
         }
 
         return null;
+    }
+    
+    private static String retFile = "";
+    private boolean flag = true;
+    private void findFile(File dir, String fileName) {
+        if (flag) {
+            File[] files = dir.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isDirectory()) {
+                    findFile(files[i], fileName);
+                } else if (files[i].getName().equals(fileName)) {
+                    retFile = files[i].toString();
+                    flag = false;
+                    break;
+                }
+            }
+        }
     }
 }

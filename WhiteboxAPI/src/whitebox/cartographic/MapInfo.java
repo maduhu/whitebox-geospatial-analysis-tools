@@ -16,9 +16,9 @@
  */
 package whitebox.cartographic;
 
+import java.awt.Font;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
-//import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -44,7 +44,7 @@ public class MapInfo implements java.io.Serializable {
     private BoundingBox pageBox = new BoundingBox();
     private boolean showInLegend = true;
     private ArrayList<CartographicElement> listOfCartographicElements = new ArrayList<>();
-
+    private Font defaultFont = new Font("SanSerif", Font.PLAIN, 11);
     /**
      * MapInfo constructor
      */
@@ -185,7 +185,8 @@ public class MapInfo implements java.io.Serializable {
             }
         }
         String name = "MapTitle" + (i + 1);
-        CartographicElement ce = new MapTitle(getMapName(), name);
+        MapTitle ce = new MapTitle(getMapName(), name);
+        ce.setLabelFont(new Font(defaultFont.getName(), Font.BOLD, 20));
         addNewCartographicElement(ce);
     }
 
@@ -198,7 +199,8 @@ public class MapInfo implements java.io.Serializable {
             }
         }
         String name = "MapTextArea" + (i + 1);
-        CartographicElement ce = new MapTextArea(name);
+        MapTextArea ce = new MapTextArea(name);
+        ce.setLabelFont(defaultFont);
         addNewCartographicElement(ce);
     }
 
@@ -213,6 +215,7 @@ public class MapInfo implements java.io.Serializable {
         String name = "MapScale" + (i + 1);
         MapScale ms = new MapScale(name);
         ms.setMapArea(getActiveMapArea());
+        ms.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
         addNewCartographicElement((CartographicElement) ms);
     }
 
@@ -270,6 +273,7 @@ public class MapInfo implements java.io.Serializable {
         for (MapArea ma : mapAreas) {
             ce.addMapArea(ma);
         }
+        ce.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
         addNewCartographicElement(ce);
     }
     private transient ArrayList<MapArea> mapAreas = new ArrayList<MapArea>();
@@ -283,7 +287,8 @@ public class MapInfo implements java.io.Serializable {
             }
         }
         String name = "MapArea" + (i + 1);
-        CartographicElement ce = new MapArea(name);
+        MapArea ce = new MapArea(name);
+        ce.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
         addNewCartographicElement(ce);
     }
 
@@ -343,6 +348,15 @@ public class MapInfo implements java.io.Serializable {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+    
+    public Font getDefaultFont() {
+        return defaultFont;
+    }
+    
+    public void setDefaultFont(Font font) {
+        this.defaultFont = font;
+        
     }
 
     public BoundingBox getPageExtent() {

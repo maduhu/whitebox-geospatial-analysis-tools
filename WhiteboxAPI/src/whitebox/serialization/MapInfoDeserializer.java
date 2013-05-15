@@ -18,6 +18,7 @@ package whitebox.serialization;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import java.awt.Font;
 import java.awt.print.PageFormat;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -56,6 +57,9 @@ public class MapInfoDeserializer implements JsonDeserializer<MapInfo> {
             gsonBuilder.registerTypeAdapter(CartographicElement.class,
                     new CartographicElementDeserializer(workingDirectory, paletteDirectory));
             Gson gson = gsonBuilder.create();
+            
+            Type fontType = new TypeToken<Font>() {}.getType();
+            Font font;
 
             JsonObject jo = je.getAsJsonObject();
             MapInfo mi = new MapInfo();
@@ -65,6 +69,10 @@ public class MapInfoDeserializer implements JsonDeserializer<MapInfo> {
             mi.setMargin(jo.getAsJsonPrimitive("margin").getAsDouble());
             PageFormat pf = gson.fromJson(jo.getAsJsonObject("pageFormat"), PageFormat.class);
             mi.setPageFormat(pf);
+            if (jo.has("defaultFont")) {
+                font = gson.fromJson(jo.get("defaultFont"), fontType);
+                mi.setDefaultFont(font);
+            }
 
             Type listOfCartographicElementsObject = new TypeToken<List<CartographicElement>>() {
             }.getType();
