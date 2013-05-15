@@ -19,6 +19,7 @@ package whiteboxgis.user_interfaces;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -52,6 +53,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     private String resourcesDirectory = "";
     private NumericProperty printResolution;
     private BooleanProperty autoHideAlignToolbar;
+    private FontProperty fontProperty;
 
     public SettingsDialog(Frame owner, boolean modal) {
         super(owner, modal);
@@ -91,7 +93,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         mainPanel.setBackground(Color.WHITE);
 
         Box mainBox = Box.createVerticalBox();
-        int preferredWidth = 410;
+        int preferredWidth = 310;
 
         // print resolution
         printResolution = new NumericProperty("Print resolution:", String.valueOf(host.getPrintResolution()));
@@ -115,7 +117,20 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         autoHideAlignToolbar.addPropertyChangeListener("value", this);
         mainBox.add(autoHideAlignToolbar);
 
-        mainPanel.add(mainBox);
+        fontProperty = new FontProperty("Default font:", host.getDefaultFont());
+        fontProperty.setLeftMargin(leftMargin);
+        fontProperty.setRightMargin(rightMargin);
+        fontProperty.setBackColour(backColour);
+        fontProperty.setTextboxWidth(10);
+        fontProperty.setPreferredWidth(preferredWidth);
+        fontProperty.addPropertyChangeListener("value", this);
+        fontProperty.revalidate();
+        mainBox.add(fontProperty);
+
+        JScrollPane scroll = new JScrollPane(mainBox);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        mainPanel.add(scroll);
 
         this.getContentPane().add(mainPanel, BorderLayout.CENTER);
 
@@ -207,6 +222,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
             host.setPrintResolution(Integer.parseInt((String) evt.getNewValue()));
         } else if (source == autoHideAlignToolbar) {
             host.setHideAlignToolbar((Boolean) evt.getNewValue());
+        } else if (source == fontProperty) {
+            host.setDefaultFont((Font)evt.getNewValue());
         }
     }
 }

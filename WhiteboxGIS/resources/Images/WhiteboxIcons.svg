@@ -8534,66 +8534,69 @@
        inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/delete.png"
        inkscape:export-xdpi="91.010635"
        inkscape:export-ydpi="91.010635" />
-    <rect
-       style="fill:none;stroke:none;stroke-width:0.50000000000000000;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       id="rect3875"
-       width="15"
-       height="15"
-       x="45.672668"
-       y="-547.36218"
-       transform="scale(1,-1)"
-       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DistanceTool.png"
-       inkscape:export-xdpi="91.010635"
-       inkscape:export-ydpi="91.010635" />
     <g
-       id="g5343"
-       transform="translate(-0.93962176,-2.4915216)"
-       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DistanceTool.png"
-       inkscape:export-xdpi="91.010635"
-       inkscape:export-ydpi="91.010635">
+       id="g5352">
       <rect
          inkscape:export-ydpi="91.010635"
          inkscape:export-xdpi="91.010635"
-         inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DistanceTool.png"
          transform="scale(1,-1)"
-         y="-545.36218"
-         x="47.112289"
-         height="6"
-         width="14"
-         id="rect4645"
-         style="fill:url(#linearGradient5350);fill-opacity:1;stroke:#000000;stroke-width:0.96609181;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
-      <path
+         y="-547.36218"
+         x="45.672668"
+         height="15"
+         width="15"
+         id="rect3875"
+         style="fill:none;stroke:none;stroke-width:0.50000000000000000;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+      <g
          inkscape:export-ydpi="91.010635"
          inkscape:export-xdpi="91.010635"
-         inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
-         inkscape:connector-curvature="0"
-         id="path4657"
-         d="m 52.87077,539.36218 c 0,3 0,3 0,3 l 0,0 0,0 0,0"
-         style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="91.010635"
-         inkscape:export-xdpi="91.010635"
-         inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
-         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         d="m 50,539.36218 c 0,3 0,3 0,3 l 0,0 0,0 0,0"
-         id="path4725"
-         inkscape:connector-curvature="0" />
-      <path
-         inkscape:export-ydpi="91.010635"
-         inkscape:export-xdpi="91.010635"
-         inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
-         style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         d="m 55.74153,539.36218 c 0,3 0,3 0,3 l 0,0 0,0 0,0"
-         id="path4727"
-         inkscape:connector-curvature="0" />
-      <path
-         inkscape:export-ydpi="91.010635"
-         inkscape:export-xdpi="91.010635"
-         inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
-         inkscape:connector-curvature="0"
-         id="path4729"
-         d="m 58.61229,539.36218 c 0,3 0,3 0,3 l 0,0 0,0 0,0"
-         style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DistanceTool.png"
+         transform="translate(-0.93962176,-2.4915216)"
+         id="g5343">
+        <rect
+           style="fill:url(#linearGradient5350);fill-opacity:1;stroke:#000000;stroke-width:0.96609181;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+           id="rect4645"
+           width="14"
+           height="6"
+           x="47.112289"
+           y="-545.36218"
+           transform="scale(1,-1)"
+           inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
+           inkscape:export-xdpi="91.010635"
+           inkscape:export-ydpi="91.010635" />
+        <path
+           style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 52.87077,539.36218 c 0,3 0,3 0,3 l 0,0 0,0 0,0"
+           id="path4657"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
+           inkscape:export-xdpi="91.010635"
+           inkscape:export-ydpi="91.010635" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path4725"
+           d="m 50,539.36218 c 0,3 0,3 0,3 l 0,0 0,0 0,0"
+           style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
+           inkscape:export-xdpi="91.010635"
+           inkscape:export-ydpi="91.010635" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path4727"
+           d="m 55.74153,539.36218 c 0,3 0,3 0,3 l 0,0 0,0 0,0"
+           style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
+           inkscape:export-xdpi="91.010635"
+           inkscape:export-ydpi="91.010635" />
+        <path
+           style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 58.61229,539.36218 c 0,3 0,3 0,3 l 0,0 0,0 0,0"
+           id="path4729"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/NetBeansProjects/WhiteboxGIS/WhiteboxGIS/resources/Images/DistanceTool.png"
+           inkscape:export-xdpi="91.010635"
+           inkscape:export-ydpi="91.010635" />
+      </g>
     </g>
     <path
        style="fill:#008000;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"

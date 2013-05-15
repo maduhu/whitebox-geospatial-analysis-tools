@@ -43,6 +43,7 @@ import whitebox.utilities.FileUtilities;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
+@SuppressWarnings("unchecked")
 public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
     private JButton viewSource = new JButton("View HTML Source");
@@ -65,7 +66,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     private String[][] helpFiles;
     private int[][] searchCounts;
     private String activeTab = "index";
-    private ArrayList<String> helpHistory = new ArrayList<String>();
+    private ArrayList<String> helpHistory = new ArrayList<>();
     private int helpHistoryIndex = 0;
 
     public Help(Frame owner, boolean modal, String startMode) {
@@ -91,7 +92,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         activeTab = startMode;
         createGui();
     }
-    
+
     public Help() {
         // this is really not to be used by anything other than the 'main' method for testing.
         try {
@@ -116,7 +117,6 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             graphicsDirectory = resourcesDirectory + "Images" + pathSep;
             helpFile = helpDirectory + "Welcome.html";
         } catch (Exception e) {
-
         }
     }
 
@@ -129,14 +129,12 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
             JTabbedPane sidebarPane = createSidePanel();
 
-            String imgLocation = null;
-            ImageIcon image = null;
+            String imgLocation;
+            ImageIcon image;
 
             helpPane.addHyperlinkListener(this);
             helpPane.setContentType("text/html");
             JScrollPane helpScroll = new JScrollPane(helpPane);
-
-            //helpPane = new FramePanel();
 
             Box box2 = Box.createHorizontalBox();
             box2.add(Box.createRigidArea(new Dimension(10, 30)));
@@ -203,6 +201,8 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                 helpHistory.add(helpFile);
                 helpHistoryIndex = helpHistory.size() - 1;
             }
+
+            helpPane.setEditable(false);
             helpPane.setPage(new URL("file:///" + helpFile));
             //helpPane.navigate(helpFile);
 
@@ -293,11 +293,13 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             JScrollPane scroller2 = new JScrollPane(searchOutput);
             searchPanel.add(scroller2);
             sidebarTab.add(searchPanel, "Search");
-
-            if (activeTab.toLowerCase().equals("index")) {
-                sidebarTab.setSelectedIndex(0);
-            } else if (activeTab.toLowerCase().equals("search")) {
-                sidebarTab.setSelectedIndex(1);
+            switch (activeTab.toLowerCase()) {
+                case "index":
+                    sidebarTab.setSelectedIndex(0);
+                    break;
+                case "search":
+                    sidebarTab.setSelectedIndex(1);
+                    break;
             }
 
         } catch (Exception e) {
@@ -402,14 +404,14 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             out.println(str);
             str = "<p>";
             out.println(str);
-            
+
             for (int i = 0; i < helpFiles.length; i++) {
                 //model.add(i, helpFiles[i][1]);
-                str = "<a href=\"http://www.uoguelph.ca/~hydrogeo/Whitebox/Help/" + helpFiles[i][1] + ".html\" " +
-                "target=\"Body_Frame\">" + helpFiles[i][1] + "</a><br>";
+                str = "<a href=\"http://www.uoguelph.ca/~hydrogeo/Whitebox/Help/" + helpFiles[i][1] + ".html\" "
+                        + "target=\"Body_Frame\">" + helpFiles[i][1] + "</a><br>";
                 out.println(str);
             }
-            
+
             str = "</p>";
             out.println(str);
 
@@ -429,21 +431,25 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
         String actionCommand = e.getActionCommand();
-        if (actionCommand.equals("close")) {
-            this.dispose();
-        } else if (actionCommand.equals("back")) {
-            back();
-        } else if (actionCommand.equals("forward")) {
-            forward();
-        } else if (actionCommand.equals("viewSource")) {
-            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(helpFile), true);
-            vcd.setSize(new Dimension(800, 600));
-            vcd.setVisible(true);
+        switch (actionCommand) {
+            case "close":
+                this.dispose();
+                break;
+            case "back":
+                back();
+                break;
+            case "forward":
+                forward();
+                break;
+            case "viewSource":
+                ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(helpFile), true);
+                vcd.setSize(new Dimension(800, 600));
+                vcd.setVisible(true);
+                break;
         }
     }
-    
+
     // This method is only used during testing.
     public static void main(String[] args) {
 
@@ -470,14 +476,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         }
     };
 
-//    private void helpMousePress(MouseEvent e) {
-//        //int selRow = layersTree.getRowForLocation(e.getX(), e.getY());
-//        //TreePath selPath = layersTree.getPathForLocation(e.getX(), e.getY());
-//        //String label;
-//        if (e.getButton() == 3 || e.isPopupTrigger()) {
-//            helpPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
-//        }
-//    }
+
     private void searchForWords() {
         try {
             DefaultListModel model = new DefaultListModel();
@@ -487,7 +486,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             String line = searchField.getText().trim().toLowerCase();
 
             // find quotations
-            ArrayList<String> quotedStrings = new ArrayList<String>();
+            ArrayList<String> quotedStrings = new ArrayList<>();
             Pattern p = Pattern.compile("\"([^\"]*)\"");
             Matcher m = p.matcher(line);
             while (m.find()) {

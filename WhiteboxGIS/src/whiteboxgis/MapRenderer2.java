@@ -34,7 +34,6 @@ import java.text.AttributedString;
 import java.text.DecimalFormat;
 import java.awt.font.TextAttribute;
 import java.awt.font.LineBreakMeasurer;
-import java.awt.image.RescaleOp;
 import java.text.AttributedCharacterIterator;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
@@ -1043,67 +1042,93 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     }
 
     private void drawMapImage(Graphics2D g2, MapImage mapImage, BasicStroke dashed) {
-        try {
-            if (mapImage.isVisible()) {
-                
-//                RenderingHints rhOld = g2.getRenderingHints();
-//                
-//                RenderingHints rh = new RenderingHints(
-//                RenderingHints.KEY_INTERPOLATION,
-//                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-//                g2.setRenderingHints(rh);   
-                
-                Color selectedColour = Color.BLACK;
-                // get the page size information
-                PageFormat pageFormat = map.getPageFormat();
-                double pageWidth = pageFormat.getWidth();
-                double pageHeight = pageFormat.getHeight();
 
-                if (mapImage.getUpperLeftY() == -32768) {
-                    mapImage.setWidth((int) (pageWidth - 2 * margin));
-                    mapImage.setHeight((int) (pageHeight - 2 * margin));
-                    mapImage.setUpperLeftX(margin);
-                    mapImage.setUpperLeftY(margin);
+        if (mapImage.isVisible()) {
 
-                }
+            Color selectedColour = Color.BLACK;
+            // get the page size information
+            PageFormat pageFormat = map.getPageFormat();
+            double pageWidth = pageFormat.getWidth();
+            double pageHeight = pageFormat.getHeight();
 
-                int mapImageULX = mapImage.getUpperLeftX();
-                int mapImageULY = mapImage.getUpperLeftY();
-                int mapImageWidth = mapImage.getWidth();
-                int mapImageHeight = mapImage.getHeight();
+            if (mapImage.getUpperLeftY() == -32768) {
+                mapImage.setWidth((int) (pageWidth - 2 * margin));
+                mapImage.setHeight((int) (pageHeight - 2 * margin));
+                mapImage.setUpperLeftX(margin);
+                mapImage.setUpperLeftY(margin);
 
+            }
+
+            int mapImageULX = mapImage.getUpperLeftX();
+            int mapImageULY = mapImage.getUpperLeftY();
+            int mapImageWidth = mapImage.getWidth();
+            int mapImageHeight = mapImage.getHeight();
+
+            try {
                 File imgSrc = new File(mapImage.getFileName());
                 if (imgSrc.exists()) {
                     BufferedImage bi = mapImage.getBufferedImage();
-                    if (!g2.drawImage(bi, mapImageULX, mapImageULY, mapImageWidth, mapImageHeight, this)) {
-                        g2.drawImage(bi, mapImageULX, mapImageULY, mapImageWidth, mapImageHeight, this);
-                    }
-
-                }
-                float lineWidth = mapImage.getLineWidth();
-
-                if (mapImage.isBorderVisible() || mapImage.isSelected()) {
-                    Stroke oldStroke = g2.getStroke();
-                    if (mapImage.isSelected() && !printingMap) {
-                        g2.setColor(selectedColour);
-                        g2.setStroke(dashed);
+                    if (bi == null) {
+                        Font oldFont = g2.getFont();
+                        Font newFont = new Font("SanSerif", Font.BOLD, 11);
+                        FontMetrics metrics = g2.getFontMetrics(newFont);
+                        int hgt = metrics.getHeight();
+                        String label = "Image unavailable";
+                        if (mapImageWidth < 0) {
+                            int adv = metrics.stringWidth(label);
+                            mapImage.setHeight(hgt + 2);
+                            mapImage.setWidth(adv + 2);
+                            mapImageWidth = mapImage.getWidth();
+                            mapImageHeight = mapImage.getHeight();
+                        }
+                        g2.setFont(newFont);
+                        g2.drawString(label, mapImageULX + 1, mapImageULY + hgt - 1);
+                        g2.setFont(oldFont);
                     } else {
-                        g2.setColor(mapImage.getBorderColour());
-                        g2.setStroke(new BasicStroke(lineWidth));
+                        if (!g2.drawImage(bi, mapImageULX, mapImageULY, mapImageWidth, mapImageHeight, this)) {
+                            g2.drawImage(bi, mapImageULX, mapImageULY, mapImageWidth, mapImageHeight, this);
+                        }
                     }
+                }
+            } catch (Exception e) {
+                Font oldFont = g2.getFont();
+                Font newFont = new Font("SanSerif", Font.BOLD, 11);
+                FontMetrics metrics = g2.getFontMetrics(newFont);
+                int hgt = metrics.getHeight();
+                String label = "Image unavailable";
+                if (mapImageWidth < 0) {
+                    int adv = metrics.stringWidth(label);
+                    mapImage.setHeight(hgt + 2);
+                    mapImage.setWidth(adv + 2);
+                    mapImageWidth = mapImage.getWidth();
+                    mapImageHeight = mapImage.getHeight();
+                }
+                g2.setFont(newFont);
+                g2.drawString(label, mapImageULX + 1, mapImageULY + hgt - 1);
+                g2.setFont(oldFont);
+            }
+            float lineWidth = mapImage.getLineWidth();
 
-                    g2.drawRect(mapImageULX,
-                            mapImageULY,
-                            mapImageWidth,
-                            mapImageHeight);
-                    g2.setStroke(oldStroke);
+            if (mapImage.isBorderVisible() || mapImage.isSelected()) {
+                Stroke oldStroke = g2.getStroke();
+                if (mapImage.isSelected() && !printingMap) {
+                    g2.setColor(selectedColour);
+                    g2.setStroke(dashed);
+                } else {
+                    g2.setColor(mapImage.getBorderColour());
+                    g2.setStroke(new BasicStroke(lineWidth));
                 }
 
-
+                g2.drawRect(mapImageULX,
+                        mapImageULY,
+                        mapImageWidth,
+                        mapImageHeight);
+                g2.setStroke(oldStroke);
             }
-        } catch (Exception e) {
-            // do nothing
+
+
         }
+
     }
 
     private void drawLegend(Graphics2D g2, Legend legend, BasicStroke dashed) {
@@ -2818,15 +2843,17 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     df = new DecimalFormat("###,###,###.#");
                     g2.setFont(labelFont);
                     metrics = g2.getFontMetrics(labelFont);
+                    float hgt = metrics.getAscent(); // + metrics.getDescent();
+//                    float refMarkOffset = (referenceMarkSize - hgt) / 2.0f;
 
                     label = df.format(currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
                     g2.drawString(label, viewAreaULX + 4, viewAreaULY - 3);
-                    g2.drawString(label, viewAreaULX + 4, viewAreaLRY + referenceMarkSize - 1);
+                    g2.drawString(label, viewAreaULX + 4, viewAreaLRY + hgt); //referenceMarkSize - 1);
 
                     label = df.format(currentExtent.getMaxX() + (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
                     adv = metrics.stringWidth(label) + 6;
                     g2.drawString(label, viewAreaLRX - adv, viewAreaULY - 3);
-                    g2.drawString(label, viewAreaLRX - adv, viewAreaLRY + referenceMarkSize - 1);
+                    g2.drawString(label, viewAreaLRX - adv, viewAreaLRY + hgt); //referenceMarkSize - 1);
 
                     // rotate the font
 

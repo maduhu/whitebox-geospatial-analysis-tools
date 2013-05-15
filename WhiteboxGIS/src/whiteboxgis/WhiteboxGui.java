@@ -16,6 +16,7 @@
  */
 package whiteboxgis;
 
+import whiteboxgis.user_interfaces.AboutWhitebox;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import whiteboxgis.user_interfaces.ToolDialog;
@@ -77,7 +78,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     StatusBar status = new StatusBar(this);
     // common variables
-    static private String versionNumber = "2.1.0 BETA (Milestone 2)";
+    static private String versionNumber = "'Iguazu' (v. 3.0)";
     private String applicationDirectory;
     private String resourcesDirectory;
     private String graphicsDirectory;
@@ -139,10 +140,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JTextField searchText = new JTextField();
     private JMenuItem menuChangePalette = null;
     private JMenuItem menuReversePalette = null;
-    private HashMap<String, ImageIcon> icons = new HashMap<String, ImageIcon>();
-    private HashMap<String, Font> fonts = new HashMap<String, Font>();
+    private HashMap<String, ImageIcon> icons = new HashMap<>();
+    private HashMap<String, Font> fonts = new HashMap<>();
     private JTextField scaleText = new JTextField();
     private PageFormat defaultPageFormat = new PageFormat();
+    private Font defaultFont = null;
 
     public static void main(String[] args) {
 
@@ -220,7 +222,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     public WhiteboxGui() {
-        super("Whitebox GAT v." + versionNumber);
+        super("Whitebox GAT " + versionNumber);
         try {
             // initialize the pathSep and GraphicsDirectory variables
             pathSep = File.separator;
@@ -573,6 +575,30 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (props.containsKey("hideAlignToolbar")) {
                     hideAlignToolbar = Boolean.parseBoolean(props.getProperty("hideAlignToolbar"));
                 }
+                String[] FONTS = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+                if (props.containsKey("defaultFont")) {
+                    String fontName = props.getProperty("defaultFont");
+                    for (String fnt : FONTS) {
+                        if (fnt.equals(fontName)) {
+                            defaultFont = new Font(fnt, Font.PLAIN, 11);
+                            break;
+                        }
+                    }
+                }
+                // See if the defaultFont was found. If not, see if Arial is available.
+                if (defaultFont == null) {
+                    String fontName = "arial";
+                    for (String fnt : FONTS) {
+                        if (fnt.toLowerCase().equals(fontName)) {
+                            defaultFont = new Font(fnt, Font.PLAIN, 11);
+                            break;
+                        }
+                    }
+                    if (defaultFont == null) { // if arial is not available go with the java SanSerif default.
+                        defaultFont = new Font("SanSerif", Font.PLAIN, 11);
+                    }
+                }
+                
                 // retrieve the plugin usage information
                 String[] pluginNames = props.getProperty("pluginNames").split(",");
                 String[] pluginUsage = props.getProperty("pluginUsage").split(",");
@@ -621,8 +647,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("workingDirectory", workingDirectory);
         props.setProperty("splitterLoc1", Integer.toString(splitPane.getDividerLocation() - 2));
         props.setProperty("splitterToolboxLoc", Integer.toString(qlTabs.getSize().height));
-        //props.setProperty("splitterLocTextArea",
-        //        Integer.toString(splitPane3.getDividerLocation()));
         props.setProperty("tbTabsIndex", Integer.toString(tb.getSelectedIndex()));
         props.setProperty("qlTabsIndex", Integer.toString(qlTabs.getSelectedIndex()));
         props.setProperty("defaultQuantPalette", defaultQuantPalette);
@@ -633,6 +657,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("defaultPageWidth", Double.toString(defaultPageFormat.getPaper().getWidth()));
         props.setProperty("printResolution", Integer.toString(getPrintResolution()));
         props.setProperty("hideAlignToolbar", Boolean.toString(hideAlignToolbar));
+        props.setProperty("defaultFont", defaultFont.getName());
 
         // set the tool usage properties
 
@@ -692,10 +717,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapinfo.setMapName("Map1");
             mapinfo.setPageFormat(defaultPageFormat);
             mapinfo.setWorkingDirectory(workingDirectory);
+            mapinfo.setDefaultFont(defaultFont);
 
             MapArea ma = new MapArea("MapArea1");
             ma.setUpperLeftX(-32768);
             ma.setUpperLeftY(-32768);
+            ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
             mapinfo.addNewCartographicElement(ma);
 
             openMaps.add(mapinfo);
@@ -761,17 +788,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // set the message indicating the number of plugins that were located.
             status.setMessage(" " + plugInfo.size() + " plugins were located");
-            
+
             pack();
             restoreDefaults();
         } catch (Exception e) {
             showFeedback(e.getMessage());
         }
     }
-    
+
     private void restoreDefaults() {
         SwingUtilities.invokeLater(new Runnable() {
-
             @Override
             public void run() {
                 splitPane3.setDividerLocation(1.0);
@@ -889,28 +915,28 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // View menu
             JMenu viewMenu = new JMenu("View");
-            
+
             selectMenuItem = new JCheckBoxMenuItem("Select Map Element", new ImageIcon(graphicsDirectory + "select.png"));
             viewMenu.add(selectMenuItem);
             selectMenuItem.addActionListener(this);
             selectMenuItem.setActionCommand("select");
-            
+
             selectFeatureMenuItem = new JCheckBoxMenuItem("Select Feature", new ImageIcon(graphicsDirectory + "SelectFeature.png"));
             viewMenu.add(selectFeatureMenuItem);
             selectFeatureMenuItem.addActionListener(this);
             selectFeatureMenuItem.setActionCommand("selectFeature");
-            
+
             panMenuItem = new JCheckBoxMenuItem("Pan", new ImageIcon(graphicsDirectory + "Pan2.png"));
             viewMenu.add(panMenuItem);
             panMenuItem.addActionListener(this);
             panMenuItem.setActionCommand("pan");
-            
+
             zoomMenuItem = new JCheckBoxMenuItem("Zoom In", new ImageIcon(graphicsDirectory + "ZoomIn.png"));
             viewMenu.add(zoomMenuItem);
             zoomMenuItem.addActionListener(this);
             zoomMenuItem.setActionCommand("zoomToBox");
             zoomMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            
+
             zoomOutMenuItem = new JCheckBoxMenuItem("Zoom Out", new ImageIcon(graphicsDirectory + "ZoomOut.png"));
             viewMenu.add(zoomOutMenuItem);
             zoomOutMenuItem.addActionListener(this);
@@ -922,19 +948,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewMenu.add(zoomToFullExtent);
             zoomToFullExtent.addActionListener(this);
             zoomToFullExtent.setActionCommand("zoomToFullExtent");
-            
+
             JMenuItem zoomToPage = new JMenuItem("Zoom to Page", new ImageIcon(graphicsDirectory + "ZoomToPage.png"));
             //zoomToPage.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             viewMenu.add(zoomToPage);
             zoomToPage.addActionListener(this);
             zoomToPage.setActionCommand("zoomToPage");
-            
+
 //            JMenuItem zoomIn = new JMenuItem("Zoom In", new ImageIcon(graphicsDirectory + "ZoomIn.png"));
 //            viewMenu.add(zoomIn);
 //            zoomIn.addActionListener(this);
 //            zoomIn.setActionCommand("zoomIn");
 //            zoomIn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            
+
             selectMenuItem.setState(true);
             selectFeatureMenuItem.setState(false);
             zoomMenuItem.setState(false);
@@ -969,7 +995,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewMenu.add(previousExtent);
             previousExtent.addActionListener(this);
             previousExtent.setActionCommand("previousExtent");
-            
+
             JMenuItem nextExtent = new JMenuItem("Next Extent", new ImageIcon(graphicsDirectory + "forward.png"));
             viewMenu.add(nextExtent);
             nextExtent.addActionListener(this);
@@ -1046,7 +1072,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             cartoMenu.add(insertImage);
             insertImage.addActionListener(this);
             insertImage.setActionCommand("insertImage");
-            
+
             cartoMenu.addSeparator();
 
             JMenuItem pageProps = new JMenuItem("Page Properties", new ImageIcon(graphicsDirectory + "page.png"));
@@ -1163,7 +1189,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         menuReversePalette.addActionListener(this);
         menuReversePalette.setActionCommand("reversePalette");
         layersPopup.add(menuReversePalette);
-        
+
         mi = new JMenuItem("Toggle Layer Visibility In Legend");
         mi.addActionListener(this);
         mi.setActionCommand("toggleLayerVisibilityInLegend");
@@ -1462,7 +1488,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         cartoToolbar.add(distributeHorizontally);
 
         cartoToolbar.setOrientation(1);
-        if (!hideAlignToolbar) { 
+        if (!hideAlignToolbar) {
             cartoToolbar.setVisible(true);
         } else {
             cartoToolbar.setVisible(false);
@@ -1519,7 +1545,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.add(zoomToFullExtent);
             JButton zoomToPage = makeToolBarButton("ZoomFullExtent3.png", "zoomToPage", "Zoom To Page", "Zoom To Page");
             toolbar.add(zoomToPage);
-            
+
 //            JButton zoomToActiveLayer = makeToolBarButton("ZoomToActiveLayer.png", "zoomToLayer", "Zoom To Active Layer", "Zoom To Active");
 //            toolbar.add(zoomToActiveLayer);
 //            JButton zoomIn = makeToolBarButton("ZoomIn.png", "zoomIn", "Zoom In", "Zoom In");
@@ -2478,6 +2504,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
                 }
             }
+            if (files.length > 1) {
+                // zoom to full extent
+                BoundingBox db = activeMapArea.getFullExtent();
+                activeMapArea.setCurrentExtent(db.clone());
+            }
             activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
         }
         refreshMap(true);
@@ -2520,10 +2551,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapinfo.setMapName(str);
             mapinfo.setWorkingDirectory(workingDirectory);
             mapinfo.setPageFormat(defaultPageFormat);
+            mapinfo.setDefaultFont(defaultFont);
 
             MapArea ma = new MapArea("MapArea1");
             ma.setUpperLeftX(-32768);
             ma.setUpperLeftY(-32768);
+            ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
             mapinfo.addNewCartographicElement(ma);
 
             openMaps.add(mapinfo); //new MapInfo(str));
@@ -2987,7 +3020,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         selectedMapAndLayer[1] = -1;
         selectedMapAndLayer[2] = -1;
     }
-    
+
     private void setAsActiveMap() {
         if (selectedMapAndLayer[0] != -1) {
             activeMap = selectedMapAndLayer[0];
@@ -3993,6 +4026,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         return printResolution;
     }
 
+    public Font getDefaultFont() {
+        return defaultFont;
+    }
+
+    public void setDefaultFont(Font font) {
+        this.defaultFont = font;
+        if (openMaps.size() > 0) {
+            for (MapInfo mi : openMaps) {
+                mi.setDefaultFont(font);
+            }
+        }
+    }
+
     public boolean isHideAlignToolbar() {
         return hideAlignToolbar;
     }
@@ -4012,12 +4058,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         int result = ifc.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = ifc.getSelectedFile();
-            String selectedFile = file.toString();       
+            String selectedFile = file.toString();
             openMaps.get(activeMap).addMapImage(selectedFile);
             refreshMap(false);
         }
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e) {
         //Object source = e.getSource();
@@ -4093,7 +4139,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             pan.setBorderPainted(false);
             select.setBorderPainted(false);
             selectFeature.setBorderPainted(false);
-            
+
             selectMenuItem.setState(false);
             selectFeatureMenuItem.setState(false);
             zoomMenuItem.setState(false);
@@ -4116,7 +4162,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             pan.setBorderPainted(false);
             select.setBorderPainted(false);
             selectFeature.setBorderPainted(false);
-            
+
             selectMenuItem.setState(false);
             selectFeatureMenuItem.setState(false);
             zoomMenuItem.setState(true);
@@ -4129,7 +4175,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             pan.setBorderPainted(true);
             select.setBorderPainted(false);
             selectFeature.setBorderPainted(false);
-            
+
             selectMenuItem.setState(false);
             selectFeatureMenuItem.setState(false);
             zoomMenuItem.setState(false);
@@ -4142,7 +4188,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             pan.setBorderPainted(false);
             select.setBorderPainted(true);
             selectFeature.setBorderPainted(false);
-            
+
             selectMenuItem.setState(true);
             selectFeatureMenuItem.setState(false);
             zoomMenuItem.setState(false);
@@ -4155,13 +4201,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             pan.setBorderPainted(false);
             select.setBorderPainted(false);
             selectFeature.setBorderPainted(true);
-            
+
             selectMenuItem.setState(false);
             selectFeatureMenuItem.setState(true);
             zoomMenuItem.setState(false);
             zoomOutMenuItem.setState(false);
             panMenuItem.setState(false);
-            
+
             tabs.setSelectedIndex(2);
         } else if (actionCommand.equals("nextExtent")) {
             nextExtent();
