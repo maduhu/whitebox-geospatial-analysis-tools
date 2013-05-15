@@ -147,10 +147,10 @@ public class MapInfo implements java.io.Serializable {
     public void zoomOut(int x, int y) {
         double rangeX = Math.abs(pageBox.getMaxX() - pageBox.getMinX());
         double rangeY = Math.abs(pageBox.getMaxY() - pageBox.getMinY());
-        pageBox.setMinX(x - (rangeX * 1.1) / 2.0);
-        pageBox.setMinY(y - (rangeY * 1.1) / 2.0);
-        pageBox.setMaxX(x + (rangeX * 1.1) / 2.0);
-        pageBox.setMaxY(y + (rangeY * 1.1) / 2.0);
+        pageBox.setMinX(x - (rangeX * 1.15) / 2.0);
+        pageBox.setMinY(y - (rangeY * 1.15) / 2.0);
+        pageBox.setMaxX(x + (rangeX * 1.15) / 2.0);
+        pageBox.setMaxY(y + (rangeY * 1.15) / 2.0);
     }
     
     /**
@@ -161,10 +161,19 @@ public class MapInfo implements java.io.Serializable {
     public void zoomIn(int x, int y) {
         double rangeX = Math.abs(pageBox.getMaxX() - pageBox.getMinX());
         double rangeY = Math.abs(pageBox.getMaxY() - pageBox.getMinY());
-        pageBox.setMinX(x - (rangeX * 0.9) / 2.0);
-        pageBox.setMinY(y - (rangeY * 0.9) / 2.0);
-        pageBox.setMaxX(x + (rangeX * 0.9) / 2.0);
-        pageBox.setMaxY(y + (rangeY * 0.9) / 2.0);
+        pageBox.setMinX(x - (rangeX * 0.85) / 2.0);
+        pageBox.setMinY(y - (rangeY * 0.85) / 2.0);
+        pageBox.setMaxX(x + (rangeX * 0.85) / 2.0);
+        pageBox.setMaxY(y + (rangeY * 0.85) / 2.0);
+    }
+    
+    public void zoom(int x, int y, double factor) {
+        double rangeX = Math.abs(pageBox.getMaxX() - pageBox.getMinX());
+        double rangeY = Math.abs(pageBox.getMaxY() - pageBox.getMinY());
+        pageBox.setMinX(x - (rangeX * factor) / 2.0);
+        pageBox.setMinY(y - (rangeY * factor) / 2.0);
+        pageBox.setMaxX(x + (rangeX * factor) / 2.0);
+        pageBox.setMaxY(y + (rangeY * factor) / 2.0);
     }
     
     public void addMapTitle() {
@@ -235,6 +244,19 @@ public class MapInfo implements java.io.Serializable {
         listOfCartographicElements.add(ce);
     }
 
+    public void addMapImage(String fileName) {
+        // how many neat lines are there already?
+        int i = 0;
+        for (CartographicElement ce : listOfCartographicElements) {
+            if (ce instanceof MapImage) {
+                i++;
+            }
+        }
+        String name = "MapImage" + (i + 1);
+        CartographicElement ce = new MapImage(name, fileName);
+        addNewCartographicElement(ce);
+    }
+    
     public void addLegend() {
         // how many legends are there already?
         int i = 0;

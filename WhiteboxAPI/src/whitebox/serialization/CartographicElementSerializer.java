@@ -134,6 +134,16 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.add("borderColour", gson.toJsonTree(na.getBorderColour()));
                     jo.add("outlineColour", gson.toJsonTree(na.getOutlineColour()));
                     break;
+                case MAPIMAGE:
+                    MapImage mi = (MapImage) t;
+                    jo.addProperty("height", mi.getHeight());
+                    jo.addProperty("width", mi.getWidth());
+                    jo.addProperty("lineWidth", mi.getLineWidth());
+                    jo.addProperty("isBorderVisible", mi.isBorderVisible());
+                    jo.add("borderColour", gson.toJsonTree(mi.getBorderColour()));
+                    jo.addProperty("fileName", mi.getFileName());
+                    jo.addProperty("maintainAspectRatio", mi.isMaintainAspectRatio());
+                    break;
                 case MAPSCALE:
                     MapScale ms = (MapScale) t;
                     jo.addProperty("barLength", ms.getBarLength());

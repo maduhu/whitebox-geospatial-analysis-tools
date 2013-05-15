@@ -174,6 +174,19 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 clr = gson.fromJson(jo.get("outlineColour"), clrType);
                 na.setOutlineColour(clr);
                 return na;
+            case "MAPIMAGE":
+                String fileName = jo.getAsJsonPrimitive("fileName").getAsString();
+                MapImage mi = new MapImage(name, fileName);
+                mi.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
+                mi.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
+                mi.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
+                mi.setElementNumber(jo.getAsJsonPrimitive("elementNumber").getAsInt());
+                mi.setLineWidth(jo.getAsJsonPrimitive("lineWidth").getAsFloat());
+                mi.setBorderVisible(jo.getAsJsonPrimitive("isBorderVisible").getAsBoolean());
+                clr = gson.fromJson(jo.get("borderColour"), clrType);
+                mi.setBorderColour(clr);
+                mi.setMaintainAspectRatio(jo.getAsJsonPrimitive("maintainAspectRatio").getAsBoolean());
+                return mi;
 
             case "NEATLINE":
                 Neatline nl = new Neatline(name);

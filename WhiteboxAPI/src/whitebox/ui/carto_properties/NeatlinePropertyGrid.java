@@ -109,7 +109,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             //this.setPreferredSize(new Dimension(preferredWidth, 500));
             
             
-            neatlineVisible = new BooleanProperty("Is the title visible?", 
+            neatlineVisible = new BooleanProperty("Is the neatline visible?", 
                     neatline.isVisible());
             neatlineVisible.setLeftMargin(leftMargin);
             neatlineVisible.setRightMargin(rightMargin);

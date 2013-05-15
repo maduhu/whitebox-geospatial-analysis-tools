@@ -109,7 +109,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
 //            this.setPreferredSize(new Dimension(preferredWidth, 500));
             
             
-            northArrowVisible = new BooleanProperty("Is the title visible?", 
+            northArrowVisible = new BooleanProperty("Is the arrow visible?", 
                     northArrow.isVisible());
             northArrowVisible.setLeftMargin(leftMargin);
             northArrowVisible.setRightMargin(rightMargin);

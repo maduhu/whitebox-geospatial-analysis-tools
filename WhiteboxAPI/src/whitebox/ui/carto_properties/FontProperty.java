@@ -129,7 +129,7 @@ public class FontProperty extends JComponent implements MouseListener {
         label.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
         this.add(label);
         this.add(Box.createHorizontalGlue());
-        fontName = new JTextField(value.getFontName(), textboxWidth);
+        fontName = new JTextField(value.getName(), textboxWidth);
         fontName.setMaximumSize(new Dimension(Integer.MAX_VALUE,
                 fontName.getPreferredSize().height));
         fontName.setToolTipText("Click to select new font.");
@@ -161,7 +161,7 @@ public class FontProperty extends JComponent implements MouseListener {
             Font newFont = fontChooser.showDialog(this, "Choose a font");
             if (newFont != null) {
                 this.setValue(newFont);
-                fontName.setText(newFont.getFontName());
+                fontName.setText(newFont.getName());
             }
             
         }

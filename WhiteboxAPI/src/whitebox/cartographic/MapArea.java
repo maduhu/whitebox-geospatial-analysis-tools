@@ -594,6 +594,16 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         addToExtentHistory(currentExtent);
     }
     
+    public void zoomIn(double x, double y) {
+        double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+        double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
+        currentExtent.setMinX(x - (rangeX * 0.85) / 2.0);
+        currentExtent.setMinY(y - (rangeY * 0.85) / 2.0);
+        currentExtent.setMaxX(x + (rangeX * 0.85) / 2.0);
+        currentExtent.setMaxY(y + (rangeY * 0.85) / 2.0);
+        addToExtentHistory(currentExtent);
+    }
+    
     public void zoomOut() {
         double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
         double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
@@ -606,6 +616,26 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         currentExtent.setMinX(z - rangeX * 0.1);
         z = currentExtent.getMaxX();
         currentExtent.setMaxX(z + rangeX * 0.1);
+        addToExtentHistory(currentExtent);
+    }
+    
+    public void zoomOut(double x, double y) {
+        double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+        double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
+        currentExtent.setMinX(x - (rangeX * 1.15) / 2.0);
+        currentExtent.setMinY(y - (rangeY * 1.15) / 2.0);
+        currentExtent.setMaxX(x + (rangeX * 1.15) / 2.0);
+        currentExtent.setMaxY(y + (rangeY * 1.15) / 2.0);
+        addToExtentHistory(currentExtent);
+    }
+    
+    public void zoom(double x, double y, double factor) {
+        double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+        double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
+        currentExtent.setMinX(x - (rangeX * factor) / 2.0);
+        currentExtent.setMinY(y - (rangeY * factor) / 2.0);
+        currentExtent.setMaxX(x + (rangeX * factor) / 2.0);
+        currentExtent.setMaxY(y + (rangeY * factor) / 2.0);
         addToExtentHistory(currentExtent);
     }
     

@@ -17,38 +17,66 @@
 package whitebox.cartographic;
 
 import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
 import whitebox.interfaces.CartographicElement;
 
 /**
  *
  * @author johnlindsay
  */
-public class Neatline implements CartographicElement, Comparable<CartographicElement> {
-    private String cartoElementType = "Neatline";
-    
-    int upperLeftX = -32768;
-    int upperLeftY = -32768;
-    int height = -1; // in points
-    int width = -1; // in points
-    boolean visible = true;
-    boolean borderVisible = true;
-    boolean backgroundVisible = true;
-    boolean selected = false;
-    boolean doubleLine = true;
-    int doubleLineGap = 2;
-    float innerLineWidth = 0.75f;
-    float outerLineWidth = 1.5f;
-    Color borderColour = Color.BLACK;
-    Color backgroundColour = Color.WHITE;
-    int number = -1;
-    String name = "Neatline";
+public class MapImage implements CartographicElement, Comparable<CartographicElement> {
+
+    private String cartoElementType = "MapImage";
+    private int upperLeftX = 0;
+    private int upperLeftY = 0;
+    private int height = -1; // in points
+    private int width = -1; // in points
+    private int imageHeight = -1;
+    private int imageWidth = -1;
+    private double aspectRatio = 0;
+    private boolean visible = true;
+    private boolean borderVisible = true;
+    private boolean selected = false;
+    private Color borderColour = Color.BLACK;
+    private float lineWidth = 0.75f;
+    private int number = -1;
+    private String name = "MapImage";
     private int selectedOffsetX;
     private int selectedOffsetY;
-    
-    public Neatline(String name) {
-        this.name = name;
+    private String fileName = "";
+    private BufferedImage bufferedImage = null;
+    private boolean maintainAspectRatio = false;
+
+    public MapImage() {
+        // no-arg constructor
     }
-    
+
+    public MapImage(String name, String fileName) {
+        this.name = name;
+        this.fileName = fileName;
+        init();
+    }
+
+    private void init() {
+        try {
+            // figure out the width and hieght of an image
+            File imgSrc = new File(fileName);
+            if (imgSrc.exists()) {
+                BufferedImage img = ImageIO.read(imgSrc);
+                width = img.getWidth(null);
+                height = img.getHeight(null);
+                bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                Graphics g = bufferedImage.getGraphics();
+                g.drawImage(img, 0, 0, null);
+            }
+        } catch (Exception e) {
+            // do nothing.
+        }
+    }
+
     @Override
     public boolean isVisible() {
         return visible;
@@ -89,12 +117,21 @@ public class Neatline implements CartographicElement, Comparable<CartographicEle
         this.name = name;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+        init();
+    }
+
     @Override
     public int compareTo(CartographicElement other) {
         final int BEFORE = -1;
         final int EQUAL = 0;
         final int AFTER = 1;
-        
+
         // compare them based on their element (overlay) numbers
         if (this.number < other.getElementNumber()) {
             return BEFORE;
@@ -104,7 +141,7 @@ public class Neatline implements CartographicElement, Comparable<CartographicEle
 
         return EQUAL;
     }
-    
+
     @Override
     public int getUpperLeftX() {
         return upperLeftX;
@@ -124,7 +161,7 @@ public class Neatline implements CartographicElement, Comparable<CartographicEle
     public void setUpperLeftY(int upperLeftY) {
         this.upperLeftY = upperLeftY;
     }
-    
+
     @Override
     public int getLowerRightX() {
         return upperLeftX + width;
@@ -134,7 +171,7 @@ public class Neatline implements CartographicElement, Comparable<CartographicEle
     public int getLowerRightY() {
         return upperLeftY + height;
     }
-    
+
     @Override
     public int getSelectedOffsetX() {
         return selectedOffsetX;
@@ -154,32 +191,29 @@ public class Neatline implements CartographicElement, Comparable<CartographicEle
     public void setSelectedOffsetY(int selectedOffsetY) {
         this.selectedOffsetY = selectedOffsetY;
     }
-    
+
     public int getWidth() {
         return width;
     }
-    
+
     public void setWidth(int width) {
         this.width = width;
-        
+        if (maintainAspectRatio) {
+            this.height = (int) (width / aspectRatio);
+        }
     }
-    
+
     public int getHeight() {
         return height;
     }
-    
+
     public void setHeight(int height) {
         this.height = height;
+        if (maintainAspectRatio) {
+            this.width = (int) (height * aspectRatio);
+        }
     }
 
-    public Color getBackgroundColour() {
-        return backgroundColour;
-    }
-
-    public void setBackgroundColour(Color backgroundColour) {
-        this.backgroundColour = backgroundColour;
-    }
-    
     public Color getBorderColour() {
         return borderColour;
     }
@@ -196,128 +230,116 @@ public class Neatline implements CartographicElement, Comparable<CartographicEle
         this.borderVisible = borderVisible;
     }
 
-    public boolean isBackgroundVisible() {
-        return backgroundVisible;
+    public float getLineWidth() {
+        return lineWidth;
     }
 
-    public void setBackgroundVisible(boolean backgroundVisible) {
-        this.backgroundVisible = backgroundVisible;
+    public void setLineWidth(float lineWidth) {
+        this.lineWidth = lineWidth;
     }
 
-    public boolean isDoubleLine() {
-        return doubleLine;
+    public BufferedImage getBufferedImage() {
+        if (bufferedImage == null) {
+            init();
+        }
+        return bufferedImage;
     }
 
-    public void setDoubleLine(boolean doubleLine) {
-        this.doubleLine = doubleLine;
+    public boolean isMaintainAspectRatio() {
+        return maintainAspectRatio;
     }
 
-    public int getDoubleLineGap() {
-        return doubleLineGap;
+    public void setMaintainAspectRatio(boolean maintainAspectRatio) {
+        imageWidth = width;
+        imageHeight = height;
+        aspectRatio = (double) (width) / height;
+        this.maintainAspectRatio = maintainAspectRatio;
     }
 
-    public void setDoubleLineGap(int doubleLineGap) {
-        this.doubleLineGap = doubleLineGap;
-    }
-
-    public float getInnerLineWidth() {
-        return innerLineWidth;
-    }
-
-    public void setInnerLineWidth(float innerLineWidth) {
-        this.innerLineWidth = innerLineWidth;
-    }
-
-    public float getOuterLineWidth() {
-        return outerLineWidth;
-    }
-
-    public void setOuterLineThickness(float outerLineWidth) {
-        this.outerLineWidth = outerLineWidth;
-    }
-    
-    
-    
     @Override
     public void resize(int x, int y, int resizeMode) {
-        int minSize = 50;
+        int minSize = 1;
         int deltaX, deltaY;
+        int w = width, h = height;
         switch (resizeMode) {
             case 0: // off the north edge
                 deltaY = y - upperLeftY;
-                if (height - deltaY >= minSize) {
+                if (h - deltaY >= minSize) {
                     upperLeftY = y;
-                    height -= deltaY;
+                    h -= deltaY;
                 }
                 break;
             case 1: // off the south edge
-                deltaY = y - (upperLeftY + height);
-                if (height + deltaY >= minSize) {
-                    height += deltaY;
+                deltaY = y - (upperLeftY + h);
+                if (h + deltaY >= minSize) {
+                    h += deltaY;
                 }
                 break;
             case 2: // off the east edge
-                deltaX = x - (upperLeftX + width);
-                if (width + deltaX >= minSize) {
-                    width += deltaX;
+                deltaX = x - (upperLeftX + w);
+                if (w + deltaX >= minSize) {
+                    w += deltaX;
                 }
                 break;
             case 3: // off the west edge
                 deltaX = x - upperLeftX;
-                if (width - deltaX >= minSize) {
+                if (w - deltaX >= minSize) {
                     upperLeftX = x;
-                    width -= deltaX;
+                    w -= deltaX;
                 }
                 break;
             case 4: // off the northeast edge
                 deltaY = y - upperLeftY;
-                if (height - deltaY >= minSize) {
+                if (h - deltaY >= minSize) {
                     upperLeftY = y;
-                    height -= deltaY;
+                    h -= deltaY;
                 }
-                deltaX = x - (upperLeftX + width);
-                if (width + deltaX >= minSize) {
-                    width += deltaX;
+                deltaX = x - (upperLeftX + w);
+                if (w + deltaX >= minSize) {
+                    w += deltaX;
                 }
                 break;
             case 5: // off the northwest edge
                 deltaY = y - upperLeftY;
-                if (height - deltaY >= minSize) {
+                if (h - deltaY >= minSize) {
                     upperLeftY = y;
-                    height -= deltaY;
+                    h -= deltaY;
                 }
                 deltaX = x - upperLeftX;
-                if (width - deltaX >= minSize) {
+                if (w - deltaX >= minSize) {
                     upperLeftX = x;
-                    width -= deltaX;
+                    w -= deltaX;
                 }
                 break;
             case 6: // off the southeast edge
-                deltaY = y - (upperLeftY + height);
-                if (height + deltaY >= minSize) {
-                    height += deltaY;
+                deltaY = y - (upperLeftY + h);
+                if (h + deltaY >= minSize) {
+                    h += deltaY;
                 }
-                deltaX = x - (upperLeftX + width);
-                if (width + deltaX >= minSize) {
-                    width += deltaX;
+                deltaX = x - (upperLeftX + w);
+                if (w + deltaX >= minSize) {
+                    w += deltaX;
                 }
                 break;
             case 7: // off the southwest edge
-                deltaY = y - (upperLeftY + height);
-                if (height + deltaY >= minSize) {
-                    height += deltaY;
+                deltaY = y - (upperLeftY + h);
+                if (h + deltaY >= minSize) {
+                    h += deltaY;
                 }
                 deltaX = x - upperLeftX;
-                if (width - deltaX >= minSize) {
+                if (w - deltaX >= minSize) {
                     upperLeftX = x;
-                    width -= deltaX;
+                    w -= deltaX;
                 }
                 break;
         }
+        // this will take care of the case of maintainAspectRatio being set to true;
+        height = h;
+        setWidth(w);
     }
-    
+
     @Override
-    public CartographicElementType getCartographicElementType() {
-        return CartographicElementType.NEATLINE;
+    public CartographicElement.CartographicElementType getCartographicElementType() {
+        return CartographicElement.CartographicElementType.NEATLINE;
     }
 }
