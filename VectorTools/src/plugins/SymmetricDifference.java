@@ -352,19 +352,19 @@ public class SymmetricDifference implements WhiteboxPlugin {
 
             fields[0] = new DBFField();
             fields[0].setName("FID");
-            fields[0].setDataType(DBFField.FIELD_TYPE_N);
+            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
 
             fields[1] = new DBFField();
             fields[1].setName("PARENT1_ID");
-            fields[1].setDataType(DBFField.FIELD_TYPE_N);
+            fields[1].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[1].setFieldLength(10);
             fields[1].setDecimalCount(0);
 
             fields[2] = new DBFField();
             fields[2].setName("PARENT2_ID");
-            fields[2].setDataType(DBFField.FIELD_TYPE_N);
+            fields[2].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[2].setFieldLength(10);
             fields[2].setDecimalCount(0);
             

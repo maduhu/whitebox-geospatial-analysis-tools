@@ -19,12 +19,6 @@ package plugins;
 import java.util.List;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.*;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGON;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGONM;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGONZ;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINE;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINEM;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINEZ;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -256,7 +250,7 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
             
             fields[0] = new DBFField();
             fields[0].setName("VALUE");
-            fields[0].setDataType(DBFField.FIELD_TYPE_N);
+            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(4);
             

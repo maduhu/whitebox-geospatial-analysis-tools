@@ -236,7 +236,7 @@ public class MinimumConvexHull implements WhiteboxPlugin {
 
             fields[0] = new DBFField();
             fields[0].setName("FID");
-            fields[0].setDataType(DBFField.FIELD_TYPE_N);
+            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
 
