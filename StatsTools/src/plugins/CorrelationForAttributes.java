@@ -191,8 +191,8 @@ public class CorrelationForAttributes implements WhiteboxPlugin {
             for (j = 0; j < fieldNames.length; j++) {
                 for (i = 0; i < fields.length; i++) {
                     if (fields[i].getName().equals(fieldNames[j]) && 
-                            (fields[i].getDataType() == DBFField.FIELD_TYPE_N ||
-                            fields[i].getDataType() == DBFField.FIELD_TYPE_F)) {
+                            (fields[i].getDataType() == DBFField.DBFDataType.NUMERIC ||
+                            fields[i].getDataType() == DBFField.DBFDataType.FLOAT)) {
                         PCAFields.add(i);
                     }
                 }

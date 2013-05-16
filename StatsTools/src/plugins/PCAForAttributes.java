@@ -220,8 +220,8 @@ public class PCAForAttributes implements WhiteboxPlugin {
             for (j = 0; j < fieldNames.length; j++) {
                 for (i = 0; i < fields.length; i++) {
                     if (fields[i].getName().equals(fieldNames[j]) && 
-                            (fields[i].getDataType() == DBFField.FIELD_TYPE_N ||
-                            fields[i].getDataType() == DBFField.FIELD_TYPE_F)) {
+                            (fields[i].getDataType() == DBFField.DBFDataType.NUMERIC ||
+                            fields[i].getDataType() == DBFField.DBFDataType.FLOAT)) {
                         PCAFields.add(i);
                     }
                 }
@@ -369,7 +369,7 @@ public class PCAForAttributes implements WhiteboxPlugin {
                     DBFField field = new DBFField();
                     field = new DBFField();
                     field.setName("COMP" + (j + 1));
-                    field.setDataType(DBFField.FIELD_TYPE_N);
+                    field.setDataType(DBFField.DBFDataType.NUMERIC);
                     field.setFieldLength(10);
                     field.setDecimalCount(4);
                     table.addField(field);
