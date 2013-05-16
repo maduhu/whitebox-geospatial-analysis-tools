@@ -279,8 +279,8 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
 
                 if (field.getName().equals(assignmentFieldName)) {
                     assignmentFieldNum = i;
-                    if (field.getDataType() == DBFField.FIELD_TYPE_N
-                            || field.getDataType() == DBFField.FIELD_TYPE_F) {
+                    if (field.getDataType() == DBFField.DBFDataType.NUMERIC
+                            || field.getDataType() == DBFField.DBFDataType.FLOAT) {
                         if (field.getDecimalCount() == 0) {
                             dataType = WhiteboxRasterBase.DataType.INTEGER;
                         } else {
