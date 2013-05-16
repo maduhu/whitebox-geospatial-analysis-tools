@@ -123,8 +123,9 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
         DefaultListModel model = new DefaultListModel();
         if (shapefile == null) { return; }
         if (new File(shapefile.replace(".shp", ".dbf")).exists()) {
-            AttributeTable table = new AttributeTable(shapefile.replace(".shp", ".dbf"));
+            
             try {
+                AttributeTable table = new AttributeTable(shapefile.replace(".shp", ".dbf"));
                 DBFField[] fields = table.getAllFields();
                 for (DBFField field : fields) {
                     model.add(model.size(), field.getName());

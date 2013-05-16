@@ -2838,7 +2838,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                 if (numLayers > 0) {
                     Font labelFont = mapArea.getLabelFont(); //new Font("SanSerif", Font.PLAIN, 10);
-                    XYUnits = mapArea.getXYUnits();
+                    XYUnits = mapArea.getXYUnits().trim();
+                    if (!XYUnits.isEmpty()) {
+                        String tmpStr = " " + XYUnits;
+                        XYUnits = tmpStr;
+                    }
                     // labels
                     df = new DecimalFormat("###,###,###.#");
                     g2.setFont(labelFont);
@@ -2851,7 +2855,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     g2.drawString(label, viewAreaULX + 4, viewAreaLRY + hgt); //referenceMarkSize - 1);
 
                     label = df.format(currentExtent.getMaxX() + (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
-                    adv = metrics.stringWidth(label) + 6;
+                    adv = metrics.stringWidth(label) + 3;
                     g2.drawString(label, viewAreaLRX - adv, viewAreaULY - 3);
                     g2.drawString(label, viewAreaLRX - adv, viewAreaLRY + hgt); //referenceMarkSize - 1);
 
@@ -2869,17 +2873,14 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                     fontHeight = labelFont.getSize();
 
-                    metrics = g2.getFontMetrics(labelFont); //theDerivedFont);
+                    metrics = g2.getFontMetrics(labelFont);
 
-                    //Rectangle2D rect = metrics.getStringBounds(label, g);
                     label = df.format(currentExtent.getMaxY() + (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
-                    adv = metrics.stringWidth(label) + 6;
-                    //adv = (int)rect.getWidth();
+                    adv = metrics.stringWidth(label) + 3;
                     g2.drawString(label, viewAreaULX - 3, viewAreaULY + adv);
                     g2.drawString(label, viewAreaLRX + fontHeight, viewAreaULY + adv);
 
                     label = df.format(currentExtent.getMinY() - (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
-                    //adv = metrics.stringWidth(label);
                     g2.drawString(label, viewAreaULX - 3, viewAreaLRY - 4);
                     g2.drawString(label, viewAreaLRX + fontHeight, viewAreaLRY - 4);
 
@@ -3272,7 +3273,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         if (clickCount == 2 && (myMode == MOUSE_MODE_CARTO_ELEMENT
                 || myMode == MOUSE_MODE_MAPAREA) && !usingDistanceTool
                 && backgroundMouseMode != MOUSE_MODE_ZOOM
-                && backgroundMouseMode != MOUSE_MODE_ZOOMOUT) {
+                && backgroundMouseMode != MOUSE_MODE_ZOOMOUT &&
+                !modifyingPixels) {
             if (host instanceof WhiteboxGui) { //SwingUtilities.getRoot(this) instanceof WhiteboxGui) {
                 WhiteboxGui wb = (WhiteboxGui) host;
                 wb.showMapProperties(whichCartoElement);
@@ -3280,7 +3282,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
         } else if (backgroundMouseMode == MOUSE_MODE_ZOOMOUT
                 && button != 3 && !isPopupTrigger
-                && !usingDistanceTool) {
+                && !usingDistanceTool && !modifyingPixels) {
             if (myMode != MOUSE_MODE_MAPAREA) {
                 int x = (int) ((e.getX() - pageLeft) / scale);
                 int y = (int) ((e.getY() - pageTop) / scale);
@@ -3300,7 +3302,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             }
         } else if (backgroundMouseMode == MOUSE_MODE_ZOOM
                 && button != 3 && !isPopupTrigger
-                && !usingDistanceTool) {
+                && !usingDistanceTool && !modifyingPixels) {
             if (myMode != MOUSE_MODE_MAPAREA) {
                 int x = (int) ((e.getX() - pageLeft) / scale);
                 int y = (int) ((e.getY() - pageTop) / scale);
@@ -3355,6 +3357,12 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     modifyPixelsX = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
 
                     GridCell point = mapArea.getRowAndColumn(modifyPixelsX, modifyPixelsY);
+                    
+                    modifyPixelsY = mapArea.getYCoordinateFromRow(point.row);
+                    modifyPixelsX = mapArea.getXCoordinateFromColumn(point.col);
+                    
+                    //mapArea.get
+                    
                     if (point.row >= 0) {
                         host.refreshMap(false);
                         RasterLayerInfo rli = (RasterLayerInfo) mapArea.getActiveLayer();

@@ -24,6 +24,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -34,6 +35,7 @@ import javax.swing.table.TableColumn;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 
 /**
  * This class is used to report the attributes of a selected feature from a
@@ -73,7 +75,11 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
     }
 
     public void setShapeFileName(String shapeFileName) {
-        this.shape = new ShapeFile(shapeFileName);
+        try {
+            this.shape = new ShapeFile(shapeFileName);
+        } catch (IOException ioe) {
+            
+        }
         createGui();
     }
 
@@ -146,14 +152,15 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             }
 
             int numColumns = 2;
-            int numRows = shape.attributeTable.getFieldCount() + 1;
+            AttributeTable attributeTable = shape.getAttributeTable();
+            int numRows = shape.getAttributeTable().getFieldCount() + 1;
             //String[] ch = shape.attributeTable.getAttributeTableFieldNames();
-            fields = shape.attributeTable.getAllFields();
+            fields = attributeTable.getAllFields();
             String[] columnHeaders = {"Attribute", "Value"};
             Object[][] data = new Object[numRows][numColumns];
             data[0][0] = "FID";
             if (selectedFeature >= 0) {
-                Object[] rowData = shape.attributeTable.getRecord(selectedFeature);
+                Object[] rowData = attributeTable.getRecord(selectedFeature);
                 for (int a = 0; a < numRows - 1; a++) {
                     data[a + 1][0] = fields[a].getName(); //ch[a];
                     data[a + 1][1] = String.valueOf(rowData[a]);
@@ -210,11 +217,12 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             DefaultTableModel tm = (DefaultTableModel)table.getModel();
             if (selectedFeature >= 0) {
                 tm.setValueAt(selectedFeature, 0, 1);
-                Object[] rowData = shape.attributeTable.getRecord(selectedFeature - 1);
+                AttributeTable attributeTable = shape.getAttributeTable();
+                Object[] rowData = attributeTable.getRecord(selectedFeature - 1);
                 for (int a = 0; a < rowData.length; a++) {
                     //tm.setValueAt(rowData[a], a, 1);
-                    if (fields[a].getDataType() == DBFField.FIELD_TYPE_N ||
-                            fields[a].getDataType() == DBFField.FIELD_TYPE_F) {
+                    if (fields[a].getDataType() == DBFField.DBFDataType.NUMERIC ||
+                            fields[a].getDataType() == DBFField.DBFDataType.FLOAT) {
                         tm.setValueAt((double)(rowData[a]), a + 1, 1);
                     } else {
                         tm.setValueAt(String.valueOf(rowData[a]), a + 1, 1);

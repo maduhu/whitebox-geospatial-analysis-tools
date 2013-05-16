@@ -54,6 +54,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     private NumericProperty printResolution;
     private BooleanProperty autoHideAlignToolbar;
     private FontProperty fontProperty;
+    private NumericProperty numRecentItems;
 
     public SettingsDialog(Frame owner, boolean modal) {
         super(owner, modal);
@@ -127,6 +128,18 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         fontProperty.revalidate();
         mainBox.add(fontProperty);
 
+        // number of recent items
+        numRecentItems = new NumericProperty("Number of recent items:", String.valueOf(host.getNumberOfRecentItemsToStore()));
+        numRecentItems.setLeftMargin(leftMargin);
+        numRecentItems.setRightMargin(rightMargin);
+        numRecentItems.setBackColour(Color.WHITE);
+        numRecentItems.setPreferredWidth(preferredWidth);
+        numRecentItems.setParseIntegersOnly(true);
+        numRecentItems.setTextboxWidth(5);
+        numRecentItems.revalidate();
+        numRecentItems.addPropertyChangeListener("value", this);
+        mainBox.add(numRecentItems);
+        
         JScrollPane scroll = new JScrollPane(mainBox);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -224,6 +237,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
             host.setHideAlignToolbar((Boolean) evt.getNewValue());
         } else if (source == fontProperty) {
             host.setDefaultFont((Font)evt.getNewValue());
+        } else if (source == numRecentItems) {
+            host.setNumberOfRecentItemsToStore(Integer.parseInt((String) evt.getNewValue()));
         }
     }
 }
