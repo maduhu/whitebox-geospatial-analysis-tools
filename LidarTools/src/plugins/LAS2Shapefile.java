@@ -241,37 +241,37 @@ public class LAS2Shapefile implements WhiteboxPlugin {
 
                 fields[0] = new DBFField();
                 fields[0].setName("FID");
-                fields[0].setDataType(DBFField.FIELD_TYPE_N);
+                fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
                 fields[0].setFieldLength(10);
                 fields[0].setDecimalCount(0);
 
                 fields[1] = new DBFField();
                 fields[1].setName("Z");
-                fields[1].setDataType(DBFField.FIELD_TYPE_N);
+                fields[1].setDataType(DBFField.DBFDataType.NUMERIC);
                 fields[1].setFieldLength(10);
                 fields[1].setDecimalCount(3);
                 
                 fields[2] = new DBFField();
                 fields[2].setName("I");
-                fields[2].setDataType(DBFField.FIELD_TYPE_N);
+                fields[2].setDataType(DBFField.DBFDataType.NUMERIC);
                 fields[2].setFieldLength(8);
                 fields[2].setDecimalCount(0);
                 
                 fields[3] = new DBFField();
                 fields[3].setName("CLASS");
-                fields[3].setDataType(DBFField.FIELD_TYPE_N);
+                fields[3].setDataType(DBFField.DBFDataType.NUMERIC);
                 fields[3].setFieldLength(4);
                 fields[3].setDecimalCount(0);
                 
                 fields[4] = new DBFField();
                 fields[4].setName("RTN_NUM");
-                fields[4].setDataType(DBFField.FIELD_TYPE_N);
+                fields[4].setDataType(DBFField.DBFDataType.NUMERIC);
                 fields[4].setFieldLength(4);
                 fields[4].setDecimalCount(0);
                 
                 fields[5] = new DBFField();
                 fields[5].setName("NUM_RTNS");
-                fields[5].setDataType(DBFField.FIELD_TYPE_N);
+                fields[5].setDataType(DBFField.DBFDataType.NUMERIC);
                 fields[5].setFieldLength(4);
                 fields[5].setDecimalCount(0);
                 
