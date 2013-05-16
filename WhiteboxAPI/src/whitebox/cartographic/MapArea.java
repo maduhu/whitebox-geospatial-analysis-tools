@@ -15,6 +15,7 @@ import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.MapLayer;
 import whitebox.structures.BoundingBox;
 import whitebox.structures.GridCell;
+import whitebox.structures.XYPoint;
 
 /**
  *
@@ -485,12 +486,35 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         }
     }
     
+    public double getXCoordinateFromColumn(int col) {
+        try {
+            RasterLayerInfo layer = new RasterLayerInfo();
+            if (activeLayer.getLayerType() == MapLayer.MapLayerType.RASTER) {
+                layer = (RasterLayerInfo) (activeLayer);
+            }
+            return layer.getXCoordinateFromColumn(col);
+        } catch (Exception e) {
+            return -1.0;
+        }
+    }
+    
+    public double getYCoordinateFromRow(int row) {
+        try {
+            RasterLayerInfo layer = new RasterLayerInfo();
+            if (activeLayer.getLayerType() == MapLayer.MapLayerType.RASTER) {
+                layer = (RasterLayerInfo) (activeLayer);
+            }
+            return layer.getYCoordinateFromRow(row);
+        } catch (Exception e) {
+            return -1.0;
+        }
+    }
+    
     public GridCell getRowAndColumn(double easting, double northing) {
         GridCell point = new GridCell(-1, -1, Double.NaN, Double.NaN, -1);
         try {
             if (activeLayer.getLayerType() == MapLayer.MapLayerType.RASTER) {
                 RasterLayerInfo layer = (RasterLayerInfo) (activeLayer);
-                double noDataValue = layer.getNoDataValue();
                 // first see if this point is within the active layer.
                 BoundingBox db = layers.get(activeLayerIndex).getFullExtent();
                 double top = db.getMaxY();

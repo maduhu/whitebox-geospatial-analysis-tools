@@ -14,6 +14,9 @@ package whitebox.geospatialfiles.shapefile.attributes;
 import java.io.*;
 import java.util.*;
 import java.text.*;
+import static whitebox.geospatialfiles.shapefile.attributes.Utils.ALIGN_LEFT;
+import static whitebox.geospatialfiles.shapefile.attributes.Utils.ALIGN_RIGHT;
+import static whitebox.geospatialfiles.shapefile.attributes.Utils.textPadding;
 
 /**
 Miscelaneous functions required by the JavaDBF package.

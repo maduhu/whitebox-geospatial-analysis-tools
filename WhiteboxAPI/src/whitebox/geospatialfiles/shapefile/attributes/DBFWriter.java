@@ -20,6 +20,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Vector;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.BOOLEAN;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.DATE;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.FLOAT;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.MEMO;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.NUMERIC;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.STRING;
 
 /**
  * An object of this class can create a DBF file.
@@ -212,38 +218,10 @@ public class DBFWriter extends DBFBase {
                 continue;
             }
 
-            switch (this.header.fieldArray[i].getDataType()) {
-
-                case 'C':
-                    if (!(values[i] instanceof String)) {
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
-
-                case 'L':
-                    if (!(values[i] instanceof Boolean)) {
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
-
-                case 'N':
-                    if (!(values[i] instanceof Double)) {
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
-
-                case 'D':
-                    if (!(values[i] instanceof Date)) {
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
-
-                case 'F':
-                    if (!(values[i] instanceof Double)) {
-
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
+            Class equivalentClass = this.header.fieldArray[i].getDataType().getEquivalentClass();
+            
+            if (!(values[i].getClass().isAssignableFrom(equivalentClass))) {
+                throw new DBFException("Invalid value for field " + i);
             }
         }
 
@@ -348,7 +326,7 @@ public class DBFWriter extends DBFBase {
 
                 switch (this.header.fieldArray[j].getDataType()) {
 
-                    case 'C':
+                    case STRING:
                         if (objectArray[j] != null) {
 
                             String str_value = objectArray[j].toString();
@@ -359,7 +337,7 @@ public class DBFWriter extends DBFBase {
 
                         break;
 
-                    case 'D':
+                    case DATE:
                         if (objectArray[j] != null) {
 
                             GregorianCalendar calendar = new GregorianCalendar();
@@ -375,7 +353,7 @@ public class DBFWriter extends DBFBase {
 
                         break;
 
-                    case 'F':
+                    case FLOAT:
 
                         if (objectArray[j] != null) {
 
@@ -387,7 +365,7 @@ public class DBFWriter extends DBFBase {
 
                         break;
 
-                    case 'N':
+                    case NUMERIC:
 
                         if (objectArray[j] != null) {
 
@@ -400,7 +378,7 @@ public class DBFWriter extends DBFBase {
                         }
 
                         break;
-                    case 'L':
+                    case BOOLEAN:
 
                         if (objectArray[j] != null) {
 
@@ -418,7 +396,7 @@ public class DBFWriter extends DBFBase {
 
                         break;
 
-                    case 'M':
+                    case MEMO:
 
                         break;
 
@@ -467,7 +445,7 @@ public class DBFWriter extends DBFBase {
 
             switch (this.header.fieldArray[j].getDataType()) {
 
-                case 'C':
+                case STRING:
                     if (objectArray[j] != null) {
 
                         String str_value = objectArray[j].toString();
@@ -479,7 +457,7 @@ public class DBFWriter extends DBFBase {
 
                     break;
 
-                case 'D':
+                case DATE:
                     if (objectArray[j] != null) {
 
                         GregorianCalendar calendar = new GregorianCalendar();
@@ -495,7 +473,7 @@ public class DBFWriter extends DBFBase {
 
                     break;
 
-                case 'F':
+                case FLOAT:
 
                     if (objectArray[j] != null) {
 
@@ -507,7 +485,7 @@ public class DBFWriter extends DBFBase {
 
                     break;
 
-                case 'N':
+                case NUMERIC:
 
                     if (objectArray[j] != null) {
 
@@ -520,7 +498,7 @@ public class DBFWriter extends DBFBase {
                     }
 
                     break;
-                case 'L':
+                case BOOLEAN:
 
                     if (objectArray[j] != null) {
 
@@ -538,7 +516,7 @@ public class DBFWriter extends DBFBase {
 
                     break;
 
-                case 'M':
+                case MEMO:
 
                     break;
 

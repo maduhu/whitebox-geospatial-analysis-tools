@@ -24,8 +24,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.ArrayList;
-import whitebox.utilities.FileUtilities;
-
+import static whitebox.geospatialfiles.shapefile.attributes.AttributeTable.SIG_DBASE_III;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.BOOLEAN;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.DATE;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.FLOAT;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.MEMO;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.NUMERIC;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.STRING;
 /**
  *
  * @author johnlindsay
@@ -33,7 +38,6 @@ import whitebox.utilities.FileUtilities;
 public class AttributeTable {
     private String fileName;
     private boolean isDirty = false;
-    private boolean initialized = false;
     protected String characterSetName = "8859_1";
     protected final int END_OF_DATA = 0x1A;
 
@@ -41,16 +45,12 @@ public class AttributeTable {
      * Used to create an AttributeTable object when the DBF file already exists.
      * @param fileName  String containing the full file name and directory.
      */
-    public AttributeTable(String fileName) {
+    public AttributeTable(String fileName) throws IOException {
         this.signature = SIG_DBASE_III;
         this.terminator1 = 0x0D;
-        
+                
         this.fileName = fileName;
-        try {
-            initialize();
-        } catch (Exception e) {
-            
-        }
+        initialize();
     }
     
     /**
@@ -59,20 +59,48 @@ public class AttributeTable {
      * not contain any records.
      * @param fileName  String containing the full file name and directory.
      * @param fields Array of DBFField type.
+     * @param destroy Option to destroy an existing DBF file.
      */
-    public AttributeTable(String fileName, DBFField[] fields) {
+    public AttributeTable(String fileName, DBFField[] fields, boolean destroy) throws DBFException, IOException {
         this.signature = SIG_DBASE_III;
         this.terminator1 = 0x0D;
         
         this.fileName = fileName;
-        try {
-            DBFWriter writer = new DBFWriter(new File(fileName));
-            writer.setFields(fields);
-            writer.write();
-            //setFields(fields);
-            initialize();
-        } catch (Exception e) {
-            
+        createDBFFile(new File(fileName), destroy);
+        setFields(fields);
+        write();
+        initialize();
+    }
+    
+    /**
+     * Verifies the existence of or creates a valid DBF file on disk which can
+     * then have fields and records added or removed.
+     *
+     * @param dbfFile. The file passed in should be a valid DBF file or non-existent.
+     * @exception Throws DBFException if the passed in file does exist but not a
+     * valid DBF file, or if an IO error occurs.
+     */
+    private void createDBFFile(File dbfFile, boolean destroy) throws DBFException, IOException {
+        
+        if (destroy == true) {
+            if (dbfFile.exists()) {
+                try {
+                    dbfFile.delete();
+                } catch (Exception e) {
+                }
+            }
+        }
+        
+        try (RandomAccessFile raf = new RandomAccessFile(dbfFile, "rw")) {
+
+            if (dbfFile.length() == 0) {
+                writeHeader(raf);
+            } else {
+                readHeader();
+            }
+        } catch (FileNotFoundException e) {
+
+            throw new DBFException("Specified file is not found. " + e.getMessage());
         }
     }
     
@@ -81,9 +109,6 @@ public class AttributeTable {
         return fileName;
     }
 
-    public boolean isInitialized() {
-        return initialized;
-    }
 
     public int getCurrentRecord() {
         return currentRecord;
@@ -112,9 +137,7 @@ public class AttributeTable {
     public int getNumberOfRecords() {
         return numberOfRecords;
     }
-    
-    
-    
+
     // public methods
 
     /**
@@ -123,13 +146,7 @@ public class AttributeTable {
     
     @param index. Index of the field. Index of the first field is zero.
      */
-    public DBFField getField(int index)
-            throws DBFException {
-
-        if (!initialized) {
-
-            throw new DBFException("Source is not open");
-        }
+    public DBFField getField(int index) {
 
         return this.fieldArray[index];
     }
@@ -139,11 +156,7 @@ public class AttributeTable {
      * @return DBFField array
      * @throws DBFException 
      */
-    public DBFField[] getAllFields() throws DBFException {
-        if (!initialized) {
-
-            throw new DBFException("Source is not open");
-        }
+    public DBFField[] getAllFields() {
 
         return this.fieldArray;
     }
@@ -152,15 +165,10 @@ public class AttributeTable {
     /**
     Returns the number of field in the DBF.
      */
-    public int getFieldCount() throws DBFException {
-
-        if (!initialized) {
-            throw new DBFException("Source is not open");
-        }
-
+    public int getFieldCount() {
+        
         if (this.fieldArray != null) {
-            fieldCount = this.fieldArray.length;
-            return fieldCount;
+            return this.fieldArray.length;
         }
 
         return -1;
@@ -171,27 +179,22 @@ public class AttributeTable {
      * @return String array
      */
     public String[] getAttributeTableFieldNames() {
-        try {
-            int numberOfFields = this.getFieldCount();
-            String[] ret = new String[numberOfFields];
-            for (int i = 0; i < numberOfFields; i++) {
+        int numberOfFields = this.getFieldCount();
+        String[] ret = new String[numberOfFields];
+        for (int i = 0; i < numberOfFields; i++) {
 
-                DBFField field = this.getField(i);
+            DBFField field = this.getField(i);
 
-                ret[i] = field.getName();
-            }
+            ret[i] = field.getName();
+        }
 
-            return ret;
-        } catch (DBFException dbfe) {
-            System.out.println(dbfe);
-            return null;
-        } 
+        return ret;
     }
     
     /**
-     * Sets fields.
+     * Sets fields for new files only.
      */
-    public final void setFields(DBFField[] fields)
+    private void setFields(DBFField[] fields)
             throws DBFException {
 
         if (this.fieldArray != null) {
@@ -214,12 +217,9 @@ public class AttributeTable {
 
         this.fieldArray = fields;
 
-        try {
-            RandomAccessFile raf = new RandomAccessFile(this.fileName, "rw");
+        try (RandomAccessFile raf = new RandomAccessFile(this.fileName, "rw")) {
             writeHeader(raf);
-            raf.close();
         } catch (IOException e) {
-
             throw new DBFException("Error accesing file");
         }
     }
@@ -231,13 +231,30 @@ public class AttributeTable {
      * @throws DBFException 
      */
     public void addField(DBFField field) throws DBFException {
+        addField(field, this.fieldCount);
+    }
+    
+    /**
+     * Adds a DBFField after the specified index.
+     * Index 0 specifies before the first field and index {@link fieldCount}
+     * specifies after the last field.
+     * @param field. An initialized DBFField object.
+     * @param insertAt. The index to insert field.
+     * @throws DBFException 
+     */
+    public void addField(DBFField field, int insertAt) throws DBFException {
+        
+        if (field == null) {
+            throw new DBFException("New field name is empty");
+        } else if (insertAt < 0 || insertAt > this.fieldCount) {
+            throw new DBFException("Param insertAt is out of table range");
+        } else if (this.fileName.isEmpty()) {
+            throw new DBFException("DBF file name not specified");
+        } else if (!(new File(this.fileName).exists())) {
+            throw new DBFException("DBF file does not exist");
+        }
+        
         try {
-            if (this.fileName.isEmpty()) {
-                throw new DBFException("DBF file name not specified");
-            }
-            if (!(new File(this.fileName).exists())) {
-                throw new DBFException("DBF file does not exist");
-            }
             // create a temporary file to house the new dbf
             String fileNameCopy = this.fileName.replace(".dbf", "_copy.dbf");
             if (new File(fileNameCopy).exists()) {
@@ -245,43 +262,137 @@ public class AttributeTable {
             }
             DBFField[] outFields = new DBFField[this.fieldCount + 1];
             DBFField[] inFields = getAllFields();
-            System.arraycopy(inFields, 0, outFields, 0, this.fieldCount);
             
-            outFields[this.fieldCount] = field;
-            AttributeTable newTable = new AttributeTable(fileNameCopy, outFields); // used to set up the dbf copy
+            // Copy all fields before insertAt            
+            System.arraycopy(inFields, 0, outFields, 0, insertAt);
+                        
+            // Copy new field
+            outFields[insertAt] = field;           
+            
+            // If we're not at the end, copy the rest of the fields
+            if (insertAt < this.fieldCount) {
+                System.arraycopy(inFields, insertAt, outFields, insertAt + 1, this.fieldCount - insertAt);
+            }
+            
+            AttributeTable newTable = new AttributeTable(fileNameCopy, outFields, true); // used to set up the dbf copy
 
-            //DBFReader reader = new DBFReader(fileName);
-            //DBFWriter writer = new DBFWriter(fileNameCopy);
             for (int a = 0; a < this.numberOfRecords; a++) {
                 Object[] inRec = getRecord(a);
                 Object[] outRec = new Object[this.fieldCount + 1];
-                System.arraycopy(inRec, 0, outRec, 0, this.fieldCount);
+                // Record data for new field is left null
+                System.arraycopy(inRec, 0, outRec, 0, insertAt);
+                System.arraycopy(inRec, insertAt, outRec, insertAt + 1, this.fieldCount - insertAt);
+                
                 newTable.addRecord(outRec);
             }
             
             newTable.write();
             
-            new File(this.fileName).delete();
-            FileUtilities.copyFile(new File(fileNameCopy), new File(this.fileName));
-            new File(fileNameCopy).delete();
-            
-            initialize();
-                    
+            File oldFile = new File(this.fileName);
+            // Rename old file in case something horrible happens
+            if (oldFile.renameTo(new File(this.fileName.concat(".bak")))) {
+                
+                File newFile = new File(fileNameCopy);
+                // Rename new file to old file's name
+                if (newFile.renameTo(new File(this.fileName))) {
+                    // Delete the backup for oldFile
+                    new File(this.fileName.concat(".bak")).delete();
+
+                    initialize();
+                }
+            }
+
         } catch (Exception e) {
             throw new DBFException(e.getMessage());
         }
     }
     
-    public void addField(DBFField field, int insertAfter) {
+    /**
+     * Removes the specified index from the fields. Warning: this method creates
+     * a new file with less fields and will delete the old one.
+     * @param removeIndex The index to remove from the fieldArray
+     * @throws DBFException 
+     */
+    public void deleteField(int removeIndex) throws DBFException {
         
+        // Can't be below 0 and if fieldNum == 0, we can't remove anything
+        if (removeIndex < 0 || removeIndex >= this.fieldCount) {
+            throw new DBFException("Param fieldNum is out of table range");
+        } else if (this.fileName.isEmpty()) {
+            throw new DBFException("DBF file name not specified");
+        } else if (!(new File(this.fileName).exists())) {
+            throw new DBFException("DBF file does not exist");
+        }
+        
+        try {
+            // create a temporary file to house the new dbf
+            String fileNameCopy = this.fileName.replace(".dbf", "_copy.dbf");
+            if (new File(fileNameCopy).exists()) {
+                new File(fileNameCopy).delete();
+            }
+            
+            DBFField[] outFields = new DBFField[this.fieldCount - 1];
+            DBFField[] inFields = getAllFields();
+            
+            // Copy all fields before fieldNum            
+            System.arraycopy(inFields, 0, outFields, 0, removeIndex);
+
+            // Copy all fields after fieldNum
+            System.arraycopy(inFields, removeIndex + 1, outFields, removeIndex, (this.fieldCount - removeIndex) - 1);
+            
+            AttributeTable newTable = new AttributeTable(fileNameCopy, outFields, true); // used to set up the dbf copy
+
+            for (int a = 0; a < this.numberOfRecords; a++) {
+                Object[] inRec = getRecord(a);
+                Object[] outRec = new Object[this.fieldCount - 1];
+                // Discard the old field
+                System.arraycopy(inRec, 0, outRec, 0, removeIndex);
+                System.arraycopy(inRec, removeIndex + 1, outRec, removeIndex, (this.fieldCount - removeIndex) - 1);
+                newTable.addRecord(outRec);
+            }
+            
+            newTable.write();
+            
+            File oldFile = new File(this.fileName);
+            // Rename old file in casenew File(oldFile.getPath().concat(".bak")) something horrible happens
+            if (oldFile.renameTo(new File(this.fileName.concat(".bak")))) {
+                
+                File newFile = new File(fileNameCopy);
+                // Rename new file to old file's name
+                if (newFile.renameTo(new File(this.fileName))) {
+                    // Delete the backup for oldFile
+                    new File(this.fileName.concat(".bak")).delete();
+
+                    initialize();
+                }
+            }
+
+        } catch (Exception e) {
+            throw new DBFException(e.getMessage());
+        }
     }
     
-    public void deleteField(int fieldNum) {
+    /**
+     * Deletes the field with the name fieldName. If multiple fields exist with
+     * the name, the first in index order will be removed.
+     * @param fieldName String matching the field to be removed
+     * @throws DBFException 
+     */
+    public void deleteField(String fieldName) throws DBFException {
+        // Find the field with the given name
         
-    }
-    
-    public void deleteField(String fieldName) {
+        if (fieldName == null) {
+            throw new DBFException("fieldName can not be null");
+        }
+
+        DBFField[] fields = getAllFields();
         
+        for (int i = 0; i < fields.length; i++) {
+            if (fieldName.equals(fields[i].getName())) {
+                deleteField(i);
+                break;
+            }
+        }
     }
     
     private int currentRecord = -1;
@@ -330,7 +441,7 @@ public class AttributeTable {
 
                 switch (this.fieldArray[i].getDataType()) {
 
-                    case 'C':
+                    case STRING:
 
                         byte b_array[] = new byte[this.fieldArray[i].getFieldLength()];
                         //dataInputStream.read(b_array);
@@ -338,7 +449,7 @@ public class AttributeTable {
                         recordObjects[i] = new String(b_array, characterSetName);
                         break;
 
-                    case 'D':
+                    case DATE:
 
                         byte t_byte_year[] = new byte[4];
                         //dataInputStream.read(t_byte_year);
@@ -370,7 +481,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'F':
+                    case FLOAT:
 
                         try {
 
@@ -393,7 +504,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'N':
+                    case NUMERIC:
 
                         try {
 
@@ -417,7 +528,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'L':
+                    case BOOLEAN:
 
                         byte t_logical = buf.get();
                         if (t_logical == 'Y' || t_logical == 't' || t_logical == 'T' || t_logical == 't') {
@@ -429,13 +540,13 @@ public class AttributeTable {
                         }
                         break;
 
-                    case 'M':
+                    case MEMO:
                         // TODO Later
-                        recordObjects[i] = new String("null");
+                        recordObjects[i] = "null";
                         break;
 
                     default:
-                        recordObjects[i] = new String("null");
+                        recordObjects[i] = "null";
                 }
             }
         } catch (EOFException e) {
@@ -515,7 +626,7 @@ public class AttributeTable {
 
                     switch (this.fieldArray[i].getDataType()) {
 
-                        case 'C':
+                        case STRING:
 
                             byte b_array[] = new byte[this.fieldArray[i].getFieldLength()];
                             //dataInputStream.read(b_array);
@@ -523,7 +634,7 @@ public class AttributeTable {
                             recordObjects[i] = new String(b_array, characterSetName);
                             break;
 
-                        case 'D':
+                        case DATE:
 
                             byte t_byte_year[] = new byte[4];
                             //dataInputStream.read(t_byte_year);
@@ -555,7 +666,7 @@ public class AttributeTable {
 
                             break;
 
-                        case 'F':
+                        case FLOAT:
 
                             try {
 
@@ -578,7 +689,7 @@ public class AttributeTable {
 
                             break;
 
-                        case 'N':
+                        case NUMERIC:
 
                             try {
 
@@ -602,7 +713,7 @@ public class AttributeTable {
 
                             break;
 
-                        case 'L':
+                        case BOOLEAN:
 
                             byte t_logical = buf.get();
                             if (t_logical == 'Y' || t_logical == 't' || t_logical == 'T' || t_logical == 't') {
@@ -614,7 +725,7 @@ public class AttributeTable {
                             }
                             break;
 
-                        case 'M':
+                        case MEMO:
                             // TODO Later
                             recordObjects[i] = new String("null");
                             break;
@@ -692,46 +803,64 @@ public class AttributeTable {
         for (int i = 0; i < this.fieldArray.length; i++) {
 
             if (values[i] == null) {
-
+                // null values are not checked
                 continue;
             }
-
-            switch (this.fieldArray[i].getDataType()) {
-
-                case 'C':
-                    if (!(values[i] instanceof String)) {
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
-
-                case 'L':
-                    if (!(values[i] instanceof Boolean)) {
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
-
-                case 'N':
-                    if (!(values[i] instanceof Double)) {
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
-
-                case 'D':
-                    if (!(values[i] instanceof Date)) {
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
-
-                case 'F':
-                    if (!(values[i] instanceof Double)) {
-
-                        throw new DBFException("Invalid value for field " + i);
-                    }
-                    break;
+            
+            Class equivalentClass = this.fieldArray[i].getDataType().getEquivalentClass();
+            
+            // Check if values[i] is an instance or subclassed instance of the field's expected type
+            if (!(values[i].getClass().isAssignableFrom(equivalentClass))) {
+                throw new DBFException("Invalid value for field " + i);
             }
+
         }
         
         recordData.add(values);
+
+    }
+    
+    /**
+     * Replace an existing record. Note that this method actually writes the record
+     * to a temporary buffer and that the file will not be updated until the
+     * write() method is called.
+     * @param values an Object array containing the record values for each field.
+     * @throws DBFException 
+     */
+    public void changeRecord(int index, Object[] values) throws DBFException {
+
+        if (this.fieldArray == null) {
+
+            throw new DBFException("Fields should be set before adding records");
+        }
+
+        if (values == null) {
+
+            throw new DBFException("Null cannot be added as row");
+        }
+
+        if (values.length != this.fieldArray.length) {
+
+            throw new DBFException("Invalid record. Invalid number of fields in row");
+        }
+
+        for (int i = 0; i < this.fieldArray.length; i++) {
+
+            if (values[i] == null) {
+                // null values are not checked
+                continue;
+            }
+            
+            Class equivalentClass = this.fieldArray[i].getDataType().getEquivalentClass();
+            
+            // Check if values[i] is an instance or subclassed instance of the field's expected type
+            if (!(values[i].getClass().isAssignableFrom(equivalentClass))) {
+                throw new DBFException("Invalid value for field " + i);
+            }
+
+        }
+        
+        recordData.add(index, values);
 
     }
     
@@ -764,7 +893,7 @@ public class AttributeTable {
 
                 switch (this.fieldArray[j].getDataType()) {
 
-                    case 'C':
+                    case STRING:
                         if (rowData[j] != null) {
 
                             String str_value = rowData[j].toString();
@@ -775,12 +904,11 @@ public class AttributeTable {
 
                         break;
 
-                    case 'D':
+                    case DATE:
                         if (rowData[j] != null) {
 
                             GregorianCalendar calendar = new GregorianCalendar();
                             calendar.setTime((Date) rowData[j]);
-                            StringBuffer t_sb = new StringBuffer();
                             buf.put(String.valueOf(calendar.get(Calendar.YEAR)).getBytes());
                             buf.put(Utils.textPadding(String.valueOf(calendar.get(Calendar.MONTH) + 1), this.characterSetName, 2, Utils.ALIGN_RIGHT, (byte) '0'));
                             buf.put(Utils.textPadding(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)), this.characterSetName, 2, Utils.ALIGN_RIGHT, (byte) '0'));
@@ -791,7 +919,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'F':
+                    case FLOAT:
 
                         if (rowData[j] != null) {
 
@@ -803,7 +931,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'N':
+                    case NUMERIC:
 
                         if (rowData[j] != null) {
 
@@ -816,7 +944,7 @@ public class AttributeTable {
                         }
 
                         break;
-                    case 'L':
+                    case BOOLEAN:
 
                         if (rowData[j] != null) {
 
@@ -834,7 +962,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'M':
+                    case MEMO:
 
                         break;
 
@@ -860,21 +988,23 @@ public class AttributeTable {
         }
     }
     
-    public void deleteRecord(int recordNumber) {
+    /**
+     * Removes the record of index recordNumber from the record data.
+     * @param recordNumber. Index of record to remove
+     * @throws DBFException
+     */
+    public void deleteRecord(int recordNumber) throws DBFException {
+        if (recordNumber < 0 || recordNumber >= recordData.size()) {
+            throw new DBFException("Record number outside of table range.");
+        }
         
+        recordData.remove(recordNumber);
     }
     
     // private methods
-    private void initialize() throws DBFException {
-        try {
-            readHeader();
-            fieldCount = this.fieldArray.length;
-
-            initialized = true;
-        } catch (IOException e) {
-
-            throw new DBFException(e.getMessage());
-        }
+    private void initialize() throws IOException {
+        readHeader();
+        fieldCount = this.fieldArray.length;
     }
     
     private void writeRecord(RandomAccessFile raf, Object[] values) throws DBFException {
@@ -898,7 +1028,7 @@ public class AttributeTable {
 
                 switch (this.fieldArray[j].getDataType()) {
 
-                    case 'C':
+                    case STRING:
                         if (values[j] != null) {
 
                             String str_value = values[j].toString();
@@ -909,7 +1039,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'D':
+                    case DATE:
                         if (values[j] != null) {
 
                             GregorianCalendar calendar = new GregorianCalendar();
@@ -925,7 +1055,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'F':
+                    case FLOAT:
 
                         if (values[j] != null) {
 
@@ -937,7 +1067,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'N':
+                    case NUMERIC:
 
                         if (values[j] != null) {
 
@@ -950,7 +1080,7 @@ public class AttributeTable {
                         }
 
                         break;
-                    case 'L':
+                    case BOOLEAN:
 
                         if (values[j] != null) {
 
@@ -968,7 +1098,7 @@ public class AttributeTable {
 
                         break;
 
-                    case 'M':
+                    case MEMO:
 
                         break;
 
@@ -977,39 +1107,28 @@ public class AttributeTable {
                 }
                 
             }
-            //raf = new RandomAccessFile(this.fileName, "rw");
-            raf.seek(raf.length() - 1);
-            raf.write(buf.array());
             
             raf.seek(raf.length());
-            raf.writeByte(END_OF_DATA);
+            raf.write(buf.array());
+            
+            //raf.seek(raf.length());
             
         } catch (IOException e) {
             throw new DBFException(e.getMessage());
-        }// finally {
-//            isDirty = true;
-//            if (raf != null) {
-//                try {
-//                    raf.close();
-//                } catch (Exception e) {
-//                }
-//            }
-//        }
+        }
     }
     
-    public void write() throws DBFException {
-        RandomAccessFile raf = null;
-        try {
-            raf = new RandomAccessFile(this.fileName, "rw");
+    public final void write() throws DBFException {
+
+        try (RandomAccessFile raf = new RandomAccessFile(this.fileName, "rw")) {
             
             if (!recordData.isEmpty()) {
                 for (int i = 0; i < recordData.size(); i++) {
                     Object[] t_values = (Object[]) recordData.get(i);
                     writeRecord(raf, t_values);
                 }
-                
+                raf.writeByte(END_OF_DATA);
                 recordData.clear();
-                
             }
             
             // update the file header
@@ -1018,14 +1137,6 @@ public class AttributeTable {
             isDirty = false;
         } catch (IOException e) {
             throw new DBFException(e.getMessage());
-        } finally {
-            isDirty = true;
-            if (raf != null) {
-                try {
-                    raf.close();
-                } catch (Exception e) {
-                }
-            }
         }
     }
     
@@ -1053,47 +1164,43 @@ public class AttributeTable {
     /* DBF structure ends here */
 
     void readHeader() throws IOException {
-        DataInputStream in = new DataInputStream(new
-            BufferedInputStream(new FileInputStream(fileName)));
-            DataInputStream dataInput = new DataInputStream(in);
-        
-        signature = dataInput.readByte(); /* 0 */
-        year = dataInput.readByte();      /* 1 */
-        month = dataInput.readByte();     /* 2 */
-        day = dataInput.readByte();       /* 3 */
-        numberOfRecords = Utils.readLittleEndianInt(dataInput); /* 4-7 */
+        try (DataInputStream dataInput = new DataInputStream(new
+                 BufferedInputStream(new FileInputStream(fileName)))) {
+            signature = dataInput.readByte(); /* 0 */
+            year = dataInput.readByte();      /* 1 */
+            month = dataInput.readByte();     /* 2 */
+            day = dataInput.readByte();       /* 3 */
+            numberOfRecords = Utils.readLittleEndianInt(dataInput); /* 4-7 */
 
-        headerLength = Utils.readLittleEndianShort(dataInput); /* 8-9 */
-        recordLength = Utils.readLittleEndianShort(dataInput); /* 10-11 */
+            headerLength = Utils.readLittleEndianShort(dataInput); /* 8-9 */
+            recordLength = Utils.readLittleEndianShort(dataInput); /* 10-11 */
 
-        reserv1 = Utils.readLittleEndianShort(dataInput);      /* 12-13 */
-        incompleteTransaction = dataInput.readByte();           /* 14 */
-        encryptionFlag = dataInput.readByte();                  /* 15 */
-        freeRecordThread = Utils.readLittleEndianInt(dataInput); /* 16-19 */
-        reserv2 = dataInput.readInt();                            /* 20-23 */
-        reserv3 = dataInput.readInt();                            /* 24-27 */
-        mdxFlag = dataInput.readByte();                           /* 28 */
-        languageDriver = dataInput.readByte();                    /* 29 */
-        reserv4 = Utils.readLittleEndianShort(dataInput);        /* 30-31 */
+            reserv1 = Utils.readLittleEndianShort(dataInput);      /* 12-13 */
+            incompleteTransaction = dataInput.readByte();           /* 14 */
+            encryptionFlag = dataInput.readByte();                  /* 15 */
+            freeRecordThread = Utils.readLittleEndianInt(dataInput); /* 16-19 */
+            reserv2 = dataInput.readInt();                            /* 20-23 */
+            reserv3 = dataInput.readInt();                            /* 24-27 */
+            mdxFlag = dataInput.readByte();                           /* 28 */
+            languageDriver = dataInput.readByte();                    /* 29 */
+            reserv4 = Utils.readLittleEndianShort(dataInput);        /* 30-31 */
 
-        ArrayList al_fields = new ArrayList();
+            ArrayList al_fields = new ArrayList();
 
-        DBFField field = DBFField.createField(dataInput); /* 32 each */
-        while (field != null) {
+            DBFField field = DBFField.createField(dataInput); /* 32 each */
+            while (field != null) {
 
-            al_fields.add(field);
-            field = DBFField.createField(dataInput);
-        }
+                al_fields.add(field);
+                field = DBFField.createField(dataInput);
+            }
 
-        fieldArray = new DBFField[al_fields.size()];
+            fieldArray = new DBFField[al_fields.size()];
 
-        for (int i = 0; i < fieldArray.length; i++) {
+            for (int i = 0; i < fieldArray.length; i++) {
 
-            fieldArray[ i] = (DBFField) al_fields.get(i);
-        }
-
-        dataInput.close();
-        in.close();
+                fieldArray[ i] = (DBFField) al_fields.get(i);
+            }
+        } // try with resource auto closes
     }
 
     void writeHeader(RandomAccessFile raf) throws IOException {
@@ -1111,8 +1218,7 @@ public class AttributeTable {
         raf.writeByte(month); /* 2 */
         raf.writeByte(day);   /* 3 */
 
-        numberOfRecords = Utils.littleEndian(numberOfRecords);
-        raf.writeInt(numberOfRecords); /* 4-7 */
+        raf.writeInt(Utils.littleEndian(numberOfRecords)); /* 4-7 */
 
         headerLength = findHeaderLength();
         raf.writeShort(Utils.littleEndian(headerLength)); /* 8-9 */
@@ -1131,9 +1237,11 @@ public class AttributeTable {
         raf.writeByte(languageDriver); /* 29 */
         raf.writeShort(Utils.littleEndian(reserv4)); /* 30-31 */
 
-        for (int i = 0; i < fieldArray.length; i++) {
+        if (fieldArray != null) {
+            for (int i = 0; i < fieldArray.length; i++) {
 
-            fieldArray[i].write(raf);
+                fieldArray[i].write(raf);
+            }
         }
 
         raf.writeByte(terminator1); /* n+1 */
@@ -1144,6 +1252,7 @@ public class AttributeTable {
 
     private short findHeaderLength() {
 
+        int nfields = fieldArray == null ? 0 : fieldArray.length;
         return (short) (1
                 + 3
                 + 4
@@ -1158,11 +1267,15 @@ public class AttributeTable {
                 + 1
                 + 1
                 + 2
-                + (32 * fieldArray.length)
+                + (32 * nfields)
                 + 1);
     }
 
     private short findRecordLength() {
+        
+        if (fieldArray == null) {
+            return 0;
+        }
 
         int recordLength = 0;
         for (int i = 0; i < fieldArray.length; i++) {

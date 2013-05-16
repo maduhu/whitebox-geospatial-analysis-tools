@@ -25,6 +25,20 @@ import whitebox.geospatialfiles.shapefile.attributes.DBFException;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
 import whitebox.geospatialfiles.shapefile.*;
+import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPATCH;
+import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINT;
+import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINTM;
+import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINTZ;
+import static whitebox.geospatialfiles.shapefile.ShapeType.NULLSHAPE;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POINT;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POINTM;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POINTZ;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGON;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGONM;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGONZ;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINE;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINEM;
+import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINEZ;
 import whitebox.structures.BoundingBox;
 import whitebox.utilities.ByteSwapper;
 import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
@@ -63,14 +77,14 @@ public class ShapeFile {
     public ArrayList<ShapeFileRecord> records = new ArrayList<ShapeFileRecord>();
     private boolean pointType;
     
-    public AttributeTable attributeTable = null;
+    private AttributeTable attributeTable = null;
     
     // Constructors
     public ShapeFile() {
         
     }
     
-    public ShapeFile(String fileName) {
+    public ShapeFile(String fileName) throws IOException {
         setFileName(fileName);
         int extensionIndex = fileName.lastIndexOf(".");
         this.indexFile = fileName.substring(0, extensionIndex) + ".shx";
@@ -81,32 +95,6 @@ public class ShapeFile {
         
         if (databaseFileExists) {
             this.attributeTable = new AttributeTable(databaseFile);
-//            try {
-//                
-//                Object[] tmp = this.attributeTable.getRecord(0);
-//                    for (int i = 0; i < tmp.length; i++) {
-//                        if (tmp[i] != null) {
-//                            System.out.println(tmp[i].toString());
-//                        } else {
-//                            System.out.println("null");
-//                        }
-//                    }
-//                
-//                Object[] tmp1 = this.attributeTable.getRecords(5, 15);
-//                for (int a = 0; a < tmp1.length; a++) {
-//                    System.out.println("Record " + a);
-//                    tmp = (Object[]) tmp1[a];
-//                    for (int i = 0; i < tmp.length; i++) {
-//                        if (tmp[i] != null) {
-//                            System.out.println(tmp[i].toString());
-//                        } else {
-//                            System.out.println("null");
-//                        }
-//                    }
-//                }
-//            } catch (Exception e) {
-//                System.out.println(e.getMessage());
-//            }
         }
     }
     
@@ -151,7 +139,7 @@ public class ShapeFile {
         this.numRecs = 0;
         deleteFiles();
         try {
-            this.attributeTable = new AttributeTable(databaseFile, fields);
+            this.attributeTable = new AttributeTable(databaseFile, fields, false);
         } catch (Exception e) {
             // do nothing
         }
@@ -687,8 +675,7 @@ public class ShapeFile {
         }
     }
     
-    public void addRecord(Geometry recordGeometry, Object[] rowData) throws Exception {
-        try {
+    public boolean addRecord(Geometry recordGeometry, Object rowData[]) {
         if (recordGeometry.getShapeType() == shapeType) {
             numRecs++;
             int contentLength = (4 + recordGeometry.getLength()) / 2;
@@ -834,16 +821,11 @@ public class ShapeFile {
             try { 
                 this.attributeTable.addRecord(rowData);
             } catch (Exception e) {
-                throw e;
-                //return false;
+                return false;
             }
-            //return true;
+            return true;
         } else {
-            throw new Exception("Incorrect shape type.");
-            //return false;
-        }
-        } catch (Exception e) {
-            throw e;
+            return false;
         }
     }
     
@@ -1161,6 +1143,15 @@ public class ShapeFile {
             // it doesn't overlap with box at all and null is returned.
             return null;
         }
+    }
+    
+    /**
+     * Gets the AttributeTable object associated with this ShapeFile. If no
+     * database exists for this ShapeFile null will be returned.
+     * @return AttributeTable object or null
+     */
+    public AttributeTable getAttributeTable() {
+        return this.attributeTable;
     }
     
     public String[] getAttributeTableFields() {

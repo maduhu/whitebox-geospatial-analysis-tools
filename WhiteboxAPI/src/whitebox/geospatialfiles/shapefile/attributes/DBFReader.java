@@ -19,6 +19,12 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.GregorianCalendar;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.BOOLEAN;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.DATE;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.FLOAT;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.MEMO;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.NUMERIC;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.STRING;
 
 /**
  * DBFReader class can creates objects to represent DBF data.
@@ -414,7 +420,7 @@ public class DBFReader extends DBFBase {
 
                 switch (this.header.fieldArray[i].getDataType()) {
 
-                    case 'C':
+                    case STRING:
 
                         byte b_array[] = new byte[this.header.fieldArray[i].getFieldLength()];
                         //dataInputStream.read(b_array);
@@ -422,7 +428,7 @@ public class DBFReader extends DBFBase {
                         recordObjects[i] = new String(b_array, characterSetName);
                         break;
 
-                    case 'D':
+                    case DATE:
 
                         byte t_byte_year[] = new byte[4];
                         //dataInputStream.read(t_byte_year);
@@ -454,7 +460,7 @@ public class DBFReader extends DBFBase {
 
                         break;
 
-                    case 'F':
+                    case FLOAT:
 
                         try {
 
@@ -477,7 +483,7 @@ public class DBFReader extends DBFBase {
 
                         break;
 
-                    case 'N':
+                    case NUMERIC:
 
                         try {
 
@@ -501,7 +507,7 @@ public class DBFReader extends DBFBase {
 
                         break;
 
-                    case 'L':
+                    case BOOLEAN:
 
                         byte t_logical = buf.get();
                         if (t_logical == 'Y' || t_logical == 't' || t_logical == 'T' || t_logical == 't') {
@@ -513,7 +519,7 @@ public class DBFReader extends DBFBase {
                         }
                         break;
 
-                    case 'M':
+                    case MEMO:
                         // TODO Later
                         recordObjects[i] = new String("null");
                         break;
@@ -603,7 +609,7 @@ public class DBFReader extends DBFBase {
 
                     switch (this.header.fieldArray[i].getDataType()) {
 
-                        case 'C':
+                        case STRING:
 
                             byte b_array[] = new byte[this.header.fieldArray[i].getFieldLength()];
                             //dataInputStream.read(b_array);
@@ -611,7 +617,7 @@ public class DBFReader extends DBFBase {
                             recordObjects[i] = new String(b_array, characterSetName);
                             break;
 
-                        case 'D':
+                        case DATE:
 
                             byte t_byte_year[] = new byte[4];
                             //dataInputStream.read(t_byte_year);
@@ -643,7 +649,7 @@ public class DBFReader extends DBFBase {
 
                             break;
 
-                        case 'F':
+                        case FLOAT:
 
                             try {
 
@@ -666,7 +672,7 @@ public class DBFReader extends DBFBase {
 
                             break;
 
-                        case 'N':
+                        case NUMERIC:
 
                             try {
 
@@ -690,7 +696,7 @@ public class DBFReader extends DBFBase {
 
                             break;
 
-                        case 'L':
+                        case BOOLEAN:
 
                             byte t_logical = buf.get();
                             if (t_logical == 'Y' || t_logical == 't' || t_logical == 'T' || t_logical == 't') {
@@ -702,7 +708,7 @@ public class DBFReader extends DBFBase {
                             }
                             break;
 
-                        case 'M':
+                        case MEMO:
                             // TODO Later
                             recordObjects[i] = new String("null");
                             break;

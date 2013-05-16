@@ -12,6 +12,14 @@ $Id: DBFField.java,v 1.7 2004/03/31 10:50:11 anil Exp $
 package whitebox.geospatialfiles.shapefile.attributes;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.Calendar;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.BOOLEAN;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.DATE;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.FLOAT;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.MEMO;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.NUMERIC;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.STRING;
 
 /**
 DBFField represents a field specification in an dbf file.
@@ -28,12 +36,13 @@ public class DBFField {
     public static final byte FIELD_TYPE_F = (byte) 'F';
     public static final byte FIELD_TYPE_D = (byte) 'D';
     public static final byte FIELD_TYPE_M = (byte) 'M';
-
+    
     /* Field struct variables start here */
     byte[] fieldName = new byte[11]; /* 0-10*/
 
-    byte dataType;                    /* 11 */
-
+    //byte dataType;                    /* 11 */
+    private DBFField.DBFDataType dataType;
+    
     int reserv1;                      /* 12-15 */
 
     int fieldLength;                 /* 16 */
@@ -90,7 +99,8 @@ public class DBFField {
             }
         }
 
-        field.dataType = in.readByte(); /* 11 */
+        //field.dataType = in.readByte(); /* 11 */
+        field.dataType = DBFField.DBFDataType.getTypeBySymbol(in.readByte());
         field.reserv1 = Utils.readLittleEndianInt(in); /* 12-15 */
         field.fieldLength = in.readUnsignedByte();  /* 16 */
         field.decimalCount = in.readByte(); /* 17 */
@@ -102,6 +112,15 @@ public class DBFField {
         field.indexFieldFlag = in.readByte(); /* 31 */
 
         return field;
+    }
+    
+    /**
+     * Creates a default DBFField.
+     */
+    public DBFField() {
+        this.dataType = DBFField.DBFDataType.STRING;
+        this.fieldLength = 10;
+        this.decimalCount = 0;
     }
 
     /**
@@ -121,7 +140,7 @@ public class DBFField {
         out.write(new byte[11 - fieldName.length]);
 
         // data type
-        out.writeByte(dataType); /* 11 */
+        out.writeByte(dataType.symbol); /* 11 */
         out.writeInt(0x00);   /* 12-15 */
         out.writeByte(fieldLength); /* 16 */
         out.writeByte(decimalCount); /* 17 */
@@ -148,11 +167,11 @@ public class DBFField {
     
     @return Data type as byte.
      */
-    public byte getDataType() {
+    public DBFField.DBFDataType getDataType() {
 
         return dataType;
     }
-
+    
     /**
     Returns field length.
     
@@ -207,35 +226,37 @@ public class DBFField {
 
             throw new IllegalArgumentException("Field name should be of length 0-10");
         }
+        
+        // Always use full 11 bytes for name
+        // Copy each byte into fieldName
+        this.fieldName = new byte[11];
+        int i = 0;
+        for (byte b : value.getBytes()) {
+            this.fieldName[i] = b;
+            i++;
+        }
 
-        this.fieldName = value.getBytes();
         this.nameNullIndex = this.fieldName.length;
     }
-
+    
     /**
     Sets the data type of the field.
     
     @param type of the field. One of the following:<br>
-    C, L, N, F, D, M
+    String, Boolean, Numeric, Float, Date, Memo
      */
-    public void setDataType(byte value) {
-
-        switch (value) {
-
-            case 'D':
-                this.fieldLength = 8; /* fall through */
-            case 'C':
-            case 'L':
-            case 'N':
-            case 'F':
-            case 'M':
-
-                this.dataType = value;
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unknown data type");
+    public void setDataType(DBFField.DBFDataType value) {
+        
+        if (value == this.dataType) {
+            return;
         }
+        
+        if (value == DBFField.DBFDataType.DATE) {
+            setFieldLength(8);
+        }
+        
+        this.dataType = value;
+        
     }
 
     /**
@@ -251,7 +272,7 @@ public class DBFField {
             throw new IllegalArgumentException("Field length should be a positive number");
         }
 
-        if (this.dataType == FIELD_TYPE_D) {
+        if (this.dataType == DBFField.DBFDataType.DATE) {
 
             throw new UnsupportedOperationException("Cannot do this on a Date field");
         }
@@ -279,5 +300,110 @@ public class DBFField {
         }
 
         decimalCount = (byte) value;
+    }
+    
+    /**
+     * Representation of the field's data type
+     */
+    public enum DBFDataType {
+        DATE((byte) 'D', "Date"), 
+        STRING((byte) 'C', "String"), 
+        BOOLEAN((byte) 'L', "Boolean"), 
+        NUMERIC((byte) 'N', "Numeric"), 
+        FLOAT((byte) 'F', "Float"), 
+        MEMO((byte) 'M', "Memo");
+        
+        private final byte symbol;
+        private final String displayName;
+        DBFDataType(byte symbol, String displayName) {
+            this.symbol = symbol;
+            this.displayName = displayName;
+        }
+        
+        /**
+         * Gets the single byte character symbol that is used by the dbf format
+         * @return single byte character
+         */
+        public byte getSymbol() {
+            return this.symbol;
+        }
+        
+        /**
+         * Generator for getting the correct enum value for a single byte symbol
+         * @param symbol
+         * @return DBFDataType enum value
+         */
+        public static DBFField.DBFDataType getTypeBySymbol(byte symbol) {
+            for (DBFField.DBFDataType type : DBFField.DBFDataType.values()) {
+                if (type.symbol == symbol) {
+                    return type;
+                }
+            }
+            
+            return null;
+        }
+        
+        /**
+         * Gets a Java class equivalent for representing a dbf data type
+         * @return 
+         */
+        public Class<?> getEquivalentClass() {
+            switch (this) {
+                case STRING:
+                case MEMO:
+                    return String.class;
+                case DATE:
+                    return Calendar.class;
+                case FLOAT:
+                case NUMERIC:
+                    return Double.class;
+                case BOOLEAN:
+                    return Boolean.class;
+            }
+            
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return this.displayName;
+        }
+        
+        
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 37 * hash + Arrays.hashCode(this.fieldName);
+        hash = 37 * hash + this.dataType.symbol;
+        hash = 37 * hash + this.fieldLength;
+        hash = 37 * hash + this.decimalCount;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DBFField other = (DBFField) obj;
+
+        if (!Arrays.equals(this.fieldName, other.fieldName)) {
+            return false;
+        }
+        if (this.dataType != other.dataType) {
+            return false;
+        }
+        if (this.fieldLength != other.fieldLength) {
+            return false;
+        }
+        if (this.decimalCount != other.decimalCount) {
+            return false;
+        }
+        return true;
     }
 }

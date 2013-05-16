@@ -39,6 +39,7 @@ import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINE;
 import whitebox.interfaces.MapLayer;
 import whitebox.structures.BoundingBox;
 import java.beans.PropertyChangeSupport;
+import java.io.IOException;
 
 /**
  *
@@ -100,7 +101,12 @@ public class VectorLayerInfo implements MapLayer {
         this.alpha = alpha;
         this.overlayNumber = overlayNumber;
 
-        shapefile = new ShapeFile(fileName);
+        try {
+            shapefile = new ShapeFile(fileName);
+        } catch (IOException e) {
+            // The files doesn't exist
+            throw new IllegalArgumentException();
+        }
 
         currentExtent = new BoundingBox(shapefile.getxMin(), shapefile.getyMin(),
                 shapefile.getxMax(), shapefile.getyMax());
@@ -506,7 +512,7 @@ public class VectorLayerInfo implements MapLayer {
                 int fieldNum = -1;
                 for (a = 0; a < fields.length; a++) {
                     if (fields[a].getName().equals(colouringAttribute)) {
-                        dataType = fields[a].getDataType();
+                        dataType = fields[a].getDataType().getSymbol();
                         fieldNum = a;
                         break;
                     }

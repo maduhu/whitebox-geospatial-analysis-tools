@@ -171,6 +171,22 @@ public class RasterLayerInfo implements MapLayer {
         return headerFile;
     }
 
+    public int getRowFromYCoordinate(double y) {
+        return source.getRowFromYCoordinate(y);
+    }
+    
+    public int getColFromXCoordinate(double x) {
+        return source.getRowFromYCoordinate(x);
+    }
+    
+    public double getXCoordinateFromColumn(int col) {
+        return source.getXCoordinateFromColumn(col);
+    }
+    
+    public double getYCoordinateFromRow(int row) {
+        return source.getYCoordinateFromRow(row);
+    }
+    
     public double getCellSizeX() {
         return source.getCellSizeX();
     }
@@ -332,7 +348,7 @@ public class RasterLayerInfo implements MapLayer {
      * <i><b>DATA_SCALE_CATEGORICAL</i></b> (1), <i><b>DATA_SCALE_BOOLEAN</i></b> (2), or <i><b>DATA_SCALE_RGB</i></b> (3).
      * @param DataScale The specified data type.
      */
-    public void setDataScale(WhiteboxRaster.DataScale DataScale) {
+    public final void setDataScale(WhiteboxRaster.DataScale DataScale) {
         dataScale = DataScale;
 
         source.setDataScale(dataScale);

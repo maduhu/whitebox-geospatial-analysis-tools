@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Vector;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFHeader.SIG_DBASE_III;
 
 class DBFHeader {
 
