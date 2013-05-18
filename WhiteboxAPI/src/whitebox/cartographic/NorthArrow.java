@@ -37,6 +37,7 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
     int x = -32768;
     int y = -32768;
     int markerSize = 35;
+    int halfMarkerSize = markerSize / 2;
     int margin = 4;
     boolean borderVisible = false;
     boolean backgroundVisible = false;
@@ -86,6 +87,7 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
 
     public void setMarkerSize(int markerSize) {
         this.markerSize = markerSize;
+        this.halfMarkerSize = markerSize / 2;
     }
 
     public MarkerStyle getMarkerStyle() {
@@ -114,32 +116,32 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
 
     @Override
     public int getUpperLeftX() {
-        return (int)(x - markerSize / 2.0);
+        return x - halfMarkerSize;
     }
 
     @Override
     public int getUpperLeftY() {
-        return (int)(y - markerSize / 2.0);
+        return y - halfMarkerSize;
     }
     
     @Override
     public void setUpperLeftX(int x) {
-        this.x = (int)(x + markerSize / 2.0);
+        this.x = x + halfMarkerSize;
     }
     
     @Override
     public void setUpperLeftY(int y) {
-        this.y = (int)(y + markerSize / 2.0);
+        this.y = y + halfMarkerSize;
     }
     
     @Override
     public int getLowerRightX() {
-        return (int)(x + markerSize / 2.0);
+        return x + halfMarkerSize;
     }
 
     @Override
     public int getLowerRightY() {
-        return (int)(y + markerSize / 2.0);
+        return y + halfMarkerSize;
     }
     
     @Override
@@ -201,6 +203,7 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
     public void setMargin(int margin) {
         if (margin > markerSize) {
             markerSize = margin * 3;
+            halfMarkerSize = markerSize / 2;
         }
         this.margin = margin;
     }
@@ -378,6 +381,6 @@ public class NorthArrow implements CartographicElement, Comparable<CartographicE
     
     @Override
     public CartographicElementType getCartographicElementType() {
-        return CartographicElementType.NORTHARROW;
+        return CartographicElementType.NORTH_ARROW;
     }
 }

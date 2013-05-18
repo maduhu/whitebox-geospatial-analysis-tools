@@ -74,8 +74,8 @@ public class MapInfoDeserializer implements JsonDeserializer<MapInfo> {
                 mi.setDefaultFont(font);
             }
 
-            Type listOfCartographicElementsObject = new TypeToken<List<CartographicElement>>() {
-            }.getType();
+            Type listOfCartographicElementsObject = 
+                    new TypeToken<List<CartographicElement>>() {}.getType();
             JsonElement je2 = jo.get("cartographicElementList");
             ArrayList<CartographicElement> cartoElementList = gson.fromJson(je2, listOfCartographicElementsObject);
             ArrayList<MapArea> mapAreas = new ArrayList<>();
@@ -112,7 +112,7 @@ public class MapInfoDeserializer implements JsonDeserializer<MapInfo> {
 
             return mi;
         } catch (Exception e) {
-            System.out.println(e.getStackTrace());
+            System.err.println(e.getMessage());
             return null;
         }
     }

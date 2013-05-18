@@ -21,6 +21,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import whitebox.interfaces.CartographicElement;
 import whitebox.structures.BoundingBox;
@@ -45,6 +46,7 @@ public class MapInfo implements java.io.Serializable {
     private boolean showInLegend = true;
     private ArrayList<CartographicElement> listOfCartographicElements = new ArrayList<>();
     private Font defaultFont = new Font("SanSerif", Font.PLAIN, 11);
+
     /**
      * MapInfo constructor
      */
@@ -84,7 +86,18 @@ public class MapInfo implements java.io.Serializable {
             numMapAreas++;
             mapAreas.add((MapArea) ce);
             activeMapArea = ce.getElementNumber();
-        }
+        } //else if (ce instanceof CartographicElementGroup) {
+//            // see if it contains any MapAreas
+//            CartographicElementGroup ceg = (CartographicElementGroup) ce;
+//            List<CartographicElement> myCEs = ceg.getElementList();
+//            for (CartographicElement ce2 : myCEs) {
+//                if (ce instanceof MapArea) {
+//                    numMapAreas++;
+//                    mapAreas.add((MapArea) ce);
+//                    activeMapArea = ce.getElementNumber();
+//                }
+//            }
+//        }
     }
 
     public void removeCartographicElement(int elementNumber) {
@@ -98,10 +111,13 @@ public class MapInfo implements java.io.Serializable {
                 ce.setElementNumber(i);
                 i++;
             }
+            if (elementNumber == activeMapArea) { activeMapArea = -1; }
             mapAreas.clear();
+            numMapAreas = 0;
             for (CartographicElement ce : listOfCartographicElements) {
                 if (ce instanceof MapArea) {
                     mapAreas.add((MapArea) ce);
+                    numMapAreas++;
                     activeMapArea = ce.getElementNumber();
                 }
             }
@@ -109,6 +125,13 @@ public class MapInfo implements java.io.Serializable {
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
+    }
+    
+    public void removeAllCartographicElements() {
+        listOfCartographicElements.clear();
+        mapAreas.clear();
+        numMapAreas = 0;
+        activeMapArea = -1;
     }
 
     public ArrayList<CartographicElement> getCartographicElementList() {
@@ -138,9 +161,10 @@ public class MapInfo implements java.io.Serializable {
         pageBox.setMaxX(Float.NEGATIVE_INFINITY);
         pageBox.setMaxY(Float.NEGATIVE_INFINITY);
     }
-    
+
     /**
      * Used to zoom out of the map page
+     *
      * @param x, x-coordinate of the new centre point
      * @param y, y-coordinate of the new centre point
      */
@@ -152,9 +176,10 @@ public class MapInfo implements java.io.Serializable {
         pageBox.setMaxX(x + (rangeX * 1.15) / 2.0);
         pageBox.setMaxY(y + (rangeY * 1.15) / 2.0);
     }
-    
+
     /**
      * Used to zoom into the map page
+     *
      * @param x, x-coordinate of the new centre point
      * @param y, y-coordinate of the new centre point
      */
@@ -166,7 +191,7 @@ public class MapInfo implements java.io.Serializable {
         pageBox.setMaxX(x + (rangeX * 0.85) / 2.0);
         pageBox.setMaxY(y + (rangeY * 0.85) / 2.0);
     }
-    
+
     public void zoom(int x, int y, double factor) {
         double rangeX = Math.abs(pageBox.getMaxX() - pageBox.getMinX());
         double rangeY = Math.abs(pageBox.getMaxY() - pageBox.getMinY());
@@ -175,7 +200,7 @@ public class MapInfo implements java.io.Serializable {
         pageBox.setMaxX(x + (rangeX * factor) / 2.0);
         pageBox.setMaxY(y + (rangeY * factor) / 2.0);
     }
-    
+
     public void addMapTitle() {
         // how many map titles are there already?
         int i = 0;
@@ -259,7 +284,7 @@ public class MapInfo implements java.io.Serializable {
         CartographicElement ce = new MapImage(name, fileName);
         addNewCartographicElement(ce);
     }
-    
+
     public void addLegend() {
         // how many legends are there already?
         int i = 0;
@@ -349,14 +374,14 @@ public class MapInfo implements java.io.Serializable {
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
-    
+
     public Font getDefaultFont() {
         return defaultFont;
     }
-    
+
     public void setDefaultFont(Font font) {
         this.defaultFont = font;
-        
+
     }
 
     public BoundingBox getPageExtent() {
@@ -394,15 +419,10 @@ public class MapInfo implements java.io.Serializable {
     public int getNumberOfCartographicElements() {
         return listOfCartographicElements.size();
     }
-
-    
-    
-    
-    
     // Methods
     private int activeMapArea = -1;
 
-    public int getActiveMapAreaOverlayNumber() {
+    public int getActiveMapAreaElementNumber() {
         if (activeMapArea < 0) {
             return findActiveMapArea();
         } else {
@@ -412,7 +432,7 @@ public class MapInfo implements java.io.Serializable {
 
     public MapArea getActiveMapArea() {
         if (activeMapArea < 0) {
-            getActiveMapAreaOverlayNumber();
+            getActiveMapAreaElementNumber();
         }
         for (MapArea mapArea : mapAreas) {
             if (mapArea.getElementNumber() == activeMapArea) {
@@ -434,7 +454,7 @@ public class MapInfo implements java.io.Serializable {
         }
         return null;
     }
-    
+
     public int howManyElementsAreSelected() {
         int numSelectedElements = 0;
         for (CartographicElement ce : listOfCartographicElements) {
@@ -463,12 +483,12 @@ public class MapInfo implements java.io.Serializable {
                         ce.setUpperLeftX(x2);
                     }
                 }
-                
+
             } else if (numSelectedElements == 1) { // center in page
                 for (CartographicElement ce : listOfCartographicElements) {
                     if (ce.isSelected()) {
                         int width = ce.getLowerRightX() - ce.getUpperLeftX();
-                        x = (int)(pageFormat.getWidth() / 2 - width / 2);
+                        x = (int) (pageFormat.getWidth() / 2 - width / 2);
                         ce.setUpperLeftX(x);
                     }
                 }
@@ -490,19 +510,19 @@ public class MapInfo implements java.io.Serializable {
                         y += ce.getLowerRightY() + (ce.getUpperLeftY() - ce.getLowerRightY()) / 2;
                     }
                 }
-                y = (int)(y / numSelectedElements); // AVERAGE MIDPOINT
+                y = (int) (y / numSelectedElements); // AVERAGE MIDPOINT
                 for (CartographicElement ce : listOfCartographicElements) {
                     if (ce.isSelected()) {
                         y2 = y + (ce.getUpperLeftY() - ce.getLowerRightY()) / 2;
                         ce.setUpperLeftY(y2);
                     }
                 }
-                
+
             } else if (numSelectedElements == 1) { // center in page
                 for (CartographicElement ce : listOfCartographicElements) {
                     if (ce.isSelected()) {
                         int height = ce.getLowerRightY() - ce.getUpperLeftY();
-                        y = (int)(pageFormat.getHeight() / 2 - height / 2);
+                        y = (int) (pageFormat.getHeight() / 2 - height / 2);
                         ce.setUpperLeftY(y);
                     }
                 }
@@ -512,7 +532,7 @@ public class MapInfo implements java.io.Serializable {
             return false;
         }
     }
-    
+
     public boolean alignSelectedElementsRight() {
         try {
             int x, width;
@@ -532,11 +552,11 @@ public class MapInfo implements java.io.Serializable {
                         ce.setUpperLeftX(x - width);
                     }
                 }
-                
+
             } else if (numSelectedElements == 1) {
-                x = (int)(pageFormat.getWidth() - (margin * 72));
+                x = (int) (pageFormat.getWidth() - (margin * 72));
                 for (CartographicElement ce : listOfCartographicElements) {
-                    if (ce.isSelected()) {                       
+                    if (ce.isSelected()) {
                         width = ce.getLowerRightX() - ce.getUpperLeftX();
                         ce.setUpperLeftX(x - width);
                     }
@@ -547,7 +567,7 @@ public class MapInfo implements java.io.Serializable {
             return false;
         }
     }
-    
+
     public boolean alignSelectedElementsLeft() {
         try {
             int x;
@@ -566,11 +586,11 @@ public class MapInfo implements java.io.Serializable {
                         ce.setUpperLeftX(x);
                     }
                 }
-                
+
             } else if (numSelectedElements == 1) {
                 for (CartographicElement ce : listOfCartographicElements) {
-                    if (ce.isSelected()) {                       
-                        ce.setUpperLeftX((int)(margin * 72));
+                    if (ce.isSelected()) {
+                        ce.setUpperLeftX((int) (margin * 72));
                     }
                 }
             }
@@ -579,7 +599,7 @@ public class MapInfo implements java.io.Serializable {
             return false;
         }
     }
-    
+
     public boolean alignSelectedElementsTop() {
         try {
             int y;
@@ -598,11 +618,11 @@ public class MapInfo implements java.io.Serializable {
                         ce.setUpperLeftY(y);
                     }
                 }
-                
+
             } else if (numSelectedElements == 1) {
                 for (CartographicElement ce : listOfCartographicElements) {
-                    if (ce.isSelected()) {                       
-                        ce.setUpperLeftY((int)((margin * 72)));
+                    if (ce.isSelected()) {
+                        ce.setUpperLeftY((int) ((margin * 72)));
                     }
                 }
             }
@@ -611,7 +631,7 @@ public class MapInfo implements java.io.Serializable {
             return false;
         }
     }
-    
+
     public boolean alignSelectedElementsBottom() {
         try {
             int y, height;
@@ -631,11 +651,11 @@ public class MapInfo implements java.io.Serializable {
                         ce.setUpperLeftY(y - height);
                     }
                 }
-                
+
             } else if (numSelectedElements == 1) {
-                y = (int)(pageFormat.getHeight() - (margin * 72));
+                y = (int) (pageFormat.getHeight() - (margin * 72));
                 for (CartographicElement ce : listOfCartographicElements) {
-                    if (ce.isSelected()) {                       
+                    if (ce.isSelected()) {
                         height = ce.getLowerRightY() - ce.getUpperLeftY();
                         ce.setUpperLeftY(y - height);
                     }
@@ -646,7 +666,7 @@ public class MapInfo implements java.io.Serializable {
             return false;
         }
     }
-    
+
     public boolean distributeSelectedElementsVertically() {
         try {
             int y, i, top, topElementNum = 0, bottom, bottomElementNum = 0;
@@ -678,10 +698,10 @@ public class MapInfo implements java.io.Serializable {
                         i++;
                     }
                 }
-                
+
                 int gapSpace = (bottom - top) - totalHeight;
                 int avgSpace = gapSpace / (numSelectedElements - 1);
-                
+
                 // sort out the order from top to bottom elements
                 order[0] = topElementNum;
                 ordered[topElementNum] = true;
@@ -708,7 +728,7 @@ public class MapInfo implements java.io.Serializable {
                     }
                     i++;
                 } while (flag);
-                
+
                 for (int a = 1; a < (numSelectedElements - 1); a++) { // intermediate elements
                     int thisElement = order[a];
                     int previousElement = order[a - 1];
@@ -717,14 +737,14 @@ public class MapInfo implements java.io.Serializable {
                     y = cePrev.getLowerRightY() + avgSpace;
                     ce.setUpperLeftY(y);
                 }
-                
+
             }
             return true;
         } catch (Exception e) {
             return false;
         }
     }
-    
+
     public boolean distributeSelectedElementsHorizontally() {
         try {
             int x, i, left, leftElementNum = 0, right, rightElementNum = 0;
@@ -756,10 +776,10 @@ public class MapInfo implements java.io.Serializable {
                         i++;
                     }
                 }
-                
+
                 int gapSpace = (right - left) - totalWidth;
                 int avgSpace = gapSpace / (numSelectedElements - 1);
-                
+
                 // sort out the order from top to bottom elements
                 order[0] = leftElementNum;
                 ordered[leftElementNum] = true;
@@ -786,7 +806,7 @@ public class MapInfo implements java.io.Serializable {
                     }
                     i++;
                 } while (flag);
-                
+
                 for (int a = 1; a < (numSelectedElements - 1); a++) { // intermediate elements
                     int thisElement = order[a];
                     int previousElement = order[a - 1];
@@ -795,23 +815,90 @@ public class MapInfo implements java.io.Serializable {
                     x = cePrev.getLowerRightX() + avgSpace;
                     ce.setUpperLeftX(x);
                 }
-                
+
             }
             return true;
         } catch (Exception e) {
             return false;
         }
     }
-    
+
+    public boolean groupElements() {
+        try {
+            int numSelectedElements = howManyElementsAreSelected();
+            if (numSelectedElements > 1) {
+                int howManyGroups = 0;
+                List<CartographicElement> myCEs = new ArrayList<>();
+                List<Integer> selectedNums = new ArrayList<>();
+                for (CartographicElement ce : listOfCartographicElements) {
+                    if (ce.isSelected()) {
+                        ce.setSelected(false);
+                        myCEs.add(ce);
+                        selectedNums.add(ce.getElementNumber());
+                    }
+                    if (ce instanceof CartographicElementGroup) {
+                        howManyGroups++;
+                    }
+                }
+
+                // now remove the non-group elments so there aren't duplicates
+                for (int i = (numSelectedElements - 1); i >= 0; i--) {
+                    removeCartographicElement(selectedNums.get(i));
+                }
+
+                String name = "Group" + String.valueOf(howManyGroups + 1);
+                CartographicElementGroup ceg = new CartographicElementGroup(name, myCEs);
+                ceg.setSelected(true);
+                addNewCartographicElement(ceg);
+
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean ungroupElements() {
+        try {
+            int numSelectedElements = howManyElementsAreSelected();
+            if (numSelectedElements > 0) {
+                List<CartographicElementGroup> selectedCEGs = new ArrayList<>();
+                List<CartographicElement> otherElements = new ArrayList<>();
+                for (CartographicElement ce : listOfCartographicElements) {
+                    if (ce.isSelected()) {
+                        if (ce instanceof CartographicElementGroup) {
+                            selectedCEGs.add((CartographicElementGroup) ce);
+                        } else {
+                            otherElements.add(ce);
+                        }
+                    } else {
+                        otherElements.add(ce);
+                    }
+                }
+                
+                removeAllCartographicElements();
+                
+                for (CartographicElement ce : otherElements) {
+                    addNewCartographicElement(ce);
+                }
+                
+                for (CartographicElementGroup ceg : selectedCEGs) {
+                    List<CartographicElement> myCEs = ceg.getElementList();
+                    for (CartographicElement ce2 : myCEs) {
+                        addNewCartographicElement(ce2);
+                    }
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private int findActiveMapArea() {
         // if there is only one MapArea then return it's element number
         if (numMapAreas == 1) {
             activeMapArea = mapAreas.get(0).getElementNumber();
-//            for (CartographicElement ce : listOfCartographicElements) {
-//                if (ce instanceof MapArea) {
-//                    activeMapArea = ce.getElementNumber();
-//                }
-//            }
         } else if (numMapAreas > 1) {
             // return the element number of the first selected mapArea
             boolean foundSelectedMapArea = false;
@@ -826,27 +913,13 @@ public class MapInfo implements java.io.Serializable {
                 Collections.sort(mapAreas);
                 activeMapArea = mapAreas.get(0).getElementNumber();
             }
-
-//            for (CartographicElement ce : listOfCartographicElements) {
-//                if (ce instanceof MapArea && ce.isSelected()) {
-//                    activeMapArea = ce.getElementNumber();
-//                    foundSelectedMapArea = true;
-//                }
-//            }
-//            if (!foundSelectedMapArea) {
-//                for (CartographicElement ce : listOfCartographicElements) {
-//                    if (ce instanceof MapArea) {
-//                        activeMapArea = ce.getElementNumber();
-//                    }
-//                }
-//            }
-        } else {
-            // you need to add a mapArea
-            String name = "MapArea1";
-            CartographicElement ce = new MapArea(name);
-            addNewCartographicElement(ce);
-            findActiveMapArea();
-        }
+        }// else {
+//            // you need to add a mapArea
+//            String name = "MapArea1";
+//            CartographicElement ce = new MapArea(name);
+//            addNewCartographicElement(ce);
+//            findActiveMapArea();
+//        }
         return activeMapArea;
     }
 //    private transient String retFile = "";

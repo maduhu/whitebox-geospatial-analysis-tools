@@ -551,6 +551,6 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     
     @Override
     public CartographicElementType getCartographicElementType() {
-        return CartographicElementType.MAPSCALE;
+        return CartographicElementType.MAP_SCALE;
     }
 }

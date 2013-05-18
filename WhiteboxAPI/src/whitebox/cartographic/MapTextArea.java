@@ -410,7 +410,7 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
 
     @Override
     public CartographicElement.CartographicElementType getCartographicElementType() {
-        return CartographicElement.CartographicElementType.MAPTEXTAREA;
+        return CartographicElement.CartographicElementType.MAP_TEXT_AREA;
     }
     
 //    private void findAvailableFonts() {

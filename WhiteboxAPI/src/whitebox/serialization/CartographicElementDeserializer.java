@@ -61,6 +61,10 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(MapLayer.class, 
                 new MapLayerDeserializer(workingDirectory, paletteDirectory));
+        
+        gsonBuilder.registerTypeAdapter(CartographicElement.class,
+                    new CartographicElementDeserializer(workingDirectory, paletteDirectory));
+        
         Gson gson = gsonBuilder.create();
         Type clrType = new TypeToken<Color>() {}.getType();
         Color clr;
@@ -74,7 +78,7 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
         String name = jo.getAsJsonPrimitive("name").getAsString();
 
         switch (elementType) {
-            case "MAPAREA":
+            case "MAP_AREA":
                 MapArea ma = new MapArea(name);
                 ma.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
                 ma.setHeight(jo.getAsJsonPrimitive("height").getAsInt());
@@ -112,14 +116,11 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 ma.setActiveLayer(jo.getAsJsonPrimitive("activeLayerOverlayNumber").getAsInt());
                 return ma;
 
-            case "MAPTITLE":
+            case "MAP_TITLE":
                 MapTitle mt = new MapTitle(name);
                 mt.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
                 mt.setLabel(jo.getAsJsonPrimitive("label").getAsString());
-                mt.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
-                mt.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
                 mt.setElementNumber(jo.getAsJsonPrimitive("elementNumber").getAsInt());
-                mt.setHeight(jo.getAsJsonPrimitive("height").getAsInt());
                 mt.setMargin(jo.getAsJsonPrimitive("margin").getAsInt());
                 mt.setBackgroundVisible(jo.getAsJsonPrimitive("isBackgroundVisible").getAsBoolean());
                 mt.setBorderVisible(jo.getAsJsonPrimitive("isBorderVisible").getAsBoolean());
@@ -134,9 +135,13 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 mt.setOutlineColour(clr);
                 font = gson.fromJson(jo.get("labelFont"), fontType);
                 mt.setLabelFont(font);
+                mt.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
+                mt.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
+                mt.setHeight(jo.getAsJsonPrimitive("height").getAsInt());
+                mt.setWidth(jo.getAsJsonPrimitive("width").getAsInt());
                 return mt;
 
-           case "MAPTEXTAREA":
+           case "MAP_TEXT_AREA":
                 MapTextArea mta = new MapTextArea(name);
                 mta.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
                 mta.setLabel(jo.getAsJsonPrimitive("label").getAsString());
@@ -157,7 +162,7 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 mta.setLabelFont(font);
                 return mta;
 
-            case "NORTHARROW":
+            case "NORTH_ARROW":
                 NorthArrow na = new NorthArrow(name);
                 na.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
                 na.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
@@ -176,7 +181,7 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 na.setOutlineColour(clr);
                 return na;
                 
-            case "MAPIMAGE":
+            case "MAP_IMAGE":
                 String fileName = jo.getAsJsonPrimitive("fileName").getAsString();
                 
                 // see whether it exists, and if it doesn't, see whether a file of the same
@@ -193,13 +198,15 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 
                 MapImage mi = new MapImage(name, fileName);
                 mi.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
-                mi.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
-                mi.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
                 mi.setElementNumber(jo.getAsJsonPrimitive("elementNumber").getAsInt());
                 mi.setLineWidth(jo.getAsJsonPrimitive("lineWidth").getAsFloat());
                 mi.setBorderVisible(jo.getAsJsonPrimitive("isBorderVisible").getAsBoolean());
                 clr = gson.fromJson(jo.get("borderColour"), clrType);
                 mi.setBorderColour(clr);
+                mi.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
+                mi.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
+                mi.setHeight(jo.getAsJsonPrimitive("height").getAsInt());
+                mi.setWidth(jo.getAsJsonPrimitive("width").getAsInt());
                 mi.setMaintainAspectRatio(jo.getAsJsonPrimitive("maintainAspectRatio").getAsBoolean());
                 return mi;
 
@@ -210,8 +217,6 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 nl.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
                 nl.setElementNumber(jo.getAsJsonPrimitive("elementNumber").getAsInt());
                 nl.setDoubleLineGap(jo.getAsJsonPrimitive("doubleLineGap").getAsInt());
-                nl.setHeight(jo.getAsJsonPrimitive("height").getAsInt());
-                nl.setWidth(jo.getAsJsonPrimitive("width").getAsInt());
                 nl.setInnerLineWidth(jo.getAsJsonPrimitive("innerLineWidth").getAsFloat());
                 nl.setOuterLineThickness(jo.getAsJsonPrimitive("outerLineWidth").getAsFloat());
                 nl.setBackgroundVisible(jo.getAsJsonPrimitive("isBackgroundVisible").getAsBoolean());
@@ -221,10 +226,12 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 nl.setBackgroundColour(clr);
                 clr = gson.fromJson(jo.get("borderColour"), clrType);
                 nl.setBorderColour(clr);
+                nl.setHeight(jo.getAsJsonPrimitive("height").getAsInt());
+                nl.setWidth(jo.getAsJsonPrimitive("width").getAsInt());
                 
                 return nl;
                 
-            case "MAPSCALE":
+            case "MAP_SCALE":
                 MapScale ms = new MapScale(name);
                 ms.setVisible(jo.getAsJsonPrimitive("isVisible").getAsBoolean());
                 ms.setUpperLeftX(jo.getAsJsonPrimitive("upperLeftX").getAsInt());
@@ -277,6 +284,17 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 l.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
                 
                 return l;
+                
+            case "CARTOGRAPHIC_ELEMENT_GROUP":
+                CartographicElementGroup ceg = new CartographicElementGroup(name);
+                ceg.setElementNumber(jo.getAsJsonPrimitive("elementNumber").getAsInt());
+                Type listOfCartographicElementsObject = 
+                    new TypeToken<List<CartographicElement>>() {}.getType();
+                JsonElement je2 = jo.get("elementList");
+                ArrayList<CartographicElement> cartoElementList = gson.fromJson(je2, listOfCartographicElementsObject);
+                ceg.setElementList(cartoElementList);
+                
+                return ceg;
         }
 
         return null;

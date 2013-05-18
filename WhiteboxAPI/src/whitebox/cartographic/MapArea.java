@@ -15,7 +15,6 @@ import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.MapLayer;
 import whitebox.structures.BoundingBox;
 import whitebox.structures.GridCell;
-import whitebox.structures.XYPoint;
 
 /**
  *
@@ -54,7 +53,7 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
     float lineWidth = 0.75f;
     private static double ppm = java.awt.Toolkit.getDefaultToolkit().getScreenResolution() * 39.3701;
     private double scale = 0;
-    private int referenceMarkSize = 10;
+    private int referenceMarkSize = 12;
     private int selectedOffsetX;
     private int selectedOffsetY;
     private boolean maximumScreenSize = false;
@@ -381,6 +380,9 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
     }
     
     public int getActiveLayerOverlayNumber() {
+        if (activeLayer == null) {
+            return -1;
+        }
         return activeLayer.getOverlayNumber();
     }
     
@@ -1042,6 +1044,6 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
     
     @Override
     public CartographicElementType getCartographicElementType() {
-        return CartographicElementType.MAPAREA;
+        return CartographicElementType.MAP_AREA;
     }
 }

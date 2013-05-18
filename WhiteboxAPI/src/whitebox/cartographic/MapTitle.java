@@ -458,6 +458,6 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     
     @Override
     public CartographicElementType getCartographicElementType() {
-        return CartographicElementType.MAPTITLE;
+        return CartographicElementType.MAP_TITLE;
     }
 }

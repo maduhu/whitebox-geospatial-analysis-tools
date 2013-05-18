@@ -340,6 +340,6 @@ public class MapImage implements CartographicElement, Comparable<CartographicEle
 
     @Override
     public CartographicElement.CartographicElementType getCartographicElementType() {
-        return CartographicElement.CartographicElementType.NEATLINE;
+        return CartographicElement.CartographicElementType.MAP_IMAGE;
     }
 }

@@ -23,7 +23,7 @@ import java.util.List;
 import whitebox.cartographic.*;
 import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.CartographicElement.CartographicElementType.*;
-import static whitebox.interfaces.CartographicElement.CartographicElementType.MAPTITLE;
+import static whitebox.interfaces.CartographicElement.CartographicElementType.MAP_TITLE;
 import whitebox.interfaces.MapLayer;
 
 /**
@@ -37,6 +37,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
         try {
             GsonBuilder gsonBuilder = new GsonBuilder();
             gsonBuilder.registerTypeAdapter(MapLayer.class, new MapLayerSerializer());
+            gsonBuilder.registerTypeAdapter(CartographicElement.class, new CartographicElementSerializer());
             Gson gson = gsonBuilder.create();
             JsonObject jo = new JsonObject();
 
@@ -51,7 +52,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
             jo.addProperty("isVisible", t.isVisible());
 
             switch (t.getCartographicElementType()) {
-                case MAPAREA:
+                case MAP_AREA:
                     MapArea ma = (MapArea) t;
                     jo.addProperty("height", ma.getHeight());
                     jo.addProperty("width", ma.getWidth());
@@ -75,7 +76,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     Type listOfLayerObject = new TypeToken<List<MapLayer>>() {}.getType();
                     jo.add("layersList", gson.toJsonTree(ma.getLayersList(), listOfLayerObject));
                     break;
-                case MAPTITLE:
+                case MAP_TITLE:
                     MapTitle mt = (MapTitle) t;
                     jo.addProperty("label", mt.getLabel());
                     jo.addProperty("fontHeight", mt.getFontHeight());
@@ -92,7 +93,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.add("outlineColour", gson.toJsonTree(mt.getOutlineColour()));
                     jo.add("labelFont", gson.toJsonTree(mt.getLabelFont()));
                     break;
-                case MAPTEXTAREA:
+                case MAP_TEXT_AREA:
                     MapTextArea mta = (MapTextArea) t;
                     jo.addProperty("label", mta.getLabel());
                     jo.addProperty("fontHeight", mta.getFontHeight());
@@ -121,7 +122,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.add("backgroundColour", gson.toJsonTree(nl.getBackgroundColour()));
                     jo.add("borderColour", gson.toJsonTree(nl.getBorderColour()));
                     break;
-                case NORTHARROW:
+                case NORTH_ARROW:
                     NorthArrow na = (NorthArrow) t;
                     jo.addProperty("height", na.getHeight());
                     jo.addProperty("width", na.getWidth());
@@ -134,7 +135,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.add("borderColour", gson.toJsonTree(na.getBorderColour()));
                     jo.add("outlineColour", gson.toJsonTree(na.getOutlineColour()));
                     break;
-                case MAPIMAGE:
+                case MAP_IMAGE:
                     MapImage mi = (MapImage) t;
                     jo.addProperty("height", mi.getHeight());
                     jo.addProperty("width", mi.getWidth());
@@ -144,7 +145,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.addProperty("fileName", mi.getFileName());
                     jo.addProperty("maintainAspectRatio", mi.isMaintainAspectRatio());
                     break;
-                case MAPSCALE:
+                case MAP_SCALE:
                     MapScale ms = (MapScale) t;
                     jo.addProperty("barLength", ms.getBarLength());
                     jo.addProperty("conversionToMetres", ms.getConversionToMetres());
@@ -183,7 +184,11 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.add("borderColour", gson.toJsonTree(l.getBorderColour()));
                     jo.add("fontColour", gson.toJsonTree(l.getFontColour()));
                     jo.add("labelFont", gson.toJsonTree(l.getLabelFont()));
-                    
+                    break;
+                case CARTOGRAPHIC_ELEMENT_GROUP:
+                    CartographicElementGroup ceg = (CartographicElementGroup) t;
+                    Type listOfCartographicElementsObject = new TypeToken<List<CartographicElement>>(){}.getType();
+                    jo.add("elementList", gson.toJsonTree(ceg.getElementList(), listOfCartographicElementsObject));
                     break;
             }
 
