@@ -70,6 +70,7 @@ import whitebox.serialization.MapInfoDeserializer;
 import whiteboxgis.user_interfaces.FeatureSelectionPanel;
 import whiteboxgis.user_interfaces.SettingsDialog;
 import whiteboxgis.user_interfaces.RecentMenu;
+import whiteboxgis.user_interfaces.CartographicToolbar;
 
 /**
  *
@@ -155,9 +156,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private RecentMenu recentFilesMenu = new RecentMenu();
     private RecentMenu recentFilesPopupMenu = new RecentMenu();
     private RecentMenu recentMapsMenu = new RecentMenu();
+    private Color backgroundColour = new Color(225, 245, 255);
+    private CartographicToolbar ctb;
 
     public static void main(String[] args) {
-
+        try {
         //setLookAndFeel("Nimbus");
         setLookAndFeel("systemLAF");
         if (System.getProperty("os.name").contains("Mac")) {
@@ -175,6 +178,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         WhiteboxGui wb = new WhiteboxGui();
         wb.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         wb.setVisible(true);
+        } catch (Exception e) {
+            System.err.println(e.getStackTrace());
+        }
     }
     private String retFile;
     private boolean flag = true;
@@ -796,8 +802,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             createMenu();
             createPopupMenus();
             createToolbar();
-            createCartoElementToolbar();
-
+            ctb = new CartographicToolbar(this, false);
+            ctb.setOrientation(SwingConstants.VERTICAL);
+            this.getContentPane().add(ctb, BorderLayout.EAST);
+            
             MapInfo mapinfo = new MapInfo("Map1");
             mapinfo.setMapName("Map1");
             mapinfo.setPageFormat(defaultPageFormat);
@@ -820,6 +828,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             textArea.setLineWrap(false);
             textArea.setWrapStyleWord(false);
+            textArea.setFont(new Font(defaultFont.getName(), Font.PLAIN, 12));
             MouseListener ml = new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
@@ -1200,10 +1209,79 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             cartoMenu.addSeparator();
 
-            JMenuItem pageProps = new JMenuItem("Page Properties", new ImageIcon(graphicsDirectory + "page.png"));
+            JMenuItem pageProps = new JMenuItem("Page Properties",
+                    new ImageIcon(graphicsDirectory + "page.png"));
             cartoMenu.add(pageProps);
             pageProps.addActionListener(this);
             pageProps.setActionCommand("pageProps");
+
+
+            // align and distribute sub-menu
+            cartoMenu.addSeparator();
+            JMenu alignAndDistribute = new JMenu("Align and Distribute");
+            cartoMenu.add(alignAndDistribute);
+
+            JMenuItem alignRightMenu = new JMenuItem("Align Right", 
+                    new ImageIcon(graphicsDirectory + "AlignRight.png"));
+            alignRightMenu.addActionListener(this);
+            alignRightMenu.setActionCommand("alignRight");
+            alignAndDistribute.add(alignRightMenu);
+
+            JMenuItem centerVerticalMenu = new JMenuItem("Center Vertical",
+                    new ImageIcon(graphicsDirectory + "CenterVertical.png"));
+            centerVerticalMenu.addActionListener(this);
+            centerVerticalMenu.setActionCommand("centerVertical");
+            alignAndDistribute.add(centerVerticalMenu);
+
+            JMenuItem alignLeftMenu = new JMenuItem("Align Left",
+                    new ImageIcon(graphicsDirectory + "AlignLeft.png"));
+            alignLeftMenu.addActionListener(this);
+            alignLeftMenu.setActionCommand("alignLeft");
+            alignAndDistribute.add(alignLeftMenu);
+
+            JMenuItem alignTopMenu = new JMenuItem("Align Top",
+                    new ImageIcon(graphicsDirectory + "AlignTop.png"));
+            alignTopMenu.addActionListener(this);
+            alignTopMenu.setActionCommand("alignTop");
+            alignAndDistribute.add(alignTopMenu);
+
+            JMenuItem centerHorizontalMenu = new JMenuItem("Center Horizontal",
+                    new ImageIcon(graphicsDirectory + "CenterHorizontal.png"));
+            centerHorizontalMenu.addActionListener(this);
+            centerHorizontalMenu.setActionCommand("centerHorizontal");
+            alignAndDistribute.add(centerHorizontalMenu);
+
+            JMenuItem alignBottomMenu = new JMenuItem("Align Bottom",
+                    new ImageIcon(graphicsDirectory + "AlignBottom.png"));
+            alignBottomMenu.addActionListener(this);
+            alignBottomMenu.setActionCommand("alignBottom");
+            alignAndDistribute.add(alignBottomMenu);
+
+            alignAndDistribute.addSeparator();
+
+            JMenuItem distributeVerticallyMenu = new JMenuItem("Distribute Vertically",
+                    new ImageIcon(graphicsDirectory + "DistributeVertically.png"));
+            distributeVerticallyMenu.addActionListener(this);
+            distributeVerticallyMenu.setActionCommand("distributeVertically");
+            alignAndDistribute.add(distributeVerticallyMenu);
+
+            JMenuItem distributeHorizontallyMenu = new JMenuItem("Distribute Horizontally",
+                    new ImageIcon(graphicsDirectory + "DistributeHorizontally.png"));
+            distributeHorizontallyMenu.addActionListener(this);
+            distributeHorizontallyMenu.setActionCommand("distributeHorizontally");
+            alignAndDistribute.add(distributeHorizontallyMenu);
+
+            JMenuItem groupMenu = new JMenuItem("Group Elements",
+                    new ImageIcon(graphicsDirectory + "GroupElements.png"));
+            groupMenu.addActionListener(this);
+            groupMenu.setActionCommand("groupElements");
+            cartoMenu.add(groupMenu);
+
+            JMenuItem ungroupMenu = new JMenuItem("Ungroup Elements",
+                    new ImageIcon(graphicsDirectory + "UngroupElements.png"));
+            ungroupMenu.addActionListener(this);
+            ungroupMenu.setActionCommand("ungroupElements");
+            cartoMenu.add(ungroupMenu);
 
             menubar.add(cartoMenu);
 
@@ -1592,81 +1670,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         textPopup.setLightWeightPopupEnabled(true);
 
     }
-    JToolBar cartoToolbar = new JToolBar();
-    JButton alignRight = new JButton();
-    JButton alignLeft = new JButton();
-    JButton alignTop = new JButton();
-    JButton alignBottom = new JButton();
-    JButton centerVerticalBtn = new JButton();
-    JButton centerHorizontalBtn = new JButton();
-    JButton distributeVertically = new JButton();
-    JButton distributeHorizontally = new JButton();
-
-    private void createCartoElementToolbar() {
-        this.getContentPane().add(cartoToolbar, BorderLayout.EAST);
-
-        JButton alignAndDistribute = makeToolBarButton("AlignAndDistribute.png", "alignAndDistribute", "alignAndDistribute", "alignAndDistribute");
-        cartoToolbar.add(alignAndDistribute);
-
-        alignRight = makeToolBarButton("AlignRight.png", "alignRight", "alignRight", "alignRight");
-        cartoToolbar.add(alignRight);
-
-        centerVerticalBtn = makeToolBarButton("CenterVertical.png",
-                "centerVertical", "Center Vertical", "centerVertical");
-        cartoToolbar.add(centerVerticalBtn);
-
-        alignLeft = makeToolBarButton("AlignLeft.png", "alignLeft",
-                "alignLeft", "alignLeft");
-        cartoToolbar.add(alignLeft);
-
-        alignTop = makeToolBarButton("AlignTop.png", "alignTop",
-                "alignTop", "alignTop");
-        cartoToolbar.add(alignTop);
-
-        centerHorizontalBtn = makeToolBarButton("CenterHorizontal.png",
-                "centerHorizontal", "Center Horizontal", "centerHorizontal");
-        cartoToolbar.add(centerHorizontalBtn);
-
-        alignBottom = makeToolBarButton("AlignBottom.png", "alignBottom",
-                "Align Bottom", "alignBottom");
-        cartoToolbar.add(alignBottom);
-
-        cartoToolbar.addSeparator();
-
-        distributeVertically = makeToolBarButton("DistributeVertically.png",
-                "distributeVertically", "Distribute Vertically", "distributeVertically");
-        cartoToolbar.add(distributeVertically);
-
-        distributeHorizontally = makeToolBarButton("DistributeHorizontally.png",
-                "distributeHorizontally", "Distribute Horizontally", "distributeHorizontally");
-        cartoToolbar.add(distributeHorizontally);
-
-        alignRight.setVisible(false);
-        alignLeft.setVisible(false);
-        alignTop.setVisible(false);
-        alignBottom.setVisible(false);
-        centerVerticalBtn.setVisible(false);
-        centerHorizontalBtn.setVisible(false);
-        distributeVertically.setVisible(false);
-        distributeHorizontally.setVisible(false);
-
-
-        cartoToolbar.setOrientation(1);
-        if (!hideAlignToolbar) {
-            cartoToolbar.setVisible(true);
-        } else {
-            cartoToolbar.setVisible(false);
-        }
-
-    }
-
+    
     public void setCartoElementToolbarVisibility(boolean value) {
-        cartoToolbar.setVisible(value);
+        ctb.setVisible(value);
     }
 
     private void createToolbar() {
         try {
             JToolBar toolbar = new JToolBar();
+//            toolbar.setBackground(backgroundColour);
             JButton newMap = makeToolBarButton("map.png", "newMap", "Create a new map", "New");
 
             toolbar.add(newMap);
@@ -1713,10 +1725,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JButton zoomToPage = makeToolBarButton("ZoomFullExtent3.png", "zoomToPage", "Zoom to page", "Zoom To Page");
             toolbar.add(zoomToPage);
 
-//            JButton zoomToActiveLayer = makeToolBarButton("ZoomToActiveLayer.png", "zoomToLayer", "Zoom To Active Layer", "Zoom To Active");
-//            toolbar.add(zoomToActiveLayer);
-//            JButton zoomIn = makeToolBarButton("ZoomIn.png", "zoomIn", "Zoom In", "Zoom In");
-//            toolbar.add(zoomIn);
             JButton previousExtent = makeToolBarButton("back.png", "previousExtent", "Previous extent", "Prev Extent");
             toolbar.add(previousExtent);
             JButton nextExtent = makeToolBarButton("forward.png", "nextExtent", "Next extent", "Next Extent");
@@ -1746,6 +1754,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JLabel scaleLabel = new JLabel("1:");
             scalePanel.add(scaleLabel);
             scalePanel.add(scaleText);
+            scalePanel.setOpaque(false);
             scaleText.addKeyListener(new KeyListener() {
                 @Override
                 public void keyPressed(KeyEvent e) {
@@ -2458,53 +2467,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         return n;
     }
-//    public void displayLayer(String file) {
-//        try {
-//            // first make sure that there is an open map.
-//            if (numOpenMaps <= 0) {
-//                // add a new map
-//                numOpenMaps++;
-//                MapInfo mapinfo = new MapInfo("Map");
-//                mapinfo.setMapName("Map");
-//                mapinfo.setWorkingDirectory(workingDirectory);
-//
-//                MapArea ma = new MapArea("MapArea1");
-//                ma.setUpperLeftX(-32768);
-//                ma.setUpperLeftY(-32768);
-//                mapinfo.addNewCartographicElement(ma);
-//
-//                openMaps.add(mapinfo); //new MapInfo(str));
-//
-//                activeMap = numOpenMaps - 1;
-//                drawingArea.setMapInfo(openMaps.get(activeMap));
-//
-//                selectedMapAndLayer[0] = -1;
-//                selectedMapAndLayer[1] = -1;
-//                selectedMapAndLayer[2] = -1;
-//            }
-//            MapArea activeMapArea = openMaps.get(activeMap).getActiveMapArea();
-//            if (file.contains(".dep")) {
-//                String[] defaultPalettes = {defaultQuantPalette, defaultQualPalette, "rgb.pal"};
-//                // first get the active map
-//
-//                RasterLayerInfo newLayer = new RasterLayerInfo(file, paletteDirectory,
-//                        defaultPalettes, 255, activeMapArea.getNumLayers());
-//                activeMapArea.addLayer(newLayer);
-//                newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
-//                activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
-//                refreshMap(true);
-//            } else if (file.contains(".shp")) {
-//                VectorLayerInfo newLayer = new VectorLayerInfo(file, paletteDirectory,
-//                        255, activeMapArea.getNumLayers());
-//                activeMapArea.addLayer(newLayer);
-//                newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
-//                activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
-//                refreshMap(true);
-//            }
-//        } catch (Exception e) {
-//            showFeedback(e.getStackTrace().toString());
-//        }
-//    }
+
     String progressString = "";
     int progressValue = 0;
 
@@ -2603,11 +2566,35 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapAreaNum = 0;
         } else {
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            if (openMaps.isEmpty()) {
+                // create a new map to overlay the layer onto.
+                numOpenMaps = 1;
+                MapInfo mapinfo = new MapInfo("Map1");
+                mapinfo.setMapName("Map1");
+                MapArea ma = new MapArea("MapArea1");
+                ma.setUpperLeftX(-32768);
+                ma.setUpperLeftY(-32768);
+                ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
+                mapinfo.addNewCartographicElement(ma);
+                openMaps.add(mapinfo);
+                drawingArea.setMapInfo(openMaps.get(0));
+                activeMap = 0;
+                mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
+            } else {
+                MapArea ma = new MapArea("MapArea1");
+                ma.setUpperLeftX(-32768);
+                ma.setUpperLeftY(-32768);
+                ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
+                openMaps.get(activeMap).addNewCartographicElement(ma);
+                mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
+            }
         }
 
         // set the filter.
-        ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
+        ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
         String filterDescription = "Shapefiles (*.shp)";
         String[] extensions = {"SHP"};
         ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
@@ -2646,6 +2633,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 MapArea ma = new MapArea("MapArea1");
                 ma.setUpperLeftX(-32768);
                 ma.setUpperLeftY(-32768);
+                ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
                 mapinfo.addNewCartographicElement(ma);
                 openMaps.add(mapinfo);
                 drawingArea.setMapInfo(openMaps.get(0));
@@ -2700,7 +2688,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapAreaNum = 0;
         } else {
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
         }
 
         if (openMaps.isEmpty()) {
@@ -2711,12 +2699,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             MapArea ma = new MapArea("MapArea1");
             ma.setUpperLeftX(-32768);
             ma.setUpperLeftY(-32768);
+            ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
             mapinfo.addNewCartographicElement(ma);
             openMaps.add(mapinfo);
             drawingArea.setMapInfo(openMaps.get(0));
             activeMap = 0;
+            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
         }
-
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            MapArea ma = new MapArea("MapArea1");
+            ma.setUpperLeftX(-32768);
+            ma.setUpperLeftY(-32768);
+            ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
+            openMaps.get(activeMap).addNewCartographicElement(ma);
+            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
+        }
         File file = new File(fileName);
         if (!file.exists()) {
             showFeedback("The data layer does not appear to exist");
@@ -2930,7 +2927,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 file.delete();
             }
 
-
+            recentMapsMenu.addMenuItem(openMaps.get(selectedMapAndLayer[0]).getFileName());
+            
             FileWriter fw = null;
             BufferedWriter bw = null;
             PrintWriter out = null;
@@ -2958,6 +2956,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             }
         }
+        
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
         selectedMapAndLayer[2] = -1;
@@ -3252,7 +3251,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             k = selectedMapAndLayer[2];
         } else {
             j = activeMap;
-            k = openMaps.get(j).getActiveMapAreaOverlayNumber();
+            k = openMaps.get(j).getActiveMapAreaElementNumber();
         }
         MapArea ma = openMaps.get(j).getMapAreaByElementNum(k);
         for (int i = 0; i < ma.getNumLayers(); i++) {
@@ -3272,7 +3271,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             k = selectedMapAndLayer[2];
         } else {
             j = activeMap;
-            k = openMaps.get(j).getActiveMapAreaOverlayNumber();
+            k = openMaps.get(j).getActiveMapAreaElementNumber();
         }
         MapArea ma = openMaps.get(j).getMapAreaByElementNum(k);
         for (int i = 0; i < ma.getNumLayers(); i++) {
@@ -3337,8 +3336,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 1) {
@@ -3364,10 +3371,17 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
         }
-
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
+        }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 1) {
             ma.demoteLayerToBottom(layerNum);
@@ -3392,9 +3406,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
         }
+
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 1) {
             ma.promoteLayer(layerNum);
@@ -3419,8 +3438,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 1) {
@@ -3449,8 +3476,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getLayer(layerNum).getLayerType() == MapLayerType.RASTER) {
@@ -3493,8 +3528,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerOverlayNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3515,7 +3558,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3537,7 +3584,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3558,7 +3609,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         BoundingBox pageExtent = openMaps.get(mapNum).getPageExtent();
@@ -3583,7 +3638,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3627,8 +3686,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active layer and map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerOverlayNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3653,7 +3720,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3674,7 +3745,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3695,7 +3770,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3716,7 +3795,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3737,7 +3820,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3758,7 +3845,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3779,7 +3870,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3802,7 +3897,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() > 0) {
@@ -3830,6 +3929,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapNum = activeMap;
             layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
             mapAreaNum = openMaps.get(activeMap).getActiveMapArea().getElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER
@@ -3876,7 +3979,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback("There are no map areas currently on the active map.");
+            return;
         }
         MapProperties mp;
         if (mapAreaNum >= 0) {
@@ -3904,8 +4011,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
+            if (layerOverlayNum < 0) {
+                showFeedback("There are no vector data layers currently \ndisplayed in the active map area.");
+                return;
+            }
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() == 0) {
@@ -4112,7 +4227,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
@@ -4174,8 +4293,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the active map
             mapNum = activeMap;
-            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaOverlayNumber();
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback("There are no map areas currently on the active map.");
+                return;
+            }
             layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
+            if (layerOverlayNum < 0) {
+                showFeedback("There are no vector data layers currently \ndisplayed in the active map area.");
+                return;
+            }
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
         if (ma.getNumLayers() == 0) {
@@ -4197,7 +4324,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             k = selectedMapAndLayer[2];
         } else {
             j = activeMap;
-            k = openMaps.get(activeMap).getActiveMapAreaOverlayNumber();
+            k = openMaps.get(activeMap).getActiveMapAreaElementNumber();
         }
         MapArea mapArea = openMaps.get(j).getMapAreaByElementNum(k);
         do {
@@ -4361,308 +4488,406 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public void actionPerformed(ActionEvent e) {
         //Object source = e.getSource();
         String actionCommand = e.getActionCommand();
-        if (actionCommand.equals("addLayer")) {
-            addLayer();
-        } else if (actionCommand.equals("removeLayer")) {
-            removeLayer();
-        } else if (actionCommand.equals("close")) {
-            close();
-        } else if (actionCommand.equals("linkMap")) {
-            linkAllOpenMaps = !linkAllOpenMaps;
-            linkMap.setState(linkAllOpenMaps);
-        } else if (actionCommand.equals("nimbusLAF")) {
-            setLookAndFeel("Nimbus");
-        } else if (actionCommand.equals("systemLAF")) {
-            setLookAndFeel(getSystemLookAndFeelName());
-        } else if (actionCommand.equals("motifLAF")) {
-            setLookAndFeel("CDE/Motif");
-        } else if (actionCommand.equals("refreshTools")) {
-            refreshToolUsage();
-        } else if (actionCommand.equals("newMap")) {
-            newMap();
-        } else if (actionCommand.equals("closeMap")) {
-            closeMap();
-        } else if (actionCommand.equals("setAsActiveLayer")) {
-            setAsActiveLayer();
-        } else if (actionCommand.equals("toggleLayerVisibility")) {
-            toggleLayerVisibility();
-        } else if (actionCommand.equals("toggleAllLayerVisibility")) {
-            toggleAllLayerVisibility();
-        } else if (actionCommand.equals("allLayersVisible")) {
-            allLayersVisibile();
-        } else if (actionCommand.equals("allLayersInvisible")) {
-            allLayersInvisibile();
-        } else if (actionCommand.equals("toggleLayerVisibilityInLegend")) {
-            toggleLayerVisibilityInLegend();
-        } else if (actionCommand.equals("setAsActiveMap")) {
-            setAsActiveMap();
-        } else if (actionCommand.equals("renameMap")) {
-            renameMap();
-        } else if (actionCommand.equals("changeLayerTitle")) {
-            changeLayerTitle();
-        } else if (actionCommand.equals("layerToTop")) {
-            layerToTop();
-        } else if (actionCommand.equals("layerToBottom")) {
-            layerToBottom();
-        } else if (actionCommand.equals("raiseLayer")) {
-            promoteLayer();
-        } else if (actionCommand.equals("lowerLayer")) {
-            demoteLayer();
-        } else if (actionCommand.equals("changePalette")) {
-            changePalette();
-        } else if (actionCommand.equals("reversePalette")) {
-            reversePalette();
-        } else if (actionCommand.equals("zoomToFullExtent")) {
-            zoomToFullExtent();
-        } else if (actionCommand.equals("zoomToLayer")) {
-            zoomToLayer();
-        } else if (actionCommand.equals("zoomToPage")) {
-            zoomToPage();
-        } else if (actionCommand.equals("layerProperties")) {
-            showLayerProperties();
-        } else if (actionCommand.equals("zoomIn")) {
-            zoomIn();
-        } else if (actionCommand.equals("zoomOut")) {
-//            zoomOut();
-            openMaps.get(activeMap).deslectAllCartographicElements();
-            refreshMap(false);
-            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOMOUT);
-            zoomIntoBox.setBorderPainted(false);
-            zoomOut.setBorderPainted(true);
-            pan.setBorderPainted(false);
-            select.setBorderPainted(false);
-            selectFeature.setBorderPainted(false);
-
-            selectMenuItem.setState(false);
-            selectFeatureMenuItem.setState(false);
-            zoomMenuItem.setState(false);
-            zoomOutMenuItem.setState(true);
-            panMenuItem.setState(false);
-        } else if (actionCommand.equals("panUp")) {
-            panUp();
-        } else if (actionCommand.equals("panDown")) {
-            panDown();
-        } else if (actionCommand.equals("panLeft")) {
-            panLeft();
-        } else if (actionCommand.equals("panRight")) {
-            panRight();
-        } else if (actionCommand.equals("zoomToBox")) {
-            openMaps.get(activeMap).deslectAllCartographicElements();
-            refreshMap(false);
-            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOM);
-            zoomIntoBox.setBorderPainted(true);
-            zoomOut.setBorderPainted(false);
-            pan.setBorderPainted(false);
-            select.setBorderPainted(false);
-            selectFeature.setBorderPainted(false);
-
-            selectMenuItem.setState(false);
-            selectFeatureMenuItem.setState(false);
-            zoomMenuItem.setState(true);
-            zoomOutMenuItem.setState(false);
-            panMenuItem.setState(false);
-        } else if (actionCommand.equals("pan")) {
-            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_PAN);
-            zoomIntoBox.setBorderPainted(false);
-            zoomOut.setBorderPainted(false);
-            pan.setBorderPainted(true);
-            select.setBorderPainted(false);
-            selectFeature.setBorderPainted(false);
-
-            selectMenuItem.setState(false);
-            selectFeatureMenuItem.setState(false);
-            zoomMenuItem.setState(false);
-            zoomOutMenuItem.setState(false);
-            panMenuItem.setState(true);
-        } else if (actionCommand.equals("select")) {
-            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_SELECT);
-            zoomIntoBox.setBorderPainted(false);
-            zoomOut.setBorderPainted(false);
-            pan.setBorderPainted(false);
-            select.setBorderPainted(true);
-            selectFeature.setBorderPainted(false);
-
-            selectMenuItem.setState(true);
-            selectFeatureMenuItem.setState(false);
-            zoomMenuItem.setState(false);
-            zoomOutMenuItem.setState(false);
-            panMenuItem.setState(false);
-        } else if (actionCommand.equals("selectFeature")) {
-            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_FEATURE_SELECT);
-            zoomIntoBox.setBorderPainted(false);
-            zoomOut.setBorderPainted(false);
-            pan.setBorderPainted(false);
-            select.setBorderPainted(false);
-            selectFeature.setBorderPainted(true);
-
-            selectMenuItem.setState(false);
-            selectFeatureMenuItem.setState(true);
-            zoomMenuItem.setState(false);
-            zoomOutMenuItem.setState(false);
-            panMenuItem.setState(false);
-
-            tabs.setSelectedIndex(2);
-        } else if (actionCommand.equals("nextExtent")) {
-            nextExtent();
-        } else if (actionCommand.equals("previousExtent")) {
-            previousExtent();
-        } else if (actionCommand.equals("paletteManager")) {
-            PaletteManager pm = new PaletteManager(paletteDirectory);
-            pm.setVisible(true);
-        } else if (actionCommand.equals("rasterCalculator")) {
-            RasterCalculator rc = new RasterCalculator(this, false, workingDirectory);
-        } else if (actionCommand.equals("selectAllText")) {
-            textArea.selectAll();
-        } else if (actionCommand.equals("copyText")) {
-            textArea.copy();
-        } else if (actionCommand.equals("pasteText")) {
-            textArea.paste();
-        } else if (actionCommand.equals("cutText")) {
-            textArea.cut();
-        } else if (actionCommand.equals("clearText")) {
-            textArea.setText("");
-        } else if (actionCommand.equals("openText")) {
-            openText();
-        } else if (actionCommand.equals("saveText")) {
-            saveText();
-        } else if (actionCommand.equals("closeText")) {
-            textArea.setText("");
-            currentTextFile = null;
-        } else if (actionCommand.equals("printMap")) {
-            printMap();
-        } else if (actionCommand.equals("saveMap")) {
-            saveMap();
-        } else if (actionCommand.equals("openMap")) {
-            openMap();
-        } else if (actionCommand.equals("exportMapAsImage")) {
-            exportMapAsImage();
-        } else if (actionCommand.equals("scripter")) {
-            Scripter scripter = new Scripter(this, false);
-            scripter.setVisible(true);
-        } else if (actionCommand.equals("options")) {
-            //showFeedback("This feature is under development.");
-            SettingsDialog dlg = new SettingsDialog(this, false);
-            dlg.setSize(500, 400);
-            dlg.setVisible(true);
-        } else if (actionCommand.equals("modifyPixels")) {
-            modifyPixelValues();
-        } else if (actionCommand.equals("helpIndex")) {
-            Help help = new Help(this, false, "index");
-            help.setVisible(true);
-        } else if (actionCommand.equals("helpSearch")) {
-            Help help = new Help(this, false, "search");
-            help.setVisible(true);
-        } else if (actionCommand.equals("helpAbout")) {
-            showAboutDialog();
-        } else if (actionCommand.equals("refreshMap")) {
-            refreshMap(true);
-        } else if (actionCommand.equals("distanceTool")) {
-            distanceTool();
-        } else if (actionCommand.equals("clipLayerToExtent")) {
-            clipLayerToExtent();
-        } else if (actionCommand.equals("viewHistogram")) {
-            viewHistogram();
-        } else if (actionCommand.equals("removeAllLayers")) {
-            removeAllLayers();
-        } else if (actionCommand.equals("wordWrap")) {
-            textArea.setLineWrap(wordWrap.getState());
-            textArea.setWrapStyleWord(wordWrap.getState());
-        } else if (actionCommand.equals("viewAttributeTable")) {
-            showAttributesFile();
-        } else if (actionCommand.equals("newHelp")) {
-            newHelp();
-        } else if (actionCommand.equals("mapProperties")) {
-            showMapProperties(0);
-        } else if (actionCommand.equals("mapAreaProperties")) {
-            showMapAreaProperties();
-        } else if (actionCommand.equals("pageProps")) {
-            showMapProperties(-1);
-        } else if (actionCommand.equals("insertTitle")) {
-            openMaps.get(activeMap).addMapTitle();
-            refreshMap(false);
-        } else if (actionCommand.equals("insertTextArea")) {
-            openMaps.get(activeMap).addMapTextArea();
-            refreshMap(false);
-        } else if (actionCommand.equals("insertScale")) {
-            openMaps.get(activeMap).addMapScale();
-            refreshMap(false);
-        } else if (actionCommand.equals("insertNorthArrow")) {
-            openMaps.get(activeMap).addNorthArrow();
-            refreshMap(false);
-        } else if (actionCommand.equals("insertLegend")) {
-            openMaps.get(activeMap).addLegend();
-            refreshMap(false);
-        } else if (actionCommand.equals("insertNeatline")) {
-            openMaps.get(activeMap).addNeatline();
-            refreshMap(false);
-        } else if (actionCommand.equals("insertMapArea")) {
-            int numMapAreas = openMaps.get(activeMap).getMapAreas().size();
-            MapArea ma = new MapArea("MapArea" + (numMapAreas + 1));
-            ma.setUpperLeftX(0);
-            ma.setUpperLeftY(0);
-            ma.setWidth(200);
-            ma.setHeight(200);
-            openMaps.get(activeMap).addNewCartographicElement(ma);
-            refreshMap(true);
-        } else if (actionCommand.equals("insertImage")) {
-            addMapImage();
-        } else if (actionCommand.equals("deleteMapArea")) {
-            openMaps.get(activeMap).removeCartographicElement(selectedMapAndLayer[2]);
-            refreshMap(true);
-        } else if (actionCommand.equals("fitMapAreaToData")) {
-            fitToData();
-        } else if (actionCommand.equals("fitMapAreaToPage")) {
-            fitToPage();
-        } else if (actionCommand.equals("maximizeMapAreaScreenSize")) {
-            maximizeMapAreaScreenSize();
-        } else if (actionCommand.equals("helpReport")) {
-            helpReport();
-        } else if (actionCommand.equals("centerVertical")) {
-            if (openMaps.get(activeMap).centerSelectedElementsVertically()) {
+        switch (actionCommand) {
+            case "addLayer":
+                addLayer();
+                break;
+            case "removeLayer":
+                removeLayer();
+                break;
+            case "close":
+                close();
+                break;
+            case "linkMap":
+                linkAllOpenMaps = !linkAllOpenMaps;
+                linkMap.setState(linkAllOpenMaps);
+                break;
+            case "nimbusLAF":
+                setLookAndFeel("Nimbus");
+                break;
+            case "systemLAF":
+                setLookAndFeel(getSystemLookAndFeelName());
+                break;
+            case "motifLAF":
+                setLookAndFeel("CDE/Motif");
+                break;
+            case "refreshTools":
+                refreshToolUsage();
+                break;
+            case "newMap":
+                newMap();
+                break;
+            case "closeMap":
+                closeMap();
+                break;
+            case "setAsActiveLayer":
+                setAsActiveLayer();
+                break;
+            case "toggleLayerVisibility":
+                toggleLayerVisibility();
+                break;
+            case "toggleAllLayerVisibility":
+                toggleAllLayerVisibility();
+                break;
+            case "allLayersVisible":
+                allLayersVisibile();
+                break;
+            case "allLayersInvisible":
+                allLayersInvisibile();
+                break;
+            case "toggleLayerVisibilityInLegend":
+                toggleLayerVisibilityInLegend();
+                break;
+            case "setAsActiveMap":
+                setAsActiveMap();
+                break;
+            case "renameMap":
+                renameMap();
+                break;
+            case "changeLayerTitle":
+                changeLayerTitle();
+                break;
+            case "layerToTop":
+                layerToTop();
+                break;
+            case "layerToBottom":
+                layerToBottom();
+                break;
+            case "raiseLayer":
+                promoteLayer();
+                break;
+            case "lowerLayer":
+                demoteLayer();
+                break;
+            case "changePalette":
+                changePalette();
+                break;
+            case "reversePalette":
+                reversePalette();
+                break;
+            case "zoomToFullExtent":
+                zoomToFullExtent();
+                break;
+            case "zoomToLayer":
+                zoomToLayer();
+                break;
+            case "zoomToPage":
+                zoomToPage();
+                break;
+            case "layerProperties":
+                showLayerProperties();
+                break;
+            case "zoomIn":
+                zoomIn();
+                break;
+            case "zoomOut":
+                //            zoomOut();
+                openMaps.get(activeMap).deslectAllCartographicElements();
                 refreshMap(false);
-            }
-        } else if (actionCommand.equals("centerHorizontal")) {
-            if (openMaps.get(activeMap).centerSelectedElementsHorizontally()) {
+                drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOMOUT);
+                zoomIntoBox.setBorderPainted(false);
+                zoomOut.setBorderPainted(true);
+                pan.setBorderPainted(false);
+                select.setBorderPainted(false);
+                selectFeature.setBorderPainted(false);
+                selectMenuItem.setState(false);
+                selectFeatureMenuItem.setState(false);
+                zoomMenuItem.setState(false);
+                zoomOutMenuItem.setState(true);
+                panMenuItem.setState(false);
+                break;
+            case "panUp":
+                panUp();
+                break;
+            case "panDown":
+                panDown();
+                break;
+            case "panLeft":
+                panLeft();
+                break;
+            case "panRight":
+                panRight();
+                break;
+            case "zoomToBox":
+                openMaps.get(activeMap).deslectAllCartographicElements();
                 refreshMap(false);
+                drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOM);
+                zoomIntoBox.setBorderPainted(true);
+                zoomOut.setBorderPainted(false);
+                pan.setBorderPainted(false);
+                select.setBorderPainted(false);
+                selectFeature.setBorderPainted(false);
+                selectMenuItem.setState(false);
+                selectFeatureMenuItem.setState(false);
+                zoomMenuItem.setState(true);
+                zoomOutMenuItem.setState(false);
+                panMenuItem.setState(false);
+                break;
+            case "pan":
+                drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_PAN);
+                zoomIntoBox.setBorderPainted(false);
+                zoomOut.setBorderPainted(false);
+                pan.setBorderPainted(true);
+                select.setBorderPainted(false);
+                selectFeature.setBorderPainted(false);
+                selectMenuItem.setState(false);
+                selectFeatureMenuItem.setState(false);
+                zoomMenuItem.setState(false);
+                zoomOutMenuItem.setState(false);
+                panMenuItem.setState(true);
+                break;
+            case "select":
+                drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_SELECT);
+                zoomIntoBox.setBorderPainted(false);
+                zoomOut.setBorderPainted(false);
+                pan.setBorderPainted(false);
+                select.setBorderPainted(true);
+                selectFeature.setBorderPainted(false);
+                selectMenuItem.setState(true);
+                selectFeatureMenuItem.setState(false);
+                zoomMenuItem.setState(false);
+                zoomOutMenuItem.setState(false);
+                panMenuItem.setState(false);
+                break;
+            case "selectFeature":
+                drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_FEATURE_SELECT);
+                zoomIntoBox.setBorderPainted(false);
+                zoomOut.setBorderPainted(false);
+                pan.setBorderPainted(false);
+                select.setBorderPainted(false);
+                selectFeature.setBorderPainted(true);
+                selectMenuItem.setState(false);
+                selectFeatureMenuItem.setState(true);
+                zoomMenuItem.setState(false);
+                zoomOutMenuItem.setState(false);
+                panMenuItem.setState(false);
+                tabs.setSelectedIndex(2);
+                break;
+            case "nextExtent":
+                nextExtent();
+                break;
+            case "previousExtent":
+                previousExtent();
+                break;
+            case "paletteManager":
+                PaletteManager pm = new PaletteManager(paletteDirectory);
+                pm.setVisible(true);
+                break;
+            case "rasterCalculator":
+                RasterCalculator rc = new RasterCalculator(this, false, workingDirectory);
+                break;
+            case "selectAllText":
+                textArea.selectAll();
+                break;
+            case "copyText":
+                textArea.copy();
+                break;
+            case "pasteText":
+                textArea.paste();
+                break;
+            case "cutText":
+                textArea.cut();
+                break;
+            case "clearText":
+                textArea.setText("");
+                break;
+            case "openText":
+                openText();
+                break;
+            case "saveText":
+                saveText();
+                break;
+            case "closeText":
+                textArea.setText("");
+                currentTextFile = null;
+                break;
+            case "printMap":
+                printMap();
+                break;
+            case "saveMap":
+                saveMap();
+                break;
+            case "openMap":
+                openMap();
+                break;
+            case "exportMapAsImage":
+                exportMapAsImage();
+                break;
+            case "scripter":
+                Scripter scripter = new Scripter(this, false);
+                scripter.setVisible(true);
+                break;
+            case "options":
+                //showFeedback("This feature is under development.");
+                SettingsDialog dlg = new SettingsDialog(this, false);
+                dlg.setSize(500, 400);
+                dlg.setVisible(true);
+                break;
+            case "modifyPixels":
+                modifyPixelValues();
+                break;
+            case "helpIndex": {
+                Help help = new Help(this, false, "index");
+                help.setVisible(true);
+                break;
             }
-        } else if (actionCommand.equals("alignTop")) {
-            if (openMaps.get(activeMap).alignSelectedElementsTop()) {
+            case "helpSearch": {
+                Help help = new Help(this, false, "search");
+                help.setVisible(true);
+                break;
+            }
+            case "helpAbout":
+                showAboutDialog();
+                break;
+            case "refreshMap":
+                refreshMap(true);
+                break;
+            case "distanceTool":
+                distanceTool();
+                break;
+            case "clipLayerToExtent":
+                clipLayerToExtent();
+                break;
+            case "viewHistogram":
+                viewHistogram();
+                break;
+            case "removeAllLayers":
+                removeAllLayers();
+                break;
+            case "wordWrap":
+                textArea.setLineWrap(wordWrap.getState());
+                textArea.setWrapStyleWord(wordWrap.getState());
+                break;
+            case "viewAttributeTable":
+                showAttributesFile();
+                break;
+            case "newHelp":
+                newHelp();
+                break;
+            case "mapProperties":
+                showMapProperties(0);
+                break;
+            case "mapAreaProperties":
+                showMapAreaProperties();
+                break;
+            case "pageProps":
+                showMapProperties(-1);
+                break;
+            case "insertTitle":
+                openMaps.get(activeMap).addMapTitle();
                 refreshMap(false);
-            }
-        } else if (actionCommand.equals("alignBottom")) {
-            if (openMaps.get(activeMap).alignSelectedElementsBottom()) {
+                break;
+            case "insertTextArea":
+                openMaps.get(activeMap).addMapTextArea();
                 refreshMap(false);
-            }
-        } else if (actionCommand.equals("alignRight")) {
-            if (openMaps.get(activeMap).alignSelectedElementsRight()) {
+                break;
+            case "insertScale":
+                openMaps.get(activeMap).addMapScale();
                 refreshMap(false);
-            }
-        } else if (actionCommand.equals("alignLeft")) {
-            if (openMaps.get(activeMap).alignSelectedElementsLeft()) {
+                break;
+            case "insertNorthArrow":
+                openMaps.get(activeMap).addNorthArrow();
                 refreshMap(false);
-            }
-        } else if (actionCommand.equals("distributeVertically")) {
-            if (openMaps.get(activeMap).distributeSelectedElementsVertically()) {
+                break;
+            case "insertLegend":
+                openMaps.get(activeMap).addLegend();
                 refreshMap(false);
-            }
-        } else if (actionCommand.equals("distributeHorizontally")) {
-            if (openMaps.get(activeMap).distributeSelectedElementsHorizontally()) {
+                break;
+            case "insertNeatline":
+                openMaps.get(activeMap).addNeatline();
                 refreshMap(false);
-            }
-        } else if (actionCommand.equals("alignAndDistribute")) {
-            boolean boolValue = true;
-            if (alignRight.isVisible()) {
-                boolValue = false;
-            }
-            alignRight.setVisible(boolValue);
-            alignLeft.setVisible(boolValue);
-            alignTop.setVisible(boolValue);
-            alignBottom.setVisible(boolValue);
-            centerVerticalBtn.setVisible(boolValue);
-            centerHorizontalBtn.setVisible(boolValue);
-            distributeVertically.setVisible(boolValue);
-            distributeHorizontally.setVisible(boolValue);
+                break;
+            case "insertMapArea":
+                int numMapAreas = openMaps.get(activeMap).getMapAreas().size();
+                MapArea ma = new MapArea("MapArea" + (numMapAreas + 1));
+                ma.setUpperLeftX(0);
+                ma.setUpperLeftY(0);
+                ma.setWidth(300);
+                ma.setHeight(300);
+                ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
+                openMaps.get(activeMap).addNewCartographicElement(ma);
+                refreshMap(true);
+                break;
+            case "insertImage":
+                addMapImage();
+                break;
+            case "deleteMapArea":
+                openMaps.get(activeMap).removeCartographicElement(selectedMapAndLayer[2]);
+                refreshMap(true);
+                break;
+            case "fitMapAreaToData":
+                fitToData();
+                break;
+            case "fitMapAreaToPage":
+                fitToPage();
+                break;
+            case "maximizeMapAreaScreenSize":
+                maximizeMapAreaScreenSize();
+                break;
+            case "helpReport":
+                helpReport();
+                break;
+            case "centerVertical":
+                if (openMaps.get(activeMap).centerSelectedElementsVertically()) {
+                    refreshMap(false);
+                }
+                break;
+            case "centerHorizontal":
+                if (openMaps.get(activeMap).centerSelectedElementsHorizontally()) {
+                    refreshMap(false);
+                }
+                break;
+            case "alignTop":
+                if (openMaps.get(activeMap).alignSelectedElementsTop()) {
+                    refreshMap(false);
+                }
+                break;
+            case "alignBottom":
+                if (openMaps.get(activeMap).alignSelectedElementsBottom()) {
+                    refreshMap(false);
+                }
+                break;
+            case "alignRight":
+                if (openMaps.get(activeMap).alignSelectedElementsRight()) {
+                    refreshMap(false);
+                }
+                break;
+            case "alignLeft":
+                if (openMaps.get(activeMap).alignSelectedElementsLeft()) {
+                    refreshMap(false);
+                }
+                break;
+            case "distributeVertically":
+                if (openMaps.get(activeMap).distributeSelectedElementsVertically()) {
+                    refreshMap(false);
+                }
+                break;
+            case "distributeHorizontally":
+                if (openMaps.get(activeMap).distributeSelectedElementsHorizontally()) {
+                    refreshMap(false);
+                }
+                break;
+            case "groupElements":
+                if (openMaps.get(activeMap).groupElements()) {
+                    refreshMap(false);
+                }
+//                selectedMapAndLayer[0] = -1;
+//                selectedMapAndLayer[1] = -1;
+//                selectedMapAndLayer[2] = -1;
+                break;
+            case "ungroupElements":
+                if (openMaps.get(activeMap).ungroupElements()) {
+                    refreshMap(false);
+                }
+//                selectedMapAndLayer[0] = -1;
+//                selectedMapAndLayer[1] = -1;
+//                selectedMapAndLayer[2] = -1;
+                break;            
         }
+        
+        selectedMapAndLayer[0] = -1;
+        selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
 
     }
 

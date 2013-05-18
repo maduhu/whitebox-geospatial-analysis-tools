@@ -221,9 +221,12 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
                 Object[] rowData = attributeTable.getRecord(selectedFeature - 1);
                 for (int a = 0; a < rowData.length; a++) {
                     //tm.setValueAt(rowData[a], a, 1);
-                    if (fields[a].getDataType() == DBFField.DBFDataType.NUMERIC ||
-                            fields[a].getDataType() == DBFField.DBFDataType.FLOAT) {
+                    if (fields[a].getDataType() == DBFField.DBFDataType.NUMERIC 
+                            && !(rowData[a] == null)) {
                         tm.setValueAt((double)(rowData[a]), a + 1, 1);
+                    } else if (fields[a].getDataType() == DBFField.DBFDataType.FLOAT
+                            && !(rowData[a] == null)) {
+                        tm.setValueAt((float)(rowData[a]), a + 1, 1);
                     } else {
                         tm.setValueAt(String.valueOf(rowData[a]), a + 1, 1);
                     }

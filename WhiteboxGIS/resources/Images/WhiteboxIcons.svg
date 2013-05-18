@@ -6842,6 +6842,411 @@
          offset="1"
          id="stop3283-02-6" />
     </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3279-93-8"
+       id="linearGradient5585"
+       gradientUnits="userSpaceOnUse"
+       x1="-30.507751"
+       y1="448.86218"
+       x2="-18.492249"
+       y2="448.86218"
+       gradientTransform="matrix(0.36363636,0,0,1,-18.090909,-2)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3279-93-8"
+       id="linearGradient5588"
+       gradientUnits="userSpaceOnUse"
+       x1="-24.5"
+       y1="442.36218"
+       x2="-15.5"
+       y2="442.36218"
+       gradientTransform="matrix(1,0,0,0.75,-2,110.09055)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3279-93-8"
+       id="linearGradient5592"
+       gradientUnits="userSpaceOnUse"
+       x1="-30.5"
+       y1="435.36218"
+       x2="-19.5"
+       y2="435.36218"
+       gradientTransform="matrix(1,0,0,0.5,1,219.18109)" />
+    <linearGradient
+       id="linearGradient3279-17-3-5-5-02">
+      <stop
+         style="stop-color:#74cff2;stop-opacity:1;"
+         offset="0"
+         id="stop3281-2-8-40-7-4" />
+      <stop
+         style="stop-color:#000079;stop-opacity:1;"
+         offset="1"
+         id="stop3283-36-8-8-3-8" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3279-17-2-3-3-0">
+      <stop
+         style="stop-color:#74cff2;stop-opacity:1;"
+         offset="0"
+         id="stop3281-2-6-7-6-52" />
+      <stop
+         style="stop-color:#000079;stop-opacity:1;"
+         offset="1"
+         id="stop3283-36-7-4-7-2" />
+    </linearGradient>
+    <linearGradient
+       y2="418.86218"
+       x2="36.5"
+       y1="418.86218"
+       x1="21.5"
+       gradientTransform="matrix(0.89285717,0,0,1,-18.642857,58.000003)"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient5332-7"
+       xlink:href="#linearGradient3279-17-5-2-37"
+       inkscape:collect="always" />
+    <linearGradient
+       id="linearGradient3279-17-5-2-37">
+      <stop
+         style="stop-color:#74cff2;stop-opacity:1;"
+         offset="0"
+         id="stop3281-2-3-7-9" />
+      <stop
+         style="stop-color:#000079;stop-opacity:1;"
+         offset="1"
+         id="stop3283-36-2-2-0" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3279-17-3-5-6">
+      <stop
+         style="stop-color:#74cff2;stop-opacity:1;"
+         offset="0"
+         id="stop3281-2-8-40-3" />
+      <stop
+         style="stop-color:#000079;stop-opacity:1;"
+         offset="1"
+         id="stop3283-36-8-8-2" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3279-17-2-3-0">
+      <stop
+         style="stop-color:#74cff2;stop-opacity:1;"
+         offset="0"
+         id="stop3281-2-6-7-3" />
+      <stop
+         style="stop-color:#000079;stop-opacity:1;"
+         offset="1"
+         id="stop3283-36-7-4-73" />
+    </linearGradient>
+    <linearGradient
+       y2="418.86218"
+       x2="36.5"
+       y1="418.86218"
+       x1="21.5"
+       gradientTransform="matrix(1.0714286,0,0,1,-20.071428,34.000003)"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient5074-5"
+       xlink:href="#linearGradient3279-17-5-91"
+       inkscape:collect="always" />
+    <linearGradient
+       id="linearGradient3279-17-5-91">
+      <stop
+         style="stop-color:#74cff2;stop-opacity:1;"
+         offset="0"
+         id="stop3281-2-3-8" />
+      <stop
+         style="stop-color:#000079;stop-opacity:1;"
+         offset="1"
+         id="stop3283-36-2-4" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2888-7"
+       id="linearGradient5270"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0,5.2171874e-6)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8"
+       id="linearGradient5278"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0,5.2171874e-6)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8"
+       id="linearGradient5288"
+       x1="-38.5"
+       y1="490.86218"
+       x2="-32.5"
+       y2="490.86218"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2888-99"
+       id="linearGradient5296"
+       x1="-38.5"
+       y1="490.86218"
+       x2="-32.5"
+       y2="490.86218"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8"
+       id="linearGradient5306"
+       x1="-43.5"
+       y1="490.86218"
+       x2="-39.5"
+       y2="490.86218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0,-1)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2888-99"
+       id="linearGradient5314"
+       x1="-43.5"
+       y1="490.86218"
+       x2="-39.5"
+       y2="490.86218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0,-1)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2888-99-8"
+       id="linearGradient5314-6"
+       x1="-43.5"
+       y1="490.86218"
+       x2="-39.5"
+       y2="490.86218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21,-0.9999974)" />
+    <linearGradient
+       id="linearGradient2888-99-8">
+      <stop
+         id="stop2889-9-9"
+         offset="0.0000000"
+         style="stop-color:#ffffff;stop-opacity:1.0000000;" />
+      <stop
+         id="stop2894-17-4"
+         offset="1"
+         style="stop-color:#8ab3de;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-6"
+       id="linearGradient5306-7"
+       x1="-43.5"
+       y1="490.86218"
+       x2="-39.5"
+       y2="490.86218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21,-0.9999974)" />
+    <linearGradient
+       id="linearGradient3480-8-6">
+      <stop
+         id="stop3482-39-6"
+         offset="0.0000000"
+         style="stop-color:#646464;stop-opacity:1.0000000;" />
+      <stop
+         id="stop3484-0-9"
+         offset="1.0000000"
+         style="stop-color:#000000;stop-opacity:1.0000000;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5685-5"
+       id="linearGradient5296-9"
+       x1="-38.5"
+       y1="490.86218"
+       x2="-32.5"
+       y2="490.86218"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient5335">
+      <stop
+         id="stop5337"
+         offset="0.0000000"
+         style="stop-color:#ffffff;stop-opacity:1.0000000;" />
+      <stop
+         id="stop5339"
+         offset="1"
+         style="stop-color:#8ab3de;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-6"
+       id="linearGradient5288-0"
+       x1="-38.5"
+       y1="490.86218"
+       x2="-32.5"
+       y2="490.86218"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient5342">
+      <stop
+         id="stop5344"
+         offset="0.0000000"
+         style="stop-color:#646464;stop-opacity:1.0000000;" />
+      <stop
+         id="stop5346"
+         offset="1.0000000"
+         style="stop-color:#000000;stop-opacity:1.0000000;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4238"
+       id="linearGradient5270-4"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21,2.6e-6)" />
+    <linearGradient
+       id="linearGradient2888-7-4">
+      <stop
+         id="stop2889-6-8"
+         offset="0.0000000"
+         style="stop-color:#ffffff;stop-opacity:1.0000000;" />
+      <stop
+         id="stop2894-1-6"
+         offset="1"
+         style="stop-color:#8ab3de;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-6"
+       id="linearGradient5278-4"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21,2.6e-6)" />
+    <linearGradient
+       id="linearGradient5353">
+      <stop
+         id="stop5355"
+         offset="0.0000000"
+         style="stop-color:#646464;stop-opacity:1.0000000;" />
+      <stop
+         id="stop5357"
+         offset="1.0000000"
+         style="stop-color:#000000;stop-opacity:1.0000000;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4238"
+       id="linearGradient5429"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21,2.6e-6)"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-6"
+       id="linearGradient5431"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21,2.6e-6)"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5685-5"
+       id="linearGradient5433"
+       gradientUnits="userSpaceOnUse"
+       x1="-38.5"
+       y1="490.86218"
+       x2="-32.5"
+       y2="490.86218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-6"
+       id="linearGradient5435"
+       gradientUnits="userSpaceOnUse"
+       x1="-38.5"
+       y1="490.86218"
+       x2="-32.5"
+       y2="490.86218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2888-99-8"
+       id="linearGradient5437"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21,-0.9999974)"
+       x1="-43.5"
+       y1="490.86218"
+       x2="-39.5"
+       y2="490.86218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-6"
+       id="linearGradient5439"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21,-0.9999974)"
+       x1="-43.5"
+       y1="490.86218"
+       x2="-39.5"
+       y2="490.86218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2888-99-8"
+       id="linearGradient5442"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21.53112,-1.468624)"
+       x1="-43.5"
+       y1="490.86218"
+       x2="-39.5"
+       y2="490.86218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-6"
+       id="linearGradient5444"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21.53112,-1.468624)"
+       x1="-43.5"
+       y1="490.86218"
+       x2="-39.5"
+       y2="490.86218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4238"
+       id="linearGradient5448"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21.53112,-0.46862402)"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-6"
+       id="linearGradient5450"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(21.53112,-0.46862402)"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3279-1"
+       id="linearGradient5452"
+       gradientUnits="userSpaceOnUse"
+       x1="-38.5"
+       y1="490.86218"
+       x2="-32.5"
+       y2="490.86218" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -6853,9 +7258,9 @@
      objecttolerance="10000"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.5393718"
-     inkscape:cx="197.48093"
-     inkscape:cy="500.2687"
+     inkscape:zoom="14.233612"
+     inkscape:cx="-19.698627"
+     inkscape:cy="562.24234"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -6889,6 +7294,16 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       id="rect5260"
+       width="14.937759"
+       height="14.937759"
+       x="-44.96888"
+       y="486.45581"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/GroupElements.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
     <rect
        style="fill:#999999;stroke:#ffffff;stroke-width:1.20956254;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        id="rect5306"
@@ -9788,5 +10203,196 @@
        inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/AttributeTable.png"
        inkscape:export-xdpi="90.530449"
        inkscape:export-ydpi="90.530449" />
+    <rect
+       style="fill:none;stroke:none;stroke-width:0.83157426000000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect5306-0"
+       width="21.168425"
+       height="21.168427"
+       x="9.8110056"
+       y="572.17316"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
+    <g
+       id="g5443"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635">
+      <path
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0"
+         id="path5371"
+         d="m 12,576.36218 4,12 7,-11 6,11"
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <rect
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         y="575.36218"
+         x="11"
+         height="2"
+         width="2"
+         id="rect5373"
+         style="fill:#ff0000;fill-opacity:1;stroke:none" />
+      <rect
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         y="575.36218"
+         x="22"
+         height="2"
+         width="2"
+         id="rect5373-5"
+         style="fill:#ff0000;fill-opacity:1;stroke:none" />
+      <rect
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         y="587.36218"
+         x="15"
+         height="2"
+         width="2"
+         id="rect5373-8"
+         style="fill:#ff0000;fill-opacity:1;stroke:none" />
+      <rect
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         y="587.36218"
+         x="28"
+         height="2"
+         width="2"
+         id="rect5373-87"
+         style="fill:#ff0000;fill-opacity:1;stroke:none" />
+    </g>
+    <rect
+       style="fill:none;stroke:none"
+       id="rect5450"
+       width="15"
+       height="15"
+       x="-32"
+       y="434.36218"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/AlignAndDistribute.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       style="fill:url(#linearGradient5592);fill-opacity:1.0;stroke:none;stroke-width:0.80000000000000004;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect5452"
+       width="10"
+       height="3"
+       x="-29"
+       y="435.36218"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/AlignAndDistribute.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       style="fill:url(#linearGradient5588);fill-opacity:1;stroke:none;stroke-width:0.50000000000000000;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect5452-6"
+       width="8"
+       height="3"
+       x="-26"
+       y="440.36218"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/AlignAndDistribute.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       style="fill:url(#linearGradient5585);fill-opacity:1.0;stroke:none;stroke-width:0.50000000000000000;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect5452-6-5"
+       width="4"
+       height="3"
+       x="-29"
+       y="445.36218"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/AlignAndDistribute.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -31,434.36218 0,15"
+       id="path4104-4"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/AlignAndDistribute.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:url(#linearGradient5270);fill-opacity:1;stroke:url(#linearGradient5278);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -43,493.36218 0,6 8,0 0,-3 z"
+       id="path5262"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/GroupElements.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
+    <path
+       sodipodi:type="arc"
+       style="fill:url(#linearGradient5296);fill-opacity:1;stroke:url(#linearGradient5288);stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       id="path5280"
+       sodipodi:cx="-35.5"
+       sodipodi:cy="490.86218"
+       sodipodi:rx="2.5"
+       sodipodi:ry="2.5"
+       d="m -33,490.86218 a 2.5,2.5 0 1 1 -5,0 2.5,2.5 0 1 1 5,0 z"
+       transform="translate(1,0.5)"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/GroupElements.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
+    <rect
+       style="fill:url(#linearGradient5314);fill-opacity:1;stroke:url(#linearGradient5306);stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       id="rect5298"
+       width="3"
+       height="3"
+       x="-43"
+       y="488.36218"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/GroupElements.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
+    <rect
+       style="fill:none;stroke:none"
+       id="rect5260-7"
+       width="16"
+       height="16"
+       x="-23.96888"
+       y="485.39355"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/UngroupElements.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
+    <g
+       id="g5454"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/UngroupElements.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635">
+      <path
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/UngroupElements.png"
+         inkscape:connector-curvature="0"
+         id="path5262-5"
+         d="m -21.46888,492.89355 0,6 8,0 0,-3 z"
+         style="fill:url(#linearGradient5448);fill-opacity:1;stroke:url(#linearGradient5450);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/UngroupElements.png"
+         transform="translate(22.53112,0.03137598)"
+         d="m -33,490.86218 a 2.5,2.5 0 1 1 -5,0 2.5,2.5 0 1 1 5,0 z"
+         sodipodi:ry="2.5"
+         sodipodi:rx="2.5"
+         sodipodi:cy="490.86218"
+         sodipodi:cx="-35.5"
+         id="path5280-5"
+         style="fill:url(#linearGradient5452);fill-opacity:1;stroke:url(#linearGradient5435);stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         sodipodi:type="arc" />
+      <rect
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/UngroupElements.png"
+         y="487.89355"
+         x="-21.46888"
+         height="3"
+         width="3"
+         id="rect5298-2"
+         style="fill:url(#linearGradient5442);fill-opacity:1;stroke:url(#linearGradient5444);stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+    </g>
   </g>
 </svg>

@@ -29,6 +29,8 @@ import java.awt.image.MemoryImageSource;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
+import java.util.List;
+import java.util.ArrayList;
 import java.io.File;
 import java.text.AttributedString;
 import java.text.DecimalFormat;
@@ -37,7 +39,6 @@ import java.awt.font.LineBreakMeasurer;
 import java.text.AttributedCharacterIterator;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
-import java.util.ArrayList;
 import java.util.Collections;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -174,6 +175,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
             }
             this.setCursor(selectCursor);
+            panning = false;
             this.addMouseMotionListener(this);
             this.addMouseListener(this);
             this.addKeyListener(new KeyListener() {
@@ -505,9 +507,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         BasicStroke.JOIN_MITER,
                         miter, dash1, constantLineWidth * 4);
 
-                BoundingBox currentExtent; // = map.getCurrentExtent();
-                double xRange; //= Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
-                double yRange; //= Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
+//                BoundingBox currentExtent; // = map.getCurrentExtent();
+//                double xRange; //= Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+//                double yRange; //= Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
 
                 // draw the page on the drawing area if it is visible
                 if (map.isPageVisible() && !printingMap) {
@@ -577,12 +579,17 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     } else if (ce instanceof MapImage) {
                         drawMapImage(g2, (MapImage) ce, dashed);
 
+                    } else if (ce instanceof CartographicElementGroup) {
+                        drawCartographicElementGroup(g2,
+                                (CartographicElementGroup) ce, dashed);
                     }
 
                 }
 
                 if (mouseDragged && (myMode == MOUSE_MODE_ZOOM
-                        || backgroundMouseMode == MOUSE_MODE_ZOOM)
+                        || backgroundMouseMode == MOUSE_MODE_ZOOM
+                        || myMode == MOUSE_MODE_SELECT
+                        || backgroundMouseMode == MOUSE_MODE_SELECT)
                         && !(myMode == MOUSE_MODE_RESIZE)) {
                     boolean drawLine = true;
                     if (myMode == MOUSE_MODE_CARTO_ELEMENT || myMode == MOUSE_MODE_MAPAREA) {
@@ -617,6 +624,56 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         } finally {
             g.dispose();
             g2.dispose();
+        }
+    }
+
+    private void drawCartographicElementGroup(Graphics2D g2, CartographicElementGroup group,
+            BasicStroke dashed) {
+        for (CartographicElement ce : group.getElementList()) {
+            if (ce instanceof MapScale) {
+                drawMapScale(g2, (MapScale) ce, dashed);
+
+            } else if (ce instanceof NorthArrow) {
+                drawNorthArrow(g2, (NorthArrow) ce, dashed);
+
+            } else if (ce instanceof MapTitle) {
+                drawMapTitle(g2, (MapTitle) ce, dashed);
+
+            } else if (ce instanceof MapTextArea) {
+                drawMapTextArea(g2, (MapTextArea) ce, dashed);
+
+            } else if (ce instanceof Neatline) {
+                drawNeatline(g2, (Neatline) ce, dashed);
+
+            } else if (ce instanceof Legend) {
+                drawLegend(g2, (Legend) ce, dashed);
+
+            } else if (ce instanceof MapArea) {
+                drawMapArea(g2, (MapArea) ce, dashed);
+
+            } else if (ce instanceof MapImage) {
+                drawMapImage(g2, (MapImage) ce, dashed);
+
+            } else if (ce instanceof CartographicElementGroup) {
+                drawCartographicElementGroup(g2,
+                        (CartographicElementGroup) ce, dashed);
+            }
+        }
+
+        if (group.isSelected()) {
+            Color selectedColour = Color.BLACK;
+            PageFormat pageFormat = map.getPageFormat();
+            Stroke oldStroke;
+            oldStroke = g2.getStroke();
+            if (group.isSelected() && !printingMap) {
+                g2.setColor(selectedColour);
+                g2.setStroke(dashed);
+            }
+            g2.drawRect(group.getUpperLeftX(),
+                    group.getUpperLeftY(),
+                    group.getWidth(),
+                    group.getHeight());
+            g2.setStroke(oldStroke);
         }
     }
 
@@ -1692,7 +1749,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             // now draw the data into the MapArea
             if (numLayers > 0) { // && (!mouseDragged || whichCartoElement != mapArea.getElementNumber())) {
 
-                if (scaleText != null && map.getActiveMapAreaOverlayNumber() == mapArea.getElementNumber()) {
+                if (scaleText != null && map.getActiveMapAreaElementNumber() == mapArea.getElementNumber()) {
                     scaleText.setText(df.format(mapArea.getScale()));
                 }
 
@@ -2844,20 +2901,26 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         XYUnits = tmpStr;
                     }
                     // labels
+                    Rectangle2D rect;
+                    float ht, wd;
                     df = new DecimalFormat("###,###,###.#");
                     g2.setFont(labelFont);
                     metrics = g2.getFontMetrics(labelFont);
-                    float hgt = metrics.getAscent(); // + metrics.getDescent();
+//                    float hgt = metrics.getAscent(); // + metrics.getDescent();
 //                    float refMarkOffset = (referenceMarkSize - hgt) / 2.0f;
 
                     label = df.format(currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
+                    rect = metrics.getStringBounds(label, g2);
+                    ht = (float) rect.getHeight();
                     g2.drawString(label, viewAreaULX + 4, viewAreaULY - 3);
-                    g2.drawString(label, viewAreaULX + 4, viewAreaLRY + hgt); //referenceMarkSize - 1);
+                    g2.drawString(label, viewAreaULX + 4, viewAreaLRY + ht); //referenceMarkSize - 1);
 
                     label = df.format(currentExtent.getMaxX() + (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
-                    adv = metrics.stringWidth(label) + 3;
-                    g2.drawString(label, viewAreaLRX - adv, viewAreaULY - 3);
-                    g2.drawString(label, viewAreaLRX - adv, viewAreaLRY + hgt); //referenceMarkSize - 1);
+                    rect = metrics.getStringBounds(label, g2);
+                    ht = (float) rect.getHeight();
+                    wd = (float) rect.getWidth() + 2;
+                    g2.drawString(label, viewAreaLRX - wd, viewAreaULY - 3);
+                    g2.drawString(label, viewAreaLRX - wd, viewAreaLRY + ht); //referenceMarkSize - 1);
 
                     // rotate the font
 
@@ -2876,13 +2939,19 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     metrics = g2.getFontMetrics(labelFont);
 
                     label = df.format(currentExtent.getMaxY() + (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
-                    adv = metrics.stringWidth(label) + 3;
-                    g2.drawString(label, viewAreaULX - 3, viewAreaULY + adv);
-                    g2.drawString(label, viewAreaLRX + fontHeight, viewAreaULY + adv);
+                    rect = metrics.getStringBounds(label, g2);
+                    ht = (float) rect.getHeight();
+                    wd = (float) rect.getWidth() + 3;
+                    //adv = metrics.stringWidth(label) + 3;
+                    g2.drawString(label, viewAreaULX - 3, viewAreaULY + wd);
+                    g2.drawString(label, viewAreaLRX + ht, viewAreaULY + wd);
 
                     label = df.format(currentExtent.getMinY() - (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
+                    rect = metrics.getStringBounds(label, g2);
+                    ht = (float) rect.getHeight();
+//                    wd = (float)rect.getWidth();
                     g2.drawString(label, viewAreaULX - 3, viewAreaLRY - 4);
-                    g2.drawString(label, viewAreaLRX + fontHeight, viewAreaLRY - 4);
+                    g2.drawString(label, viewAreaLRX + ht, viewAreaLRY - 4);
 
                     // put the original font back
                     g2.setFont(labelFont);
@@ -3091,7 +3160,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         this.repaint();
     }
 
-    //int oldMouseMode = 0;
+    boolean panning = false;
     @Override
     public void mouseMoved(MouseEvent e) {
         int x = (int) ((e.getX() - pageLeft) / scale);
@@ -3108,6 +3177,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 if (!(ce instanceof MapArea)) {
                     if (ce.isSelected() && myMode != MOUSE_MODE_CARTO_ELEMENT) {
                         this.setCursor(panCursor);
+                        panning = true;
                     } else if (!ce.isSelected() && myMode != MOUSE_MODE_CARTO_ELEMENT
                             && backgroundMouseMode != MOUSE_MODE_ZOOM
                             && backgroundMouseMode != MOUSE_MODE_ZOOMOUT) {
@@ -3119,10 +3189,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     if (ce.isSelected() && myMode != MOUSE_MODE_MAPAREA
                             && !digitizing) {
                         this.setCursor(panCursor);
+                        panning = true;
                     } else if (myMode == MOUSE_MODE_FEATURE_SELECT) {
                         this.setCursor(selectFeatureCursor);
+                        panning = false;
                     } else if (digitizing) {
                         this.setCursor(digitizeCursor);
+                        panning = false;
                     }
                     myMode = MOUSE_MODE_MAPAREA;
                     updateStatus(e, (MapArea) ce);
@@ -3171,6 +3244,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         this.setCursor(new Cursor(java.awt.Cursor.SE_RESIZE_CURSOR));
                         myResizeMode = RESIZE_MODE_SE;
                     }
+                    panning = false;
                 }
 
                 myMode = MOUSE_MODE_RESIZE;
@@ -3194,6 +3268,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             if (myMode == MOUSE_MODE_CARTO_ELEMENT
                     || myMode == MOUSE_MODE_MAPAREA
                     || myMode == MOUSE_MODE_RESIZE) {
+                panning = false;
                 if (backgroundMouseMode == MOUSE_MODE_ZOOM) {
                     myMode = MOUSE_MODE_ZOOM;
                     this.setCursor(zoomCursor);
@@ -3203,6 +3278,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 } else if (backgroundMouseMode == MOUSE_MODE_PAN) {
                     myMode = MOUSE_MODE_PAN;
                     this.setCursor(panCursor);
+                    panning = true;
                 } else if (backgroundMouseMode == MOUSE_MODE_SELECT) {
                     myMode = MOUSE_MODE_SELECT;
                     this.setCursor(selectCursor);
@@ -3273,8 +3349,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         if (clickCount == 2 && (myMode == MOUSE_MODE_CARTO_ELEMENT
                 || myMode == MOUSE_MODE_MAPAREA) && !usingDistanceTool
                 && backgroundMouseMode != MOUSE_MODE_ZOOM
-                && backgroundMouseMode != MOUSE_MODE_ZOOMOUT &&
-                !modifyingPixels) {
+                && backgroundMouseMode != MOUSE_MODE_ZOOMOUT
+                && !modifyingPixels) {
             if (host instanceof WhiteboxGui) { //SwingUtilities.getRoot(this) instanceof WhiteboxGui) {
                 WhiteboxGui wb = (WhiteboxGui) host;
                 wb.showMapProperties(whichCartoElement);
@@ -3357,12 +3433,12 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     modifyPixelsX = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
 
                     GridCell point = mapArea.getRowAndColumn(modifyPixelsX, modifyPixelsY);
-                    
+
                     modifyPixelsY = mapArea.getYCoordinateFromRow(point.row);
                     modifyPixelsX = mapArea.getXCoordinateFromColumn(point.col);
-                    
+
                     //mapArea.get
-                    
+
                     if (point.row >= 0) {
                         host.refreshMap(false);
                         RasterLayerInfo rli = (RasterLayerInfo) mapArea.getActiveLayer();
@@ -3387,6 +3463,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         } else if (clickCount == 1 && usingDistanceTool && button != 3 && !isPopupTrigger) {
             if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                 MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
+                if (map.getActiveMapAreaElementNumber() != mapArea.getElementNumber()) {
+                    return;
+                }
                 BoundingBox currentExtent = mapArea.getCurrentMapExtent();
                 if (mapArea.isVisible() && currentExtent.getMinY() != currentExtent.getMaxY()) {
                     int x = (int) ((e.getX() - pageLeft) / scale);
@@ -3437,6 +3516,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 wb.setCartoElementToolbarVisibility(true);
                 map.getCartographicElement(whichCartoElement).setSelected(true);
                 this.setCursor(panCursor);
+                panning = true;
                 if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                     map.setActiveMapAreaByElementNum(map.getCartographicElement(whichCartoElement).getElementNumber());
                     host.refreshMap(true);
@@ -3445,15 +3525,17 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 map.deslectAllCartographicElements();
                 //map.getCartographicElement(whichCartoElement).setSelected(false);
                 this.setCursor(selectCursor);
+                panning = false;
             } else {
                 map.deslectAllCartographicElements();
-                //map.getCartographicElement(whichCartoElement).setSelected(false);
+                panning = false;
                 switch (backgroundMouseMode) {
                     case MOUSE_MODE_ZOOM:
                         this.setCursor(zoomCursor);
                         break;
                     case MOUSE_MODE_PAN:
                         this.setCursor(panCursor);
+                        panning = true;
                         break;
                     case MOUSE_MODE_SELECT:
                         this.setCursor(selectCursor);
@@ -3578,6 +3660,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                     if (backgroundMouseMode == MOUSE_MODE_PAN) {
                         this.setCursor(panClosedHandCursor);
+                        panning = true;
                     }
                 }
             }
@@ -3589,10 +3672,37 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (mouseDragged && (myMode == MOUSE_MODE_ZOOM
+        if (mouseDragged && backgroundMouseMode == MOUSE_MODE_SELECT 
+                && !panning && myMode != MOUSE_MODE_RESIZE) {
+            int x = (int) ((e.getX() - pageLeft) / scale);
+            int y = (int) ((e.getY() - pageTop) / scale);
+
+            BoundingBox boxExtent = map.getPageExtent();
+
+            // it hasn't yet been initialized
+            boxExtent.setMinX(Math.min(x, startCol));
+            boxExtent.setMinY(Math.min(y, startRow));
+            boxExtent.setMaxX(Math.max(x, startCol));
+            boxExtent.setMaxY(Math.max(y, startRow));
+            for (CartographicElement ce : map.getCartographicElementList()) {
+                ce.setSelected(false);
+                int ulX = ce.getUpperLeftX();
+                int ulY = ce.getUpperLeftY();
+                int lrX = ce.getLowerRightX();
+                int lrY = ce.getLowerRightY();
+                BoundingBox elementExtent = new BoundingBox((double)ulX, 
+                        (double)ulY, (double)lrX, (double)lrY);
+                if (boxExtent.entirelyContains(elementExtent)) {
+                    ce.setSelected(true);
+                }                
+            }
+        } else if (mouseDragged && (myMode == MOUSE_MODE_ZOOM
                 || myMode == MOUSE_MODE_CARTO_ELEMENT)
                 && !usingDistanceTool
                 && (myMode != MOUSE_MODE_RESIZE)) {
+//        if (mouseDragged && backgroundMouseMode == MOUSE_MODE_ZOOM
+//                && !usingDistanceTool
+//                && (myMode != MOUSE_MODE_RESIZE)) {
             boolean zoomToBox = true;
             if (myMode == MOUSE_MODE_CARTO_ELEMENT) {
                 CartographicElement ce = map.getCartographicElement(whichCartoElement);
@@ -3606,11 +3716,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                 BoundingBox pageExtent = map.getPageExtent();
 
-                // it hasn't yet been initialized
-                pageExtent.setMinX(Math.min(x, startCol)); //pageZoomX));
-                pageExtent.setMinY(Math.min(y, startRow)); //pageZoomY));
-                pageExtent.setMaxX(Math.max(x, startCol)); //pageZoomX));
-                pageExtent.setMaxY(Math.max(y, startRow)); //pageZoomY));
+                pageExtent.setMinX(Math.min(x, startCol));
+                pageExtent.setMinY(Math.min(y, startRow));
+                pageExtent.setMaxX(Math.max(x, startCol));
+                pageExtent.setMaxY(Math.max(y, startRow));
 
                 map.setPageExtent(pageExtent);
             }
@@ -3668,6 +3777,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             currentExtent.getMaxY() + deltaY);
                     mapArea.setCurrentExtent(bb);
                     this.setCursor(panCursor);
+                    panning = true;
                 }
 
             }
