@@ -3,9 +3,11 @@
     <toolbox name="ConversionTools" label="Conversion Tools">
         <toolbox name="RasterVectorConversions" label="Raster/Vector Conversions"></toolbox>
     </toolbox>
-
+    
     <toolbox name="IOTools" label="Data Import/Export"></toolbox>
 
+    <toolbox name="FileUtilities" label="File Utilities"></toolbox>
+    
     <toolbox name="GISTools" label="GIS Analysis">
 	    <toolbox name="CostTools" label="Cost-Distance Analysis"></toolbox>
 
