@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2013 Elnaz Shokouhi <ebaradar@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,15 +17,6 @@
 package plugins;
 
 import java.io.File;
-import java.text.DecimalFormat;
-import java.util.Date;
-import whitebox.geospatialfiles.ShapeFile;
-import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.geospatialfiles.shapefile.PolygonM;
-import whitebox.geospatialfiles.shapefile.PolygonZ;
-import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
-import whitebox.geospatialfiles.shapefile.ShapeType;
-import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.utilities.FileUtilities;
