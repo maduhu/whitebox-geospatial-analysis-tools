@@ -158,6 +158,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private RecentMenu recentMapsMenu = new RecentMenu();
     private Color backgroundColour = new Color(225, 245, 255);
     private CartographicToolbar ctb;
+    private double defaultMapMargin = 0.0;
 
     public static void main(String[] args) {
         try {
@@ -593,6 +594,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (props.containsKey("hideAlignToolbar")) {
                     hideAlignToolbar = Boolean.parseBoolean(props.getProperty("hideAlignToolbar"));
                 }
+                if (props.containsKey("defaultMapMargin")) {
+                    defaultMapMargin = Double.parseDouble(props.getProperty("defaultMapMargin"));
+                }
                 String[] FONTS = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
                 if (props.containsKey("defaultFont")) {
                     String fontName = props.getProperty("defaultFont");
@@ -711,7 +715,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("hideAlignToolbar", Boolean.toString(hideAlignToolbar));
         props.setProperty("defaultFont", defaultFont.getName());
         props.setProperty("numberOfRecentItemsToStore", Integer.toString(numberOfRecentItemsToStore));
-
+        props.setProperty("defaultMapMargin", Double.toString(defaultMapMargin));
+        
         // set the recent data layers
         String recentDataLayers = "";
         List<String> layersList = recentFilesMenu.getList();
@@ -811,6 +816,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapinfo.setPageFormat(defaultPageFormat);
             mapinfo.setWorkingDirectory(workingDirectory);
             mapinfo.setDefaultFont(defaultFont);
+            mapinfo.setMargin(defaultMapMargin);
 
             MapArea ma = new MapArea("MapArea1");
             ma.setUpperLeftX(-32768);
@@ -1741,8 +1747,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.add(modifyPixelsVals);
             distanceToolButton = makeToolBarButton("DistanceTool.png", "distanceTool", "Measure distance", "Distance Tool");
             toolbar.add(distanceToolButton);
-            digitizeToolButton = makeToolBarButton("Digitize.png", "digitizeTool", "Digitize", "Digitize Tool");
-            toolbar.add(digitizeToolButton);
+//            digitizeToolButton = makeToolBarButton("Digitize.png", "digitizeTool", "Digitize", "Digitize Tool");
+//            toolbar.add(digitizeToolButton);
             toolbar.addSeparator();
             JButton help = makeToolBarButton("Help.png", "helpIndex", "Help", "Help");
             toolbar.add(help);
@@ -2574,6 +2580,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 numOpenMaps = 1;
                 MapInfo mapinfo = new MapInfo("Map1");
                 mapinfo.setMapName("Map1");
+                mapinfo.setMargin(defaultMapMargin);
                 MapArea ma = new MapArea("MapArea1");
                 ma.setUpperLeftX(-32768);
                 ma.setUpperLeftY(-32768);
@@ -2630,6 +2637,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 numOpenMaps = 1;
                 MapInfo mapinfo = new MapInfo("Map1");
                 mapinfo.setMapName("Map1");
+                mapinfo.setMargin(defaultMapMargin);
                 MapArea ma = new MapArea("MapArea1");
                 ma.setUpperLeftX(-32768);
                 ma.setUpperLeftY(-32768);
@@ -2695,6 +2703,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             // create a new map to overlay the layer onto.
             numOpenMaps = 1;
             MapInfo mapinfo = new MapInfo("Map1");
+            mapinfo.setMargin(defaultMapMargin);
             mapinfo.setMapName("Map1");
             MapArea ma = new MapArea("MapArea1");
             ma.setUpperLeftX(-32768);
@@ -2784,6 +2793,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapinfo.setWorkingDirectory(workingDirectory);
             mapinfo.setPageFormat(defaultPageFormat);
             mapinfo.setDefaultFont(defaultFont);
+            mapinfo.setMargin(defaultMapMargin);
 
             MapArea ma = new MapArea("MapArea1");
             ma.setUpperLeftX(-32768);
@@ -2921,6 +2931,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             saveMapAs();
         } else {
 
+            // Any CartographicElementGroups in the map will need to be ungrouped.
+            int howManyGroups = openMaps.get(selectedMapAndLayer[0]).numberOfElementGroups();
+            if (howManyGroups > 0) {
+                showFeedback("Note: The map contains grouped cartographic elements. "
+                        + "\nElement groups will be ungrouped before saving the map.");
+                openMaps.get(selectedMapAndLayer[0]).ungroupAllElements();
+            }
+        
             File file = new File(openMaps.get(selectedMapAndLayer[0]).getFileName());
 
             if (file.exists()) {
@@ -2980,7 +2998,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         fc.setSelectedFile(f);
 
         // set the filter.
-        ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
+//        ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
         String filterDescription = "Whitebox Map Files (*.wmap)";
         String[] extensions = {"WMAP"};
         ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
@@ -4438,6 +4456,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         return printResolution;
     }
 
+    public double getDefaultMapMargin() {
+        return defaultMapMargin;
+    }
+
+    public void setDefaultMapMargin(double defaultMapMargin) {
+        this.defaultMapMargin = defaultMapMargin;
+    }
+    
     public int getNumberOfRecentItemsToStore() {
         return numberOfRecentItemsToStore;
     }

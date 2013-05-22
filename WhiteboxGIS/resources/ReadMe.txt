@@ -77,6 +77,15 @@ Java 7 Runtime Environment (JRE) installed on you computer. Visit the Oracle jav
 instructions on how to install the JRE. 
 
 
+REPORTING BUGS AND USER FEEDBACK
+
+Any bugs or other software issues can be reported on the Whitebox issue tracker:
+
+http://code.google.com/p/whitebox-geospatial-analysis-tools/issues/list
+
+Any feedback from your user experience can be directed to Dr. John Lindsay (jlindsay@uoguelph.ca).
+
+
 LICENSE:
 
 Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>

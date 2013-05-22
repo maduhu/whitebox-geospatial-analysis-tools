@@ -183,7 +183,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
 
             JPanel listBox = new JPanel();
             listBox.setLayout(new BoxLayout(listBox, BoxLayout.X_AXIS));
-            listBox.setBackground(Color.WHITE);
+            //listBox.setBackground(Color.WHITE);
             listBox.add(Box.createHorizontalStrut(10));
 
             Box vbox = Box.createVerticalBox();
@@ -282,7 +282,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             hbox3.add(Box.createHorizontalGlue());
             vbox3.add(hbox3);
 
-            elementPropertiesPanel.setBackground(Color.WHITE);
+            //elementPropertiesPanel.setBackground(Color.WHITE);
             JScrollPane scroll = new JScrollPane(elementPropertiesPanel);
             scroll.setPreferredSize(new Dimension(150, 250));
             vbox3.add(scroll); //elementPropertiesPanel);
@@ -617,7 +617,11 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
                 map.setPageExtent(pageExtent);
 
             }
-            map.setMargin(margin);
+            if (map.getMargin() != margin) {
+                map.setMargin(margin);
+                WhiteboxGui wb = (WhiteboxGui)host;
+                wb.setDefaultMapMargin(margin);
+            }
         }
 
         host.refreshMap(true);

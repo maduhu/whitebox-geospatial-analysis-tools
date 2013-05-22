@@ -29,7 +29,6 @@ import java.awt.image.MemoryImageSource;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
-import java.util.List;
 import java.util.ArrayList;
 import java.io.File;
 import java.text.AttributedString;
@@ -74,6 +73,7 @@ import whitebox.structures.GridCell;
 import whitebox.structures.XYPoint;
 import whitebox.utilities.OSFinder;
 import whiteboxgis.user_interfaces.ModifyPixel;
+import whitebox.cartographic.MapScale.ScaleStyle;
 
 /**
  *
@@ -687,10 +687,23 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             double pageHeight = pageFormat.getHeight();
             Stroke oldStroke;
             FontMetrics metrics;
+            // set up the font
+            Font newfont = mapScale.getLabelFont();
+            g2.setFont(newfont);
+            metrics = g2.getFontMetrics(newfont);
+
             String label;
-            int x, y;
+            float x, y;
             int adv;
-            Font font = new Font("SanSerif", Font.PLAIN, 11);
+
+            GeneralPath polyline;
+//            polyline.moveTo(xPoints[0], yPoints[0]);
+//
+//            for (int index = 1; index < xPoints.length; index++) {
+//                polyline.lineTo(xPoints[index], yPoints[index]);
+//            }
+//            g2.draw(polyline);
+
             double scale = mapScale.getScale();
             if (scale > 0 && scale != Double.NaN && scale < Double.POSITIVE_INFINITY) {
                 if (mapScale.getUpperLeftY() == -32768) {
@@ -731,15 +744,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                 g2.setColor(mapScale.getOutlineColour());
 
-                // set up the font
-                Font newfont = mapScale.getLabelFont(); //new Font("SanSerif", Font.PLAIN, 10);
-                g2.setFont(newfont);
-                metrics = g2.getFontMetrics(newfont);
-
                 // what is the content height?
-                int contentHeight = 0;
+                float contentHeight = 0;
                 int spacingBetweenElements = 4;
-                int barHeight = 6;
+                float barHeight = 6f;
                 int spacingBetweenBarAndLabels = 3;
                 int fontHeight = metrics.getHeight() - metrics.getDescent();
                 if (mapScale.isRepresentativeFractionVisible()) {
@@ -754,7 +762,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                 // make sure that the scale box's height is large enough for the content
                 if (contentHeight > (mapScale.getHeight() + 2 * mapScale.getMargin())) {
-                    mapScale.setHeight(contentHeight + 2 * mapScale.getMargin());
+                    mapScale.setHeight((int)(contentHeight + 2 * mapScale.getMargin()));
                 }
 
                 // calculate the bottom for all the content
@@ -762,12 +770,14 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         + (mapScale.getHeight() - contentHeight) / 2.0
                         + contentHeight);
 
-                // draw the units label to the scale
-                label = mapScale.getUnits();
-                adv = metrics.stringWidth(label);
-                x = mapScale.getUpperLeftX() + ((mapScale.getWidth() - adv) / 2);
-                y = contentBottomY;
-                g2.drawString(label, x, y);
+                if (mapScale.isGraphicalScaleVisible()) {
+                    // draw the units label to the scale
+                    label = mapScale.getUnits();
+                    adv = metrics.stringWidth(label);
+                    x = mapScale.getUpperLeftX() + ((mapScale.getWidth() - adv) / 2);
+                    y = contentBottomY;
+                    g2.drawString(label, x, y);
+                }
 
                 // draw the scale bar to the scale
                 double barLengthInMapUnits = mapScale.getBarLength() * mapScale.getConversionToMetres()
@@ -775,27 +785,80 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 double barStartingX = mapScale.getUpperLeftX() + ((mapScale.getWidth() - (mapScale.getBarLength() * mapScale.getConversionToMetres()
                         / scale * ppm)) / 2);
 
-                y = contentBottomY - fontHeight - spacingBetweenElements - barHeight;
-                for (int k = 0; k < mapScale.getNumberDivisions(); k++) {
-                    x = (int) (k * barLengthInMapUnits + barStartingX);
-                    if (k % 2.0 == 0.0) {
-                        g2.drawRect(x, y, (int) barLengthInMapUnits, barHeight);
-                    } else {
-                        g2.drawRect(x, y, (int) barLengthInMapUnits, barHeight);
-                        g2.fillRect(x, y, (int) barLengthInMapUnits, barHeight);
+                if (mapScale.isGraphicalScaleVisible()) {
+                    g2.setStroke(new BasicStroke(0.5f));
+                    ScaleStyle styleType = mapScale.getScaleStyle();
+                    float halfBarHeight = barHeight / 2.0f;
+                    y = contentBottomY - fontHeight - spacingBetweenElements - barHeight;
+                    switch (styleType) {
+                        case STANDARD:
+                            for (int k = 0; k < mapScale.getNumberDivisions(); k++) {
+                                x = (float)(k * barLengthInMapUnits + barStartingX);
+                                polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                polyline.moveTo(x, y);
+                                polyline.lineTo(x + barLengthInMapUnits, y);
+                                polyline.lineTo(x + barLengthInMapUnits, y + barHeight);
+                                polyline.lineTo(x, y + barHeight);
+                                polyline.lineTo(x, y);
+                                g2.draw(polyline);
+                                if (k % 2.0 != 0.0) {
+                                    g2.fill(polyline);
+                                }
+                            }
+                            break;
+                        case SIMPLE:
+                            for (int k = 0; k < mapScale.getNumberDivisions(); k++) {
+                                x = (float) (k * barLengthInMapUnits + barStartingX);
+                                polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                polyline.moveTo(x, y);
+                                polyline.lineTo(x, y + barHeight);
+                                polyline.lineTo(x + barLengthInMapUnits, y + barHeight);
+                                polyline.lineTo(x + barLengthInMapUnits, y);
+                                g2.draw(polyline);
+                                
+                            }
+                            break;
+                        case COMPLEX:
+                            GeneralPath polyline2;
+                            for (int k = 0; k < mapScale.getNumberDivisions(); k++) {
+                                x = (float)(k * barLengthInMapUnits + barStartingX);
+                                polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                polyline.moveTo(x, y);
+                                polyline.lineTo(x + barLengthInMapUnits, y);
+                                polyline.lineTo(x + barLengthInMapUnits, y + halfBarHeight);
+                                polyline.lineTo(x, y + halfBarHeight);
+                                polyline.lineTo(x, y);
+                                g2.draw(polyline);
+                                
+                                polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                polyline2.moveTo(x, y + halfBarHeight);
+                                polyline2.lineTo(x + barLengthInMapUnits, y + halfBarHeight);
+                                polyline2.lineTo(x + barLengthInMapUnits, y + barHeight);
+                                polyline2.lineTo(x, y + barHeight);
+                                polyline2.lineTo(x, y + halfBarHeight);
+                                g2.draw(polyline2);
+                                if (k % 2.0 != 0.0) {
+                                    g2.fill(polyline);
+                                } else {
+                                    g2.fill(polyline2);
+                                }
+                            }
+                            break;
                     }
                 }
 
-                // label the scale bar
-                adv = metrics.stringWidth(mapScale.getLowerLabel());
-                x = (int) (barStartingX - adv / 2.0);
-                y = contentBottomY - fontHeight - spacingBetweenElements
-                        - barHeight - spacingBetweenBarAndLabels;
-                g2.drawString(mapScale.getLowerLabel(), x, y);
+                if (mapScale.isGraphicalScaleVisible()) {
+                    // label the scale bar
+                    adv = metrics.stringWidth(mapScale.getLowerLabel());
+                    x = (int) (barStartingX - adv / 2.0);
+                    y = contentBottomY - fontHeight - spacingBetweenElements
+                            - barHeight - spacingBetweenBarAndLabels;
+                    g2.drawString(mapScale.getLowerLabel(), x, y);
 
-                adv = metrics.stringWidth(mapScale.getUpperLabel());
-                x = (int) (barStartingX + barLengthInMapUnits * mapScale.getNumberDivisions() - adv / 2.0);
-                g2.drawString(mapScale.getUpperLabel(), x, y);
+                    adv = metrics.stringWidth(mapScale.getUpperLabel());
+                    x = (int) (barStartingX + barLengthInMapUnits * mapScale.getNumberDivisions() - adv / 2.0);
+                    g2.drawString(mapScale.getUpperLabel(), x, y);
+                }
 
                 // label the representative fraction
                 if (mapScale.isRepresentativeFractionVisible()) {
@@ -810,7 +873,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 }
 
                 g2.setStroke(oldStroke);
-                g2.setFont(font);
+//                g2.setFont(font);
             }
         }
 
@@ -999,21 +1062,30 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         if (txt.isEmpty()) {
             return;
         }
-        AttributedString as = new AttributedString(txt);
-        as.addAttribute(TextAttribute.FOREGROUND, graphics.getPaint());
-        as.addAttribute(TextAttribute.FONT, graphics.getFont());
-        AttributedCharacterIterator aci = as.getIterator();
-        FontRenderContext frc = new FontRenderContext(null, true, false);
-        LineBreakMeasurer lbm = new LineBreakMeasurer(aci, frc);
-        float width = x2 - x1;
-
-        while (lbm.getPosition() < txt.length()) {
-            TextLayout tl = lbm.nextLayout(width);
-            y1 += tl.getAscent();
-            tl.draw(graphics, x1, y1);
-            y1 += tl.getDescent() + tl.getLeading() + (interline - 1.0f) * tl.getAscent();
-            if (y1 > y2) {
-                break;
+        FontMetrics metrics = graphics.getFontMetrics(graphics.getFont());
+        int hgt = metrics.getAscent();
+        String[] stringArray = txt.split("\n");
+        for (String str : stringArray) {
+            if (str.isEmpty()) {
+                y1 += hgt;
+            } else {
+                AttributedString as = new AttributedString(str);
+                as.addAttribute(TextAttribute.FOREGROUND, graphics.getPaint());
+                as.addAttribute(TextAttribute.FONT, graphics.getFont());
+                AttributedCharacterIterator aci = as.getIterator();
+                FontRenderContext frc = new FontRenderContext(null, true, false);
+                LineBreakMeasurer lbm = new LineBreakMeasurer(aci, frc);
+                float width = x2 - x1;
+                TextLayout tl;
+                while (lbm.getPosition() < str.length()) {
+                    tl = lbm.nextLayout(width);
+                    y1 += tl.getAscent();
+                    tl.draw(graphics, x1, y1);
+                    y1 += tl.getDescent() + tl.getLeading() + (interline - 1.0f) * tl.getAscent();
+                    if (y1 > y2) {
+                        break;
+                    }
+                }
             }
         }
     }
@@ -1685,16 +1757,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 mapArea.setReferenceMarksSize(fontHeight + 2);
 
                 // now set the initial size
-//                                int mapAreaSize = (int) (Math.min((pageHeight - 2 * margin - 4),
-//                                        (pageWidth - 2 * margin - 4)));
-//                                mapArea.setWidth(mapAreaSize);
-//                                mapArea.setHeight(mapAreaSize);
                 int mapAreaWidth = (int) (pageWidth - 2 * margin - 4);
                 int mapAreaHeight = (int) (pageHeight - 2 * margin - 4);
                 mapArea.setWidth(mapAreaWidth);
                 mapArea.setHeight(mapAreaHeight);
-//                                mapArea.setUpperLeftX((int) (margin + (pageWidth - 2 * margin - mapAreaSize) / 2));
-//                                mapArea.setUpperLeftY((int) (margin + (pageHeight - 2 * margin - mapAreaSize) / 2));
                 mapArea.setUpperLeftX((int) (margin + (pageWidth - 2 * margin - mapAreaWidth) / 2));
                 mapArea.setUpperLeftY((int) (margin + (pageHeight - 2 * margin - mapAreaHeight) / 2));
 
@@ -3159,8 +3225,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         }
         this.repaint();
     }
-
     boolean panning = false;
+
     @Override
     public void mouseMoved(MouseEvent e) {
         int x = (int) ((e.getX() - pageLeft) / scale);
@@ -3672,7 +3738,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (mouseDragged && backgroundMouseMode == MOUSE_MODE_SELECT 
+        if (mouseDragged && backgroundMouseMode == MOUSE_MODE_SELECT
                 && !panning && myMode != MOUSE_MODE_RESIZE) {
             int x = (int) ((e.getX() - pageLeft) / scale);
             int y = (int) ((e.getY() - pageTop) / scale);
@@ -3690,11 +3756,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 int ulY = ce.getUpperLeftY();
                 int lrX = ce.getLowerRightX();
                 int lrY = ce.getLowerRightY();
-                BoundingBox elementExtent = new BoundingBox((double)ulX, 
-                        (double)ulY, (double)lrX, (double)lrY);
+                BoundingBox elementExtent = new BoundingBox((double) ulX,
+                        (double) ulY, (double) lrX, (double) lrY);
                 if (boxExtent.entirelyContains(elementExtent)) {
                     ce.setSelected(true);
-                }                
+                }
             }
         } else if (mouseDragged && (myMode == MOUSE_MODE_ZOOM
                 || myMode == MOUSE_MODE_CARTO_ELEMENT)
