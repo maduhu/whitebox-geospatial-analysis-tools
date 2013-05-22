@@ -162,11 +162,13 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.addProperty("borderVisible", ms.isBorderVisible());
                     jo.addProperty("outlineVisible", ms.isOutlineVisible());
                     jo.addProperty("representativeFractionVisible", ms.isRepresentativeFractionVisible());
+                    jo.addProperty("graphicalScaleVisible", ms.isGraphicalScaleVisible());
                     jo.add("backColour", gson.toJsonTree(ms.getBackColour()));
                     jo.add("borderColour", gson.toJsonTree(ms.getBorderColour()));
                     jo.add("fontColour", gson.toJsonTree(ms.getFontColour()));
                     jo.add("outlineColour", gson.toJsonTree(ms.getOutlineColour()));
                     jo.addProperty("mapAreaElementNumber", ms.getMapAreaElementNumber());
+                    jo.add("labelFont", gson.toJsonTree(ms.getLabelFont()));
                     break;
                 case LEGEND:
                     Legend l = (Legend) t;

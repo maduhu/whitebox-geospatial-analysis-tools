@@ -256,8 +256,16 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 ms.setMargin(jo.getAsJsonPrimitive("margin").getAsInt());
                 ms.setNumberDivisions(jo.getAsJsonPrimitive("numberDivisions").getAsInt());
                 ms.setRepresentativeFractionVisible(jo.getAsJsonPrimitive("representativeFractionVisible").getAsBoolean());
+                if (jo.has("graphicalScaleVisible")) { // added as a property later.
+                    ms.setGraphicalScaleVisible(jo.getAsJsonPrimitive("graphicalScaleVisible").getAsBoolean());
+                }
                 ms.setUnits(jo.getAsJsonPrimitive("units").getAsString());
                 ms.setMapAreaElementNumber(jo.getAsJsonPrimitive("mapAreaElementNumber").getAsInt());
+                if (jo.has("labelFont")) {
+                    font = gson.fromJson(jo.get("labelFont"), fontType);
+                    ms.setLabelFont(font);
+                }
+                
                 return ms;
                 
             case "LEGEND":

@@ -23,10 +23,7 @@ import java.awt.print.PageFormat;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import whitebox.cartographic.Legend;
-import whitebox.cartographic.MapArea;
-import whitebox.cartographic.MapInfo;
-import whitebox.cartographic.MapScale;
+import whitebox.cartographic.*;
 import whitebox.interfaces.CartographicElement;
 
 /**
@@ -100,6 +97,14 @@ public class MapInfoDeserializer implements JsonDeserializer<MapInfo> {
                             Legend l = (Legend) ce;
                             for (MapArea ma : mapAreas) {
                                 l.addMapArea(ma);
+                            }
+                            // check to see if any MapAreas are contained in any carto element groups
+                            for (CartographicElement ce2 : cartoElementList) {
+                                if (ce instanceof CartographicElementGroup) {
+                                    CartographicElementGroup ceg = (CartographicElementGroup) ce;
+                                    List<CartographicElement> elementList = ceg.getElementList();
+                                    
+                                }
                             }
                             mi.addNewCartographicElement(l);
                         } else {

@@ -109,7 +109,7 @@ public class GeoTiff {
         addTag(new IFDEntry(Tag.ModelPixelScaleTag, FieldType.DOUBLE).setValue(
                 new double[]{xInc, yInc, 0.0}));
     }
-    private List<GeoKey> geokeys = new ArrayList<GeoKey>();
+    private List<GeoKey> geokeys = new ArrayList<>();
 
     void addGeoKey(GeoKey geokey) {
         geokeys.add(geokey);
@@ -285,8 +285,8 @@ public class GeoTiff {
     }
 
     public void initTags() throws IOException {
-        tags = new ArrayList<IFDEntry>();
-        geokeys = new ArrayList<GeoKey>();
+        tags = new ArrayList<>();
+        geokeys = new ArrayList<>();
     }
 
     private void init() throws IOException {

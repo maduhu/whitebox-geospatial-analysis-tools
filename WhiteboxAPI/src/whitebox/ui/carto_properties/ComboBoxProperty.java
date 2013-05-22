@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package whitebox.ui.carto_properties;
 
 import java.awt.Color;
@@ -12,7 +28,7 @@ import javax.swing.event.DocumentEvent;
  *
  * @author johnlindsay
  */
-public class StringProperty extends JComponent implements MouseListener {
+public class ComboBoxProperty extends JComponent implements MouseListener {
 
     private String labelText;
     private String value;
@@ -21,23 +37,27 @@ public class StringProperty extends JComponent implements MouseListener {
     private int rightMargin = 10;
     private int preferredWidth = 200;
     private int preferredHeight = 24;
-    private int textboxWidth = 15;
-    private boolean showTextArea = false;
-    private JTextArea textArea = new JTextArea();
-    private JTextField text = new JTextField();
-
-    public StringProperty() {
+    private String[] listItems;
+    private int defaultItem = 0;
+//    private int comboBoxWidth = 15;
+    private JComboBox combo = new JComboBox();
+    public ItemListener parentListener;
+    
+    // constructors
+    public ComboBoxProperty() {
         setOpaque(true);
         revalidate();
     }
 
-    public StringProperty(String labelText, String value) {
+    public ComboBoxProperty(String labelText, String[] listItems, int defaultItem) {
         setOpaque(true);
         this.labelText = labelText;
-        this.value = value;
+        this.listItems = listItems;
+        this.defaultItem = defaultItem;
         revalidate();
     }
 
+    // properties
     public Color getBackColour() {
         return backColour;
     }
@@ -96,70 +116,81 @@ public class StringProperty extends JComponent implements MouseListener {
         this.rightMargin = rightMargin;
     }
 
-    public int getTextboxWidth() {
-        return textboxWidth;
+//    public int getComboboxWidth() {
+//        return comboBoxWidth;
+//    }
+//
+//    public void setComboBoxWidth(int textboxWidth) {
+//        this.comboBoxWidth = textboxWidth;
+//    }
+    public String[] getListItems() {
+        return listItems;
     }
 
-    public void setTextboxWidth(int textboxWidth) {
-        this.textboxWidth = textboxWidth;
+    public void setListItems(String[] listItems) {
+        this.listItems = listItems;
     }
 
-    public boolean isShowTextArea() {
-        return showTextArea;
+    public int getDefaultItem() {
+        return defaultItem;
     }
 
-    public void setShowTextArea(boolean showTextArea) {
-        this.showTextArea = showTextArea;
+    public void setDefaultItem(int defaultItem) {
+        this.defaultItem = defaultItem;
     }
 
+    // methods
     @Override
     public final void revalidate() {
+        try {
         this.removeAll();
 
         this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         this.setBackground(backColour);
         this.add(Box.createHorizontalStrut(leftMargin));
+
+        if (listItems == null) {
+            return;
+        }
+
         JLabel label = new JLabel(labelText);
         label.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
         this.add(label);
         this.add(Box.createHorizontalGlue());
-        text = new JTextField(value, textboxWidth);
-        text.setText(value);
-        text.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-                text.getPreferredSize().height));
-        if (showTextArea) {
-            textArea.setText(value);
-            text.setText("...");
-            text.setHorizontalAlignment(JTextField.RIGHT);
-            text.setToolTipText("Click to add text.");
-            text.addMouseListener(this);
-            
-        } else {
-            // Listen for changes in the text
-            text.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void changedUpdate(DocumentEvent e) {
-                    update();
-                }
-
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    update();
-                }
-
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    update();
-                }
-
-                public void update() {
-                    setValue(text.getText());
-                }
-            });
+        
+        
+        
+        
+        for (int i = 0; i < listItems.length; i++) {
+            listItems[i] = listItems[i].trim();
         }
-        this.add(text);
+        combo = new JComboBox(listItems);
+        combo.setSelectedIndex(defaultItem);
+        value = (String) combo.getSelectedItem();
+        combo.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+                combo.getPreferredSize().height));
+        combo.addItemListener(parentListener);
+//        combo.addItemListener(new ItemListener() {
+//            @Override
+//            public void itemStateChanged(ItemEvent e) {
+//                if (e.getStateChange() == ItemEvent.SELECTED) {
+//                    Object item = e.getItem();
+//                    setValue(item.toString());
+//                }
+//            }
+//        });
+//        combo.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                setValue((String) combo.getSelectedItem());
+//            }
+//        });
+        this.add(combo);
         this.add(Box.createHorizontalStrut(rightMargin));
         super.revalidate();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     @Override
@@ -177,22 +208,6 @@ public class StringProperty extends JComponent implements MouseListener {
 
     @Override
     public void mousePressed(MouseEvent e) {
-        Object source = e.getSource();
-        if (source == text) {
-            JPanel myPanel = new JPanel();
-            textArea.setLineWrap(true);
-            textArea.setWrapStyleWord(true);
-            JScrollPane scroll = new JScrollPane(textArea);
-            scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-            scroll.setPreferredSize(new Dimension(250, 200));
-            myPanel.add(scroll);
-            int result = JOptionPane.showConfirmDialog(text, myPanel,
-                    "Enter Text", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-            if (result == JOptionPane.OK_OPTION) {
-                setValue(textArea.getText());
-            }
-
-        }
     }
 
     @Override

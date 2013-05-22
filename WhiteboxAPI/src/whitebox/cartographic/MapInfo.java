@@ -40,10 +40,10 @@ public class MapInfo implements java.io.Serializable {
     private String fileName = "";
     private boolean pageVisible = true;
     private PageFormat pageFormat = new PageFormat();
-    private double margin = 0.0;
+    private double margin = 0.15;
     private int numMapAreas = 0;
     private BoundingBox pageBox = new BoundingBox();
-    private boolean showInLegend = true;
+//    private boolean showInLegend = true;
     private ArrayList<CartographicElement> listOfCartographicElements = new ArrayList<>();
     private Font defaultFont = new Font("SanSerif", Font.PLAIN, 11);
 
@@ -111,7 +111,9 @@ public class MapInfo implements java.io.Serializable {
                 ce.setElementNumber(i);
                 i++;
             }
-            if (elementNumber == activeMapArea) { activeMapArea = -1; }
+            if (elementNumber == activeMapArea) {
+                activeMapArea = -1;
+            }
             mapAreas.clear();
             numMapAreas = 0;
             for (CartographicElement ce : listOfCartographicElements) {
@@ -126,7 +128,7 @@ public class MapInfo implements java.io.Serializable {
             System.err.println(e.getMessage());
         }
     }
-    
+
     public void removeAllCartographicElements() {
         listOfCartographicElements.clear();
         mapAreas.clear();
@@ -858,6 +860,11 @@ public class MapInfo implements java.io.Serializable {
         }
     }
 
+    /**
+     * Ungroups any selected CartographicElementGroups.
+     *
+     * @return boolean true if success, false otherwise.
+     */
     public boolean ungroupElements() {
         try {
             int numSelectedElements = howManyElementsAreSelected();
@@ -875,13 +882,13 @@ public class MapInfo implements java.io.Serializable {
                         otherElements.add(ce);
                     }
                 }
-                
+
                 removeAllCartographicElements();
-                
+
                 for (CartographicElement ce : otherElements) {
                     addNewCartographicElement(ce);
                 }
-                
+
                 for (CartographicElementGroup ceg : selectedCEGs) {
                     List<CartographicElement> myCEs = ceg.getElementList();
                     for (CartographicElement ce2 : myCEs) {
@@ -893,6 +900,61 @@ public class MapInfo implements java.io.Serializable {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /**
+     * Ungroups all CartographicElementGroups in a MapInfo's list of elements,
+     * selected or otherwise, including any groups within groups.
+     *
+     * @return boolean true if success, false otherwise.
+     */
+    public boolean ungroupAllElements() {
+        try {
+            List<CartographicElement> elementsList = findAllUngroupedElements(listOfCartographicElements);
+            
+            removeAllCartographicElements();
+
+            for (CartographicElement ce : elementsList) {
+                addNewCartographicElement(ce);
+            }
+
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public int numberOfElementGroups() {
+        return howManyElementGroups(listOfCartographicElements);
+    }
+
+    private int howManyElementGroups(List<CartographicElement> myList) {
+        int ret = 0;
+        for (CartographicElement ce : myList) {
+            if (ce instanceof CartographicElementGroup) {
+                CartographicElementGroup ceg = (CartographicElementGroup) ce;
+                ret += 1 + howManyElementGroups(ceg.getElementList());
+            }
+        }
+
+        return ret;
+    }
+    
+    private List<CartographicElement> findAllUngroupedElements(List<CartographicElement> myList) {
+        List<CartographicElement> ret = new ArrayList<>();
+        for (CartographicElement ce : myList) {
+            if (ce instanceof CartographicElementGroup) {
+                CartographicElementGroup ceg = (CartographicElementGroup) ce;
+                List<CartographicElement> ret2 = findAllUngroupedElements(ceg.getElementList());
+                for (CartographicElement ce2 : ret2) {
+                    ret.add(ce2);
+                }
+            } else {
+                ret.add(ce);
+            }
+        }
+
+        return ret;
     }
 
     private int findActiveMapArea() {
@@ -913,37 +975,7 @@ public class MapInfo implements java.io.Serializable {
                 Collections.sort(mapAreas);
                 activeMapArea = mapAreas.get(0).getElementNumber();
             }
-        }// else {
-//            // you need to add a mapArea
-//            String name = "MapArea1";
-//            CartographicElement ce = new MapArea(name);
-//            addNewCartographicElement(ce);
-//            findActiveMapArea();
-//        }
+        }
         return activeMapArea;
     }
-//    private transient String retFile = "";
-//    private transient boolean flag = true;
-//    private void findFile(File dir, String fileName) {
-//        if (flag) {
-//            File[] files = dir.listFiles();
-//            for (int i = 0; i < files.length; i++) {
-//                if (files[i].isDirectory()) {
-//                    findFile(files[i], fileName);
-//                } else if (files[i].getName().equals(fileName)) {
-//                    retFile = files[i].toString();
-//                    flag = false;
-//                    break;
-//                }
-//            }
-//        }
-//    }
-//    public boolean openMap() {
-//        return open();
-//    }
-//    
-//    public boolean openMap(String fileName) {
-//        this.fileName = fileName;
-//        return open();
-//    }
 }

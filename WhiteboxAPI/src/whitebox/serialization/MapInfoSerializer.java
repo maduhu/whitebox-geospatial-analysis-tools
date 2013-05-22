@@ -48,7 +48,6 @@ public class MapInfoSerializer implements JsonSerializer<MapInfo> {
         jo.addProperty("pageVisible", t.isPageVisible());
         jo.addProperty("margin", t.getMargin());
         jo.add("defaultFont", gson.toJsonTree(t.getDefaultFont()));
-        
         jo.add("pageFormat", gson.toJsonTree(t.getPageFormat()));
         Type listOfCartographicElementsObject = new TypeToken<List<CartographicElement>>(){}.getType();
         jo.add("cartographicElementList", gson.toJsonTree(t.getCartographicElementList(), listOfCartographicElementsObject));

@@ -18,10 +18,16 @@ package whitebox.ui.carto_properties;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.swing.JMenu;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import whitebox.cartographic.MapScale;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -43,15 +49,15 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
     private BooleanProperty scaleVisible;
     private BooleanProperty scaleRepFracVisible;
     private ColourProperty borderColourBox;
-//    private BooleanProperty outlineVisible;
+    private BooleanProperty graphicalScaleVisible;
     private BooleanProperty backgroundVisible;
     private ColourProperty backgroundColourBox;
     private BooleanProperty borderVisible;
-//    private ColourProperty borderColour;
     private NumericProperty marginSize;
     private NumericProperty scaleWidth;
     private NumericProperty scaleHeight;
     private FontProperty fontProperty;
+    private NumericProperty scaleStyle;
     
     public ScalePropertyGrid() {
         createUI();
@@ -171,7 +177,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             
             
             // scale units
-            scaleUnits = new StringProperty("Scale Units:", mapScale.getUnits());
+            scaleUnits = new StringProperty("Scale units:", mapScale.getUnits());
             scaleUnits.setLeftMargin(leftMargin);
             scaleUnits.setRightMargin(rightMargin);
             scaleUnits.setBackColour(Color.WHITE);
@@ -181,7 +187,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             mainBox.add(scaleUnits);
             
             // scale width
-            scaleWidth = new NumericProperty("Scale Width:", String.valueOf(mapScale.getWidth()));
+            scaleWidth = new NumericProperty("Scale width:", String.valueOf(mapScale.getWidth()));
             scaleWidth.setLeftMargin(leftMargin);
             scaleWidth.setRightMargin(rightMargin);
             scaleWidth.setBackColour(backColour);
@@ -193,7 +199,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             mainBox.add(scaleWidth);
             
             // scale height
-            scaleHeight = new NumericProperty("Scale Height:", String.valueOf(mapScale.getHeight()));
+            scaleHeight = new NumericProperty("Scale height:", String.valueOf(mapScale.getHeight()));
             scaleHeight.setLeftMargin(leftMargin);
             scaleHeight.setRightMargin(rightMargin);
             scaleHeight.setBackColour(Color.WHITE);
@@ -217,19 +223,8 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             marginSize.revalidate();
             mainBox.add(marginSize);
             
-//            // bar length
-//            barLength = new NumericProperty("Bar Length:", String.valueOf(mapScale.getBarLength()));
-//            barLength.setLeftMargin(leftMargin);
-//            barLength.setRightMargin(rightMargin);
-//            barLength.setBackColour(Color.WHITE);
-//            barLength.setPreferredWidth(preferredWidth);
-//            barLength.setTextboxWidth(5);
-//            barLength.revalidate();
-//            barLength.addPropertyChangeListener("value", this);
-//            mainBox.add(barLength);
-            
             // scale representative fraction
-            scaleRepFracVisible = new BooleanProperty("Show Representative Fraction?", 
+            scaleRepFracVisible = new BooleanProperty("Show representative fraction?", 
                     mapScale.isBorderVisible());
             scaleRepFracVisible.setLeftMargin(leftMargin);
             scaleRepFracVisible.setRightMargin(rightMargin);
@@ -259,8 +254,56 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             fontProperty.revalidate();
             mainBox.add(fontProperty);
             
+            graphicalScaleVisible = new BooleanProperty("Is the graphical scale visible?", 
+                    mapScale.isGraphicalScaleVisible());
+            graphicalScaleVisible.setLeftMargin(leftMargin);
+            graphicalScaleVisible.setRightMargin(rightMargin);
+            graphicalScaleVisible.setBackColour(backColour);
+            graphicalScaleVisible.setPreferredWidth(preferredWidth);
+            graphicalScaleVisible.addPropertyChangeListener("value", this);
+            graphicalScaleVisible.revalidate();
+            mainBox.add(graphicalScaleVisible);
+            
+            // scale style
+            
+//            String[] styles = { "Standard", "Simple", "Complex" };
+//            scaleStyle = new ComboBoxProperty("Scale style:", styles, mapScale.getScaleStyle().ordinal());
+//            scaleStyle.setLeftMargin(leftMargin);
+//            scaleStyle.setRightMargin(rightMargin);
+//            scaleStyle.setBackColour(Color.WHITE);
+//            scaleStyle.setPreferredWidth(preferredWidth);
+//            scaleStyle.revalidate();
+//            ItemListener il = new ItemListener() {
+//
+//                @Override
+//                public void itemStateChanged(ItemEvent e) {
+//                    if (e.getStateChange() == ItemEvent.SELECTED) {
+//                    Object item = e.getItem();
+//                    //setValue(item.toString());
+//                }
+//                }
+//            };
+//            scaleStyle.parentListener = il;
+//            
+//            scaleStyle.addPropertyChangeListener("value", this);
+//            mainBox.add(scaleStyle);
+            
+            scaleStyle = new NumericProperty("Scale Style:", String.valueOf(mapScale.getScaleStyle().ordinal() + 1));
+            scaleStyle.setLeftMargin(leftMargin);
+            scaleStyle.setRightMargin(rightMargin);
+            scaleStyle.setBackColour(Color.WHITE);
+            scaleStyle.setPreferredWidth(preferredWidth);
+            scaleStyle.setParseIntegersOnly(true);
+            scaleStyle.setMinValue(1);
+            scaleStyle.setMaxValue(3);
+            scaleStyle.revalidate();
+            scaleStyle.addPropertyChangeListener("value", this);
+            mainBox.add(scaleStyle);
+            
+            
             super.revalidate();
         } catch (Exception e) {
+            System.err.println(e.getMessage());
             //host.showFeedback(e.getMessage());
         }
     }
@@ -284,9 +327,6 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
         } else if (source == scaleVisible) {
             mapScale.setVisible((Boolean) evt.getNewValue());
             didSomething = true;
-//        } else if (source == barLength) {
-//            mapScale.setBarLength(Double.parseDouble((String) evt.getNewValue()));
-//            didSomething = true;
         } else if (source == scaleRepFracVisible) {
             mapScale.setRepresentativeFractionVisible((Boolean) evt.getNewValue());
             didSomething = true;
@@ -310,6 +350,23 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             didSomething = true;
         } else if (source == fontProperty) {
             mapScale.setLabelFont((Font)evt.getNewValue());
+            didSomething = true;
+        } else if (source == graphicalScaleVisible) {
+            mapScale.setGraphicalScaleVisible((Boolean) evt.getNewValue());
+            didSomething = true;
+        } else if (source == scaleStyle) {
+            int style = Integer.parseInt((String) evt.getNewValue());
+            switch (style) {
+                case 1:
+                    mapScale.setScaleStyle(MapScale.ScaleStyle.STANDARD);
+                    break;
+                case 2:
+                    mapScale.setScaleStyle(MapScale.ScaleStyle.SIMPLE);
+                    break;
+                case 3:
+                    mapScale.setScaleStyle(MapScale.ScaleStyle.COMPLEX);
+                    break;
+            }
             didSomething = true;
         }
 

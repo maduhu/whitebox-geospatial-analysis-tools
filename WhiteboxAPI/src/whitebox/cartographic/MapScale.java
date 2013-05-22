@@ -31,6 +31,7 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     boolean selected = false;
     int number = -1;
     boolean showRepresentativeFraction = false;
+    boolean showGraphicalScale = true;
     boolean borderVisible = false;
     boolean backgroundVisible = false;
     int upperLeftX = -32768;
@@ -58,6 +59,11 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     private int selectedOffsetY;
     boolean outlineVisible = false;
     Font labelFont = new Font("SanSerif", Font.PLAIN, 10);
+    private ScaleStyle scaleStyle = ScaleStyle.STANDARD;
+    
+    public enum ScaleStyle {
+        STANDARD, SIMPLE, COMPLEX;
+    }
 
     public MapScale(String name) {
         this.name = name;
@@ -69,8 +75,22 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
 
     public void setRepresentativeFractionVisible(boolean showRepresentativeFraction) {
         this.showRepresentativeFraction = showRepresentativeFraction;
+        if (!showRepresentativeFraction && !showGraphicalScale) {
+            showGraphicalScale = true;
+    }
     }
 
+    public boolean isGraphicalScaleVisible() {
+        return showGraphicalScale;
+    }
+
+    public void setGraphicalScaleVisible(boolean showGraphicalScale) {
+        this.showGraphicalScale = showGraphicalScale;
+        if (!showRepresentativeFraction && !showGraphicalScale) {
+            showRepresentativeFraction = true;
+        }
+    }
+    
     public String getUnits() {
         return units;
     }
@@ -157,8 +177,14 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     @Override
     public void setVisible(boolean visible) {
         this.visible = visible;
-//        upperLeftX = -99;
-//        upperLeftY = -99;
+    }
+
+    public ScaleStyle getScaleStyle() {
+        return scaleStyle;
+    }
+
+    public void setScaleStyle(ScaleStyle scaleStyle) {
+        this.scaleStyle = scaleStyle;
     }
     
     int mapAreaElementNumber = -1;
