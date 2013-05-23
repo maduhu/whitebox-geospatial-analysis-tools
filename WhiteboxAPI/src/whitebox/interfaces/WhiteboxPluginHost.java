@@ -23,6 +23,11 @@ import java.util.List;
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public interface WhiteboxPluginHost {
+    /**
+     * Used to tell the Whitebox GUI to toggle the edit vector tool if the
+     * active layer is a vector.
+     */
+    public void editVector();
     
     public String getWorkingDirectory();
     

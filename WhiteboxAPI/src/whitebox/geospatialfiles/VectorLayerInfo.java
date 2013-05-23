@@ -30,24 +30,21 @@ import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGON;
 import whitebox.geospatialfiles.shapefile.*;
 import whitebox.geospatialfiles.shapefile.PolyLine;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POINT;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGONZ;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINE;
 import whitebox.interfaces.MapLayer;
 import whitebox.structures.BoundingBox;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import static whitebox.geospatialfiles.shapefile.ShapeType.*;
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class VectorLayerInfo implements MapLayer {
+
     public final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-    
     private String fileName;
     private ShapeFile shapefile;
     private int overlayNumber;
@@ -84,12 +81,12 @@ public class VectorLayerInfo implements MapLayer {
     private int selectedFeatureNumber = -1;
     private int maxDisplayedEntries = 25;
     private boolean visibleInLegend = true;
-    
+    private boolean isActivelyEdited = false;
+
     // Constructors
     public VectorLayerInfo() {
-        
     }
-    
+
     public VectorLayerInfo(String fileName, String paletteDirectory, int alpha, int overlayNumber) {
         this.fileName = fileName;
         File file = new File(fileName);
@@ -113,44 +110,44 @@ public class VectorLayerInfo implements MapLayer {
 
         fullExtent = currentExtent.clone();
         shapeType = shapefile.getShapeType();
-        if (shapeType == ShapeType.POLYLINE && (layerTitle.toLowerCase().contains("roads") ||
-                layerTitle.toLowerCase().contains("transportation"))) {
+        if (shapeType == ShapeType.POLYLINE && (layerTitle.toLowerCase().contains("roads")
+                || layerTitle.toLowerCase().contains("transportation"))) {
             lineColour = Color.black;
-        } else if (shapeType == ShapeType.POLYLINE && (layerTitle.toLowerCase().contains("stream") ||
-                layerTitle.toLowerCase().contains("river") || layerTitle.toLowerCase().contains("water")
-                 || layerTitle.toLowerCase().contains("hydrology"))) {
+        } else if (shapeType == ShapeType.POLYLINE && (layerTitle.toLowerCase().contains("stream")
+                || layerTitle.toLowerCase().contains("river") || layerTitle.toLowerCase().contains("water")
+                || layerTitle.toLowerCase().contains("hydrology"))) {
             lineColour = Color.blue;
-        } else if (shapeType == ShapeType.POLYGON && (layerTitle.toLowerCase().contains("lake") ||
-                layerTitle.toLowerCase().contains("water"))) {
+        } else if (shapeType == ShapeType.POLYGON && (layerTitle.toLowerCase().contains("lake")
+                || layerTitle.toLowerCase().contains("water"))) {
             lineColour = Color.black;
             fillColour = Color.blue;
         } else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
             //lineColour = Color.RED; // new Color(153, 204, 255);
             Random generator = new Random();
-            int r = (int)(255 * generator.nextFloat());
-            int g = (int)(255 * generator.nextFloat());
-            int b = (int)(255 * generator.nextFloat());
+            int r = (int) (255 * generator.nextFloat());
+            int g = (int) (255 * generator.nextFloat());
+            int b = (int) (255 * generator.nextFloat());
             lineColour = new Color(r, g, b);
         } else if (shapeType.getBaseType() == ShapeType.POLYGON) {
             lineColour = Color.black;
             //fillColour = new Color(153, 204, 255);
             // set the fill colour to a random light colour
             Random generator = new Random();
-            int r = (int)(100 + 155 * generator.nextFloat());
-            int g = (int)(100 + 155 * generator.nextFloat());
-            int b = (int)(100 + 155 * generator.nextFloat());
+            int r = (int) (100 + 155 * generator.nextFloat());
+            int g = (int) (100 + 155 * generator.nextFloat());
+            int b = (int) (100 + 155 * generator.nextFloat());
             fillColour = new Color(r, g, b);
-        } else if (shapeType.getBaseType() == ShapeType.POINT ||
-                shapeType.getBaseType() == ShapeType.MULTIPOINT) {
+        } else if (shapeType.getBaseType() == ShapeType.POINT
+                || shapeType.getBaseType() == ShapeType.MULTIPOINT) {
             Random generator = new Random();
-            int r = (int)(255 * generator.nextFloat());
-            int g = (int)(255 * generator.nextFloat());
-            int b = (int)(255 * generator.nextFloat());
+            int r = (int) (255 * generator.nextFloat());
+            int g = (int) (255 * generator.nextFloat());
+            int b = (int) (255 * generator.nextFloat());
             fillColour = new Color(r, g, b);
         }
         this.xyUnits = shapefile.getXYUnits();
         this.attributeTableFields = shapefile.getAttributeTableFields();
-        
+
         pathSep = File.separator;
         try {
             String applicationDirectory = java.net.URLDecoder.decode(getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
@@ -167,9 +164,8 @@ public class VectorLayerInfo implements MapLayer {
             findPaletteDirectory(new File(applicationDirectory));
             paletteFile = paletteDirectory + "categorical1.pal";
         } catch (Exception e) {
-            
         }
-            
+
     }
 
     public int getAlpha() {
@@ -195,7 +191,6 @@ public class VectorLayerInfo implements MapLayer {
         this.fileName = fileName;
     }
 
-    
     public double getNonlinearity() {
         return gamma;
     }
@@ -217,12 +212,11 @@ public class VectorLayerInfo implements MapLayer {
     public ShapeType getShapeType() {
         return shapeType;
     }
-
     ArrayList<ShapeFileRecord> recs;
-    
+
     public ArrayList<ShapeFileRecord> getData() {
         return recs;
-        
+
     }
 
     public float getMarkerSize() {
@@ -278,7 +272,7 @@ public class VectorLayerInfo implements MapLayer {
     public void setOutlined(boolean outlined) {
         this.outlined = outlined;
     }
-    
+
     public void setMarkerStyle(MarkerStyle markerStyle) {
         this.markerStyle = markerStyle;
     }
@@ -298,12 +292,12 @@ public class VectorLayerInfo implements MapLayer {
     public String[] getAttributeTableFields() {
         return attributeTableFields;
     }
-    
+
     public double getCartographicGeneralizationLevel() {
         return cartographicGeneralizationLevel;
     }
-    
     boolean generalizationLevelDirty = false;
+
     public void setCartographicGeneralizationLevel(double generalizeLevel) {
         cartographicGeneralizationLevel = generalizeLevel;
         generalizationLevelDirty = true;
@@ -316,8 +310,15 @@ public class VectorLayerInfo implements MapLayer {
     public void setMaxDisplayedEntries(int maxDisplayedEntries) {
         this.maxDisplayedEntries = maxDisplayedEntries;
     }
-    
-    
+
+    public boolean isActivelyEdited() {
+        return isActivelyEdited;
+    }
+
+    public void setActivelyEdited(boolean activelyEdited) {
+        this.isActivelyEdited = activelyEdited;
+    }
+
     @Override
     public String getLayerTitle() {
         return layerTitle;
@@ -338,7 +339,6 @@ public class VectorLayerInfo implements MapLayer {
         return fullExtent.clone();
     }
 
-    
     @Override
     public BoundingBox getCurrentExtent() {
         return currentExtent.clone();
@@ -350,7 +350,7 @@ public class VectorLayerInfo implements MapLayer {
             currentExtent = bb.clone();
         }
     }
-    
+
     public final void setCurrentExtent(BoundingBox bb, double minSize) {
         if (!bb.equals(currentExtent) || recs == null || generalizationLevelDirty) {
             currentExtent = bb.clone();
@@ -358,7 +358,7 @@ public class VectorLayerInfo implements MapLayer {
         }
         generalizationLevelDirty = false;
     }
-    
+
     @Override
     public boolean isVisible() {
         return visible;
@@ -427,7 +427,7 @@ public class VectorLayerInfo implements MapLayer {
         this.colouringAttribute = fillAttribute;
         //setRecordsColourData();
     }
-    
+
     public String getLineAttribute() {
         return colouringAttribute;
     }
@@ -436,12 +436,12 @@ public class VectorLayerInfo implements MapLayer {
         this.colouringAttribute = lineAttribute;
         //setRecordsColourData();
     }
-    
     private Color[] colourData;
+
     public Color[] getColourData() {
         if (colourData == null) {
             setRecordsColourData();
-            
+
         }
         return colourData;
     }
@@ -467,10 +467,9 @@ public class VectorLayerInfo implements MapLayer {
         this.selectedFeatureNumber = selectedFeatureNumber;
         this.pcs.firePropertyChange("selectedFeatureNumber", oldValue, selectedFeatureNumber);
     }
-    
-    
     // methods
     private VectorLayerInfo.LegendEntry[] legendEntries;
+
     public void setRecordsColourData() {
         int numRecords = shapefile.getNumberOfRecords();
         int entryNum, a, i;
@@ -479,18 +478,18 @@ public class VectorLayerInfo implements MapLayer {
         //double nullDataFlag = Integer.MIN_VALUE;
         Color legendColour;
         colourData = new Color[numRecords];
-        
+
         boolean singleColour = true;
         Color clr;
         if (shapeType == ShapeType.POLYLINE || shapeType == ShapeType.POLYLINEM
-                    || shapeType == ShapeType.POLYLINEZ) {
+                || shapeType == ShapeType.POLYLINEZ) {
             singleColour = outlinedWithOneColour;
             clr = lineColour;
         } else {
             singleColour = filledWithOneColour;
             clr = fillColour;
         }
-        
+
         if (singleColour) {
             clr = new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), a1);
             for (i = 0; i < numRecords; i++) {
@@ -530,11 +529,10 @@ public class VectorLayerInfo implements MapLayer {
                     }
                     a++;
                 }
-                
+
                 if (!(dataType == 'N') && !(dataType == 'F')) {
                     // sort the data based on the field data
                     Arrays.sort(data, new Comparator<Object[]>() {
-
                         @Override
                         public int compare(final Object[] entry1, final Object[] entry2) {
                             // still need to handle date and boolean data types.
@@ -578,7 +576,7 @@ public class VectorLayerInfo implements MapLayer {
                             }
                         }
                     }
-                    
+
                     // figure out the legend entries.
                     legendEntries = new VectorLayerInfo.LegendEntry[clrNumber + 1];
                     entryNum = (Integer) (data[0][2]) % numPaletteEntries;
@@ -593,13 +591,13 @@ public class VectorLayerInfo implements MapLayer {
                         for (i = 1; i < numRecords; i++) {
                             if (!data[i][1].equals(data[i - 1][1])) {
                                 if (!paletteScaled) {
-                                    entryNum = (Integer)(data[i][2]) % numPaletteEntries;
+                                    entryNum = (Integer) (data[i][2]) % numPaletteEntries;
                                 } else {
-                                    entryNum = (int) (((Integer)data[i][2] / maxValue) * (numPaletteEntries - 1));
+                                    entryNum = (int) (((Integer) data[i][2] / maxValue) * (numPaletteEntries - 1));
                                 }
                                 if (data[i][1] == null) {
                                     legendEntries[legendEntryNum] = new VectorLayerInfo.LegendEntry("Null", new Color(255, 255, 255, 0));
-                                    
+
                                 } else {
                                     legendEntries[legendEntryNum] = new VectorLayerInfo.LegendEntry(String.valueOf(data[i][1]), new Color(paletteData[entryNum]));
                                 }
@@ -607,10 +605,9 @@ public class VectorLayerInfo implements MapLayer {
                             }
                         }
                     }
-                    
+
                     // sort it back into the record number order.
                     Arrays.sort(data, new Comparator<Object[]>() {
-
                         @Override
                         public int compare(final Object[] entry1, final Object[] entry2) {
                             final int int1 = (Integer) entry1[0];
@@ -620,7 +617,7 @@ public class VectorLayerInfo implements MapLayer {
                     });
 
                     // fill the colourData array.
-                        
+
                     if (!paletteScaled) {
                         for (i = 0; i < numRecords; i++) {
                             if (data[i][1] == null) {
@@ -655,7 +652,7 @@ public class VectorLayerInfo implements MapLayer {
                 } else {  // it's a number
                     if (paletteScaled) {
                         // it's a numerical field
-                        
+
                         legendEntries = new VectorLayerInfo.LegendEntry[1];
                         legendEntries[0] = new VectorLayerInfo.LegendEntry("continuous numerical variable", Color.black);
                         // find the min and max values
@@ -666,15 +663,15 @@ public class VectorLayerInfo implements MapLayer {
                                 if (data[i][1] == null) {
                                     // do nothing
                                 } else {
-                                    if ((Double)data[i][1] > maxValue) {
-                                        maxValue = (Double)data[i][1];
+                                    if ((Double) data[i][1] > maxValue) {
+                                        maxValue = (Double) data[i][1];
                                     }
                                 }
                                 if (data[i][1] == null) {
                                     // do nothing
                                 } else {
-                                    if ((Double)data[i][1] < minValue) {
-                                        minValue = (Double)data[i][1];
+                                    if ((Double) data[i][1] < minValue) {
+                                        minValue = (Double) data[i][1];
                                     }
                                 }
                             }
@@ -690,20 +687,19 @@ public class VectorLayerInfo implements MapLayer {
                                     colourData[i] = new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), a1);
                                 }
                             }
-                            
+
                             minimumValue = minValue;
                             maximumValue = maxValue;
-                            
+
                         } else {
                             colourData[0] = new Color(paletteData[0]);
                         }
-                        
+
                     } else {
                         // it's not scaled
-                        
+
                         // sort the data based on the field data
                         Arrays.sort(data, new Comparator<Object[]>() {
-
                             @Override
                             public int compare(final Object[] entry1, final Object[] entry2) {
                                 // still need to handle date and boolean data types.
@@ -774,7 +770,6 @@ public class VectorLayerInfo implements MapLayer {
 
                         // sort it back into the record number order.
                         Arrays.sort(data, new Comparator<Object[]>() {
-
                             @Override
                             public int compare(final Object[] entry1, final Object[] entry2) {
                                 final int int1 = (Integer) entry1[0];
@@ -800,17 +795,17 @@ public class VectorLayerInfo implements MapLayer {
 
                     }
                 }
-                
+
             } catch (DBFException dbfe) {
                 System.out.println(dbfe.getMessage());
 
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
-            
+
         }
     }
-    
+
     private void findPaletteDirectory(File dir) {
         File[] files = dir.listFiles();
         for (int x = 0; x < files.length; x++) {
@@ -824,7 +819,7 @@ public class VectorLayerInfo implements MapLayer {
             }
         }
     }
-    
+
     private void readPalette() {
         RandomAccessFile rIn = null;
         ByteBuffer buf = null;
@@ -881,7 +876,115 @@ public class VectorLayerInfo implements MapLayer {
             }
         }
     }
-    
+    ArrayList<ShapefilePoint> digitizedPoints = new ArrayList<>();
+    double previousX = -1;
+    double previousY = -1;
+    Object[] recData;
+
+    public void openNewFeature() {
+        digitizedPoints.clear();
+        recData = new Object[shapefile.getAttributeTableFields().length];
+    }
+
+    public void addNodeToNewFeature(double x, double y) {
+        if (x != previousX && y != previousY) {
+            digitizedPoints.add(new ShapefilePoint(x, y));
+            if (shapeType.getBaseType() == ShapeType.POINT) {
+                closeNewFeature();
+            }
+            previousX = x;
+            previousY = y;
+        }
+    }
+
+    private void closeNewFeature() {
+        try {
+            if (digitizedPoints.size() == 0) { return; }
+            PointsList pl = new PointsList(digitizedPoints);
+            int[] parts = {0};
+            double x, y, z, m;
+            switch (shapeType) {
+                case POINT:
+                    x = pl.getPoint(0).x;
+                    y = pl.getPoint(0).y;
+                    whitebox.geospatialfiles.shapefile.Point wbPoint = new whitebox.geospatialfiles.shapefile.Point(x, y);
+                    shapefile.addRecord(wbPoint, recData);
+                    break;
+                case POINTZ:
+                    x = pl.getPoint(0).x;
+                    y = pl.getPoint(0).y;
+                    z = pl.getPoint(0).z;
+                    m = pl.getPoint(0).m;
+                    PointZ wbPointZ = new PointZ(x, y, z, m);
+                    shapefile.addRecord(wbPointZ, recData);
+                    break;
+                case POINTM:
+                    x = pl.getPoint(0).x;
+                    y = pl.getPoint(0).y;
+                    m = pl.getPoint(0).m;
+                    PointM wbPointM = new PointM(x, y, m);
+                    shapefile.addRecord(wbPointM, recData);
+                    break;
+                case MULTIPOINT:
+                    MultiPoint mp = new MultiPoint(pl.getPointsArray());
+                    shapefile.addRecord(mp, recData);
+                    break;
+                case MULTIPOINTZ:
+                    MultiPointZ mpZ = new MultiPointZ(pl.getPointsArray(), pl.getZArray(), pl.getMArray());
+                    shapefile.addRecord(mpZ, recData);
+                    break;
+                case MULTIPOINTM:
+                    MultiPointM mpM = new MultiPointM(pl.getPointsArray(), pl.getMArray());
+                    shapefile.addRecord(mpM, recData);
+                    break;
+                case POLYLINE:
+                    PolyLine polyline = new PolyLine(parts, pl.getPointsArray());
+                    shapefile.addRecord(polyline, recData);
+                case POLYLINEZ:
+                    PolyLineZ polylineZ = new PolyLineZ(parts, pl.getPointsArray(), pl.getZArray(), pl.getMArray());
+                    shapefile.addRecord(polylineZ, recData);
+                case POLYLINEM:
+                    PolyLineM polylineM = new PolyLineM(parts, pl.getPointsArray(), pl.getMArray());
+                    shapefile.addRecord(polylineM, recData);
+                case POLYGON:
+                    if (pl.getPoint(0) != pl.getPoint(pl.size() - 1)) {
+                        pl.addPoint(pl.getPoint(0).x, pl.getPoint(0).y);
+                    }
+                    Polygon polygon = new Polygon(parts, pl.getPointsArray());
+                    shapefile.addRecord(polygon, recData);
+                case POLYGONZ:
+                    if (pl.getPoint(0) != pl.getPoint(pl.size() - 1)) {
+                        pl.addZPoint(pl.getPoint(0).x, pl.getPoint(0).y, pl.getPoint(0).z, pl.getPoint(0).m);
+                    }
+                    PolygonZ polygonZ = new PolygonZ(parts, pl.getPointsArray(), pl.getZArray(), pl.getMArray());
+                    shapefile.addRecord(polygonZ, recData);
+                case POLYGONM:
+                    if (pl.getPoint(0) != pl.getPoint(pl.size() - 1)) {
+                        pl.addMPoint(pl.getPoint(0).x, pl.getPoint(0).y, pl.getPoint(0).m);
+                    }
+                    PolygonM polygonM = new PolygonM(parts, pl.getPointsArray(), pl.getMArray());
+                    shapefile.addRecord(polygonM, recData);
+            }
+
+            shapefile.write();
+            fullExtent = new BoundingBox(shapefile.getxMin(), shapefile.getyMin(),
+                    shapefile.getxMax(), shapefile.getyMax());
+            recs = shapefile.getRecordsInBoundingBox(currentExtent, 1);
+            colourData = null;
+            openNewFeature();
+        } catch (IOException e) {
+        }
+    }
+
+    public void closeNewFeature(double x, double y) {
+        if (x != previousX && y != previousY) {
+            digitizedPoints.add(new ShapefilePoint(x, y));
+            previousX = x;
+            previousY = y;
+        }
+        closeNewFeature();
+    }
+
     public int selectFeatureByLocation(double x, double y) {
         double minDist = Double.POSITIVE_INFINITY;
         double dist, boxCentreX, boxCentreY;
@@ -894,12 +997,12 @@ public class VectorLayerInfo implements MapLayer {
                     if (bb.isPointInBox(x, y)) {
                         boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
                         boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x) + 
-                                (boxCentreY - y) * (boxCentreY - y);
+                        dist = (boxCentreX - x) * (boxCentreX - x)
+                                + (boxCentreY - y) * (boxCentreY - y);
                         if (dist < minDist) {
                             minDist = dist;
                             newSelectedFeatureNum = record.getRecordNumber();
-                        } 
+                        }
                     }
                 }
                 break;
@@ -910,12 +1013,12 @@ public class VectorLayerInfo implements MapLayer {
                     if (bb.isPointInBox(x, y)) {
                         boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
                         boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x) + 
-                                (boxCentreY - y) * (boxCentreY - y);
+                        dist = (boxCentreX - x) * (boxCentreX - x)
+                                + (boxCentreY - y) * (boxCentreY - y);
                         if (dist < minDist) {
                             minDist = dist;
                             newSelectedFeatureNum = record.getRecordNumber();
-                        } 
+                        }
                     }
                 }
                 break;
@@ -926,12 +1029,12 @@ public class VectorLayerInfo implements MapLayer {
                     if (bb.isPointInBox(x, y)) {
                         boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
                         boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x) + 
-                                (boxCentreY - y) * (boxCentreY - y);
+                        dist = (boxCentreX - x) * (boxCentreX - x)
+                                + (boxCentreY - y) * (boxCentreY - y);
                         if (dist < minDist) {
                             minDist = dist;
                             newSelectedFeatureNum = record.getRecordNumber();
-                        } 
+                        }
                     }
                 }
                 break;
@@ -942,12 +1045,12 @@ public class VectorLayerInfo implements MapLayer {
                     if (bb.isPointInBox(x, y)) {
                         boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
                         boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x) + 
-                                (boxCentreY - y) * (boxCentreY - y);
+                        dist = (boxCentreX - x) * (boxCentreX - x)
+                                + (boxCentreY - y) * (boxCentreY - y);
                         if (dist < minDist) {
                             minDist = dist;
                             newSelectedFeatureNum = record.getRecordNumber();
-                        } 
+                        }
                     }
                 }
                 break;
@@ -958,12 +1061,12 @@ public class VectorLayerInfo implements MapLayer {
                     if (bb.isPointInBox(x, y)) {
                         boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
                         boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x) + 
-                                (boxCentreY - y) * (boxCentreY - y);
+                        dist = (boxCentreX - x) * (boxCentreX - x)
+                                + (boxCentreY - y) * (boxCentreY - y);
                         if (dist < minDist) {
                             minDist = dist;
                             newSelectedFeatureNum = record.getRecordNumber();
-                        } 
+                        }
                     }
                 }
                 break;
@@ -974,12 +1077,12 @@ public class VectorLayerInfo implements MapLayer {
                     if (bb.isPointInBox(x, y)) {
                         boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
                         boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x) + 
-                                (boxCentreY - y) * (boxCentreY - y);
+                        dist = (boxCentreX - x) * (boxCentreX - x)
+                                + (boxCentreY - y) * (boxCentreY - y);
                         if (dist < minDist) {
                             minDist = dist;
                             newSelectedFeatureNum = record.getRecordNumber();
-                        } 
+                        }
                     }
                 }
                 break;
@@ -1019,7 +1122,7 @@ public class VectorLayerInfo implements MapLayer {
 
                 }
                 break;
-                
+
             // have to add something here for multipoints.
         }
         if (newSelectedFeatureNum != selectedFeatureNumber) {
@@ -1043,8 +1146,10 @@ public class VectorLayerInfo implements MapLayer {
     }
 
     public class LegendEntry {
+
         public Color legendColour;
         public String legendLabel;
+
         protected LegendEntry(String label, Color clr) {
             legendLabel = label;
             legendColour = clr;
@@ -1057,7 +1162,5 @@ public class VectorLayerInfo implements MapLayer {
         public String getLegendLabel() {
             return legendLabel;
         }
-        
-        
     }
 }

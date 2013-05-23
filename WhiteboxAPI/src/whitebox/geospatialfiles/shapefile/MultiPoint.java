@@ -53,6 +53,32 @@ public class MultiPoint implements Geometry {
         }
     }
     
+    /**
+     * This is the constructor that is used when creating a new multipoint.
+     * @param points a double[][] array containing the point data. The first
+     * dimension of the array is the total number of points in the multipoint.
+     */
+    public MultiPoint (double[][] points) {
+        numPoints = points.length;
+        this.points = new double[numPoints][2];
+        double minX = Float.POSITIVE_INFINITY;
+        double minY = Float.POSITIVE_INFINITY;
+        double maxX = Float.NEGATIVE_INFINITY;
+        double maxY = Float.NEGATIVE_INFINITY;
+        for (int i = 0; i < numPoints; i++) {
+            this.points[i][0] = points[i][0];
+            this.points[i][1] = points[i][1];
+            
+            if (points[i][0] < minX) { minX = points[i][0]; }
+            if (points[i][0] > maxX) { maxX = points[i][0]; }
+            if (points[i][1] < minY) { minY = points[i][1]; }
+            if (points[i][1] > maxY) { maxY = points[i][1]; }
+        }
+        
+        bb = new BoundingBox(minX, minY, maxX, maxY);
+        maxExtent = bb.getMaxExtent();
+    }
+    
     // properties
     public BoundingBox getBox() {
         return bb;

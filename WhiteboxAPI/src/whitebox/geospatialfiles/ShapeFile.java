@@ -74,7 +74,7 @@ public class ShapeFile {
     private String yShift = "";
     private double[] parameters;
     public boolean databaseFileExists;
-    public ArrayList<ShapeFileRecord> records = new ArrayList<ShapeFileRecord>();
+    public ArrayList<ShapeFileRecord> records = new ArrayList<>();
     private boolean pointType;
     
     private AttributeTable attributeTable = null;

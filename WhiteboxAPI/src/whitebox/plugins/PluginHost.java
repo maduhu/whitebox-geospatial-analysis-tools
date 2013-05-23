@@ -210,5 +210,10 @@ public class PluginHost implements WhiteboxPluginHost, Communicator {
     public String getResourcesDirectory() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public void editVector() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
 }

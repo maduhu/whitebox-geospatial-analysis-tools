@@ -449,9 +449,11 @@ public class MapInfo implements java.io.Serializable {
     }
 
     public MapArea getMapAreaByElementNum(int elementNum) {
-        for (MapArea mapArea : mapAreas) {
-            if (mapArea.getElementNumber() == elementNum) {
-                return mapArea;
+        if (elementNum >= 0) {
+            for (MapArea mapArea : mapAreas) {
+                if (mapArea.getElementNumber() == elementNum) {
+                    return mapArea;
+                }
             }
         }
         return null;
@@ -911,7 +913,7 @@ public class MapInfo implements java.io.Serializable {
     public boolean ungroupAllElements() {
         try {
             List<CartographicElement> elementsList = findAllUngroupedElements(listOfCartographicElements);
-            
+
             removeAllCartographicElements();
 
             for (CartographicElement ce : elementsList) {
@@ -939,7 +941,7 @@ public class MapInfo implements java.io.Serializable {
 
         return ret;
     }
-    
+
     private List<CartographicElement> findAllUngroupedElements(List<CartographicElement> myList) {
         List<CartographicElement> ret = new ArrayList<>();
         for (CartographicElement ce : myList) {

@@ -35,7 +35,7 @@ public interface Communicator {
     public int showFeedback(String message);
     
     public int showFeedback(String message, int optionType, int messageType);
-
+    
     /**
      * Used to run a plugin through the Host app.
      * @param pluginName String containing the descriptive name of the plugin.
