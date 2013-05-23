@@ -1,2 +1,3 @@
 plugins.CopyFile
+plugins.CreateNewShapefile
 plugins.DeleteFiles
