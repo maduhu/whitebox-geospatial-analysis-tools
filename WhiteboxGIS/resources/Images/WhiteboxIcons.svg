@@ -24,6 +24,19 @@
   <defs
      id="defs5629">
     <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lend"
+       style="overflow:visible;">
+      <path
+         id="path5167"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none;"
+         transform="scale(0.8) rotate(180) translate(12.5,0)" />
+    </marker>
+    <marker
        inkscape:stockid="Arrow1Send"
        orient="auto"
        refY="0.0"
@@ -7247,6 +7260,112 @@
        y1="490.86218"
        x2="-32.5"
        y2="490.86218" />
+    <linearGradient
+       id="linearGradient2888-99-1">
+      <stop
+         id="stop2889-9-0"
+         offset="0.0000000"
+         style="stop-color:#ffffff;stop-opacity:1.0000000;" />
+      <stop
+         id="stop2894-17-0"
+         offset="1"
+         style="stop-color:#8ab3de;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3480-8-0">
+      <stop
+         id="stop3482-39-4"
+         offset="0.0000000"
+         style="stop-color:#646464;stop-opacity:1.0000000;" />
+      <stop
+         id="stop3484-0-7"
+         offset="1.0000000"
+         style="stop-color:#000000;stop-opacity:1.0000000;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient5863">
+      <stop
+         id="stop5865"
+         offset="0.0000000"
+         style="stop-color:#ffffff;stop-opacity:1.0000000;" />
+      <stop
+         id="stop5867"
+         offset="1"
+         style="stop-color:#8ab3de;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient5870">
+      <stop
+         id="stop5872"
+         offset="0.0000000"
+         style="stop-color:#646464;stop-opacity:1.0000000;" />
+      <stop
+         id="stop5874"
+         offset="1.0000000"
+         style="stop-color:#000000;stop-opacity:1.0000000;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient2888-7-1">
+      <stop
+         id="stop2889-6-4"
+         offset="0.0000000"
+         style="stop-color:#ffffff;stop-opacity:1.0000000;" />
+      <stop
+         id="stop2894-1-9"
+         offset="1"
+         style="stop-color:#8ab3de;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient5881">
+      <stop
+         id="stop5883"
+         offset="0.0000000"
+         style="stop-color:#646464;stop-opacity:1.0000000;" />
+      <stop
+         id="stop5885"
+         offset="1.0000000"
+         style="stop-color:#000000;stop-opacity:1.0000000;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2888-7-1"
+       id="linearGradient6047"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(3.5,25.562526)"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-0"
+       id="linearGradient6049"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(3.5,25.562526)"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2888-7-1"
+       id="linearGradient6074"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-15.617261,80.64441)"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3480-8-0"
+       id="linearGradient6076"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-15.617261,80.64441)"
+       x1="-43.5"
+       y1="496.36218"
+       x2="-34.5"
+       y2="496.36218" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -7258,9 +7377,9 @@
      objecttolerance="10000"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="14.233612"
-     inkscape:cx="-19.698627"
-     inkscape:cy="562.24234"
+     inkscape:zoom="17.661425"
+     inkscape:cx="-47.085113"
+     inkscape:cy="473.17978"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -7270,7 +7389,7 @@
      inkscape:window-y="0"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:window-maximized="0">
+     inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
        id="grid5637"
@@ -7294,6 +7413,16 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <rect
+       style="fill:none;stroke:none"
+       id="rect5306-0-0-0"
+       width="21.168425"
+       height="21.168427"
+       x="-65.335091"
+       y="567.36218"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeNewFeature.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
     <rect
        style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5260"
@@ -10204,20 +10333,21 @@
        inkscape:export-xdpi="90.530449"
        inkscape:export-ydpi="90.530449" />
     <rect
-       style="fill:none;stroke:none;stroke-width:0.83157426000000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       style="fill:#cccccc;stroke:none"
        id="rect5306-0"
        width="21.168425"
        height="21.168427"
-       x="9.8110056"
-       y="572.17316"
-       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+       x="9.8315744"
+       y="574.19379"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/MoveNodes.png"
        inkscape:export-xdpi="91.010635"
        inkscape:export-ydpi="91.010635" />
     <g
        id="g5443"
-       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/MoveNodes.png"
        inkscape:export-xdpi="91.010635"
-       inkscape:export-ydpi="91.010635">
+       inkscape:export-ydpi="91.010635"
+       transform="translate(-0.08421326,2.4158173)">
       <path
          inkscape:export-ydpi="91.010635"
          inkscape:export-xdpi="91.010635"
@@ -10393,6 +10523,123 @@
          width="3"
          id="rect5298-2"
          style="fill:url(#linearGradient5442);fill-opacity:1;stroke:url(#linearGradient5444);stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+    </g>
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 17.883257,590.93469 6.028623,-2.57251 0.08812,5 z"
+       id="path5803"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/MoveNodes.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
+    <rect
+       style="fill:#b3b3b3;stroke:none"
+       id="rect5306-0-0"
+       width="21.168425"
+       height="21.168427"
+       x="-27.168427"
+       y="565.19379"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/MoveNodes.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
+    <g
+       transform="translate(-37.084214,-6.5841827)"
+       id="g5443-1"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/MoveNodes.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635">
+      <path
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0"
+         id="path5371-0"
+         d="m 12,576.36218 4,12 7,-11 6,11"
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <rect
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         y="575.36218"
+         x="11"
+         height="2"
+         width="2"
+         id="rect5373-3"
+         style="fill:#ff0000;fill-opacity:1;stroke:none" />
+      <rect
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         y="575.36218"
+         x="22"
+         height="2"
+         width="2"
+         id="rect5373-5-0"
+         style="fill:#ff0000;fill-opacity:1;stroke:none" />
+      <rect
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         y="587.36218"
+         x="15"
+         height="2"
+         width="2"
+         id="rect5373-8-0"
+         style="fill:#ff0000;fill-opacity:1;stroke:none" />
+      <rect
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/Digitize.png"
+         y="587.36218"
+         x="28"
+         height="2"
+         width="2"
+         id="rect5373-87-3"
+         style="fill:#ff0000;fill-opacity:1;stroke:none" />
+    </g>
+    <g
+       id="g6078"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeNewFeature.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635">
+      <path
+         sodipodi:nodetypes="ccccc"
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/GroupElements.png"
+         inkscape:connector-curvature="0"
+         id="path5262-2"
+         d="m -62,570.36218 0,15 15,0 -2,-10 z"
+         style="fill:url(#linearGradient6074);fill-opacity:1;stroke:url(#linearGradient6076);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <rect
+         y="569.36218"
+         x="-63"
+         height="1.3333334"
+         width="1.3333333"
+         id="rect5954"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.66666669;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <rect
+         y="574.36218"
+         x="-49.333332"
+         height="1.3333334"
+         width="1.3333333"
+         id="rect5954-2"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.66666669;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <rect
+         y="585.02887"
+         x="-47.333332"
+         height="1.3333334"
+         width="1.3333333"
+         id="rect5954-26"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.66666669;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <rect
+         y="585.02887"
+         x="-63"
+         height="1.3333334"
+         width="1.3333333"
+         id="rect5954-3"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.66666669;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
     </g>
   </g>
 </svg>

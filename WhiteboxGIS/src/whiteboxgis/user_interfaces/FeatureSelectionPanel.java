@@ -25,6 +25,7 @@ import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.io.File;
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -145,6 +146,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
         }
     }
 
+    private boolean noDatabaseAvailable = false;
     private JTable getDataTable() {
         try {
             if (shape == null) {
@@ -152,6 +154,11 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             }
 
             int numColumns = 2;
+            File dbfFile = new File(shape.getDatabaseFile());
+            if (!dbfFile.exists()) {
+                noDatabaseAvailable = true;
+                return null;
+            }
             AttributeTable attributeTable = shape.getAttributeTable();
             int numRows = shape.getAttributeTable().getFieldCount() + 1;
             //String[] ch = shape.attributeTable.getAttributeTableFieldNames();
@@ -211,7 +218,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
 
     private void updateTable() {
         try {
-            if (table == null) {
+            if (table == null || noDatabaseAvailable) {
                 return;
             }
             DefaultTableModel tm = (DefaultTableModel)table.getModel();

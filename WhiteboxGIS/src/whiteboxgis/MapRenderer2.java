@@ -43,6 +43,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JPopupMenu;
+import javax.swing.Timer;
 import java.awt.font.GlyphVector;
 import whitebox.cartographic.MapArea;
 import whitebox.cartographic.Neatline;
@@ -266,8 +267,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     }
     boolean digitizing = false;
 
-    public void setUsingDistanceTool(boolean val) {
-        usingDistanceTool = val;
+    public void setUsingDistanceTool(boolean value) {
+        usingDistanceTool = value;
         if (!usingDistanceTool) {
             distPoints.clear();
             if (!modifyingPixels) {
@@ -275,6 +276,31 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             }
         } else {
             digitizing = true;
+        }
+    }
+    boolean digitizingNewFeature = false;
+
+    public void setDigitizingNewFeature(boolean value) {
+        digitizingNewFeature = value;
+        if (!digitizingNewFeature) {
+            distPoints.clear();
+            if (!modifyingPixels && !usingDistanceTool) {
+                digitizing = false;
+            }
+        } else {
+            digitizing = true;
+            if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
+                MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
+                if (map.getActiveMapAreaElementNumber() != mapArea.getElementNumber()) {
+                    return;
+                }
+                if (mapArea.getActiveLayer().getLayerType() != MapLayer.MapLayerType.VECTOR) {
+                    return;
+                }
+                VectorLayerInfo vli = (VectorLayerInfo) mapArea.getActiveLayer();
+                vli.openNewFeature();
+            }
+
         }
     }
 
@@ -762,7 +788,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                 // make sure that the scale box's height is large enough for the content
                 if (contentHeight > (mapScale.getHeight() + 2 * mapScale.getMargin())) {
-                    mapScale.setHeight((int)(contentHeight + 2 * mapScale.getMargin()));
+                    mapScale.setHeight((int) (contentHeight + 2 * mapScale.getMargin()));
                 }
 
                 // calculate the bottom for all the content
@@ -793,7 +819,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     switch (styleType) {
                         case STANDARD:
                             for (int k = 0; k < mapScale.getNumberDivisions(); k++) {
-                                x = (float)(k * barLengthInMapUnits + barStartingX);
+                                x = (float) (k * barLengthInMapUnits + barStartingX);
                                 polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
                                 polyline.moveTo(x, y);
                                 polyline.lineTo(x + barLengthInMapUnits, y);
@@ -815,13 +841,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 polyline.lineTo(x + barLengthInMapUnits, y + barHeight);
                                 polyline.lineTo(x + barLengthInMapUnits, y);
                                 g2.draw(polyline);
-                                
+
                             }
                             break;
                         case COMPLEX:
                             GeneralPath polyline2;
                             for (int k = 0; k < mapScale.getNumberDivisions(); k++) {
-                                x = (float)(k * barLengthInMapUnits + barStartingX);
+                                x = (float) (k * barLengthInMapUnits + barStartingX);
                                 polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
                                 polyline.moveTo(x, y);
                                 polyline.lineTo(x + barLengthInMapUnits, y);
@@ -829,7 +855,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 polyline.lineTo(x, y + halfBarHeight);
                                 polyline.lineTo(x, y);
                                 g2.draw(polyline);
-                                
+
                                 polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
                                 polyline2.moveTo(x, y + halfBarHeight);
                                 polyline2.lineTo(x + barLengthInMapUnits, y + halfBarHeight);
@@ -1901,7 +1927,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         // is it the active layer?
                         int selectedFeature = -1;
                         boolean activeLayerBool = false;
-                        if (backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
+                        //if (backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
+                        if (mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
                             selectedFeature = layer.getSelectedFeatureNumber();
                             activeLayerBool = true;
                         } else if (layer.getSelectedFeatureNumber() >= 0) {
@@ -1964,9 +1991,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 double[][] points;
                                 int pointSt;
                                 int pointEnd;
-                                float xPoints[];
-                                float yPoints[];
+                                float xPoints[] = new float[0];
+                                float yPoints[] = new float[0];
                                 GeneralPath polyline;
+
+                                boolean isActivelyEdited = layer.isActivelyEdited();
 
                                 switch (shapeType) {
 
@@ -2000,18 +2029,32 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             gp.append(circle, true);
                                                         }
                                                     }
-                                                    //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
-                                                    if (isFilled) {
-                                                        g2.setColor(colours[r]);
-                                                        g2.fill(gp);
-                                                    }
-                                                    if (isOutlined) {
-                                                        g2.setColor(lineColour);
-                                                        g2.draw(gp);
-                                                    }
-                                                    if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
-                                                        g2.setColor(selectedFeatureColour);
-                                                        g2.draw(gp);
+                                                    if (activeLayerBool && isActivelyEdited) {
+                                                        g2.setColor(Color.RED);
+                                                        GeneralPath polyline2;
+                                                        float xSize = 2.5f;
+                                                        oldStroke = g2.getStroke();
+                                                        g2.setStroke(new BasicStroke(0.5f));
+                                                        polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                                        polyline2.moveTo(x1 - xSize, y1 - xSize);
+                                                        polyline2.lineTo(x1 + xSize, y1 + xSize);
+                                                        polyline2.moveTo(x1 + xSize, y1 - xSize);
+                                                        polyline2.lineTo(x1 - xSize, y1 + xSize);
+                                                        g2.draw(polyline2);
+                                                        g2.setStroke(oldStroke);
+                                                    } else {
+                                                        if (isFilled) {
+                                                            g2.setColor(colours[r]);
+                                                            g2.fill(gp);
+                                                        }
+                                                        if (isOutlined) {
+                                                            g2.setColor(lineColour);
+                                                            g2.draw(gp);
+                                                        }
+                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                            g2.setColor(selectedFeatureColour);
+                                                            g2.draw(gp);
+                                                        }
                                                     }
 
                                                 }
@@ -2308,12 +2351,35 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                     for (int index = 1; index < xPoints.length; index++) {
                                                         polyline.lineTo(xPoints[index], yPoints[index]);
                                                     }
-                                                    if (!activeLayerBool || record.getRecordNumber() != selectedFeature) {
-                                                        g2.setColor(colours[r]);
-                                                    } else if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                    if (activeLayerBool && isActivelyEdited) {
+                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                            g2.setColor(selectedFeatureColour);
+                                                        } else {
+                                                            g2.setColor(colours[r]);
+                                                        }
+                                                        g2.draw(polyline);
+                                                        g2.setColor(Color.RED);
+                                                        GeneralPath polyline2;
+                                                        float xSize = 2.5f;
+                                                        oldStroke = g2.getStroke();
+                                                        g2.setStroke(new BasicStroke(0.5f));
+                                                        for (int index = 0; index < xPoints.length; index++) {
+                                                            polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                                            polyline2.moveTo(xPoints[index] - xSize, yPoints[index] - xSize);
+                                                            polyline2.lineTo(xPoints[index] + xSize, yPoints[index] + xSize);
+                                                            polyline2.moveTo(xPoints[index] + xSize, yPoints[index] - xSize);
+                                                            polyline2.lineTo(xPoints[index] - xSize, yPoints[index] + xSize);
+                                                            g2.draw(polyline2);
+                                                        }
+                                                        g2.setStroke(oldStroke);
+                                                    } else if ((activeLayerBool && record.getRecordNumber() == selectedFeature)
+                                                            && !isActivelyEdited) {
                                                         g2.setColor(selectedFeatureColour);
+                                                        g2.draw(polyline);
+                                                    } else {
+                                                        g2.setColor(colours[r]);
+                                                        g2.draw(polyline);
                                                     }
-                                                    g2.draw(polyline);
                                                 }
 
                                                 if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
@@ -2522,7 +2588,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             }
                                         }
 
-                                        if (layer.isOutlined()) {
+                                        if (layer.isOutlined() || (activeLayerBool && isActivelyEdited)) {
                                             g2.setColor(lineColour);
                                             myStroke = new BasicStroke(layer.getLineThickness());
                                             if (layer.isDashed()) {
@@ -2560,11 +2626,32 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                         }
                                                         g2.draw(polyline);
                                                     }
+                                                    
+                                                    if (activeLayerBool && isActivelyEdited) {
+                                                        if (xPoints.length > 0) {
+                                                            g2.setColor(Color.RED);
+                                                            GeneralPath polyline2;
+                                                            float xSize = 2.5f;
+                                                            oldStroke = g2.getStroke();
+                                                            g2.setStroke(new BasicStroke(0.5f));
+                                                            for (int index = 0; index < xPoints.length; index++) {
+                                                                polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                                                polyline2.moveTo(xPoints[index] - xSize, yPoints[index] - xSize);
+                                                                polyline2.lineTo(xPoints[index] + xSize, yPoints[index] + xSize);
+                                                                polyline2.moveTo(xPoints[index] + xSize, yPoints[index] - xSize);
+                                                                polyline2.lineTo(xPoints[index] - xSize, yPoints[index] + xSize);
+                                                                g2.draw(polyline2);
+                                                            }
+                                                            g2.setStroke(oldStroke);
+                                                            g2.setColor(lineColour);
+                                                        }
+                                                    }
                                                 }
                                             }
                                             g2.setStroke(oldStroke);
                                         }
-                                        if (activeLayerBool) {
+                                        
+                                        if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
                                             g2.setColor(selectedFeatureColour);
                                             for (ShapeFileRecord record : records) {
                                                 if (record.getRecordNumber() == selectedFeature) {
@@ -2698,7 +2785,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             g2.setStroke(oldStroke);
                                         }
 
-                                        if (activeLayerBool) {
+                                        if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
                                             g2.setColor(selectedFeatureColour);
                                             for (ShapeFileRecord record : records) {
                                                 if (record.getRecordNumber() == selectedFeature) {
@@ -2831,7 +2918,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             }
                                             g2.setStroke(oldStroke);
                                         }
-                                        if (activeLayerBool) {
+                                        if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
                                             g2.setColor(selectedFeatureColour);
                                             for (ShapeFileRecord record : records) {
                                                 if (record.getRecordNumber() == selectedFeature) {
@@ -3055,7 +3142,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 //                            }
 
 
-            if (usingDistanceTool) {
+            if (usingDistanceTool || digitizingNewFeature) {
                 double topCoord = mapExtent.getMaxY();
                 double bottomCoord = mapExtent.getMinY();
                 double leftCoord = mapExtent.getMinX();
@@ -3411,8 +3498,74 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         int clickCount = e.getClickCount();
         int button = e.getButton();
         boolean isPopupTrigger = e.isPopupTrigger();
+        
+        if (digitizing && digitizingNewFeature) {
+            if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
+                MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
+                if (map.getActiveMapAreaElementNumber() != mapArea.getElementNumber()) {
+                    return;
+                }
+                if (mapArea.getActiveLayer().getLayerType() != MapLayer.MapLayerType.VECTOR) {
+                    return;
+                }
+                BoundingBox currentExtent = mapArea.getCurrentMapExtent();
+                if (mapArea.isVisible() && currentExtent.getMinY() != currentExtent.getMaxY()) {
+                    int x = (int) ((e.getX() - pageLeft) / scale);
+                    int y = (int) ((e.getY() - pageTop) / scale);
 
-        if (clickCount == 2 && (myMode == MOUSE_MODE_CARTO_ELEMENT
+                    int referenceMarkSize = mapArea.getReferenceMarksSize();
+                    int viewAreaULX = mapArea.getUpperLeftX() + referenceMarkSize;
+                    int viewAreaULY = mapArea.getUpperLeftY() + referenceMarkSize;
+                    int viewAreaLRX = mapArea.getLowerRightX() - referenceMarkSize;
+                    int viewAreaLRY = mapArea.getLowerRightY() - referenceMarkSize;
+                    double viewAreaWidth = viewAreaLRX - viewAreaULX;
+                    double viewAreaHeight = viewAreaLRY - viewAreaULY;
+
+                    if (mapArea.isSizeMaximizedToScreenSize() && !printingMap) {
+                        viewAreaULX = (int) ((-pageLeft / scale) + referenceMarkSize);
+                        viewAreaULY = (int) ((-pageTop / scale) + referenceMarkSize);
+                        viewAreaLRX = viewAreaULX + (int) (w / scale - 2 * referenceMarkSize);
+                        viewAreaLRY = viewAreaULY + (int) (h / scale - 2 * referenceMarkSize);
+                        viewAreaWidth = viewAreaLRX - viewAreaULX;
+                        viewAreaHeight = viewAreaLRY - viewAreaULY;
+                    }
+
+                    if (!isBetween(x, viewAreaULX, viewAreaLRX) || !isBetween(y, viewAreaULY, viewAreaLRY)) {
+                        return;
+                    }
+
+                    double xRange = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+                    double yRange = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
+
+                    mapY = currentExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange;
+                    mapX = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
+
+                    distPoints.add(new XYPoint(mapX, mapY));
+                    updateStatus(e, (MapArea) map.getCartographicElement(whichCartoElement));
+
+                    VectorLayerInfo vli = (VectorLayerInfo) mapArea.getActiveLayer();
+//                    if (clickCount == 1) {
+//                        vli.addNodeToNewFeature(mapX, mapY);
+//                    } else {
+//                        vli.closeNewFeature(mapX, mapY);
+//                        distPoints.clear();
+//                    }
+                    if (clickCount == 2) {
+                        vli.closeNewFeature(mapX, mapY);
+                        distPoints.clear();
+                       
+                    } else {                       
+                        vli.addNodeToNewFeature(mapX, mapY);
+                    }
+                    if (vli.getShapeType().getBaseType() ==  ShapeType.POINT) {
+                        distPoints.clear();
+                    }
+                    host.refreshMap(false);
+
+                }
+            }
+
+        } else if (clickCount == 2 && (myMode == MOUSE_MODE_CARTO_ELEMENT
                 || myMode == MOUSE_MODE_MAPAREA) && !usingDistanceTool
                 && backgroundMouseMode != MOUSE_MODE_ZOOM
                 && backgroundMouseMode != MOUSE_MODE_ZOOMOUT

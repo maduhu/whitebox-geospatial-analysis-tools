@@ -71,6 +71,7 @@ import whiteboxgis.user_interfaces.FeatureSelectionPanel;
 import whiteboxgis.user_interfaces.SettingsDialog;
 import whiteboxgis.user_interfaces.RecentMenu;
 import whiteboxgis.user_interfaces.CartographicToolbar;
+import whiteboxgis.user_interfaces.LayersPopupMenu;
 
 /**
  *
@@ -120,7 +121,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private ArrayList<MapInfo> openMaps = new ArrayList<>();
     private int activeMap = 0;
     private int numOpenMaps = 1;
-    private JPopupMenu layersPopup = null;
+//    private JPopupMenu layersPopup = null;
     private JPopupMenu mapsPopup = null;
     private JPopupMenu mapAreaPopup = null;
     private JPopupMenu textPopup = null;
@@ -131,7 +132,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JButton selectFeature = null;
     private JButton modifyPixelsVals = null;
     private JButton distanceToolButton = null;
-    private JButton digitizeToolButton = null;
+    private JButton editVectorButton = null;
+    private JButton digitizeNewFeatureButton = null;
+    private JButton moveNodesButton = null;
     private JCheckBoxMenuItem modifyPixels = null;
     private JCheckBoxMenuItem zoomMenuItem = null;
     private JCheckBoxMenuItem zoomOutMenuItem = null;
@@ -141,11 +144,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JCheckBoxMenuItem distanceToolMenuItem = null;
     private JCheckBoxMenuItem linkMap = null;
     private JCheckBoxMenuItem wordWrap = null;
-    private JMenuItem menuItemHisto = null;
-    private JMenuItem menuItemAttributeTable = null;
+    private JCheckBoxMenuItem editLayerMenuItem = null;
     private JTextField searchText = new JTextField();
-    private JMenuItem menuChangePalette = null;
-    private JMenuItem menuReversePalette = null;
     private HashMap<String, ImageIcon> icons = new HashMap<>();
     private HashMap<String, Font> fonts = new HashMap<>();
     private JTextField scaleText = new JTextField();
@@ -162,23 +162,23 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     public static void main(String[] args) {
         try {
-        //setLookAndFeel("Nimbus");
-        setLookAndFeel("systemLAF");
-        if (System.getProperty("os.name").contains("Mac")) {
-            System.setProperty("apple.laf.useScreenMenuBar", "true");
-            //System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
-            System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
-            //System.setProperty("Xdock:name", "Whitebox");
-            System.setProperty("apple.awt.fileDialogForDirectories", "true");
+            //setLookAndFeel("Nimbus");
+            setLookAndFeel("systemLAF");
+            if (System.getProperty("os.name").contains("Mac")) {
+                System.setProperty("apple.laf.useScreenMenuBar", "true");
+                //System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
+                System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
+                //System.setProperty("Xdock:name", "Whitebox");
+                System.setProperty("apple.awt.fileDialogForDirectories", "true");
 
-            System.setProperty("apple.awt.textantialiasing", "true");
+                System.setProperty("apple.awt.textantialiasing", "true");
 
-            System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
-        }
+                System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
+            }
 
-        WhiteboxGui wb = new WhiteboxGui();
-        wb.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        wb.setVisible(true);
+            WhiteboxGui wb = new WhiteboxGui();
+            wb.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            wb.setVisible(true);
         } catch (Exception e) {
             System.err.println(e.getStackTrace());
         }
@@ -716,7 +716,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("defaultFont", defaultFont.getName());
         props.setProperty("numberOfRecentItemsToStore", Integer.toString(numberOfRecentItemsToStore));
         props.setProperty("defaultMapMargin", Double.toString(defaultMapMargin));
-        
+
         // set the recent data layers
         String recentDataLayers = "";
         List<String> layersList = recentFilesMenu.getList();
@@ -810,7 +810,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             ctb = new CartographicToolbar(this, false);
             ctb.setOrientation(SwingConstants.VERTICAL);
             this.getContentPane().add(ctb, BorderLayout.EAST);
-            
+
             MapInfo mapinfo = new MapInfo("Map1");
             mapinfo.setMapName("Map1");
             mapinfo.setPageFormat(defaultPageFormat);
@@ -1227,7 +1227,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JMenu alignAndDistribute = new JMenu("Align and Distribute");
             cartoMenu.add(alignAndDistribute);
 
-            JMenuItem alignRightMenu = new JMenuItem("Align Right", 
+            JMenuItem alignRightMenu = new JMenuItem("Align Right",
                     new ImageIcon(graphicsDirectory + "AlignRight.png"));
             alignRightMenu.addActionListener(this);
             alignRightMenu.setActionCommand("alignRight");
@@ -1362,109 +1362,133 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void createPopupMenus() {
-        // layers menu
-        layersPopup = new JPopupMenu();
-
-        JMenuItem mi = new JMenuItem("Layer Display Properties");
-        mi.addActionListener(this);
-        mi.setActionCommand("layerProperties");
-        layersPopup.add(mi);
-
-        menuItemHisto = new JMenuItem("View Histogram");
-        menuItemHisto.addActionListener(this);
-        menuItemHisto.setActionCommand("viewHistogram");
-        layersPopup.add(menuItemHisto);
-
-        menuItemAttributeTable = new JMenuItem("View Attribute Table", new ImageIcon(graphicsDirectory + "AttributeTable.png"));
-        menuItemAttributeTable.addActionListener(this);
-        menuItemAttributeTable.setActionCommand("viewAttributeTable");
-        layersPopup.add(menuItemAttributeTable);
-
-        layersPopup.addSeparator();
-
-        mi = new JMenuItem("Toggle Layer Visibility");
-        mi.addActionListener(this);
-        mi.setActionCommand("toggleLayerVisibility");
-        layersPopup.add(mi);
-
-        mi = new JMenuItem("Change Layer Title");
-        mi.addActionListener(this);
-        mi.setActionCommand("changeLayerTitle");
-        layersPopup.add(mi);
-
-        mi = new JMenuItem("Set As Active Layer");
-        mi.addActionListener(this);
-        mi.setActionCommand("setAsActiveLayer");
-        layersPopup.add(mi);
-
-        menuChangePalette = new JMenuItem("Change Palette");
-        menuChangePalette.addActionListener(this);
-        menuChangePalette.setActionCommand("changePalette");
-        layersPopup.add(menuChangePalette);
-
-        menuReversePalette = new JMenuItem("Reverse Palette");
-        menuReversePalette.addActionListener(this);
-        menuReversePalette.setActionCommand("reversePalette");
-        layersPopup.add(menuReversePalette);
-
-        mi = new JMenuItem("Toggle Layer Visibility In Legend");
-        mi.addActionListener(this);
-        mi.setActionCommand("toggleLayerVisibilityInLegend");
-        layersPopup.add(mi);
-
-        layersPopup.addSeparator();
-
-        mi = new JMenuItem("Add Layer", new ImageIcon(graphicsDirectory + "AddLayer.png"));
-        mi.addActionListener(this);
-        mi.setActionCommand("addLayer");
-        layersPopup.add(mi);
-
-        mi = new JMenuItem("Remove Layer", new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
-        mi.addActionListener(this);
-        mi.setActionCommand("removeLayer");
-        layersPopup.add(mi);
-
-        layersPopup.addSeparator();
-
-        mi = new JMenuItem("Raise Layer", new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
-        mi.addActionListener(this);
-        mi.setActionCommand("raiseLayer");
-        layersPopup.add(mi);
-
-        mi = new JMenuItem("Lower Layer", new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
-        mi.addActionListener(this);
-        mi.setActionCommand("lowerLayer");
-        layersPopup.add(mi);
-
-        mi = new JMenuItem("Layer to Top", new ImageIcon(graphicsDirectory + "LayerToTop.png"));
-        mi.addActionListener(this);
-        mi.setActionCommand("layerToTop");
-        layersPopup.add(mi);
-
-        mi = new JMenuItem("Layer to Bottom", new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
-        mi.addActionListener(this);
-        mi.setActionCommand("layerToBottom");
-        layersPopup.add(mi);
-
-        layersPopup.addSeparator();
-
-        mi = new JMenuItem("Zoom To Layer", new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
-        mi.addActionListener(this);
-        mi.setActionCommand("zoomToLayer");
-        layersPopup.add(mi);
-
-        mi = new JMenuItem("Clip Layer to Current Extent");
-        mi.addActionListener(this);
-        mi.setActionCommand("clipLayerToExtent");
-        layersPopup.add(mi);
-
-        layersPopup.setOpaque(true);
-        layersPopup.setLightWeightPopupEnabled(true);
+//        // layers menu
+//        layersPopup = new JPopupMenu();
+//
+//        JMenuItem mi = new JMenuItem("Layer Display Properties");
+//        mi.addActionListener(this);
+//        mi.setActionCommand("layerProperties");
+//        layersPopup.add(mi);
+//
+//        menuItemHisto = new JMenuItem("View Histogram");
+//        menuItemHisto.addActionListener(this);
+//        menuItemHisto.setActionCommand("viewHistogram");
+//        layersPopup.add(menuItemHisto);
+//
+//        menuItemAttributeTable = new JMenuItem("View Attribute Table", new ImageIcon(graphicsDirectory + "AttributeTable.png"));
+//        menuItemAttributeTable.addActionListener(this);
+//        menuItemAttributeTable.setActionCommand("viewAttributeTable");
+//        layersPopup.add(menuItemAttributeTable);
+//
+//        layersPopup.addSeparator();
+//
+//        mi = new JMenuItem("Toggle Layer Visibility");
+//        mi.addActionListener(this);
+//        mi.setActionCommand("toggleLayerVisibility");
+//        layersPopup.add(mi);
+//
+//        mi = new JMenuItem("Change Layer Title");
+//        mi.addActionListener(this);
+//        mi.setActionCommand("changeLayerTitle");
+//        layersPopup.add(mi);
+//
+//        mi = new JMenuItem("Set As Active Layer");
+//        mi.addActionListener(this);
+//        mi.setActionCommand("setAsActiveLayer");
+//        layersPopup.add(mi);
+//
+//        menuChangePalette = new JMenuItem("Change Palette");
+//        menuChangePalette.addActionListener(this);
+//        menuChangePalette.setActionCommand("changePalette");
+//        layersPopup.add(menuChangePalette);
+//
+//        menuReversePalette = new JMenuItem("Reverse Palette");
+//        menuReversePalette.addActionListener(this);
+//        menuReversePalette.setActionCommand("reversePalette");
+//        layersPopup.add(menuReversePalette);
+//
+//        mi = new JMenuItem("Toggle Layer Visibility In Legend");
+//        mi.addActionListener(this);
+//        mi.setActionCommand("toggleLayerVisibilityInLegend");
+//        layersPopup.add(mi);
+//
+//        layersPopup.addSeparator();
+//
+//        mi = new JMenuItem("Add Layer", new ImageIcon(graphicsDirectory + "AddLayer.png"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("addLayer");
+//        layersPopup.add(mi);
+//
+//        mi = new JMenuItem("Remove Layer", new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("removeLayer");
+//        layersPopup.add(mi);
+//
+//        layersPopup.addSeparator();
+//
+//        mi = new JMenuItem("Raise Layer", new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("raiseLayer");
+//        layersPopup.add(mi);
+//
+//        mi = new JMenuItem("Lower Layer", new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("lowerLayer");
+//        layersPopup.add(mi);
+//
+//        mi = new JMenuItem("Layer to Top", new ImageIcon(graphicsDirectory + "LayerToTop.png"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("layerToTop");
+//        layersPopup.add(mi);
+//
+//        mi = new JMenuItem("Layer to Bottom", new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("layerToBottom");
+//        layersPopup.add(mi);
+//
+//        layersPopup.addSeparator();
+//
+//        mi = new JMenuItem("Zoom To Layer", new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("zoomToLayer");
+//        layersPopup.add(mi);
+//
+//        mi = new JMenuItem("Clip Layer to Current Extent");
+//        mi.addActionListener(this);
+//        mi.setActionCommand("clipLayerToExtent");
+//        layersPopup.add(mi);
+//
+//        layersPopup.addSeparator();
+//
+////        editVectorButton = makeToolBarButton("Digitize.png", "digitizeTool", "Digitize", "Digitize Tool");
+//
+//        editLayerMenuItem = new JCheckBoxMenuItem("Edit Layer", new ImageIcon(graphicsDirectory + "Digitize.png"));
+//        editLayerMenuItem.addActionListener(this);
+//        editLayerMenuItem.setActionCommand("editVector");
+//        layersPopup.add(editLayerMenuItem);
+//        
+//        mi = new JMenuItem("Digitize New Feature");
+//        mi.addActionListener(this);
+//        mi.setActionCommand("digitizeNewFeature");
+//        layersPopup.add(mi);
+//        
+//        mi = new JMenuItem("Move Feature Nodes");
+//        mi.addActionListener(this);
+//        mi.setActionCommand("moveNodes");
+//        layersPopup.add(mi);
+//
+//        mi = new JMenuItem("Delete Selected Feature");
+//        mi.addActionListener(this);
+//        mi.setActionCommand("deleteSelectedFeature");
+//        layersPopup.add(mi);
+//        
+//        layersPopup.setOpaque(true);
+//        layersPopup.setLightWeightPopupEnabled(true);
 
         // maps menu
         mapsPopup = new JPopupMenu();
 
-        mi = new JMenuItem("Map Properties");
+        JMenuItem mi = new JMenuItem("Map Properties");
         mi.addActionListener(this);
         mi.setActionCommand("mapProperties");
         mapsPopup.add(mi);
@@ -1676,7 +1700,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         textPopup.setLightWeightPopupEnabled(true);
 
     }
-    
+
     public void setCartoElementToolbarVisibility(boolean value) {
         ctb.setVisible(value);
     }
@@ -1747,8 +1771,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.add(modifyPixelsVals);
             distanceToolButton = makeToolBarButton("DistanceTool.png", "distanceTool", "Measure distance", "Distance Tool");
             toolbar.add(distanceToolButton);
-//            digitizeToolButton = makeToolBarButton("Digitize.png", "digitizeTool", "Digitize", "Digitize Tool");
-//            toolbar.add(digitizeToolButton);
+            
+            toolbar.addSeparator();
+            
+            editVectorButton = makeToolBarButton("Digitize.png", "editVector", "Edit Vector", "Edit Vector");
+            editVectorButton.setEnabled(false);
+            toolbar.add(editVectorButton);
+            
+            digitizeNewFeatureButton = makeToolBarButton("DigitizeNewFeature.png", "digitizeNewFeature", "Digitize New Feature", "Digitize New Feature");
+            digitizeNewFeatureButton.setVisible(false);
+            toolbar.add(digitizeNewFeatureButton);
+            
+            moveNodesButton = makeToolBarButton("MoveNodes.png", "moveNodes", "Move Feature Nodes", "Move Feature Nodes");
+            moveNodesButton.setVisible(false);
+            toolbar.add(moveNodesButton);
+            
             toolbar.addSeparator();
             JButton help = makeToolBarButton("Help.png", "helpIndex", "Help", "Help");
             toolbar.add(help);
@@ -1934,6 +1971,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         if (lep.getMapArea() == openMaps.get(activeMap).getActiveMapArea().getElementNumber()) {
                             if (lep.getLayerNum() == openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber()) {
                                 lep.setTitleFont(fonts.get("activeLayer"));
+                                lep.setSelected(true);
+                                if (openMaps.get(activeMap).getActiveMapArea().getActiveLayer() instanceof VectorLayerInfo) {
+                                    VectorLayerInfo vli = (VectorLayerInfo) openMaps.get(activeMap).getActiveMapArea().getActiveLayer();
+                                    if (vli.isActivelyEdited()) {
+                                        editVectorButton.setEnabled(true);
+                                        editVectorButton.setBorderPainted(true);
+                                        digitizeNewFeatureButton.setVisible(true);
+                                        moveNodesButton.setVisible(true);
+                                    } else {
+                                        editVectorButton.setEnabled(true);
+                                        editVectorButton.setBorderPainted(false);
+                                        digitizeNewFeatureButton.setVisible(false);
+                                        digitizeNewFeatureButton.setBorderPainted(false);
+                                        drawingArea.setDigitizingNewFeature(false);
+                                        moveNodesButton.setVisible(false);
+                                    }
+                                } else {
+                                    editVectorButton.setEnabled(false);
+                                }
                             } else {
                                 lep.setTitleFont(fonts.get("inactiveLayer"));
                             }
@@ -2089,23 +2145,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     }
                 }
                 if (activeMapArea != null) {
-                    if (activeMapArea.getLayer(layerNum) instanceof RasterLayerInfo) {
-                        menuItemAttributeTable.setVisible(false);
-                        menuItemHisto.setVisible(true);
-                        menuChangePalette.setVisible(true);
-                        menuReversePalette.setVisible(true);
-                        layersPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
-                    } else if (activeMapArea.getLayer(layerNum) instanceof VectorLayerInfo) {
-                        menuItemAttributeTable.setVisible(true);
-                        menuItemHisto.setVisible(false);
-                        menuChangePalette.setVisible(false);
-                        menuReversePalette.setVisible(false);
-                        layersPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
-                    }
+                    LayersPopupMenu layersPopup = new LayersPopupMenu(activeMapArea.getLayer(layerNum), 
+                            this, graphicsDirectory);
+                    layersPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
                 }
             }
-            //updateLayersTab();
-        } else if (e.getClickCount() == 2) {
+        } else { //if (e.getClickCount() == 1) {
             openMaps.get(activeMap).deslectAllCartographicElements();
             if (layerNum == -1) {
                 setAsActiveMap();
@@ -2113,11 +2158,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             } else {
                 setAsActiveLayer();
             }
-            //updateLayersTab();
             refreshMap(true);
-        } else if (e.getClickCount() == 1) {
-            updateLayersTab();
-        }
+        } //else if (e.getClickCount() == 1) {
+//            updateLayersTab();
+//        }
     }
 
     private JSplitPane getToolbox() {
@@ -2473,7 +2517,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         return n;
     }
-
     String progressString = "";
     int progressValue = 0;
 
@@ -2767,6 +2810,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else if (selectedMapAndLayer[2] != -1) {
             // a mapArea has been selected. remove it's active layer.
             MapArea ma = openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]);
+            if (ma == null) {
+                return;
+            }
             ma.removeLayer(ma.getActiveLayerOverlayNumber());
             drawingArea.repaint();
             updateLayersTab();
@@ -2938,7 +2984,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         + "\nElement groups will be ungrouped before saving the map.");
                 openMaps.get(selectedMapAndLayer[0]).ungroupAllElements();
             }
-        
+
             File file = new File(openMaps.get(selectedMapAndLayer[0]).getFileName());
 
             if (file.exists()) {
@@ -2946,7 +2992,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
 
             recentMapsMenu.addMenuItem(openMaps.get(selectedMapAndLayer[0]).getFileName());
-            
+
             FileWriter fw = null;
             BufferedWriter bw = null;
             PrintWriter out = null;
@@ -2974,7 +3020,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             }
         }
-        
+
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
         selectedMapAndLayer[2] = -1;
@@ -3272,6 +3318,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             k = openMaps.get(j).getActiveMapAreaElementNumber();
         }
         MapArea ma = openMaps.get(j).getMapAreaByElementNum(k);
+        if (ma == null) {
+            return;
+        }
         for (int i = 0; i < ma.getNumLayers(); i++) {
             ma.getLayer(i).setVisible(true);
         }
@@ -3292,6 +3341,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             k = openMaps.get(j).getActiveMapAreaElementNumber();
         }
         MapArea ma = openMaps.get(j).getMapAreaByElementNum(k);
+        if (ma == null) {
+            return;
+        }
         for (int i = 0; i < ma.getNumLayers(); i++) {
             ma.getLayer(i).setVisible(false);
         }
@@ -3366,6 +3418,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 1) {
             ma.promoteLayerToTop(layerNum);
         }
@@ -3401,6 +3456,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 1) {
             ma.demoteLayerToBottom(layerNum);
         }
@@ -3433,6 +3491,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
 
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 1) {
             ma.promoteLayer(layerNum);
         }
@@ -3468,6 +3529,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 1) {
             ma.demoteLayer(layerNum);
         }
@@ -3506,6 +3570,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getLayer(layerNum).getLayerType() == MapLayerType.RASTER) {
             RasterLayerInfo rli = (RasterLayerInfo) ma.getLayer(layerNum);
             String palette = rli.getPaletteFile();
@@ -3558,6 +3625,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.reversePaletteOfLayer(layerOverlayNum);
             refreshMap(true);
@@ -3583,6 +3653,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             BoundingBox db = ma.getFullExtent();
             ma.setCurrentExtent(db.clone());
@@ -3609,6 +3682,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.fitToData();
             refreshMap(false);
@@ -3634,6 +3710,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         BoundingBox pageExtent = openMaps.get(mapNum).getPageExtent();
         int margin = (int) (openMaps.get(mapNum).getMargin() * 72);
         int referenceMarkSize = ma.getReferenceMarksSize();
@@ -3663,6 +3742,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.setSizeMaximizedToScreenSize(!ma.isSizeMaximizedToScreenSize());
             refreshMap(false);
@@ -3716,6 +3798,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.calculateFullExtent();
             BoundingBox db = ma.getLayer(layerOverlayNum).getFullExtent();
@@ -3745,6 +3830,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.zoomIn();
             refreshMap(false);
@@ -3770,6 +3858,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.zoomOut();
             refreshMap(false);
@@ -3795,6 +3886,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.panUp();
             refreshMap(false);
@@ -3820,6 +3914,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.panDown();
             refreshMap(false);
@@ -3845,6 +3942,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.panLeft();
             refreshMap(false);
@@ -3870,6 +3970,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             ma.panRight();
             refreshMap(false);
@@ -3895,6 +3998,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             boolean ret = ma.nextExtent();
             if (ret) {
@@ -3922,6 +4028,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() > 0) {
             boolean ret = ma.previousExtent();
             if (ret) {
@@ -3953,6 +4062,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER
                 || ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.VECTOR) {
             MapLayer layer = ma.getLayer(layerOverlayNum);
@@ -4041,6 +4153,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() == 0) {
             showFeedback("There are no vector data layers currently \ndisplayed in the active map area.");
             return;
@@ -4224,10 +4339,119 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 modifyPixels.setState(false);
             } else {
                 showFeedback("The active map does not contain any layers.");
-                return;
             }
         }
 
+    }
+    
+    @Override
+    public void editVector() {
+        int mapNum, layerOverlayNum, mapAreaNum;
+        if (selectedMapAndLayer[0] != -1) {
+            mapNum = selectedMapAndLayer[0];
+            layerOverlayNum = selectedMapAndLayer[1];
+            mapAreaNum = selectedMapAndLayer[2];
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } else {
+            // use the active map
+            mapNum = activeMap;
+            layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(activeMap).getActiveMapArea().getElementNumber();
+        }
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
+        MapLayer layer = ma.getLayer(layerOverlayNum);
+        if (layer.getLayerType() == MapLayerType.VECTOR) {
+            VectorLayerInfo vli = (VectorLayerInfo) layer;
+            if (vli.isActivelyEdited()) {
+                vli.setActivelyEdited(false);
+//                editLayerMenuItem.setState(false);
+//                editVectorButton.setBorderPainted(false);
+            } else {
+                vli.setActivelyEdited(true);
+//                editLayerMenuItem.setState(true);
+//                editVectorButton.setBorderPainted(true);
+                
+                drawingArea.setModifyingPixels(false);
+                modifyPixelsVals.setBorderPainted(false);
+                modifyPixels.setState(false);
+                drawingArea.setUsingDistanceTool(false);
+                distanceToolButton.setBorderPainted(false);
+                distanceToolMenuItem.setState(false);
+                
+                // make sure this is the active layer.
+                ma.setActiveLayer(layerOverlayNum);
+            }
+            refreshMap(true);
+        } else {
+            showFeedback("The active layer is not a vector.");
+        }
+    }
+    
+    private void digitizeNewFeature() {
+        int mapNum, layerOverlayNum, mapAreaNum;
+        if (selectedMapAndLayer[0] != -1) {
+            mapNum = selectedMapAndLayer[0];
+            layerOverlayNum = selectedMapAndLayer[1];
+            mapAreaNum = selectedMapAndLayer[2];
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } else {
+            // use the active map
+            mapNum = activeMap;
+            layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
+            mapAreaNum = openMaps.get(activeMap).getActiveMapArea().getElementNumber();
+        }
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
+        MapLayer layer = ma.getLayer(layerOverlayNum);
+        if (layer.getLayerType() == MapLayerType.VECTOR) {
+            if (digitizeNewFeatureButton.isBorderPainted()) {
+                digitizeNewFeatureButton.setBorderPainted(false);
+                drawingArea.setDigitizingNewFeature(false);
+            } else {
+                digitizeNewFeatureButton.setBorderPainted(true);
+                drawingArea.setDigitizingNewFeature(true);
+            }
+            VectorLayerInfo vli = (VectorLayerInfo) layer;
+            if (!vli.isActivelyEdited()) {
+                digitizeNewFeatureButton.setBorderPainted(false);
+                drawingArea.setDigitizingNewFeature(false);
+            } 
+        } else {
+            showFeedback("The active layer is not a vector.");
+        }
+    }
+
+    private void digitizeTool() {
+        MapLayer layer = openMaps.get(activeMap).getActiveMapArea().getActiveLayer();
+        if (layer instanceof VectorLayerInfo) {
+            VectorLayerInfo vli = (VectorLayerInfo) layer;
+            if (vli.isActivelyEdited()) {
+                vli.setActivelyEdited(false);
+                editVectorButton.setBorderPainted(false);
+
+            } else {
+                vli.setActivelyEdited(true);
+                editVectorButton.setBorderPainted(true);
+
+                drawingArea.setModifyingPixels(false);
+                modifyPixelsVals.setBorderPainted(false);
+                modifyPixels.setState(false);
+                drawingArea.setUsingDistanceTool(false);
+                distanceToolButton.setBorderPainted(false);
+                distanceToolMenuItem.setState(false);
+            }
+        } else {
+            showFeedback("The active layer is not a vector.");
+        }
     }
 
     private void clipLayerToExtent() {
@@ -4253,6 +4477,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER) {
             // What file name should the clipped image be given?
             String str = JOptionPane.showInputDialog(null, "Enter the name of the new file: ",
@@ -4323,6 +4550,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
         }
         MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
         if (ma.getNumLayers() == 0) {
             showFeedback("There are no raster data layers currently \ndisplayed in the active map area.");
             return;
@@ -4463,7 +4693,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public void setDefaultMapMargin(double defaultMapMargin) {
         this.defaultMapMargin = defaultMapMargin;
     }
-    
+
     public int getNumberOfRecentItemsToStore() {
         return numberOfRecentItemsToStore;
     }
@@ -4893,24 +5123,27 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     refreshMap(false);
                 }
                 break;
+            case "digitizeTool":
+                digitizeTool();
+                break;
             case "groupElements":
                 if (openMaps.get(activeMap).groupElements()) {
                     refreshMap(false);
                 }
-//                selectedMapAndLayer[0] = -1;
-//                selectedMapAndLayer[1] = -1;
-//                selectedMapAndLayer[2] = -1;
                 break;
             case "ungroupElements":
                 if (openMaps.get(activeMap).ungroupElements()) {
                     refreshMap(false);
                 }
-//                selectedMapAndLayer[0] = -1;
-//                selectedMapAndLayer[1] = -1;
-//                selectedMapAndLayer[2] = -1;
-                break;            
+                break;
+            case "editVector":
+                editVector();
+                break;
+            case "digitizeNewFeature":
+                digitizeNewFeature();
+                break;
         }
-        
+
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
         selectedMapAndLayer[2] = -1;

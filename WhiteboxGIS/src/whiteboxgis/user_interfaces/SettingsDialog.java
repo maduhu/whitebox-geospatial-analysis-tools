@@ -27,12 +27,8 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import javax.swing.*;
 import whitebox.interfaces.Communicator;
-import whitebox.interfaces.DialogComponent;
-import whitebox.utilities.FileUtilities;
 import whitebox.ui.carto_properties.*;
 import whiteboxgis.WhiteboxGui;
 
