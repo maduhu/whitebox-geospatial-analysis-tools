@@ -253,7 +253,7 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
                             // reconstruct the polygon without holes.
                             whitebox.geospatialfiles.shapefile.Polygon recPolygonOutput =
                                     (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
-                            ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                            ArrayList<ShapefilePoint> pnts = new ArrayList<>();
                             int numParts = recPoly.getNumParts() - recPoly.getNumberOfHoles();
                             int[] outParts = new int[numParts];
                             int[] inParts = recPoly.getParts();
