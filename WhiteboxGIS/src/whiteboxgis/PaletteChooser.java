@@ -30,7 +30,7 @@ public class PaletteChooser extends JDialog implements MouseListener, ActionList
     private String paletteDirectory;
     private String selectedFile;
     private JLabel label = new JLabel();
-    private ArrayList<PaletteImage> images = new ArrayList<PaletteImage>();
+    private ArrayList<PaletteImage> images = new ArrayList<>();
     private double nonlinearity = 1.0;
     
     public PaletteChooser(Frame owner, boolean modal, String paletteDirectory, String selectedFile, boolean isPaletteReversed, double nonlinearity) {
@@ -99,6 +99,7 @@ public class PaletteChooser extends JDialog implements MouseListener, ActionList
 
         FilenameFilter filter = new FilenameFilter() {
 
+            @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".pal");
             }
@@ -211,14 +212,18 @@ public class PaletteChooser extends JDialog implements MouseListener, ActionList
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
         String actionCommand = e.getActionCommand();
-        if (actionCommand.equals("ok")) {
-            this.setVisible(false);
-        } else if (actionCommand.equals("cancel")) {
-            myValue = "";
-            this.setVisible(false);
-        } else if (actionCommand.equals("newPalette")) {
-            myValue = "createNewPalette";
-            this.setVisible(false);
+        switch (actionCommand) {
+            case "ok":
+                this.setVisible(false);
+                break;
+            case "cancel":
+                myValue = "";
+                this.setVisible(false);
+                break;
+            case "newPalette":
+                myValue = "createNewPalette";
+                this.setVisible(false);
+                break;
         }
     }
 

@@ -67,6 +67,7 @@ import whitebox.utilities.FileUtilities;
 import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.serialization.MapInfoSerializer;
 import whitebox.serialization.MapInfoDeserializer;
+import whitebox.ui.ShapefileDatabaseRecordEntry;
 import whiteboxgis.user_interfaces.FeatureSelectionPanel;
 import whiteboxgis.user_interfaces.SettingsDialog;
 import whiteboxgis.user_interfaces.RecentMenu;
@@ -1771,21 +1772,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.add(modifyPixelsVals);
             distanceToolButton = makeToolBarButton("DistanceTool.png", "distanceTool", "Measure distance", "Distance Tool");
             toolbar.add(distanceToolButton);
-            
+
             toolbar.addSeparator();
-            
+
             editVectorButton = makeToolBarButton("Digitize.png", "editVector", "Edit Vector", "Edit Vector");
             editVectorButton.setEnabled(false);
             toolbar.add(editVectorButton);
-            
+
             digitizeNewFeatureButton = makeToolBarButton("DigitizeNewFeature.png", "digitizeNewFeature", "Digitize New Feature", "Digitize New Feature");
             digitizeNewFeatureButton.setVisible(false);
             toolbar.add(digitizeNewFeatureButton);
-            
+
             moveNodesButton = makeToolBarButton("MoveNodes.png", "moveNodes", "Move Feature Nodes", "Move Feature Nodes");
             moveNodesButton.setVisible(false);
             toolbar.add(moveNodesButton);
-            
+
             toolbar.addSeparator();
             JButton help = makeToolBarButton("Help.png", "helpIndex", "Help", "Help");
             toolbar.add(help);
@@ -2145,7 +2146,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     }
                 }
                 if (activeMapArea != null) {
-                    LayersPopupMenu layersPopup = new LayersPopupMenu(activeMapArea.getLayer(layerNum), 
+                    LayersPopupMenu layersPopup = new LayersPopupMenu(activeMapArea.getLayer(layerNum),
                             this, graphicsDirectory);
                     layersPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
                 }
@@ -4343,7 +4344,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
 
     }
-    
+
     @Override
     public void editVector() {
         int mapNum, layerOverlayNum, mapAreaNum;
@@ -4375,14 +4376,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 vli.setActivelyEdited(true);
 //                editLayerMenuItem.setState(true);
 //                editVectorButton.setBorderPainted(true);
-                
+
                 drawingArea.setModifyingPixels(false);
                 modifyPixelsVals.setBorderPainted(false);
                 modifyPixels.setState(false);
                 drawingArea.setUsingDistanceTool(false);
                 distanceToolButton.setBorderPainted(false);
                 distanceToolMenuItem.setState(false);
-                
+
                 // make sure this is the active layer.
                 ma.setActiveLayer(layerOverlayNum);
             }
@@ -4391,8 +4392,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             showFeedback("The active layer is not a vector.");
         }
     }
-    
-    private void digitizeNewFeature() {
+
+    public void digitizeNewFeature() {
         int mapNum, layerOverlayNum, mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
@@ -4413,18 +4414,26 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
         MapLayer layer = ma.getLayer(layerOverlayNum);
         if (layer.getLayerType() == MapLayerType.VECTOR) {
+            VectorLayerInfo vli = (VectorLayerInfo) layer;
             if (digitizeNewFeatureButton.isBorderPainted()) {
                 digitizeNewFeatureButton.setBorderPainted(false);
                 drawingArea.setDigitizingNewFeature(false);
             } else {
                 digitizeNewFeatureButton.setBorderPainted(true);
                 drawingArea.setDigitizingNewFeature(true);
+
+                ShapefileDatabaseRecordEntry dataRecordEntry = new ShapefileDatabaseRecordEntry(this, true, vli.getShapefile());
+                dataRecordEntry.setSize(400, 300);
+                dataRecordEntry.setLocation(100, 100);
+                dataRecordEntry.setVisible(true);
+                Object[] recData = dataRecordEntry.getValue();
+                vli.openNewFeature(recData);
             }
-            VectorLayerInfo vli = (VectorLayerInfo) layer;
+
             if (!vli.isActivelyEdited()) {
                 digitizeNewFeatureButton.setBorderPainted(false);
                 drawingArea.setDigitizingNewFeature(false);
-            } 
+            }
         } else {
             showFeedback("The active layer is not a vector.");
         }

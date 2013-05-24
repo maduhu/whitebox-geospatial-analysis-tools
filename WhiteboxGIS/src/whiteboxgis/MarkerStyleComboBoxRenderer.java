@@ -30,7 +30,7 @@ import javax.swing.ListCellRenderer;
  */
 public class MarkerStyleComboBoxRenderer extends JLabel implements ListCellRenderer {
 
-    private ArrayList<double[][]> markers = new ArrayList<double[][]>();
+    private ArrayList<double[][]> markers = new ArrayList<>();
     float lineThickness;
     Color lineColour;
     Color fillColour;

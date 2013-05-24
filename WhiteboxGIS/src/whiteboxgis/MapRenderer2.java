@@ -297,8 +297,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 if (mapArea.getActiveLayer().getLayerType() != MapLayer.MapLayerType.VECTOR) {
                     return;
                 }
-                VectorLayerInfo vli = (VectorLayerInfo) mapArea.getActiveLayer();
-                vli.openNewFeature();
+//                VectorLayerInfo vli = (VectorLayerInfo) mapArea.getActiveLayer();
+//                vli.openNewFeature();
             }
 
         }
@@ -3544,16 +3544,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     updateStatus(e, (MapArea) map.getCartographicElement(whichCartoElement));
 
                     VectorLayerInfo vli = (VectorLayerInfo) mapArea.getActiveLayer();
-//                    if (clickCount == 1) {
-//                        vli.addNodeToNewFeature(mapX, mapY);
-//                    } else {
-//                        vli.closeNewFeature(mapX, mapY);
-//                        distPoints.clear();
-//                    }
                     if (clickCount == 2) {
                         vli.closeNewFeature(mapX, mapY);
                         distPoints.clear();
-                       
+                        if (host instanceof WhiteboxGui) {
+                            WhiteboxGui wb = (WhiteboxGui) host;
+                            wb.digitizeNewFeature();
+                        }
                     } else {                       
                         vli.addNodeToNewFeature(mapX, mapY);
                     }
