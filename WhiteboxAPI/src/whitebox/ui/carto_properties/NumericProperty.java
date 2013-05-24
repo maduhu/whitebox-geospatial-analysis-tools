@@ -1,4 +1,3 @@
-
 package whitebox.ui.carto_properties;
 
 import java.awt.Color;
@@ -14,35 +13,35 @@ import java.text.NumberFormat;
  *
  * @author johnlindsay
  */
-public class NumericProperty extends JComponent implements MouseListener, 
+public class NumericProperty extends JComponent implements MouseListener,
         PropertyChangeListener {
+
     private String labelText;
     private String value;
     private Color backColour = Color.WHITE;
     private int leftMargin = 10;
-    private int rightMargin  = 10;
+    private int rightMargin = 10;
     private int preferredWidth = 200;
     private int preferredHeight = 24;
     private int textboxWidth = 15;
     private Boolean parseIntegersOnly = false;
     private double minValue = Double.NEGATIVE_INFINITY;
     private double maxValue = Double.POSITIVE_INFINITY;
-    
     private JFormattedTextField formattedTextField = new JFormattedTextField();
     private NumberFormat numberFormat;
-    
+
     public NumericProperty() {
         setOpaque(true);
         revalidate();
     }
-    
+
     public NumericProperty(String labelText, String value) {
         setOpaque(true);
         this.labelText = labelText;
         this.value = value;
         revalidate();
     }
-    
+
     public NumericProperty(String labelText, String value, double minValue, double maxValue) {
         setOpaque(true);
         this.labelText = labelText;
@@ -51,7 +50,7 @@ public class NumericProperty extends JComponent implements MouseListener,
         this.maxValue = maxValue;
         revalidate();
     }
-    
+
     public Color getBackColour() {
         return backColour;
     }
@@ -141,13 +140,13 @@ public class NumericProperty extends JComponent implements MouseListener,
     public void setMinValue(double minValue) {
         this.minValue = minValue;
     }
-    
+
     @Override
     public final void revalidate() {
         this.removeAll();
         this.
-        setupFormat();
-                
+                setupFormat();
+
         this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         this.setBackground(backColour);
         this.add(Box.createHorizontalStrut(leftMargin));
@@ -161,10 +160,12 @@ public class NumericProperty extends JComponent implements MouseListener,
                 formattedTextField.getPreferredSize().height));
         formattedTextField.setColumns(textboxWidth);
         formattedTextField.setHorizontalAlignment(JTextField.RIGHT);
-        if (parseIntegersOnly) {
+        if (parseIntegersOnly && !value.isEmpty()) {
             formattedTextField.setValue(new Integer(value));
-        } else {
+        } else if (!value.isEmpty()) {
             formattedTextField.setValue(new Double(value));
+        } else {
+            //formattedTextField.setValue(0);
         }
         formattedTextField.addPropertyChangeListener("value", this);
         this.add(formattedTextField);
@@ -172,47 +173,51 @@ public class NumericProperty extends JComponent implements MouseListener,
         this.add(Box.createHorizontalStrut(rightMargin));
         super.revalidate();
     }
-    
+
     private void setupFormat() {
         numberFormat = NumberFormat.getNumberInstance();
         if (parseIntegersOnly) {
             numberFormat.setParseIntegerOnly(true);
         }
     }
-    
+
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        Object source = e.getSource();
-        if (source == formattedTextField) {
-            
-            if (parseIntegersOnly) {
-                int val = ((Number)formattedTextField.getValue()).intValue();
-                if (val < minValue) { 
-                    val = (int)minValue; 
-                    formattedTextField.setValue(val);
+        try {
+            Object source = e.getSource();
+            if (source == formattedTextField) {
+                if (formattedTextField.getValue() == null) {
+                    return;
                 }
-                if (val > maxValue) { 
-                    val = (int)maxValue; 
-                    formattedTextField.setValue(val);
+                if (parseIntegersOnly) {
+                    int val = ((Number) formattedTextField.getValue()).intValue();
+                    if (val < minValue) {
+                        val = (int) minValue;
+                        formattedTextField.setValue(val);
+                    }
+                    if (val > maxValue) {
+                        val = (int) maxValue;
+                        formattedTextField.setValue(val);
+                    }
+                    setValue(String.valueOf(val));
+                } else {
+                    double val = ((Number) formattedTextField.getValue()).doubleValue();
+                    if (val < minValue) {
+                        val = minValue;
+                        formattedTextField.setValue(val);
+                    }
+                    if (val > maxValue) {
+                        val = maxValue;
+                        formattedTextField.setValue(val);
+                    }
+                    setValue(String.valueOf(val));
                 }
-                setValue(String.valueOf(val));
-            } else {
-                double val = ((Number)formattedTextField.getValue()).doubleValue();
-                if (val < minValue) { 
-                    val = minValue; 
-                    formattedTextField.setValue(val);
-                }
-                if (val > maxValue) { 
-                    val = maxValue; 
-                    formattedTextField.setValue(val);
-                }
-                setValue(String.valueOf(val));
             }
-            //}
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
         }
     }
- 
-    
+
     @Override
     public void paintComponent(Graphics g) {
         if (isOpaque()) {
@@ -221,30 +226,24 @@ public class NumericProperty extends JComponent implements MouseListener,
             g.setColor(getForeground());
         }
     }
-    
+
     @Override
     public void mouseClicked(MouseEvent e) {
-        
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        
     }
 
     @Override
     public void mouseEntered(MouseEvent e) {
-        
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-        
     }
-    
 }

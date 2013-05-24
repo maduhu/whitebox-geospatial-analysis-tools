@@ -16,6 +16,7 @@
  */
 package whitebox.geospatialfiles;
 
+import java.awt.Dimension;
 import java.awt.Color;
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -37,6 +38,8 @@ import whitebox.structures.BoundingBox;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import static whitebox.geospatialfiles.shapefile.ShapeType.*;
+import whitebox.ui.ShapefileDatabaseRecordEntry;
+import javax.swing.JFrame;
 
 /**
  *
@@ -880,13 +883,20 @@ public class VectorLayerInfo implements MapLayer {
     double previousX = -1;
     double previousY = -1;
     Object[] recData;
-
-    public void openNewFeature() {
+    boolean isFeatureOpen = false;
+    
+    public void openNewFeature(Object[] recordData) {
+        isFeatureOpen = true;
         digitizedPoints.clear();
-        recData = new Object[shapefile.getAttributeTableFields().length];
+        this.recData = recordData;
+        
+//        recData = new Object[shapefile.getAttributeTableFields().length];
     }
-
+ 
     public void addNodeToNewFeature(double x, double y) {
+//        if (!isFeatureOpen) {
+//            openNewFeature();
+//        }
         if (x != previousX && y != previousY) {
             digitizedPoints.add(new ShapefilePoint(x, y));
             if (shapeType.getBaseType() == ShapeType.POINT) {
@@ -899,7 +909,7 @@ public class VectorLayerInfo implements MapLayer {
 
     private void closeNewFeature() {
         try {
-            if (digitizedPoints.size() == 0) { return; }
+            if (digitizedPoints.isEmpty()) { return; }
             PointsList pl = new PointsList(digitizedPoints);
             int[] parts = {0};
             double x, y, z, m;
@@ -971,8 +981,11 @@ public class VectorLayerInfo implements MapLayer {
                     shapefile.getxMax(), shapefile.getyMax());
             recs = shapefile.getRecordsInBoundingBox(currentExtent, 1);
             colourData = null;
-            openNewFeature();
+            //openNewFeature();
         } catch (IOException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            isFeatureOpen = false;
         }
     }
 

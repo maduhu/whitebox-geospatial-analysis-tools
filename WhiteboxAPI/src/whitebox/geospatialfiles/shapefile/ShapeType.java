@@ -51,4 +51,29 @@ public enum ShapeType {
                 return this;
         }
     }
+    
+    public ShapeTypeDimension getDimension() {
+        switch (this) {
+            case POINT:
+            case MULTIPOINT:
+            case POLYLINE:
+            case POLYGON:
+                return ShapeTypeDimension.XY;
+            
+            case POINTZ:
+            case MULTIPOINTZ:
+            case POLYLINEZ:
+            case POLYGONZ:
+                return ShapeTypeDimension.Z;
+            
+            case POINTM:
+            case MULTIPOINTM:
+            case POLYLINEM:
+            case POLYGONM:
+                return ShapeTypeDimension.M;
+                
+            default: // multipatch
+                return ShapeTypeDimension.UNKNOWN;
+        }
+    }
 }
