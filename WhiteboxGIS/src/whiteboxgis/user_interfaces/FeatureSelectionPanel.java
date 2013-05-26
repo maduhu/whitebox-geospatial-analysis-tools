@@ -90,8 +90,9 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
 
     public void setSelectedFeatureNumber(int selectedFeature) {
         this.selectedFeature = selectedFeature;
+//        getDataTable();
         updateTable();
-        //createGui();
+//        createGui();
     }
 
     private void createGui() {
@@ -101,14 +102,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             selectedFeature = -1;
             Box mainBox = Box.createVerticalBox();
             mainBox.add(Box.createVerticalStrut(10));
-//            if (shape != null) {
-//                Box headerBox1 = Box.createHorizontalBox();
-//                headerBox1.add(new JLabel("Active Layer: " + shape.getShortName()));
-//                headerBox1.add(Box.createHorizontalGlue());
-//                mainBox.add(headerBox1);
-//                mainBox.add(Box.createVerticalStrut(5));
-//            
-//            }
+
             Box headerBox = Box.createHorizontalBox();
             //headerBox.add(Box.createHorizontalStrut(10));
             JLabel label = new JLabel("Selected Feature Attributes:");
@@ -138,9 +132,6 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             this.add(mainBox, BorderLayout.WEST);
             this.validate();
             this.repaint();
-            //this.add(mainBox);
-//            this.getContentPane().add(mainBox, BorderLayout.CENTER);
-//            pack();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -159,13 +150,14 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
                 noDatabaseAvailable = true;
                 return null;
             }
+            shape.refreshAttributeTable();
             AttributeTable attributeTable = shape.getAttributeTable();
             int numRows = shape.getAttributeTable().getFieldCount() + 1;
             //String[] ch = shape.attributeTable.getAttributeTableFieldNames();
             fields = attributeTable.getAllFields();
             String[] columnHeaders = {"Attribute", "Value"};
             Object[][] data = new Object[numRows][numColumns];
-            data[0][0] = "FID";
+            data[0][0] = "REC #";
             if (selectedFeature >= 0) {
                 Object[] rowData = attributeTable.getRecord(selectedFeature);
                 for (int a = 0; a < numRows - 1; a++) {
@@ -201,7 +193,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
 
             table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
             TableColumn column = null;
-            for (int i = 0; i <= numColumns; i++) {
+            for (int i = 0; i < numColumns; i++) {
                 column = table.getColumnModel().getColumn(i);
                 if (i == 0) {
                     column.setPreferredWidth(80);
@@ -221,11 +213,20 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             if (table == null || noDatabaseAvailable) {
                 return;
             }
+            shape.refreshAttributeTable();
+            if (fields.length != shape.getAttributeTable().getFieldCount()) {
+                int oldSelectedFeature = selectedFeature;
+                createGui();
+                selectedFeature = oldSelectedFeature;
+            }
             DefaultTableModel tm = (DefaultTableModel)table.getModel();
             if (selectedFeature >= 0) {
                 tm.setValueAt(selectedFeature, 0, 1);
                 AttributeTable attributeTable = shape.getAttributeTable();
                 Object[] rowData = attributeTable.getRecord(selectedFeature - 1);
+                if (rowData == null) {
+                    return;
+                }
                 for (int a = 0; a < rowData.length; a++) {
                     //tm.setValueAt(rowData[a], a, 1);
                     if (fields[a].getDataType() == DBFField.DBFDataType.NUMERIC 

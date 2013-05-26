@@ -2056,7 +2056,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.draw(gp);
                                                         }
                                                     }
-
                                                 }
                                             }
                                         }
@@ -2092,18 +2091,45 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             gp.append(circle, true);
                                                         }
                                                     }
-                                                    if (isFilled) {
-                                                        g2.setColor(colours[r]);
-                                                        g2.fill(gp);
+                                                    if (activeLayerBool && isActivelyEdited) {
+                                                        g2.setColor(Color.RED);
+                                                        GeneralPath polyline2;
+                                                        float xSize = 2.5f;
+                                                        oldStroke = g2.getStroke();
+                                                        g2.setStroke(new BasicStroke(0.5f));
+                                                        polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                                        polyline2.moveTo(x1 - xSize, y1 - xSize);
+                                                        polyline2.lineTo(x1 + xSize, y1 + xSize);
+                                                        polyline2.moveTo(x1 + xSize, y1 - xSize);
+                                                        polyline2.lineTo(x1 - xSize, y1 + xSize);
+                                                        g2.draw(polyline2);
+                                                        g2.setStroke(oldStroke);
+                                                    } else {
+                                                        if (isFilled) {
+                                                            g2.setColor(colours[r]);
+                                                            g2.fill(gp);
+                                                        }
+                                                        if (isOutlined) {
+                                                            g2.setColor(lineColour);
+                                                            g2.draw(gp);
+                                                        }
+                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                            g2.setColor(selectedFeatureColour);
+                                                            g2.draw(gp);
+                                                        }
                                                     }
-                                                    if (isOutlined) {
-                                                        g2.setColor(lineColour);
-                                                        g2.draw(gp);
-                                                    }
-                                                    if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
-                                                        g2.setColor(selectedFeatureColour);
-                                                        g2.draw(gp);
-                                                    }
+//                                                    if (isFilled) {
+//                                                        g2.setColor(colours[r]);
+//                                                        g2.fill(gp);
+//                                                    }
+//                                                    if (isOutlined) {
+//                                                        g2.setColor(lineColour);
+//                                                        g2.draw(gp);
+//                                                    }
+//                                                    if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+//                                                        g2.setColor(selectedFeatureColour);
+//                                                        g2.draw(gp);
+//                                                    }
                                                 }
                                             }
                                         }
@@ -2139,19 +2165,46 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             gp.append(circle, true);
                                                         }
                                                     }
-                                                    //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
-                                                    if (isFilled) {
-                                                        g2.setColor(colours[r]);
-                                                        g2.fill(gp);
+                                                    if (activeLayerBool && isActivelyEdited) {
+                                                        g2.setColor(Color.RED);
+                                                        GeneralPath polyline2;
+                                                        float xSize = 2.5f;
+                                                        oldStroke = g2.getStroke();
+                                                        g2.setStroke(new BasicStroke(0.5f));
+                                                        polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                                        polyline2.moveTo(x1 - xSize, y1 - xSize);
+                                                        polyline2.lineTo(x1 + xSize, y1 + xSize);
+                                                        polyline2.moveTo(x1 + xSize, y1 - xSize);
+                                                        polyline2.lineTo(x1 - xSize, y1 + xSize);
+                                                        g2.draw(polyline2);
+                                                        g2.setStroke(oldStroke);
+                                                    } else {
+                                                        if (isFilled) {
+                                                            g2.setColor(colours[r]);
+                                                            g2.fill(gp);
+                                                        }
+                                                        if (isOutlined) {
+                                                            g2.setColor(lineColour);
+                                                            g2.draw(gp);
+                                                        }
+                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                            g2.setColor(selectedFeatureColour);
+                                                            g2.draw(gp);
+                                                        }
                                                     }
-                                                    if (isOutlined) {
-                                                        g2.setColor(lineColour);
-                                                        g2.draw(gp);
-                                                    }
-                                                    if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
-                                                        g2.setColor(selectedFeatureColour);
-                                                        g2.draw(gp);
-                                                    }
+//                                                    //circle = new Ellipse2D.Double((x1 - halfMS), (y1 - halfMS), markerSize, markerSize);
+//                                                    if (isFilled) {
+//                                                        g2.setColor(colours[r]);
+//                                                        g2.fill(gp);
+//                                                    }
+//                                                    if (isOutlined) {
+//                                                        g2.setColor(lineColour);
+//                                                        g2.draw(gp);
+//                                                    }
+//                                                    if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+//                                                        g2.setColor(selectedFeatureColour);
+//                                                        g2.draw(gp);
+//                                                    }
                                                 }
                                             }
                                         }
@@ -2190,18 +2243,48 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 gp.append(circle, true);
                                                             }
                                                         }
-                                                        if (isFilled) {
-                                                            g2.setColor(colours[r]);
-                                                            g2.fill(gp);
+
+
+                                                        if (activeLayerBool && isActivelyEdited) {
+                                                            g2.setColor(Color.RED);
+                                                            GeneralPath polyline2;
+                                                            float xSize = 2.5f;
+                                                            oldStroke = g2.getStroke();
+                                                            g2.setStroke(new BasicStroke(0.5f));
+                                                            polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                                            polyline2.moveTo(x1 - xSize, y1 - xSize);
+                                                            polyline2.lineTo(x1 + xSize, y1 + xSize);
+                                                            polyline2.moveTo(x1 + xSize, y1 - xSize);
+                                                            polyline2.lineTo(x1 - xSize, y1 + xSize);
+                                                            g2.draw(polyline2);
+                                                            g2.setStroke(oldStroke);
+                                                        } else {
+                                                            if (isFilled) {
+                                                                g2.setColor(colours[r]);
+                                                                g2.fill(gp);
+                                                            }
+                                                            if (isOutlined) {
+                                                                g2.setColor(lineColour);
+                                                                g2.draw(gp);
+                                                            }
+                                                            if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                                g2.setColor(selectedFeatureColour);
+                                                                g2.draw(gp);
+                                                            }
                                                         }
-                                                        if (isOutlined) {
-                                                            g2.setColor(lineColour);
-                                                            g2.draw(gp);
-                                                        }
-                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
-                                                            g2.setColor(selectedFeatureColour);
-                                                            g2.draw(gp);
-                                                        }
+
+//                                                        if (isFilled) {
+//                                                            g2.setColor(colours[r]);
+//                                                            g2.fill(gp);
+//                                                        }
+//                                                        if (isOutlined) {
+//                                                            g2.setColor(lineColour);
+//                                                            g2.draw(gp);
+//                                                        }
+//                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+//                                                            g2.setColor(selectedFeatureColour);
+//                                                            g2.draw(gp);
+//                                                        }
                                                     }
                                                 }
                                             }
@@ -2241,18 +2324,47 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 gp.append(circle, true);
                                                             }
                                                         }
-                                                        if (isFilled) {
-                                                            g2.setColor(colours[r]);
-                                                            g2.fill(gp);
+
+                                                        if (activeLayerBool && isActivelyEdited) {
+                                                            g2.setColor(Color.RED);
+                                                            GeneralPath polyline2;
+                                                            float xSize = 2.5f;
+                                                            oldStroke = g2.getStroke();
+                                                            g2.setStroke(new BasicStroke(0.5f));
+                                                            polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                                            polyline2.moveTo(x1 - xSize, y1 - xSize);
+                                                            polyline2.lineTo(x1 + xSize, y1 + xSize);
+                                                            polyline2.moveTo(x1 + xSize, y1 - xSize);
+                                                            polyline2.lineTo(x1 - xSize, y1 + xSize);
+                                                            g2.draw(polyline2);
+                                                            g2.setStroke(oldStroke);
+                                                        } else {
+                                                            if (isFilled) {
+                                                                g2.setColor(colours[r]);
+                                                                g2.fill(gp);
+                                                            }
+                                                            if (isOutlined) {
+                                                                g2.setColor(lineColour);
+                                                                g2.draw(gp);
+                                                            }
+                                                            if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                                g2.setColor(selectedFeatureColour);
+                                                                g2.draw(gp);
+                                                            }
                                                         }
-                                                        if (isOutlined) {
-                                                            g2.setColor(lineColour);
-                                                            g2.draw(gp);
-                                                        }
-                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
-                                                            g2.setColor(selectedFeatureColour);
-                                                            g2.draw(gp);
-                                                        }
+
+//                                                        if (isFilled) {
+//                                                            g2.setColor(colours[r]);
+//                                                            g2.fill(gp);
+//                                                        }
+//                                                        if (isOutlined) {
+//                                                            g2.setColor(lineColour);
+//                                                            g2.draw(gp);
+//                                                        }
+//                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+//                                                            g2.setColor(selectedFeatureColour);
+//                                                            g2.draw(gp);
+//                                                        }
                                                     }
                                                 }
                                             }
@@ -2292,18 +2404,47 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 gp.append(circle, true);
                                                             }
                                                         }
-                                                        if (isFilled) {
-                                                            g2.setColor(colours[r]);
-                                                            g2.fill(gp);
+
+                                                        if (activeLayerBool && isActivelyEdited) {
+                                                            g2.setColor(Color.RED);
+                                                            GeneralPath polyline2;
+                                                            float xSize = 2.5f;
+                                                            oldStroke = g2.getStroke();
+                                                            g2.setStroke(new BasicStroke(0.5f));
+                                                            polyline2 = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 4);
+                                                            polyline2.moveTo(x1 - xSize, y1 - xSize);
+                                                            polyline2.lineTo(x1 + xSize, y1 + xSize);
+                                                            polyline2.moveTo(x1 + xSize, y1 - xSize);
+                                                            polyline2.lineTo(x1 - xSize, y1 + xSize);
+                                                            g2.draw(polyline2);
+                                                            g2.setStroke(oldStroke);
+                                                        } else {
+                                                            if (isFilled) {
+                                                                g2.setColor(colours[r]);
+                                                                g2.fill(gp);
+                                                            }
+                                                            if (isOutlined) {
+                                                                g2.setColor(lineColour);
+                                                                g2.draw(gp);
+                                                            }
+                                                            if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                                g2.setColor(selectedFeatureColour);
+                                                                g2.draw(gp);
+                                                            }
                                                         }
-                                                        if (isOutlined) {
-                                                            g2.setColor(lineColour);
-                                                            g2.draw(gp);
-                                                        }
-                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
-                                                            g2.setColor(selectedFeatureColour);
-                                                            g2.draw(gp);
-                                                        }
+
+//                                                        if (isFilled) {
+//                                                            g2.setColor(colours[r]);
+//                                                            g2.fill(gp);
+//                                                        }
+//                                                        if (isOutlined) {
+//                                                            g2.setColor(lineColour);
+//                                                            g2.draw(gp);
+//                                                        }
+//                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+//                                                            g2.setColor(selectedFeatureColour);
+//                                                            g2.draw(gp);
+//                                                        }
                                                     }
                                                 }
                                             }
@@ -2626,7 +2767,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                         }
                                                         g2.draw(polyline);
                                                     }
-                                                    
+
                                                     if (activeLayerBool && isActivelyEdited) {
                                                         if (xPoints.length > 0) {
                                                             g2.setColor(Color.RED);
@@ -2650,7 +2791,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             }
                                             g2.setStroke(oldStroke);
                                         }
-                                        
+
                                         if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
                                             g2.setColor(selectedFeatureColour);
                                             for (ShapeFileRecord record : records) {
@@ -3498,7 +3639,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         int clickCount = e.getClickCount();
         int button = e.getButton();
         boolean isPopupTrigger = e.isPopupTrigger();
-        
+
         if (digitizing && digitizingNewFeature) {
             if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                 MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
@@ -3551,11 +3692,15 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             WhiteboxGui wb = (WhiteboxGui) host;
                             wb.digitizeNewFeature();
                         }
-                    } else {                       
+                    } else {
                         vli.addNodeToNewFeature(mapX, mapY);
                     }
-                    if (vli.getShapeType().getBaseType() ==  ShapeType.POINT) {
+                    if (vli.getShapeType().getBaseType() == ShapeType.POINT) {
                         distPoints.clear();
+                        if (host instanceof WhiteboxGui) {
+                            WhiteboxGui wb = (WhiteboxGui) host;
+                            wb.digitizeNewFeature();
+                        }
                     }
                     host.refreshMap(false);
 

@@ -65,6 +65,7 @@ import whitebox.structures.BoundingBox;
 import whitebox.structures.ExtensionFileFilter;
 import whitebox.utilities.FileUtilities;
 import whitebox.geospatialfiles.VectorLayerInfo;
+import whitebox.geospatialfiles.shapefile.ShapeTypeDimension;
 import whitebox.serialization.MapInfoSerializer;
 import whitebox.serialization.MapInfoDeserializer;
 import whitebox.ui.ShapefileDatabaseRecordEntry;
@@ -4370,12 +4371,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             VectorLayerInfo vli = (VectorLayerInfo) layer;
             if (vli.isActivelyEdited()) {
                 vli.setActivelyEdited(false);
-//                editLayerMenuItem.setState(false);
-//                editVectorButton.setBorderPainted(false);
             } else {
                 vli.setActivelyEdited(true);
-//                editLayerMenuItem.setState(true);
-//                editVectorButton.setBorderPainted(true);
 
                 drawingArea.setModifyingPixels(false);
                 modifyPixelsVals.setBorderPainted(false);
@@ -4421,12 +4418,24 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             } else {
                 digitizeNewFeatureButton.setBorderPainted(true);
                 drawingArea.setDigitizingNewFeature(true);
-
+                vli.getShapefile().refreshAttributeTable();     
                 ShapefileDatabaseRecordEntry dataRecordEntry = new ShapefileDatabaseRecordEntry(this, true, vli.getShapefile());
                 dataRecordEntry.setSize(400, 300);
                 dataRecordEntry.setLocation(100, 100);
                 dataRecordEntry.setVisible(true);
                 Object[] recData = dataRecordEntry.getValue();
+                if (recData == null) { 
+                    digitizeNewFeatureButton.setBorderPainted(false);
+                    drawingArea.setDigitizingNewFeature(false);
+                    return;
+                }
+                if (vli.getShapeType().getDimension() == ShapeTypeDimension.M) {
+                    vli.setMValue(dataRecordEntry.getMValue());
+                }
+                if (vli.getShapeType().getDimension() == ShapeTypeDimension.Z) {
+                    vli.setMValue(dataRecordEntry.getZValue());
+                    vli.setMValue(dataRecordEntry.getMValue());
+                }
                 vli.openNewFeature(recData);
             }
 

@@ -95,7 +95,7 @@ public class AttributeFileTableModel extends AbstractTableModel {
         if (column == 0) {
             return "";
         } else if (column == 1) {
-            return "ID";
+            return "REC #";
         }
         int fieldIndex = getActualColumn(column);
         String[] names = table.getAttributeTableFieldNames();
