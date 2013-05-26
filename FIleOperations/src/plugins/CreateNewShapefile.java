@@ -253,7 +253,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
             fields[0].setName("FID");
             fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[0].setFieldLength(10);
-            fields[0].setDecimalCount(4);
+            fields[0].setDecimalCount(0);
             
             ShapeFile output = new ShapeFile(outputFile, shapeType, fields);
             output.write();
