@@ -30,8 +30,9 @@ import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.geospatialfiles.shapefile.ShapefilePoint;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
-import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.utilities.Topology;
@@ -244,19 +245,22 @@ public class VoronoiDiagram implements WhiteboxPlugin {
 
             oneHundredthTotal = numRecs / 100;
 
-            // set up the output files of the shapefile and the dbf
-            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON);
-
-            DBFReader reader = new DBFReader(input.getDatabaseFile());
+            
+//            DBFReader reader = new DBFReader(input.getDatabaseFile());
+            AttributeTable reader = input.getAttributeTable();
             int numFields = reader.getFieldCount();
 
             DBFField[] fields = reader.getAllFields();
-            String DBFName = output.getDatabaseFile();
-            DBFWriter writer = new DBFWriter(new File(DBFName));
+//            String DBFName = output.getDatabaseFile();
+//            DBFWriter writer = new DBFWriter(new File(DBFName));
 
-            writer.setFields(fields);
+//            writer.setFields(fields);
+            
+            // set up the output files of the shapefile and the dbf
+            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON, fields);
 
-            ArrayList<com.vividsolutions.jts.geom.Geometry> pointList = new ArrayList<com.vividsolutions.jts.geom.Geometry>();
+
+            ArrayList<com.vividsolutions.jts.geom.Geometry> pointList = new ArrayList<>();
             com.vividsolutions.jts.geom.Geometry[] recJTS = null;
             n = 0;
             progress = 0;
@@ -307,8 +311,8 @@ public class VoronoiDiagram implements WhiteboxPlugin {
                 userData[a] = Integer.parseInt(geom.getGeometryN(a).getUserData().toString());
             }
 
-            Object[][] attributeTableRecords = new Object[reader.getRecordCount()][numFields];
-            for (int a = 0; a < reader.getRecordCount(); a++) {
+            Object[][] attributeTableRecords = new Object[reader.getNumberOfRecords()][numFields];
+            for (int a = 0; a < reader.getNumberOfRecords(); a++) {
                 Object[] rec = reader.nextRecord();
                 for (int b = 0; b < numFields - 1; b++) {
                     attributeTableRecords[a][b] = rec[b];
@@ -322,7 +326,7 @@ public class VoronoiDiagram implements WhiteboxPlugin {
                 com.vividsolutions.jts.geom.Geometry g = vd.getGeometryN(a);
                 if (g instanceof com.vividsolutions.jts.geom.Polygon) {
                     com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon) g;
-                    ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                    ArrayList<ShapefilePoint> pnts = new ArrayList<>();
                     int[] parts = new int[p.getNumInteriorRing() + 1];
 
                     Coordinate[] buffCoords = p.getExteriorRing().getCoordinates();
@@ -359,8 +363,7 @@ public class VoronoiDiagram implements WhiteboxPlugin {
                     PointsList pl = new PointsList(pnts);
 
                     whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                    output.addRecord(wbPoly);
-
+                    
                     // which point is contained within this polygon?
                     for (int m = 0; m < tests.length; m++) {
                         if ((tests[m].within(p))) {
@@ -369,7 +372,8 @@ public class VoronoiDiagram implements WhiteboxPlugin {
                         }
                     }
                     Object[] rowData = attributeTableRecords[parentRecNum - 1];
-                    writer.addRecord(rowData);
+//                    writer.addRecord(rowData);
+                    output.addRecord(wbPoly, rowData);
                     if (cancelOp) {
                         cancelOperation();
                         return;
@@ -381,7 +385,7 @@ public class VoronoiDiagram implements WhiteboxPlugin {
             }
 
             output.write();
-            writer.write();
+//            writer.write();
 
 
             // returning a header file string displays the image.

@@ -27,8 +27,9 @@ import java.io.File;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
-import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
@@ -235,7 +236,7 @@ public class SymmetricDifference implements WhiteboxPlugin {
             
             com.vividsolutions.jts.geom.Geometry[] recJTSGeometries = null;
             ArrayList<com.vividsolutions.jts.geom.Geometry> inputGeometryList =
-                    new ArrayList<com.vividsolutions.jts.geom.Geometry>();
+                    new ArrayList<>();
             com.vividsolutions.jts.geom.Geometry outputGeometry = null;
                 
             
@@ -280,8 +281,6 @@ public class SymmetricDifference implements WhiteboxPlugin {
             g1 = factory.buildGeometry(inputGeometryList);
             inputGeometryList.clear();
 
-
-            
             ShapeFile input2 = new ShapeFile(shapefiles[1]);
             shapeType = input2.getShapeType();
             numRecs = input2.getNumberOfRecords();
@@ -335,15 +334,13 @@ public class SymmetricDifference implements WhiteboxPlugin {
 
 
             ShapeFile output = null;
-            DBFWriter writer = null;
-            DBFReader reader1 = null;
-            DBFReader reader2 = null;
+//            DBFWriter writer = null;
+//            DBFReader reader1 = null;
+//            DBFReader reader2 = null;
 
-            reader1 = new DBFReader(input1.getDatabaseFile());
+//            reader1 = new DBFReader(input1.getDatabaseFile());
+//            AttributeTable reader1 = input1.getAttributeTable();
             
-            // set up the output files of the shapefile and the dbf
-            output = new ShapeFile(outputFile, outputShapeType);
-
             //int numFields1 = reader1.getFieldCount();
             //int numFields2 = reader2.getFieldCount();
             int numFields = 3; //1 + numFields1 + numFields2;
@@ -384,10 +381,13 @@ public class SymmetricDifference implements WhiteboxPlugin {
 //                }
 //            }
             
-            String DBFName = output.getDatabaseFile();
-            writer = new DBFWriter(new File(DBFName));
+            // set up the output files of the shapefile and the dbf
+            output = new ShapeFile(outputFile, outputShapeType, fields);
 
-            writer.setFields(fields);
+//            String DBFName = output.getDatabaseFile();
+//            writer = new DBFWriter(new File(DBFName));
+//
+//            writer.setFields(fields);
             
             PreparedGeometry[] tests1 = new PreparedGeometry[g1.getNumGeometries()];
             com.vividsolutions.jts.geom.Geometry[] testGs1 = new com.vividsolutions.jts.geom.Geometry[g1.getNumGeometries()];
@@ -454,14 +454,14 @@ public class SymmetricDifference implements WhiteboxPlugin {
                         // you will loose any z and m information if they are in the input file.
                         // you'll need to fix this some other time when you get a chance.
                         whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(p.x, p.y);
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = new Object[numFields];
                         rowData[0] = new Double(FID);
                         rowData[1] = new Double(parentRecNum1);
                         rowData[2] = new Double(parentRecNum2);
-                        writer.addRecord(rowData);
+//                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
                     } else if (gN instanceof LineString
                             && outputShapeType == ShapeType.POLYLINE) {
                         for (int m = 0; m < tests1.length; m++) {
@@ -477,7 +477,7 @@ public class SymmetricDifference implements WhiteboxPlugin {
                             }
                         }
                         LineString ls = (LineString) gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = {0};
 
@@ -488,14 +488,14 @@ public class SymmetricDifference implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = new Object[numFields];
                         rowData[0] = new Double(FID);
                         if (parentRecNum1 != -999) { rowData[1] = new Double(parentRecNum1); }
                         if (parentRecNum2 != -999) { rowData[2] = new Double(parentRecNum2); }
-                        writer.addRecord(rowData);
+//                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYLINE) {
                         
@@ -512,7 +512,7 @@ public class SymmetricDifference implements WhiteboxPlugin {
                             }
                         }
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon)gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
@@ -543,14 +543,14 @@ public class SymmetricDifference implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = new Object[numFields];
                         rowData[0] = new Double(FID);
                         if (parentRecNum1 != -999) { rowData[1] = new Double(parentRecNum1); }
                         if (parentRecNum2 != -999) { rowData[2] = new Double(parentRecNum2); }
-                        writer.addRecord(rowData);
+//                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYGON) {
                         for (int m = 0; m < tests1.length; m++) {
@@ -566,7 +566,7 @@ public class SymmetricDifference implements WhiteboxPlugin {
                             }
                         }
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon) gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
@@ -597,14 +597,14 @@ public class SymmetricDifference implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.Polygon wbGeometry = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = new Object[numFields];
                         rowData[0] = new Double(FID);
                         if (parentRecNum1 != -999) { rowData[1] = new Double(parentRecNum1); }
                         if (parentRecNum2 != -999) { rowData[2] = new Double(parentRecNum2); }
-                        writer.addRecord(rowData);
+//                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
                     } else {
                         // it shouldn't really hit here ever.
                         //showFeedback("An error was encountered when saving the output file.");
@@ -629,7 +629,7 @@ public class SymmetricDifference implements WhiteboxPlugin {
             }
             
             output.write();
-            writer.write();
+//            writer.write();
             
             
             // returning a header file string displays the image.
