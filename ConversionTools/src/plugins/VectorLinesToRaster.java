@@ -25,7 +25,7 @@ import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataType;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -266,7 +266,8 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
             }
 
             // what type of data is contained in assignmentFieldName?
-            DBFReader reader = new DBFReader(input.getDatabaseFile());
+            //DBFReader reader = new DBFReader(input.getDatabaseFile());
+            AttributeTable reader = input.getAttributeTable();
             int numberOfFields = reader.getFieldCount();
 
             for (i = 0; i < numberOfFields; i++) {

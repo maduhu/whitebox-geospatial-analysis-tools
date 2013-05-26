@@ -25,9 +25,8 @@ import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataType;
-import whitebox.geospatialfiles.shapefile.attributes.DBFException;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.PolygonM;
 import whitebox.geospatialfiles.shapefile.PolygonZ;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
@@ -271,7 +270,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
             }
 
             // what type of data is contained in assignmentFieldName?
-            DBFReader reader = new DBFReader(input.getDatabaseFile());
+            AttributeTable reader = input.getAttributeTable(); //new DBFReader(input.getDatabaseFile());
             int numberOfFields = reader.getFieldCount();
 
             for (i = 0; i < numberOfFields; i++) {
