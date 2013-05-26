@@ -16,6 +16,9 @@ import java.text.NumberFormat;
 public class NumericProperty extends JComponent implements MouseListener,
         PropertyChangeListener {
 
+    public enum Precision {
+        DOUBLE, FLOAT, INTEGER;
+    }
     private String labelText;
     private String value;
     private Color backColour = Color.WHITE;
@@ -29,6 +32,7 @@ public class NumericProperty extends JComponent implements MouseListener,
     private double maxValue = Double.POSITIVE_INFINITY;
     private JFormattedTextField formattedTextField = new JFormattedTextField();
     private NumberFormat numberFormat;
+    private Precision precision = Precision.DOUBLE;
 
     public NumericProperty() {
         setOpaque(true);
@@ -123,6 +127,20 @@ public class NumericProperty extends JComponent implements MouseListener,
 
     public void setParseIntegersOnly(Boolean integerNumbersOnly) {
         this.parseIntegersOnly = integerNumbersOnly;
+        if (integerNumbersOnly) {
+            precision = Precision.INTEGER;
+        }
+    }
+    
+    public Precision getPrecision() {
+        return precision;
+    }
+    
+    public void setPrecision(Precision precision) {
+        this.precision = precision;
+        if (precision == Precision.INTEGER) {
+            parseIntegersOnly = true;
+        }
     }
 
     public double getMaxValue() {
@@ -140,6 +158,8 @@ public class NumericProperty extends JComponent implements MouseListener,
     public void setMinValue(double minValue) {
         this.minValue = minValue;
     }
+    
+    
 
     @Override
     public final void revalidate() {
@@ -189,7 +209,7 @@ public class NumericProperty extends JComponent implements MouseListener,
                 if (formattedTextField.getValue() == null) {
                     return;
                 }
-                if (parseIntegersOnly) {
+                if (precision == Precision.INTEGER) {
                     int val = ((Number) formattedTextField.getValue()).intValue();
                     if (val < minValue) {
                         val = (int) minValue;
@@ -200,7 +220,7 @@ public class NumericProperty extends JComponent implements MouseListener,
                         formattedTextField.setValue(val);
                     }
                     setValue(String.valueOf(val));
-                } else {
+                } else if (precision == Precision.DOUBLE) {
                     double val = ((Number) formattedTextField.getValue()).doubleValue();
                     if (val < minValue) {
                         val = minValue;
@@ -211,6 +231,17 @@ public class NumericProperty extends JComponent implements MouseListener,
                         formattedTextField.setValue(val);
                     }
                     setValue(String.valueOf(val));
+                } else if (precision == Precision.FLOAT) {
+                    double val = ((Number) formattedTextField.getValue()).floatValue();
+                    if (val < minValue) {
+                        val = minValue;
+                        formattedTextField.setValue(val);
+                    }
+                    if (val > maxValue) {
+                        val = maxValue;
+                        formattedTextField.setValue(val);
+                    }
+                    setValue(String.valueOf((float)val));
                 }
             }
         } catch (Exception ex) {

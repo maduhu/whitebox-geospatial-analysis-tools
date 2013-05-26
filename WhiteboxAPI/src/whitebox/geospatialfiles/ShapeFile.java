@@ -23,7 +23,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.shapefile.attributes.DBFException;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
 import whitebox.geospatialfiles.shapefile.*;
 import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPATCH;
 import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINT;
@@ -48,6 +48,7 @@ import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ShapeFile {
+
     private String fileName;
     private String shortFileName;
     private String indexFile;
@@ -76,14 +77,12 @@ public class ShapeFile {
     public boolean databaseFileExists;
     public ArrayList<ShapeFileRecord> records = new ArrayList<>();
     private boolean pointType;
-    
     private AttributeTable attributeTable = null;
-    
+
     // Constructors
     public ShapeFile() {
-        
     }
-    
+
     public ShapeFile(String fileName) throws IOException {
         setFileName(fileName);
         int extensionIndex = fileName.lastIndexOf(".");
@@ -92,12 +91,12 @@ public class ShapeFile {
         setDatabaseFile(fileName.substring(0, extensionIndex) + ".dbf");
         // see if the databaseFile exists.
         databaseFileExists = (new File(databaseFile)).exists();
-        
+
         if (databaseFileExists) {
             this.attributeTable = new AttributeTable(databaseFile);
         }
     }
-    
+
     public ShapeFile(String fileName, ShapeType st) {
         this.fileName = fileName;
         int extensionIndex = fileName.lastIndexOf(".");
@@ -118,7 +117,7 @@ public class ShapeFile {
         this.numRecs = 0;
         deleteFiles();
     }
-    
+
     public ShapeFile(String fileName, ShapeType st, DBFField[] fields) {
         this.fileName = fileName;
         int extensionIndex = fileName.lastIndexOf(".");
@@ -144,12 +143,12 @@ public class ShapeFile {
             // do nothing
         }
     }
-    
+
     // Properties
     public String getFileName() {
         return fileName;
     }
-    
+
     public String getShortName() {
         if (shortFileName == null) {
             File file = new File(fileName);
@@ -158,7 +157,7 @@ public class ShapeFile {
         }
         return shortFileName;
     }
-    
+
     public final void setFileName(String fileName) {
         this.fileName = fileName;
         // See if the data file exists.
@@ -167,8 +166,7 @@ public class ShapeFile {
             readHeaderData();
             readRecords();
         } else { // it's a new file
-            
-        }       
+        }
     }
 
     public String getProjectionFile() {
@@ -187,21 +185,20 @@ public class ShapeFile {
     public final void setDatabaseFile(String databaseFile) {
         this.databaseFile = databaseFile;
     }
-    
-    private static ShapeType[] st = new ShapeType[]{ShapeType.NULLSHAPE, ShapeType.POINT, 
-        ShapeType.UNUSED1, ShapeType.POLYLINE, ShapeType.UNUSED2, ShapeType.POLYGON, 
-        ShapeType.UNUSED3, ShapeType.UNUSED4, ShapeType.MULTIPOINT, 
-        ShapeType.UNUSED5, ShapeType.UNUSED6, ShapeType.POINTZ, ShapeType.UNUSED7, 
-        ShapeType.POLYLINEZ, ShapeType.UNUSED8, ShapeType.POLYGONZ, ShapeType.UNUSED9, 
-        ShapeType.UNUSED10, ShapeType.MULTIPOINTZ, ShapeType.UNUSED11, 
+    private static ShapeType[] st = new ShapeType[]{ShapeType.NULLSHAPE, ShapeType.POINT,
+        ShapeType.UNUSED1, ShapeType.POLYLINE, ShapeType.UNUSED2, ShapeType.POLYGON,
+        ShapeType.UNUSED3, ShapeType.UNUSED4, ShapeType.MULTIPOINT,
+        ShapeType.UNUSED5, ShapeType.UNUSED6, ShapeType.POINTZ, ShapeType.UNUSED7,
+        ShapeType.POLYLINEZ, ShapeType.UNUSED8, ShapeType.POLYGONZ, ShapeType.UNUSED9,
+        ShapeType.UNUSED10, ShapeType.MULTIPOINTZ, ShapeType.UNUSED11,
         ShapeType.UNUSED12, ShapeType.POINTM, ShapeType.UNUSED13, ShapeType.POLYLINEM,
-        ShapeType.UNUSED14, ShapeType.POLYGONM, ShapeType.UNUSED15, ShapeType.UNUSED16, 
+        ShapeType.UNUSED14, ShapeType.POLYGONM, ShapeType.UNUSED15, ShapeType.UNUSED16,
         ShapeType.MULTIPOINTM, ShapeType.UNUSED17, ShapeType.UNUSED18, ShapeType.MULTIPATCH};
-    
+
     private ShapeType getShapeTypeFromInt(int i) {
         return st[i];
     }
-    
+
     private int getIntFromShapeType(ShapeType st) {
         switch (st) {
             case NULLSHAPE:
@@ -331,7 +328,7 @@ public class ShapeFile {
     public void setzMin(double zMin) {
         this.zMin = zMin;
     }
-    
+
     public int getNumberOfRecords() {
         return numRecs;
     }
@@ -347,7 +344,7 @@ public class ShapeFile {
     public boolean isPointType() {
         return pointType;
     }
-    
+
     // Methods
     public final boolean deleteFiles() {
         try {
@@ -362,11 +359,11 @@ public class ShapeFile {
             return false;
         }
     }
-    
+
     private boolean readHeaderData() {
         RandomAccessFile rIn = null;
         ByteBuffer buf;
-        
+
         try {
             // See if the data file exists.
             File file = new File(fileName);
@@ -389,7 +386,7 @@ public class ShapeFile {
             fileLength = ByteSwapper.swap(buf.getInt(24)); // in 16-bit words.
             version = buf.getShort(28);
             shapeType = getShapeTypeFromInt(buf.getShort(32));
-            
+
             if (shapeType == ShapeType.POINT) {
                 this.pointType = true;
             } else if (shapeType == ShapeType.MULTIPOINT) {
@@ -414,7 +411,7 @@ public class ShapeFile {
             zMax = buf.getDouble(76);
             mMin = buf.getDouble(84);
             mMax = buf.getDouble(92);
-     
+
         } catch (Exception e) {
             return false;
         } finally {
@@ -427,10 +424,10 @@ public class ShapeFile {
             return true;
         }
     }
-    
+
     public boolean write() throws IOException {
         ByteBuffer buf;
-        
+
         try {
             OutputStream output = null;
             try {
@@ -440,11 +437,11 @@ public class ShapeFile {
                     size += sfr.getLength();
                 }
                 fileLength = size / 2; // in 16-bit words
-                
+
                 buf = ByteBuffer.allocate(size);
                 buf.order(ByteOrder.LITTLE_ENDIAN);
                 buf.rewind();
-            
+
                 // place the file header data into the buffer then output it
                 buf.putInt(0, ByteSwapper.swap(fileCode));
                 buf.putInt(24, ByteSwapper.swap(fileLength));
@@ -458,7 +455,7 @@ public class ShapeFile {
                 buf.putDouble(76, zMax);
                 buf.putDouble(84, mMin);
                 buf.putDouble(92, mMax);
-            
+
                 int pos = 100;
                 byte[] bytes;
                 int[] indexData = new int[numRecs];
@@ -472,17 +469,17 @@ public class ShapeFile {
                     a++;
                     pos += sfr.getLength();
                 }
-            
+
                 output = new BufferedOutputStream(new FileOutputStream(fileName));
                 output.write(buf.array());
                 output.close();
-                
+
                 // now save the index file
                 size = 100 + 8 * numRecs;
                 buf = ByteBuffer.allocate(size);
                 buf.order(ByteOrder.BIG_ENDIAN);
                 buf.rewind();
-                
+
                 buf.putInt(0, fileCode);
                 buf.putInt(24, size / 2);
                 buf.putInt(28, ByteSwapper.swap(version));
@@ -495,7 +492,7 @@ public class ShapeFile {
                 buf.putDouble(76, ByteSwapper.swap(zMax));
                 buf.putDouble(84, ByteSwapper.swap(mMin));
                 buf.putDouble(92, ByteSwapper.swap(mMax));
-                
+
                 pos = 100;
                 a = 0;
                 for (ShapeFileRecord sfr : records) {
@@ -506,9 +503,10 @@ public class ShapeFile {
                 }
                 output = new BufferedOutputStream(new FileOutputStream(indexFile));
                 output.write(buf.array());
-                
+
                 if (this.attributeTable != null) {
                     this.attributeTable.write();
+
                 }
             } finally {
                 output.close();
@@ -525,43 +523,43 @@ public class ShapeFile {
             return false;
         }
     }
-    
+
     public boolean addRecord(Geometry recordGeometry) {
         if (recordGeometry.getShapeType() == shapeType) {
             numRecs++;
             int contentLength = (4 + recordGeometry.getLength()) / 2;
             ShapeFileRecord sfr = new ShapeFileRecord(numRecs, contentLength,
-                  shapeType, recordGeometry);
+                    shapeType, recordGeometry);
             records.add(sfr);
-            
+
             // update the min and max coordinates
-            double recXMin = 0, recYMin = 0, recXMax = 0, recYMax = 0, 
+            double recXMin = 0, recYMin = 0, recXMax = 0, recYMax = 0,
                     recZMin = 0, recZMax = 0, recMMin = 0, recMMax = 0;
-            
+
             switch (shapeType) {
                 case POINT:
-                    Point recPoint = (Point)recordGeometry;
+                    Point recPoint = (Point) recordGeometry;
                     recXMin = recPoint.getX();
                     recYMin = recPoint.getY();
                     recXMax = recXMin;
                     recYMax = recYMin;
                     break;
                 case MULTIPOINT:
-                    MultiPoint recMultiPoint = (MultiPoint)recordGeometry;
+                    MultiPoint recMultiPoint = (MultiPoint) recordGeometry;
                     recXMin = recMultiPoint.getXMin();
                     recYMin = recMultiPoint.getYMin();
                     recXMax = recMultiPoint.getXMax();
                     recYMax = recMultiPoint.getYMax();
                     break;
                 case POLYLINE:
-                    PolyLine recPolyLine = (PolyLine)recordGeometry;
+                    PolyLine recPolyLine = (PolyLine) recordGeometry;
                     recXMin = recPolyLine.getXMin();
                     recYMin = recPolyLine.getYMin();
                     recXMax = recPolyLine.getXMax();
                     recYMax = recPolyLine.getYMax();
                     break;
                 case POINTZ:
-                    PointZ recPointZ = (PointZ)recordGeometry;
+                    PointZ recPointZ = (PointZ) recordGeometry;
                     recXMin = recPointZ.getX();
                     recYMin = recPointZ.getY();
                     recXMax = recXMin;
@@ -572,7 +570,7 @@ public class ShapeFile {
                     recMMax = recPointZ.getM();
                     break;
                 case POINTM:
-                    PointM recPointM = (PointM)recordGeometry;
+                    PointM recPointM = (PointM) recordGeometry;
                     recXMin = recPointM.getX();
                     recYMin = recPointM.getY();
                     recXMax = recXMin;
@@ -581,7 +579,7 @@ public class ShapeFile {
                     recMMax = recPointM.getM();
                     break;
                 case MULTIPOINTM:
-                    MultiPointM recMultiPointM = (MultiPointM)recordGeometry;
+                    MultiPointM recMultiPointM = (MultiPointM) recordGeometry;
                     recXMin = recMultiPointM.getXMin();
                     recYMin = recMultiPointM.getYMin();
                     recXMax = recMultiPointM.getXMax();
@@ -590,7 +588,7 @@ public class ShapeFile {
                     recMMax = recMultiPointM.getmMax();
                     break;
                 case POLYLINEM:
-                    PolyLineM recPolyLineM = (PolyLineM)recordGeometry;
+                    PolyLineM recPolyLineM = (PolyLineM) recordGeometry;
                     recXMin = recPolyLineM.getXMin();
                     recYMin = recPolyLineM.getYMin();
                     recXMax = recPolyLineM.getXMax();
@@ -599,7 +597,7 @@ public class ShapeFile {
                     recMMax = recPolyLineM.getmMax();
                     break;
                 case MULTIPOINTZ:
-                    MultiPointZ recMultiPointZ = (MultiPointZ)recordGeometry;
+                    MultiPointZ recMultiPointZ = (MultiPointZ) recordGeometry;
                     recXMin = recMultiPointZ.getXMin();
                     recYMin = recMultiPointZ.getYMin();
                     recXMax = recMultiPointZ.getXMax();
@@ -610,7 +608,7 @@ public class ShapeFile {
                     recMMax = recMultiPointZ.getmMax();
                     break;
                 case POLYLINEZ:
-                    PolyLineZ recPolyLineZ = (PolyLineZ)recordGeometry;
+                    PolyLineZ recPolyLineZ = (PolyLineZ) recordGeometry;
                     recXMin = recPolyLineZ.getXMin();
                     recYMin = recPolyLineZ.getYMin();
                     recXMax = recPolyLineZ.getXMax();
@@ -621,14 +619,14 @@ public class ShapeFile {
                     recMMax = recPolyLineZ.getmMax();
                     break;
                 case POLYGON:
-                    Polygon recPolygon = (Polygon)recordGeometry;
+                    Polygon recPolygon = (Polygon) recordGeometry;
                     recXMin = recPolygon.getXMin();
                     recYMin = recPolygon.getYMin();
                     recXMax = recPolygon.getXMax();
                     recYMax = recPolygon.getYMax();
                     break;
                 case POLYGONM:
-                    PolygonM recPolygonM = (PolygonM)recordGeometry;
+                    PolygonM recPolygonM = (PolygonM) recordGeometry;
                     recXMin = recPolygonM.getXMin();
                     recYMin = recPolygonM.getYMin();
                     recXMax = recPolygonM.getXMax();
@@ -637,7 +635,7 @@ public class ShapeFile {
                     recMMax = recPolygonM.getmMax();
                     break;
                 case POLYGONZ:
-                    PolygonZ recPolygonZ = (PolygonZ)recordGeometry;
+                    PolygonZ recPolygonZ = (PolygonZ) recordGeometry;
                     recXMin = recPolygonZ.getXMin();
                     recYMin = recPolygonZ.getYMin();
                     recXMax = recPolygonZ.getXMax();
@@ -648,7 +646,7 @@ public class ShapeFile {
                     recMMax = recPolygonZ.getmMax();
                     break;
                 case MULTIPATCH:
-                    MultiPatch recMultiPatch = (MultiPatch)recordGeometry;
+                    MultiPatch recMultiPatch = (MultiPatch) recordGeometry;
                     recXMin = recMultiPatch.getXMin();
                     recYMin = recMultiPatch.getYMin();
                     recXMax = recMultiPatch.getXMax();
@@ -659,58 +657,74 @@ public class ShapeFile {
                     recMMax = recMultiPatch.getmMax();
                     break;
             }
-            
-            if (recXMin < xMin) { xMin = recXMin; }
-            if (recYMin < yMin) { yMin = recYMin; }
-            if (recXMax > xMax) { xMax = recXMax; }
-            if (recYMax > yMax) { yMax = recYMax; }
-            if (recZMin < zMin) { zMin = recZMin; }
-            if (recZMax > zMax) { zMax = recZMax; }
-            if (recMMin < mMin) { mMin = recMMin; }
-            if (recMMax > mMax) { mMax = recMMax; }
-            
+
+            if (recXMin < xMin) {
+                xMin = recXMin;
+            }
+            if (recYMin < yMin) {
+                yMin = recYMin;
+            }
+            if (recXMax > xMax) {
+                xMax = recXMax;
+            }
+            if (recYMax > yMax) {
+                yMax = recYMax;
+            }
+            if (recZMin < zMin) {
+                zMin = recZMin;
+            }
+            if (recZMax > zMax) {
+                zMax = recZMax;
+            }
+            if (recMMin < mMin) {
+                mMin = recMMin;
+            }
+            if (recMMax > mMax) {
+                mMax = recMMax;
+            }
+
             return true;
         } else {
             return false;
         }
     }
-    
+
     public boolean addRecord(Geometry recordGeometry, Object rowData[]) {
         if (recordGeometry.getShapeType() == shapeType) {
             numRecs++;
             int contentLength = (4 + recordGeometry.getLength()) / 2;
             ShapeFileRecord sfr = new ShapeFileRecord(numRecs, contentLength,
-                  shapeType, recordGeometry);
+                    shapeType, recordGeometry);
             records.add(sfr);
-            
+
             // update the min and max coordinates
-            double recXMin = 0, recYMin = 0, recXMax = 0, recYMax = 0, 
+            double recXMin = 0, recYMin = 0, recXMax = 0, recYMax = 0,
                     recZMin = 0, recZMax = 0, recMMin = 0, recMMax = 0;
-            
+
             switch (shapeType) {
                 case POINT:
-                    Point recPoint = (Point)recordGeometry;
+                    Point recPoint = (Point) recordGeometry;
                     recXMin = recPoint.getX();
                     recYMin = recPoint.getY();
                     recXMax = recXMin;
                     recYMax = recYMin;
                     break;
                 case MULTIPOINT:
-                    MultiPoint recMultiPoint = (MultiPoint)recordGeometry;
+                    MultiPoint recMultiPoint = (MultiPoint) recordGeometry;
                     recXMin = recMultiPoint.getXMin();
                     recYMin = recMultiPoint.getYMin();
                     recXMax = recMultiPoint.getXMax();
                     recYMax = recMultiPoint.getYMax();
                     break;
                 case POLYLINE:
-                    PolyLine recPolyLine = (PolyLine)recordGeometry;
+                    PolyLine recPolyLine = (PolyLine) recordGeometry;
                     recXMin = recPolyLine.getXMin();
                     recYMin = recPolyLine.getYMin();
                     recXMax = recPolyLine.getXMax();
                     recYMax = recPolyLine.getYMax();
                     break;
                 case POINTZ:
-                    PointZ recPointZ = (PointZ)recordGeometry;
+                    PointZ recPointZ = (PointZ) recordGeometry;
                     recXMin = recPointZ.getX();
                     recYMin = recPointZ.getY();
                     recXMax = recXMin;
@@ -721,7 +735,7 @@ public class ShapeFile {
                     recMMax = recPointZ.getM();
                     break;
                 case POINTM:
-                    PointM recPointM = (PointM)recordGeometry;
+                    PointM recPointM = (PointM) recordGeometry;
                     recXMin = recPointM.getX();
                     recYMin = recPointM.getY();
                     recXMax = recXMin;
@@ -730,7 +744,7 @@ public class ShapeFile {
                     recMMax = recPointM.getM();
                     break;
                 case MULTIPOINTM:
-                    MultiPointM recMultiPointM = (MultiPointM)recordGeometry;
+                    MultiPointM recMultiPointM = (MultiPointM) recordGeometry;
                     recXMin = recMultiPointM.getXMin();
                     recYMin = recMultiPointM.getYMin();
                     recXMax = recMultiPointM.getXMax();
@@ -739,7 +753,7 @@ public class ShapeFile {
                     recMMax = recMultiPointM.getmMax();
                     break;
                 case POLYLINEM:
-                    PolyLineM recPolyLineM = (PolyLineM)recordGeometry;
+                    PolyLineM recPolyLineM = (PolyLineM) recordGeometry;
                     recXMin = recPolyLineM.getXMin();
                     recYMin = recPolyLineM.getYMin();
                     recXMax = recPolyLineM.getXMax();
@@ -748,7 +762,7 @@ public class ShapeFile {
                     recMMax = recPolyLineM.getmMax();
                     break;
                 case MULTIPOINTZ:
-                    MultiPointZ recMultiPointZ = (MultiPointZ)recordGeometry;
+                    MultiPointZ recMultiPointZ = (MultiPointZ) recordGeometry;
                     recXMin = recMultiPointZ.getXMin();
                     recYMin = recMultiPointZ.getYMin();
                     recXMax = recMultiPointZ.getXMax();
@@ -759,7 +773,7 @@ public class ShapeFile {
                     recMMax = recMultiPointZ.getmMax();
                     break;
                 case POLYLINEZ:
-                    PolyLineZ recPolyLineZ = (PolyLineZ)recordGeometry;
+                    PolyLineZ recPolyLineZ = (PolyLineZ) recordGeometry;
                     recXMin = recPolyLineZ.getXMin();
                     recYMin = recPolyLineZ.getYMin();
                     recXMax = recPolyLineZ.getXMax();
@@ -770,14 +784,14 @@ public class ShapeFile {
                     recMMax = recPolyLineZ.getmMax();
                     break;
                 case POLYGON:
-                    Polygon recPolygon = (Polygon)recordGeometry;
+                    Polygon recPolygon = (Polygon) recordGeometry;
                     recXMin = recPolygon.getXMin();
                     recYMin = recPolygon.getYMin();
                     recXMax = recPolygon.getXMax();
                     recYMax = recPolygon.getYMax();
                     break;
                 case POLYGONM:
-                    PolygonM recPolygonM = (PolygonM)recordGeometry;
+                    PolygonM recPolygonM = (PolygonM) recordGeometry;
                     recXMin = recPolygonM.getXMin();
                     recYMin = recPolygonM.getYMin();
                     recXMax = recPolygonM.getXMax();
@@ -786,7 +800,7 @@ public class ShapeFile {
                     recMMax = recPolygonM.getmMax();
                     break;
                 case POLYGONZ:
-                    PolygonZ recPolygonZ = (PolygonZ)recordGeometry;
+                    PolygonZ recPolygonZ = (PolygonZ) recordGeometry;
                     recXMin = recPolygonZ.getXMin();
                     recYMin = recPolygonZ.getYMin();
                     recXMax = recPolygonZ.getXMax();
@@ -797,7 +811,7 @@ public class ShapeFile {
                     recMMax = recPolygonZ.getmMax();
                     break;
                 case MULTIPATCH:
-                    MultiPatch recMultiPatch = (MultiPatch)recordGeometry;
+                    MultiPatch recMultiPatch = (MultiPatch) recordGeometry;
                     recXMin = recMultiPatch.getXMin();
                     recYMin = recMultiPatch.getYMin();
                     recXMax = recMultiPatch.getXMax();
@@ -808,17 +822,33 @@ public class ShapeFile {
                     recMMax = recMultiPatch.getmMax();
                     break;
             }
-            
-            if (recXMin < xMin) { xMin = recXMin; }
-            if (recYMin < yMin) { yMin = recYMin; }
-            if (recXMax > xMax) { xMax = recXMax; }
-            if (recYMax > yMax) { yMax = recYMax; }
-            if (recZMin < zMin) { zMin = recZMin; }
-            if (recZMax > zMax) { zMax = recZMax; }
-            if (recMMin < mMin) { mMin = recMMin; }
-            if (recMMax > mMax) { mMax = recMMax; }
-            
-            try { 
+
+            if (recXMin < xMin) {
+                xMin = recXMin;
+            }
+            if (recYMin < yMin) {
+                yMin = recYMin;
+            }
+            if (recXMax > xMax) {
+                xMax = recXMax;
+            }
+            if (recYMax > yMax) {
+                yMax = recYMax;
+            }
+            if (recZMin < zMin) {
+                zMin = recZMin;
+            }
+            if (recZMax > zMax) {
+                zMax = recZMax;
+            }
+            if (recMMin < mMin) {
+                mMin = recMMin;
+            }
+            if (recMMax > mMax) {
+                mMax = recMMax;
+            }
+
+            try {
                 this.attributeTable.addRecord(rowData);
             } catch (Exception e) {
                 return false;
@@ -828,7 +858,7 @@ public class ShapeFile {
             return false;
         }
     }
-    
+
     public boolean addRecords(ArrayList<Geometry> recordsGeometry) {
         boolean allRightShapeType = true;
         for (Geometry rec : recordsGeometry) {
@@ -838,7 +868,7 @@ public class ShapeFile {
         }
         if (allRightShapeType) {
             double recXMin = 0, recYMin = 0, recXMax = 0, recYMax = 0,
-                        recZMin = 0, recZMax = 0, recMMin = 0, recMMax = 0;
+                    recZMin = 0, recZMax = 0, recMMin = 0, recMMax = 0;
 
             for (Geometry rec : recordsGeometry) {
                 numRecs++;
@@ -849,7 +879,7 @@ public class ShapeFile {
 
 
                 // update the min and max coordinates
-                
+
                 switch (shapeType) {
                     case POINT:
                         Point recPoint = (Point) rec;
@@ -1003,19 +1033,19 @@ public class ShapeFile {
             return false;
         }
     }
-    
+
     public ShapeFileRecord getRecord(int recordNumber) {
         return records.get(recordNumber);
     }
-    
+
     private boolean readRecords() {
         int pos;
         int recordNumber, contentLength;
         ShapeType recShapeType;
-        
+
         RandomAccessFile rIn = null;
         ByteBuffer buf;
-        
+
         try {
 
             // See if the data file exists.
@@ -1035,14 +1065,14 @@ public class ShapeFile {
 
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.rewind();
-            
+
             // read the records into an arraylist of ShapeFileRecords
             pos = 100;
             buf.rewind();
             byte[] data;
             int i = 0;
             int contentLenInBytes;
-            do {
+            while (pos < fileLength * 2) {
                 recordNumber = ByteSwapper.swap(buf.getInt(pos));
                 contentLength = ByteSwapper.swap(buf.getInt(pos + 4));
                 contentLenInBytes = contentLength * 2 - 4; // the minus four is to exclude the recShapeType
@@ -1054,10 +1084,10 @@ public class ShapeFile {
                 //records[i] = new ShapeFileRecord(recordNumber, contentLength, recShapeType, data);
                 pos += 8 + contentLength * 2;
                 i++;
-            } while (pos < fileLength * 2);
-     
+            }
+
             numRecs = records.size();
-            
+
             try {
                 rIn.close();
             } catch (Exception e) {
@@ -1068,28 +1098,29 @@ public class ShapeFile {
             System.out.println(e.getMessage());
             return false;
         }// finally {
-            //if (rIn != null) {
+        //if (rIn != null) {
 //                try {
 //                    rIn.close();
 //                } catch (Exception e) {
 //                }
-            //}
+        //}
         //}
     }
-    
+
     /**
-     * Returns an ArrayList of ShapeFileRecords that are within an area described
-     * by a BoundingBox, which usually corresponds with a mapped area.
+     * Returns an ArrayList of ShapeFileRecords that are within an area
+     * described by a BoundingBox, which usually corresponds with a mapped area.
+     *
      * @param box The bounding box describing the extent of the area into which
-     *            the data will be mapped.
-     * @param minSize The minimum size of feature to be mapped, in map units. This is 
-     *                based on the size of a single pixel, in map units, which
-     *                is affected by the scale of the map.
+     * the data will be mapped.
+     * @param minSize The minimum size of feature to be mapped, in map units.
+     * This is based on the size of a single pixel, in map units, which is
+     * affected by the scale of the map.
      * @return An array list of ShapeFileRecords that intersect with the map
-     *         area bounding box and that are larger than the minimum size..
+     * area bounding box and that are larger than the minimum size..
      */
     public ArrayList<ShapeFileRecord> getRecordsInBoundingBox(BoundingBox box, double minSize) {
-        ArrayList<ShapeFileRecord> recs = new ArrayList<ShapeFileRecord>();
+        ArrayList<ShapeFileRecord> recs = new ArrayList<>();
         // first see if the bounding box for the entire shapefile fits within box
         BoundingBox myBox = new BoundingBox(xMin, yMin, xMax, yMax);
         if (box.contains(myBox)) {
@@ -1114,7 +1145,7 @@ public class ShapeFile {
             return null;
         }
     }
-    
+
     public ArrayList<ShapeFileRecord> clipRecordsToBoundingBox(BoundingBox box, double minSize) {
         ArrayList<ShapeFileRecord> recs = new ArrayList<ShapeFileRecord>();
         // first see if the bounding box for the entire shapefile fits within box
@@ -1134,7 +1165,6 @@ public class ShapeFile {
                     if (!sfrGeometry.needsClipping(box)) {
                         recs.add(sfr);
                     } else {
-                        
                     }
                 }
             }
@@ -1144,21 +1174,24 @@ public class ShapeFile {
             return null;
         }
     }
-    
+
     /**
      * Gets the AttributeTable object associated with this ShapeFile. If no
      * database exists for this ShapeFile null will be returned.
+     *
      * @return AttributeTable object or null
      */
     public AttributeTable getAttributeTable() {
         return this.attributeTable;
     }
-    
+
     public String[] getAttributeTableFields() {
-        try {
-            
-            if (databaseFileExists) { 
-                DBFReader reader = new DBFReader(databaseFile);
+//        try {
+
+        if (databaseFileExists) {
+//                DBFReader reader = new DBFReader(databaseFile);
+            try {
+                AttributeTable reader = new AttributeTable(databaseFile);
 
                 //DBFReader reader = new DBFReader( inputStream); 
 
@@ -1173,10 +1206,14 @@ public class ShapeFile {
                     ret[i] = field.getName();
                 }
                 return ret;
-            } else {
-                // return an empty string array
-                return new String[1];
+            } catch (Exception e) {
+                return null;
             }
+
+        } else {
+            // return an empty string array
+            return new String[1];
+        }
 
 //            // Now, lets us start reading the rows
 //            //
@@ -1190,13 +1227,13 @@ public class ShapeFile {
 //                }
 //            }
 
-            
-        } catch (DBFException dbfe) {
-            System.out.println(dbfe);
-            return null;
-        } 
+
+//        } catch (DBFException dbfe) {
+//            System.out.println(dbfe);
+//            return null;
+//        }
     }
-    
+
 //    private boolean readDatabaseFile() {
 //        try {
 ////            DBFReader reader = new DBFReader(databaseFile);
@@ -1238,9 +1275,8 @@ public class ShapeFile {
 //            return false;
 //        } 
 //    }
-    
     private void readProjectionFile() {
-        
+
         // this method still needs work to enable parsing of a WKT file.
         boolean wktFormat = false;
         DataInputStream in = null;
@@ -1278,8 +1314,8 @@ public class ShapeFile {
                         // first make sure that it contains square and not round brackets
                         line = line.replace("(", "[");
                         line = line.replace(")", "]");
-                        
-                        
+
+
 //                        String[] str = line.split(",");
 //                        for (int i = 0; i < str.length; i++) {
 //                            System.out.println(str[i]);
@@ -1301,7 +1337,7 @@ public class ShapeFile {
             System.err.println("Error: " + e.getMessage());
         } finally {
             try {
-                if (in != null || br!= null) {
+                if (in != null || br != null) {
                     in.close();
                     br.close();
                 }
@@ -1311,7 +1347,13 @@ public class ShapeFile {
         }
 
     }
-    
+
+    public void refreshAttributeTable() {
+        try {
+            this.attributeTable = new AttributeTable(databaseFile);
+        } catch (Exception e) {
+        }
+    }
 //    // this is only used for debugging the tool
 //    public static void main(String[] args) {
 //        

@@ -31,6 +31,19 @@ public class ShapefilePoint implements Comparable<ShapefilePoint> {
         this.y = y;
     }
 
+    public ShapefilePoint(double x, double y, double m) {
+        this.x = x;
+        this.y = y;
+        this.m = m;
+    }
+    
+    public ShapefilePoint(double x, double y, double z, double m) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.m = m;
+    }
+    
     @Override
     public int compareTo(ShapefilePoint t) {
         final int BEFORE = -1;

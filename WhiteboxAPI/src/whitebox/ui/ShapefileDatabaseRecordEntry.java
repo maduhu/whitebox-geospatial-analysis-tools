@@ -22,16 +22,13 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.*;
 import whitebox.geospatialfiles.shapefile.attributes.*;
+import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.NUMERIC;
 import whitebox.ui.carto_properties.*;
 
 /**
@@ -45,6 +42,8 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
     private String[] attributeFieldNames;
     private DBFField[] fields;
     private Object[] recordData;
+    private double mValue;
+    private double zValue;
 
     // constructors
     public ShapefileDatabaseRecordEntry() {
@@ -66,6 +65,14 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
         this.shapefile = shapefile;
         init();
     }
+    
+    public double getMValue() {
+        return mValue;
+    }
+    
+    public double getZValue() {
+        return zValue;
+    }
 
     // methods
     private void init() {
@@ -74,6 +81,8 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
         }
 
         NumericProperty numProp;
+        StringProperty stringProp;
+        BooleanProperty boolProp;
 
         attributeFieldNames = shapefile.getAttributeTableFields();
         fields = shapefile.getAttributeTable().getAllFields();
@@ -91,12 +100,29 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
 
         ShapeTypeDimension shapeTypeDimension = shapefile.getShapeType().getDimension();
         if (shapeTypeDimension == ShapeTypeDimension.Z) {
+            numProp = new NumericProperty("Z value", "");
+            numProp.setBackColour(Color.WHITE);
+            numProp.setTextboxWidth(10);
+            numProp.setPrecision(NumericProperty.Precision.DOUBLE);
+            numProp.addPropertyChangeListener("value", this);
+            numProp.setPreferredWidth(250);
+            numProp.revalidate();
+            box.add(numProp);
+            
+            numProp = new NumericProperty("M value", "");
+            numProp.setBackColour(Color.WHITE);
+            numProp.setTextboxWidth(10);
+            numProp.setPrecision(NumericProperty.Precision.DOUBLE);
+            numProp.addPropertyChangeListener("value", this);
+            numProp.setPreferredWidth(250);
+            numProp.revalidate();
+            box.add(numProp);
         } else if (shapeTypeDimension == ShapeTypeDimension.M) {
             numProp = new NumericProperty("M value:", "");
             numProp.setBackColour(Color.WHITE);
             numProp.setTextboxWidth(10);
-            numProp.setParseIntegersOnly(false);
-            //numProp.addPropertyChangeListener("value", this);
+            numProp.setPrecision(NumericProperty.Precision.DOUBLE);
+            numProp.addPropertyChangeListener("value", this);
             numProp.setPreferredWidth(250);
             numProp.revalidate();
             box.add(numProp);
@@ -120,11 +146,46 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
                     numProp.revalidate();
                     box.add(numProp);
                     break;
+                case FLOAT:
+                    numProp = new NumericProperty(attributeFieldNames[i], "");
+                    numProp.setName(attributeFieldNames[i]);
+                    numProp.setBackColour(Color.WHITE);
+                    numProp.setPrecision(NumericProperty.Precision.FLOAT);
+                    numProp.setTextboxWidth(10);
+                    if (field.getDecimalCount() == 0) {
+                        numProp.setParseIntegersOnly(true);
+                    } else {
+                        numProp.setParseIntegersOnly(false);
+                    }
+                    numProp.addPropertyChangeListener("value", this);
+                    numProp.setPreferredWidth(250);
+                    numProp.revalidate();
+                    box.add(numProp);
+                    break;
+                case STRING:
+                    stringProp = new StringProperty(attributeFieldNames[i], "");
+                    stringProp.setName(attributeFieldNames[i]);
+                    stringProp.setBackColour(Color.WHITE);
+                    stringProp.setTextboxWidth(10);
+                    stringProp.addPropertyChangeListener("value", this);
+                    stringProp.setPreferredWidth(250);
+                    stringProp.revalidate();
+                    box.add(stringProp);
+                    break;
+                case BOOLEAN:
+                    boolProp = new BooleanProperty(attributeFieldNames[i], false);
+                    boolProp.setName(attributeFieldNames[i]);
+                    boolProp.setBackColour(Color.WHITE);
+                    boolProp.addPropertyChangeListener("value", this);
+                    boolProp.setPreferredWidth(250);
+                    boolProp.revalidate();
+                    box.add(boolProp);
+                    break;
             }
             i++;
 
         }
-
+        box.add(Box.createVerticalGlue());
         JScrollPane scroll = new JScrollPane(box);
 
         this.add(scroll);
@@ -148,9 +209,6 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
         panel.add(box2);
         this.getContentPane().add(panel, BorderLayout.SOUTH);
         //this.addWindowListener(this);
-
-
-
     }
 
     public Object[] getValue() {
@@ -159,19 +217,20 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
+        //Object source = e.getSource();
         String actionCommand = e.getActionCommand();
         switch (actionCommand) {
             case "ok":
                 this.setVisible(false);
                 break;
             case "cancel":
-                //myValue = "";
+                recordData = null;
                 this.setVisible(false);
                 break;
 
         }
     }
+    
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
@@ -184,10 +243,48 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
         }
         if (source instanceof NumericProperty) {
             NumericProperty np = (NumericProperty) source;
-            
+            if (np.getName().equals("Z value")) {
+                
+            } else if (np.getName().equals("M value")) {
+                
+            } else if (np.getPrecision() == NumericProperty.Precision.DOUBLE) {
+                for (int i = 0; i < fields.length; i++) {
+                    if (np.getName().equals(attributeFieldNames[i])) {
+                        Double value = Double.parseDouble((String) evt.getNewValue());
+                        recordData[i] = value;
+                    }
+                }
+            } else if (np.getPrecision() == NumericProperty.Precision.FLOAT) {
+                for (int i = 0; i < fields.length; i++) {
+                    if (np.getName().equals(attributeFieldNames[i])) {
+                        Double value = (double)(Float.parseFloat((String) evt.getNewValue()));
+                        recordData[i] = value;
+                    }
+                }
+            } else {
+                for (int i = 0; i < fields.length; i++) {
+                    if (np.getName().equals(attributeFieldNames[i])) {
+                        Double value = (double)(Integer.parseInt((String) evt.getNewValue()));
+                        recordData[i] = value;
+                    }
+                }
+            }
+        } else if (source instanceof StringProperty) {
+            StringProperty sp = (StringProperty) source;
+
             for (int i = 0; i < fields.length; i++) {
-                if (np.getName().equals(attributeFieldNames[i])) {
-                    recordData[i] = Double.parseDouble((String) evt.getNewValue());
+                if (sp.getName().equals(attributeFieldNames[i])) {
+                    String value = (String) evt.getNewValue();
+                    recordData[i] = value;
+                }
+            }
+        } else if (source instanceof BooleanProperty) {
+            BooleanProperty bp = (BooleanProperty) source;
+
+            for (int i = 0; i < fields.length; i++) {
+                if (bp.getName().equals(attributeFieldNames[i])) {
+                    Boolean value = (Boolean) evt.getNewValue();
+                    recordData[i] = value;
                 }
             }
         }

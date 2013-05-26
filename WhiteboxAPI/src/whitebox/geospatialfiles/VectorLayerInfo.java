@@ -16,7 +16,6 @@
  */
 package whitebox.geospatialfiles;
 
-import java.awt.Dimension;
 import java.awt.Color;
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -28,7 +27,8 @@ import java.util.*;
 import whitebox.cartographic.PointMarkers.MarkerStyle;
 import whitebox.geospatialfiles.shapefile.attributes.DBFException;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.geospatialfiles.shapefile.*;
@@ -38,8 +38,6 @@ import whitebox.structures.BoundingBox;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import static whitebox.geospatialfiles.shapefile.ShapeType.*;
-import whitebox.ui.ShapefileDatabaseRecordEntry;
-import javax.swing.JFrame;
 
 /**
  *
@@ -320,6 +318,13 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setActivelyEdited(boolean activelyEdited) {
         this.isActivelyEdited = activelyEdited;
+        if (!activelyEdited) {
+            try {
+                shapefile.write();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -508,7 +513,8 @@ public class VectorLayerInfo implements MapLayer {
             String dbfFileName = fileName.replace(".shp", ".dbf");
 
             try {
-                DBFReader dbfReader = new DBFReader(dbfFileName);
+//                DBFReader dbfReader = new DBFReader(dbfFileName);
+                AttributeTable dbfReader = new AttributeTable(dbfFileName);
                 DBFField[] fields = dbfReader.getAllFields();
                 byte dataType = 0;
                 int fieldNum = -1;
@@ -884,13 +890,21 @@ public class VectorLayerInfo implements MapLayer {
     double previousY = -1;
     Object[] recData;
     boolean isFeatureOpen = false;
+    double mValue = 0;
+    double zValue = 0;
+    
+    public void setMValue(double mValue) {
+        this.mValue = mValue;
+    }
+    
+    public void setZValue(double zValue) {
+        this.zValue = zValue;
+    }
     
     public void openNewFeature(Object[] recordData) {
         isFeatureOpen = true;
         digitizedPoints.clear();
         this.recData = recordData;
-        
-//        recData = new Object[shapefile.getAttributeTableFields().length];
     }
  
     public void addNodeToNewFeature(double x, double y) {
@@ -898,7 +912,13 @@ public class VectorLayerInfo implements MapLayer {
 //            openNewFeature();
 //        }
         if (x != previousX && y != previousY) {
-            digitizedPoints.add(new ShapefilePoint(x, y));
+            if (shapeType.getDimension() == ShapeTypeDimension.XY) {
+                digitizedPoints.add(new ShapefilePoint(x, y));
+            } else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
+                digitizedPoints.add(new ShapefilePoint(x, y, zValue, mValue));
+            } else if (shapeType.getDimension() == ShapeTypeDimension.M) {
+                digitizedPoints.add(new ShapefilePoint(x, y, mValue));
+            }
             if (shapeType.getBaseType() == ShapeType.POINT) {
                 closeNewFeature();
             }
@@ -982,7 +1002,7 @@ public class VectorLayerInfo implements MapLayer {
             recs = shapefile.getRecordsInBoundingBox(currentExtent, 1);
             colourData = null;
             //openNewFeature();
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         } finally {
             isFeatureOpen = false;

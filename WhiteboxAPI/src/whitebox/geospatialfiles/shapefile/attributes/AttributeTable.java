@@ -175,6 +175,14 @@ public class AttributeTable {
     }
     
     /**
+     * Used to determine whether the table has been modified since it was last saved.
+     * @return boolean
+     */
+    public boolean isTableDirty() {
+        return isDirty;
+    }
+    
+    /**
      * Returns a String array of fields.
      * @return String array
      */
@@ -817,7 +825,7 @@ public class AttributeTable {
         }
         
         recordData.add(values);
-
+        isDirty = true;
     }
     
     /**
@@ -999,6 +1007,7 @@ public class AttributeTable {
         }
         
         recordData.remove(recordNumber);
+        isDirty = true;
     }
     
     // private methods
@@ -1098,9 +1107,9 @@ public class AttributeTable {
 
                         break;
 
-                    case MEMO:
-
-                        break;
+//                    case MEMO:
+//
+//                        break;
 
                     default:
                         throw new DBFException("Unknown field type " + this.fieldArray[j].getDataType());
@@ -1108,8 +1117,19 @@ public class AttributeTable {
                 
             }
             
-            raf.seek(raf.length());
+            // see if there is an end-of-data byte at the end of the file.
+            long length = raf.length();
+            raf.seek(length - 1);
+            byte lastByte = raf.readByte();
+            if (lastByte == END_OF_DATA) {
+                // over-write the END_OF_DATA byte to append new records.
+                raf.seek(length - 1);
+            } else {
+                raf.seek(length);
+            }
+            //raf.seek(raf.length());
             raf.write(buf.array());
+            
             
             //raf.seek(raf.length());
             
@@ -1133,6 +1153,8 @@ public class AttributeTable {
             
             // update the file header
             writeHeader(raf);
+            
+            raf.close();
             
             isDirty = false;
         } catch (IOException e) {
