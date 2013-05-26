@@ -29,5 +29,6 @@ plugins.StochasticDepressionAnalysis
 plugins.TangentialCurv
 plugins.TopographicRuggednessIndex
 plugins.TotalCurv
+plugins.Viewshed
 plugins.VisibilityIndex
 plugins.WetnessIndex
