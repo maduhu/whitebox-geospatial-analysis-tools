@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011-2012 John Lindsay
+ *  Copyright (C) 2011-2013 John Lindsay
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -137,6 +137,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JButton editVectorButton = null;
     private JButton digitizeNewFeatureButton = null;
     private JButton moveNodesButton = null;
+    private JButton deleteFeatureButton = null;
     private JCheckBoxMenuItem modifyPixels = null;
     private JCheckBoxMenuItem zoomMenuItem = null;
     private JCheckBoxMenuItem zoomOutMenuItem = null;
@@ -1784,6 +1785,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             digitizeNewFeatureButton.setVisible(false);
             toolbar.add(digitizeNewFeatureButton);
 
+            deleteFeatureButton = makeToolBarButton("DeleteFeature.png", "deleteFeature", "Delete Feature", "Delete Feature");
+            deleteFeatureButton.setVisible(false);
+            toolbar.add(deleteFeatureButton);
+
             moveNodesButton = makeToolBarButton("MoveNodes.png", "moveNodes", "Move Feature Nodes", "Move Feature Nodes");
             moveNodesButton.setVisible(false);
             toolbar.add(moveNodesButton);
@@ -1981,6 +1986,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                         editVectorButton.setBorderPainted(true);
                                         digitizeNewFeatureButton.setVisible(true);
                                         moveNodesButton.setVisible(true);
+                                        deleteFeatureButton.setVisible(true);
                                     } else {
                                         editVectorButton.setEnabled(true);
                                         editVectorButton.setBorderPainted(false);
@@ -1988,6 +1994,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                         digitizeNewFeatureButton.setBorderPainted(false);
                                         drawingArea.setDigitizingNewFeature(false);
                                         moveNodesButton.setVisible(false);
+                                        deleteFeatureButton.setVisible(false);
                                     }
                                 } else {
                                     editVectorButton.setEnabled(false);
@@ -4418,13 +4425,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             } else {
                 digitizeNewFeatureButton.setBorderPainted(true);
                 drawingArea.setDigitizingNewFeature(true);
-                vli.getShapefile().refreshAttributeTable();     
+                vli.getShapefile().refreshAttributeTable();
                 ShapefileDatabaseRecordEntry dataRecordEntry = new ShapefileDatabaseRecordEntry(this, true, vli.getShapefile());
                 dataRecordEntry.setSize(400, 300);
                 dataRecordEntry.setLocation(100, 100);
                 dataRecordEntry.setVisible(true);
                 Object[] recData = dataRecordEntry.getValue();
-                if (recData == null) { 
+                if (recData == null) {
                     digitizeNewFeatureButton.setBorderPainted(false);
                     drawingArea.setDigitizingNewFeature(false);
                     return;
@@ -4445,6 +4452,39 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
         } else {
             showFeedback("The active layer is not a vector.");
+        }
+    }
+
+    private void deleteFeature() {
+        try {
+            MapLayer layer = openMaps.get(activeMap).getActiveMapArea().getActiveLayer();
+            if (layer instanceof VectorLayerInfo) {
+                VectorLayerInfo vli = (VectorLayerInfo) layer;
+                // which feature is selected?
+                int selectedFeature = vli.getSelectedFeatureNumber();
+                if (selectedFeature < 0) {
+                    showFeedback("There are no selected features. Please select a feature using \n"
+                            + "the 'Select Feature' tool before attempting to delete "
+                            + "features.");
+                    return;
+                } else {
+                    int n = showFeedback("Are you certain you want to delete feature "
+                            + selectedFeature + "?", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if (n == JOptionPane.YES_OPTION) {
+                        vli.getShapefile().deleteRecord(selectedFeature);
+                        vli.reloadShapefile();
+                        refreshMap(false);
+                    } else if (n == JOptionPane.NO_OPTION) {
+                        return;
+                    }
+                }
+
+            } else {
+                showFeedback("The active layer is not a vector.");
+            }
+        } catch (Exception e) {
+            showFeedback("Error in WhiteboxGui.deleteFeature(): " + e.getMessage());
         }
     }
 
@@ -5159,6 +5199,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             case "digitizeNewFeature":
                 digitizeNewFeature();
+                break;
+            case "deleteFeature":
+                deleteFeature();
                 break;
         }
 

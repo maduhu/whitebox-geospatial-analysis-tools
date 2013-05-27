@@ -11,10 +11,10 @@
 	</DialogComponent>
 	<DialogComponent type="DialogFile">
 		<Name>outletHeader</Name>
-		<Description>Enter the name of the outlet file here</Description>
-		<LabelText>Input Outlet Raster File:</LabelText>
+		<Description>Enter the name of the pour point, or outlet, file here</Description>
+		<LabelText>Input Pour Point (i.e. Outlet) Raster File:</LabelText>
 		<DialogMode>Open File</DialogMode>
-		<Filter>Raster Files (*.dep), DEP</Filter>
+		<Filter>Whitebox Files (*.shp; *.dep), DEP, SHP</Filter>
 		<IsVisible>True</IsVisible>
 		<MakeOptional>False</MakeOptional>
 		<ShowButton>True</ShowButton>
