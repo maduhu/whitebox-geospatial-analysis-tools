@@ -6,11 +6,13 @@ import java.text.DecimalFormatSymbols;
  *
  * @author johnlindsay
  */
-public class StringUtilities {
+public abstract class StringUtilities {
 
     public static boolean isStringNumeric(String str) {
         try {
-            if (str.isEmpty()) { return false; }
+            if (str.isEmpty()) {
+                return false;
+            }
             DecimalFormatSymbols currentLocaleSymbols = DecimalFormatSymbols.getInstance();
             char localeMinusSign = currentLocaleSymbols.getMinusSign();
 
@@ -33,6 +35,17 @@ public class StringUtilities {
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    public static String replaceLast(String string, String toReplace, String replacement) {
+        int pos = string.lastIndexOf(toReplace);
+        if (pos > -1) {
+            return string.substring(0, pos)
+                    + replacement
+                    + string.substring(pos + toReplace.length(), string.length());
+        } else {
+            return string;
         }
     }
 }

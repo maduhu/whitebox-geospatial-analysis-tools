@@ -892,21 +892,21 @@ public class VectorLayerInfo implements MapLayer {
     boolean isFeatureOpen = false;
     double mValue = 0;
     double zValue = 0;
-    
+
     public void setMValue(double mValue) {
         this.mValue = mValue;
     }
-    
+
     public void setZValue(double zValue) {
         this.zValue = zValue;
     }
-    
+
     public void openNewFeature(Object[] recordData) {
         isFeatureOpen = true;
         digitizedPoints.clear();
         this.recData = recordData;
     }
- 
+
     public void addNodeToNewFeature(double x, double y) {
 //        if (!isFeatureOpen) {
 //            openNewFeature();
@@ -929,7 +929,9 @@ public class VectorLayerInfo implements MapLayer {
 
     private void closeNewFeature() {
         try {
-            if (digitizedPoints.isEmpty()) { return; }
+            if (digitizedPoints.isEmpty()) {
+                return;
+            }
             PointsList pl = new PointsList(digitizedPoints);
             int[] parts = {0};
             double x, y, z, m;
@@ -997,16 +999,24 @@ public class VectorLayerInfo implements MapLayer {
             }
 
             shapefile.write();
-            fullExtent = new BoundingBox(shapefile.getxMin(), shapefile.getyMin(),
-                    shapefile.getxMax(), shapefile.getyMax());
-            recs = shapefile.getRecordsInBoundingBox(currentExtent, 1);
-            colourData = null;
+            reloadShapefile();
+//            fullExtent = new BoundingBox(shapefile.getxMin(), shapefile.getyMin(),
+//                    shapefile.getxMax(), shapefile.getyMax());
+//            recs = shapefile.getRecordsInBoundingBox(currentExtent, 1);
+//            colourData = null;
             //openNewFeature();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         } finally {
             isFeatureOpen = false;
         }
+    }
+
+    public void reloadShapefile() {
+        fullExtent = new BoundingBox(shapefile.getxMin(), shapefile.getyMin(),
+                shapefile.getxMax(), shapefile.getyMax());
+        recs = shapefile.getRecordsInBoundingBox(currentExtent, 1);
+        colourData = null;
     }
 
     public void closeNewFeature(double x, double y) {
