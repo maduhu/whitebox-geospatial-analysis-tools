@@ -27,7 +27,8 @@ import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.geospatialfiles.shapefile.ShapefilePoint;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.utilities.Topology;
@@ -229,8 +230,6 @@ public class MinimumConvexHull implements WhiteboxPlugin {
             shapeType = input.getShapeType();
             numRecs = input.getNumberOfRecords();
             
-            // set up the output files of the shapefile and the dbf
-            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON);
             
             DBFField fields[] = new DBFField[1];
 
@@ -240,10 +239,14 @@ public class MinimumConvexHull implements WhiteboxPlugin {
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
 
-            String DBFName = output.getDatabaseFile();
-            DBFWriter writer = new DBFWriter(new File(DBFName));
+            // set up the output files of the shapefile and the dbf
+            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON, fields);
             
-            writer.setFields(fields);
+//            String DBFName = output.getDatabaseFile();
+//            DBFWriter writer = new DBFWriter(new File(DBFName));
+//            AttributeTable writer = output.getAttributeTable();
+            
+//            writer.setFields(fields);
 
             if (convexHullAroundEachFeature && 
                     (shapeType.getBaseType() == ShapeType.POLYLINE || 
@@ -286,11 +289,10 @@ public class MinimumConvexHull implements WhiteboxPlugin {
 
                                 PointsList pl = new PointsList(pnts);
                                 whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                                output.addRecord(wbPoly);
-
+                                
                                 Object[] rowData = new Object[1];
                                 rowData[0] = new Double(FID);
-                                writer.addRecord(rowData);
+                                output.addRecord(wbPoly, rowData);
                             }
                         }
                     }
@@ -308,7 +310,7 @@ public class MinimumConvexHull implements WhiteboxPlugin {
                 
             } else {
                 com.vividsolutions.jts.geom.Geometry[] recJTSPoly = null;
-                ArrayList<Coordinate> coordsList = new ArrayList<Coordinate>();
+                ArrayList<Coordinate> coordsList = new ArrayList<>();
                 n = 0;
                 oneHundredthTotal = numRecs / 100;
                 progress = 0;
@@ -353,7 +355,7 @@ public class MinimumConvexHull implements WhiteboxPlugin {
 
                     com.vividsolutions.jts.geom.Polygon chPoly = (com.vividsolutions.jts.geom.Polygon) ch;
 
-                    ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                    ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                     int[] parts = new int[chPoly.getNumInteriorRing() + 1];
 
@@ -384,16 +386,15 @@ public class MinimumConvexHull implements WhiteboxPlugin {
 
                     PointsList pl = new PointsList(pnts);
                     whitebox.geospatialfiles.shapefile.Polygon wbPoly = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                    output.addRecord(wbPoly);
-
+                    
                     Object[] rowData = new Object[1];
                     rowData[0] = new Double(FID);
-                    writer.addRecord(rowData);
+                    output.addRecord(wbPoly, rowData);
+
                 }
             }
             
             output.write();
-            writer.write();
             
             
             // returning a header file string displays the image.

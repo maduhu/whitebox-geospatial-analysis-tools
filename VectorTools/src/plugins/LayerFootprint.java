@@ -20,7 +20,7 @@ import java.io.File;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.Polygon;
 import whitebox.geospatialfiles.shapefile.ShapeType;
@@ -235,8 +235,7 @@ public class LayerFootprint implements WhiteboxPlugin {
 
 
             // set up the output files of the shapefile and the dbf
-            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON);
-
+            
             DBFField fields[] = new DBFField[1];
 
             fields[0] = new DBFField();
@@ -245,10 +244,7 @@ public class LayerFootprint implements WhiteboxPlugin {
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
 
-            String DBFName = output.getDatabaseFile();
-            DBFWriter writer = new DBFWriter(new File(DBFName));
-
-            writer.setFields(fields);
+            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON, fields);
 
             int[] parts = {0};
 
@@ -262,10 +258,9 @@ public class LayerFootprint implements WhiteboxPlugin {
             points.addPoint(west, north);
             
             Polygon poly = new Polygon(parts, points.getPointsArray());
-            output.addRecord(poly);
             Object[] rowData = new Object[1];
             rowData[0] = new Double(1);
-            writer.addRecord(rowData);
+            output.addRecord(poly, rowData);
             
             output.write();
             
