@@ -136,7 +136,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JButton distanceToolButton = null;
     private JButton editVectorButton = null;
     private JButton digitizeNewFeatureButton = null;
-    private JButton moveNodesButton = null;
+//    private JButton moveNodesButton = null;
     private JButton deleteFeatureButton = null;
     private JCheckBoxMenuItem modifyPixels = null;
     private JCheckBoxMenuItem zoomMenuItem = null;
@@ -145,6 +145,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JCheckBoxMenuItem selectMenuItem = null;
     private JCheckBoxMenuItem selectFeatureMenuItem = null;
     private JCheckBoxMenuItem distanceToolMenuItem = null;
+    private JCheckBoxMenuItem editVectorMenuItem = null;
+    private JCheckBoxMenuItem digitizeNewFeatureMenuItem = null;
+    private JMenuItem deleteFeatureMenuItem = null;
     private JCheckBoxMenuItem linkMap = null;
     private JCheckBoxMenuItem wordWrap = null;
     private JCheckBoxMenuItem editLayerMenuItem = null;
@@ -1332,6 +1335,34 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             menubar.add(ToolsMenu);
 
 
+            ToolsMenu.addSeparator();
+
+            JMenu editVectorMenu = new JMenu("On-Screen Digitizing");
+
+            editVectorMenuItem = new JCheckBoxMenuItem("Edit Vector", new ImageIcon(graphicsDirectory + "Digitize.png"));
+            editVectorMenu.add(editVectorMenuItem);
+            editVectorMenuItem.addActionListener(this);
+            editVectorMenuItem.setActionCommand("editVector");
+            editVectorMenuItem.setEnabled(false);
+
+            digitizeNewFeatureMenuItem = new JCheckBoxMenuItem("Digitize New Feature", new ImageIcon(graphicsDirectory + "DigitizeNewFeature.png"));
+            editVectorMenu.add(digitizeNewFeatureMenuItem);
+            digitizeNewFeatureMenuItem.addActionListener(this);
+            digitizeNewFeatureMenuItem.setActionCommand("digitizeNewFeature");
+            digitizeNewFeatureMenuItem.setEnabled(false);
+
+            deleteFeatureMenuItem = new JMenuItem("Delete Feature", new ImageIcon(graphicsDirectory + "DeleteFeature.png"));
+            editVectorMenu.add(deleteFeatureMenuItem);
+            deleteFeatureMenuItem.addActionListener(this);
+            deleteFeatureMenuItem.setActionCommand("deleteFeature");
+            deleteFeatureMenuItem.setEnabled(false);
+
+            ToolsMenu.add(editVectorMenu);
+
+
+
+
+
             // Help menu
             JMenu HelpMenu = new JMenu("Help");
             JMenuItem helpIndex = new JMenuItem("Index", new ImageIcon(graphicsDirectory + "help.png"));
@@ -1789,9 +1820,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             deleteFeatureButton.setVisible(false);
             toolbar.add(deleteFeatureButton);
 
-            moveNodesButton = makeToolBarButton("MoveNodes.png", "moveNodes", "Move Feature Nodes", "Move Feature Nodes");
-            moveNodesButton.setVisible(false);
-            toolbar.add(moveNodesButton);
+//            moveNodesButton = makeToolBarButton("MoveNodes.png", "moveNodes", "Move Feature Nodes", "Move Feature Nodes");
+//            moveNodesButton.setVisible(false);
+//            toolbar.add(moveNodesButton);
 
             toolbar.addSeparator();
             JButton help = makeToolBarButton("Help.png", "helpIndex", "Help", "Help");
@@ -1984,20 +2015,40 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                     if (vli.isActivelyEdited()) {
                                         editVectorButton.setEnabled(true);
                                         editVectorButton.setBorderPainted(true);
+                                        editVectorMenuItem.setState(true);
                                         digitizeNewFeatureButton.setVisible(true);
-                                        moveNodesButton.setVisible(true);
+//                                        moveNodesButton.setVisible(true);
                                         deleteFeatureButton.setVisible(true);
+                                        digitizeNewFeatureMenuItem.setEnabled(true);
+                                        deleteFeatureMenuItem.setEnabled(true);
+
                                     } else {
                                         editVectorButton.setEnabled(true);
                                         editVectorButton.setBorderPainted(false);
+                                        editVectorMenuItem.setEnabled(true);
+                                        editVectorMenuItem.setState(false);
                                         digitizeNewFeatureButton.setVisible(false);
                                         digitizeNewFeatureButton.setBorderPainted(false);
                                         drawingArea.setDigitizingNewFeature(false);
-                                        moveNodesButton.setVisible(false);
+//                                        moveNodesButton.setVisible(false);
                                         deleteFeatureButton.setVisible(false);
+                                        digitizeNewFeatureMenuItem.setState(false);
+                                        digitizeNewFeatureMenuItem.setEnabled(false);
+                                        deleteFeatureMenuItem.setEnabled(false);
                                     }
                                 } else {
                                     editVectorButton.setEnabled(false);
+                                    editVectorButton.setBorderPainted(false);
+                                    editVectorMenuItem.setEnabled(false);
+                                    editVectorMenuItem.setState(false);
+                                    digitizeNewFeatureButton.setVisible(false);
+                                    digitizeNewFeatureButton.setBorderPainted(false);
+                                    drawingArea.setDigitizingNewFeature(false);
+//                                        moveNodesButton.setVisible(false);
+                                    deleteFeatureButton.setVisible(false);
+                                    digitizeNewFeatureMenuItem.setState(false);
+                                    digitizeNewFeatureMenuItem.setEnabled(false);
+                                    deleteFeatureMenuItem.setEnabled(false);
                                 }
                             } else {
                                 lep.setTitleFont(fonts.get("inactiveLayer"));
@@ -4421,9 +4472,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             VectorLayerInfo vli = (VectorLayerInfo) layer;
             if (digitizeNewFeatureButton.isBorderPainted()) {
                 digitizeNewFeatureButton.setBorderPainted(false);
+                digitizeNewFeatureMenuItem.setState(false);
                 drawingArea.setDigitizingNewFeature(false);
             } else {
                 digitizeNewFeatureButton.setBorderPainted(true);
+                digitizeNewFeatureMenuItem.setState(true);
                 drawingArea.setDigitizingNewFeature(true);
                 vli.getShapefile().refreshAttributeTable();
                 ShapefileDatabaseRecordEntry dataRecordEntry = new ShapefileDatabaseRecordEntry(this, true, vli.getShapefile());
@@ -4433,6 +4486,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 Object[] recData = dataRecordEntry.getValue();
                 if (recData == null) {
                     digitizeNewFeatureButton.setBorderPainted(false);
+                    digitizeNewFeatureMenuItem.setState(false);
                     drawingArea.setDigitizingNewFeature(false);
                     return;
                 }
@@ -4448,6 +4502,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             if (!vli.isActivelyEdited()) {
                 digitizeNewFeatureButton.setBorderPainted(false);
+                digitizeNewFeatureMenuItem.setState(false);
                 drawingArea.setDigitizingNewFeature(false);
             }
         } else {
@@ -4455,12 +4510,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void deleteFeature() {
+    /**
+     * Used to delete a selected vector feature that is actively being edited.
+     */
+    @Override
+    public void deleteFeature() {
         try {
             MapLayer layer = openMaps.get(activeMap).getActiveMapArea().getActiveLayer();
             if (layer instanceof VectorLayerInfo) {
                 VectorLayerInfo vli = (VectorLayerInfo) layer;
                 // which feature is selected?
+                if (!vli.isActivelyEdited()) {
+                    showFeedback("The active layer does not appear to be actively being edited. \n"
+                            + "Please select the 'Edit Vector' tool before continuing.");
+                    return;
+                }
                 int selectedFeature = vli.getSelectedFeatureNumber();
                 if (selectedFeature < 0) {
                     showFeedback("There are no selected features. Please select a feature using \n"

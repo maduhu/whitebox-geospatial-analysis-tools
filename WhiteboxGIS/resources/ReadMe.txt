@@ -39,7 +39,7 @@ Version 3.0 comes with the addition of many new tools for spatial analysis, many
  result of improved support for vector data in Whitebox. In addition, Whitebox now has more 
 advanced abilities to view and edit shapefile database files (.dbf). The vector selection feature is 
 now operational, allowing for the ability to query a shapefile's attributes simply by selecting the 
-feature in the map area.
+feature in the map area. Shapefiles may also be created through basic on-screen digitizing functionality.
 
 Whitebox now requires Java Runtime Environment (JRE) 7.0, meaning that you will need to 
 update to the most recent JRE version before you run Whitebox. If you double-click the Whitebox 

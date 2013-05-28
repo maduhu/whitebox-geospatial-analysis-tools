@@ -2,9 +2,9 @@
 	<DialogComponent type="DialogFile">
 		<Name>outletHeader</Name>
 		<Description>Enter the name of the input outlets file here</Description>
-		<LabelText>Input Outlets Raster File:</LabelText>
+		<LabelText>Input Outlets File:</LabelText>
 		<DialogMode>Open File</DialogMode>
-		<Filter>Raster Files (*.dep), DEP</Filter>
+		<Filter>Whitebox Files (*.shp; *.dep), DEP, SHP</Filter>
 		<IsVisible>True</IsVisible>
 		<MakeOptional>False</MakeOptional>
 		<ShowButton>True</ShowButton>
@@ -22,9 +22,9 @@
 	<DialogComponent type="DialogFile">
 		<Name>outputHeader</Name>
 		<Description>Enter the name of the output file here</Description>
-		<LabelText>Output Raster File:</LabelText>
+		<LabelText>Output File:</LabelText>
 		<DialogMode>Save File</DialogMode>
-		<Filter>Raster Files (*.dep), DEP</Filter>
+		<Filter>Whitebox Files (*.shp; *.dep), DEP, SHP</Filter>
 		<IsVisible>True</IsVisible>
 		<MakeOptional>False</MakeOptional>
 		<ShowButton>True</ShowButton>
