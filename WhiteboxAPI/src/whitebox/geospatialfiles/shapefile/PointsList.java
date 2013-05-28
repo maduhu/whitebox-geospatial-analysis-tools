@@ -17,6 +17,7 @@
 package whitebox.geospatialfiles.shapefile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
@@ -121,5 +122,9 @@ public class PointsList {
     
     public int size() {
         return myList.size();
+    }
+    
+    public void reverseOrder() {
+        Collections.reverse(myList);
     }
 }

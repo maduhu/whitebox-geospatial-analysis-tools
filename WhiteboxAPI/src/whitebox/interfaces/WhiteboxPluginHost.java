@@ -91,4 +91,9 @@ public interface WhiteboxPluginHost {
      * Used to refresh a displayed map.
      */
     public void refreshMap(boolean updateLayersTab);
+    
+    /**
+     * Used to delete a selected vector feature that is actively being edited.
+     */
+    public void deleteFeature();
 }

@@ -215,5 +215,10 @@ public class PluginHost implements WhiteboxPluginHost, Communicator {
     public void editVector() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public void deleteFeature() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
 }

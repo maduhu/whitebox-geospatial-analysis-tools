@@ -982,18 +982,51 @@ public class VectorLayerInfo implements MapLayer {
                     if (pl.getPoint(0) != pl.getPoint(pl.size() - 1)) {
                         pl.addPoint(pl.getPoint(0).x, pl.getPoint(0).y);
                     }
+                    
+                    // Non-hole polygons must be in a clockwise order
+                    try {
+                        if (!isPointsListClockwiseOrder(pl)) {
+                            // reverse the order
+                            pl.reverseOrder();
+                        } 
+                    } catch (Exception e) {
+                        
+                    }
+                    
                     Polygon polygon = new Polygon(parts, pl.getPointsArray());
                     shapefile.addRecord(polygon, recData);
                 case POLYGONZ:
                     if (pl.getPoint(0) != pl.getPoint(pl.size() - 1)) {
                         pl.addZPoint(pl.getPoint(0).x, pl.getPoint(0).y, pl.getPoint(0).z, pl.getPoint(0).m);
                     }
+                    
+                    // Non-hole polygons must be in a clockwise order
+                    try {
+                        if (!isPointsListClockwiseOrder(pl)) {
+                            // reverse the order
+                            pl.reverseOrder();
+                        } 
+                    } catch (Exception e) {
+                        
+                    }
+                    
                     PolygonZ polygonZ = new PolygonZ(parts, pl.getPointsArray(), pl.getZArray(), pl.getMArray());
                     shapefile.addRecord(polygonZ, recData);
                 case POLYGONM:
                     if (pl.getPoint(0) != pl.getPoint(pl.size() - 1)) {
                         pl.addMPoint(pl.getPoint(0).x, pl.getPoint(0).y, pl.getPoint(0).m);
                     }
+                    
+                    // Non-hole polygons must be in a clockwise order
+                    try {
+                        if (!isPointsListClockwiseOrder(pl)) {
+                            // reverse the order
+                            pl.reverseOrder();
+                        } 
+                    } catch (Exception e) {
+                        
+                    }
+                    
                     PolygonM polygonM = new PolygonM(parts, pl.getPointsArray(), pl.getMArray());
                     shapefile.addRecord(polygonM, recData);
             }
@@ -1012,13 +1045,6 @@ public class VectorLayerInfo implements MapLayer {
         }
     }
 
-    public void reloadShapefile() {
-        fullExtent = new BoundingBox(shapefile.getxMin(), shapefile.getyMin(),
-                shapefile.getxMax(), shapefile.getyMax());
-        recs = shapefile.getRecordsInBoundingBox(currentExtent, 1);
-        colourData = null;
-    }
-
     public void closeNewFeature(double x, double y) {
         if (x != previousX && y != previousY) {
             digitizedPoints.add(new ShapefilePoint(x, y));
@@ -1026,6 +1052,105 @@ public class VectorLayerInfo implements MapLayer {
             previousY = y;
         }
         closeNewFeature();
+    }
+
+    public void reloadShapefile() {
+        fullExtent = new BoundingBox(shapefile.getxMin(), shapefile.getyMin(),
+                shapefile.getxMax(), shapefile.getyMax());
+        recs = shapefile.getRecordsInBoundingBox(currentExtent, 1);
+        colourData = null;
+    }
+
+    private boolean isPointsListClockwiseOrder(PointsList pl) throws Exception {
+        // Note: holes are polygons that have verticies in counter-clockwise order
+
+        // This approach is based on the method described by Paul Bourke, March 1998
+        // http://paulbourke.net/geometry/clockwise/index.html
+        //PointsList pl = new PointsList(digitizedPoints);
+        double[][] points = pl.getPointsArray();
+        int stPoint, endPoint, numPointsInPart;
+        double x0, y0, x1, y1, x2, y2;
+        int n1 = 0, n2 = 0, n3 = 0;
+        stPoint = 0;
+        // remember, the last point in each part is the same as the first...it's not a legitemate point.
+        endPoint = points.length - 2;
+
+        numPointsInPart = endPoint - stPoint + 1;
+        if (numPointsInPart < 3) {
+            throw new Exception("Degenerative polygon; fewer than 3 nodes.");
+        } // something's wrong! 
+        // first see if it is a convex or concave polygon
+        // calculate the cross product for each adjacent edge.
+        double[] crossproducts = new double[numPointsInPart];
+        for (int j = 0; j < numPointsInPart; j++) {
+            n2 = stPoint + j;
+            if (j == 0) {
+                n1 = stPoint + numPointsInPart - 1;
+                n3 = stPoint + j + 1;
+            } else if (j == numPointsInPart - 1) {
+                n1 = stPoint + j - 1;
+                n3 = stPoint;
+            } else {
+                n1 = stPoint + j - 1;
+                n3 = stPoint + j + 1;
+            }
+            x0 = points[n1][0];
+            y0 = points[n1][1];
+            x1 = points[n2][0];
+            y1 = points[n2][1];
+            x2 = points[n3][0];
+            y2 = points[n3][1];
+            crossproducts[j] = (x1 - x0) * (y2 - y1) - (y1 - y0) * (x2 - x1);
+        }
+        boolean testSign;
+        if (crossproducts[0] >= 0) {
+            testSign = true; // positive
+        } else {
+            testSign = false; // negative
+        }
+        boolean isConvex = true;
+        for (int j = 1; j < numPointsInPart; j++) {
+            if (crossproducts[j] >= 0 && !testSign) {
+                isConvex = false;
+                break;
+            } else if (crossproducts[j] < 0 && testSign) {
+                isConvex = false;
+                break;
+            }
+        }
+
+        // now see if it is clockwise or counter-clockwise
+        if (isConvex) {
+            if (testSign) { // positive means counter-clockwise
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            // calculate the polygon area. If it is positive is is in clockwise order, else counter-clockwise.
+            double area2 = 0;
+            for (int j = 0; j < numPointsInPart; j++) {
+                n1 = stPoint + j;
+                if (j < numPointsInPart - 1) {
+                    n2 = stPoint + j + 1;
+                } else {
+                    n2 = stPoint;
+                }
+                x1 = points[n1][0];
+                y1 = points[n1][1];
+                x2 = points[n2][0];
+                y2 = points[n2][1];
+
+                area2 += (x1 * y2) - (x2 * y1);
+            }
+            area2 = area2 / 2.0;
+
+            if (area2 < 0) { // a positive area indicates counter-clockwise order
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     public int selectFeatureByLocation(double x, double y) {
