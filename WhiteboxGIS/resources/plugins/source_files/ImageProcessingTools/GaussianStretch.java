@@ -246,7 +246,7 @@ public class GaussianStretch implements WhiteboxPlugin{
                 referenceCDF[i] = Math.pow(Math.E, exponent) / rootOf2Pi;
             }
             
-            // convert the referene histogram to a cdf.
+            // convert the reference histogram to a cdf.
             for (i = 1; i < numOutputBins; i++) {
                 referenceCDF[i] += referenceCDF[i - 1];
             }
@@ -309,15 +309,6 @@ public class GaussianStretch implements WhiteboxPlugin{
                             if (referenceCDF[i] > pVal) {
                                 if (i > 0) {
                                     xVal = i - 1;
-//                                    x1 = i - 1;
-//                                    x2 = i;
-//                                    p1 = referenceCDF[i - 1];
-//                                    p2 = referenceCDF[i];
-//                                    if (p1 != p2) {
-//                                        xVal = x1 + ((x2 - x1) * ((pVal - p1) / (p2 - p1)));
-//                                    } else {
-//                                        xVal = x1;
-//                                    }
                                 } else {
                                     xVal = i;
                                 }

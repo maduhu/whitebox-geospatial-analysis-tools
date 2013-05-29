@@ -293,17 +293,6 @@ public class TestForNormality implements WhiteboxPlugin {
                     rowsAndColumns[sampleNumber][0] = generator.nextInt(rows);
                     rowsAndColumns[sampleNumber][1] = generator.nextInt(cols);
                     sampleNumber++;
-//                    z = inputFile.getValue(row, col);
-//                    if (z != noData) {
-//                        sample[sampleNumber] = z;
-//                        total += z;
-//                        N++;
-//                        if (z < minValue) { minValue = z; }
-//                        if (z > maxValue) { maxValue = z; }
-//                        sampleNumber++;
-//                    }
-//                    progress = (float) (100f * sampleNumber / (sampleSize - 1));
-//                    updateProgress("Calculating CPD:", (int) progress);
                 }
                 
                 Arrays.sort(rowsAndColumns, new Comparator<int[]>() {

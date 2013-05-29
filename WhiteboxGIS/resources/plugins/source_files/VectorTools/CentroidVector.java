@@ -20,8 +20,9 @@ import com.vividsolutions.jts.geom.Coordinate;
 import java.io.File;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
-import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.interfaces.WhiteboxPlugin;
@@ -227,16 +228,18 @@ public class CentroidVector implements WhiteboxPlugin {
             oneHundredthTotal = numRecs / 100;
 
             // set up the output files of the shapefile and the dbf
-            ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT);
-
-            DBFReader reader = new DBFReader(input.getDatabaseFile());
+            
+            //DBFReader reader = new DBFReader(input.getDatabaseFile());
+            AttributeTable reader = input.getAttributeTable();
             int numFields = reader.getFieldCount();
 
             DBFField[] fields = reader.getAllFields();
-            String DBFName = output.getDatabaseFile();
-            DBFWriter writer = new DBFWriter(new File(DBFName));
+            //String DBFName = output.getDatabaseFile();
+            //DBFWriter writer = new DBFWriter(new File(DBFName));
+            //AttributeTable writer = output.getAttributeTable();
+            //writer.setFields(fields);
+            ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
 
-            writer.setFields(fields);
             
             // now read in all of the attributes data
             Object[][] attributeTableRecords = new Object[numRecs][numFields];
@@ -258,9 +261,10 @@ public class CentroidVector implements WhiteboxPlugin {
                         p = JTSGeometries[a].getCentroid();
                         Coordinate pCoord = p.getCoordinate();
                         whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(pCoord.x, pCoord.y);
-                        output.addRecord(wbGeometry);
+                        
                         Object[] rowData = attributeTableRecords[record.getRecordNumber() - 1];
-                        writer.addRecord(rowData);
+//                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
                     }
                 }
                 n++;
@@ -277,7 +281,7 @@ public class CentroidVector implements WhiteboxPlugin {
 
 
             output.write();
-            writer.write();
+//            writer.write();
 
 
             // returning a header file string displays the image.

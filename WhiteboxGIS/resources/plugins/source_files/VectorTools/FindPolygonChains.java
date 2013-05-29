@@ -265,13 +265,13 @@ public class FindPolygonChains implements WhiteboxPlugin {
 
             fields[0] = new DBFField();
             fields[0].setName("PARENT_ID");
-            fields[0].setDataType(DBFField.FIELD_TYPE_N);
+            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
 
             fields[1] = new DBFField();
             fields[1].setName("GROUP_ID");
-            fields[1].setDataType(DBFField.FIELD_TYPE_N);
+            fields[1].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[1].setFieldLength(10);
             fields[1].setDecimalCount(0);
 
@@ -283,7 +283,7 @@ public class FindPolygonChains implements WhiteboxPlugin {
 
                 fields[0] = new DBFField();
                 fields[0].setName("GROUP_ID");
-                fields[0].setDataType(DBFField.FIELD_TYPE_N);
+                fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
                 fields[0].setFieldLength(10);
                 fields[0].setDecimalCount(0);
 

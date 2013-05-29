@@ -25,7 +25,7 @@ import java.io.File;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
@@ -313,24 +313,21 @@ public class Union implements WhiteboxPlugin {
             }
             
             ShapeFile output = null;
-            DBFWriter writer = null;
+//            DBFWriter writer = null;
             
             if (outputGeometry instanceof GeometryCollection) {
                 // set up the output files of the shapefile and the dbf
-                output = new ShapeFile(outputFile, outputShapeType);
+                
 
                 DBFField fields[] = new DBFField[1];
 
                 fields[0] = new DBFField();
                 fields[0].setName("FID");
-                fields[0].setDataType(DBFField.FIELD_TYPE_N);
+                fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
                 fields[0].setFieldLength(10);
                 fields[0].setDecimalCount(0);
 
-                String DBFName = output.getDatabaseFile();
-                writer = new DBFWriter(new File(DBFName));
-
-                writer.setFields(fields);
+                output = new ShapeFile(outputFile, outputShapeType, fields);
                 
                 int numGeometries = outputGeometry.getNumGeometries();
                 oneHundredthTotal = (int)(numGeometries / 100.0);
@@ -352,12 +349,12 @@ public class Union implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
-                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
+
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYLINE) {
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon)gN;
@@ -392,12 +389,12 @@ public class Union implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
-                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
+
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYGON) {
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon)gN;
@@ -432,12 +429,12 @@ public class Union implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.Polygon wbGeometry = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = new Object[1];
                         rowData[0] = new Double(FID);
-                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
+
                     } else {
                         // it shouldn't really hit here ever.
                         //showFeedback("An error was encountered when saving the output file.");
@@ -462,8 +459,6 @@ public class Union implements WhiteboxPlugin {
             }
             
             output.write();
-            writer.write();
-            
             
             // returning a header file string displays the image.
             returnData(outputFile);

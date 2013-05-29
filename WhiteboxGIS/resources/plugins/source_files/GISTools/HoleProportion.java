@@ -218,10 +218,10 @@ public class HoleProportion implements WhiteboxPlugin {
             DBFField field = new DBFField();
             field = new DBFField();
             field.setName("HOLE_PROP");
-            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setDataType(DBFField.DBFDataType.NUMERIC);
             field.setFieldLength(10);
             field.setDecimalCount(4);
-            input.attributeTable.addField(field);
+            input.getAttributeTable().addField(field);
 
             // initialize the shapefile.
             ShapeType shapeType = input.getShapeType();
@@ -340,13 +340,13 @@ public class HoleProportion implements WhiteboxPlugin {
                 }
                 
                 recNum = record.getRecordNumber() - 1;
-                Object[] recData = input.attributeTable.getRecord(recNum);
+                Object[] recData = input.getAttributeTable().getRecord(recNum);
                 if (hullArea > 0) {
                     recData[recData.length - 1] = new Double(1 - featureArea / hullArea);
                 } else {
                     recData[recData.length - 1] = new Double(0);
                 }
-                input.attributeTable.updateRecord(recNum, recData);
+                input.getAttributeTable().updateRecord(recNum, recData);
 
                 if (cancelOp) {
                     cancelOperation();

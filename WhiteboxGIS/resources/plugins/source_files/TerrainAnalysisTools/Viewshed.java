@@ -16,9 +16,12 @@
  */
 package plugins;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Random;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.ShapeFile;
+import whitebox.geospatialfiles.shapefile.*;
+import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINT;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 
@@ -186,7 +189,7 @@ public class Viewshed implements WhiteboxPlugin {
     public void run() {
         amIActive = true;
 
-        String inputHeader;
+        String demHeader;
         String inputViewingStation;
         String outputHeader;
         int row, col, rows, cols;
@@ -197,8 +200,8 @@ public class Viewshed implements WhiteboxPlugin {
         double vertCount = 1;
         double horizCount;
         double t1, t2, tva;
-        int stationRow = 220;
-        int stationCol = 28;
+        int stationRow;
+        int stationCol;
         double x, y, dist, dZ, viewAngleValue;
         double va;
 
@@ -207,57 +210,144 @@ public class Viewshed implements WhiteboxPlugin {
             return;
         }
 
-        inputHeader = args[0];
+        demHeader = args[0];
         inputViewingStation = args[1];
         outputHeader = args[2];
         stationHeight = Double.parseDouble(args[3]);
 
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader == null) || (outputHeader == null)) {
+        if (demHeader.isEmpty() || outputHeader.isEmpty()) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
 
         try {
 
-            WhiteboxRaster DEM = new WhiteboxRaster(inputHeader, "r");
+            WhiteboxRaster DEM = new WhiteboxRaster(demHeader, "r");
             rows = DEM.getNumberRows();
             cols = DEM.getNumberColumns();
             noData = DEM.getNoDataValue();
-            outputNoData = -32768;
-            double stationX; // = DEM.getXCoordinateFromColumn(stationCol);
-            double stationY; // = DEM.getYCoordinateFromRow(stationRow);
-            double stationZ; // = DEM.getValue(stationRow, stationCol) + stationHeight;
-
-
+            outputNoData = DEM.getNoDataValue();
+            double stationX; 
+            double stationY; 
+            double stationZ; 
 
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
-                    inputHeader, WhiteboxRaster.DataType.INTEGER, 0);
+                    demHeader, WhiteboxRaster.DataType.INTEGER, 0);
             output.setNoDataValue(outputNoData);
             output.setPreferredPalette("spectrum.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
 
             // create a temporary raster to hold the view angle
             WhiteboxRaster viewAngle = new WhiteboxRaster(outputHeader.replace(".dep", "_temp1.dep"), "rw",
-                    inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
+                    demHeader, WhiteboxRaster.DataType.FLOAT, 0);
             viewAngle.isTemporaryFile = true;
 
             // create a temporary raster to hold the max view angle
             WhiteboxRaster maxViewAngle = new WhiteboxRaster(outputHeader.replace(".dep", "_temp2.dep"), "rw",
-                    inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
+                    demHeader, WhiteboxRaster.DataType.FLOAT, 0);
             maxViewAngle.isTemporaryFile = true;
 
-            Random generator = new Random();
-            for (int a = 0; a < 500; a++) {
-                stationRow = generator.nextInt(rows - 1);
-                stationCol = generator.nextInt(cols - 1);
+            // Find all of the viewing stations.
+            ArrayList<Double> stationXs = new ArrayList<>();
+            ArrayList<Double> stationYs = new ArrayList<>();
 
-                stationX = DEM.getXCoordinateFromColumn(stationCol);
-                stationY = DEM.getYCoordinateFromRow(stationRow);
+            // First, is the input viewing station file a vector or raster?
+            if (inputViewingStation.toLowerCase().endsWith(".shp")) {
+                ShapeFile input = new ShapeFile(inputViewingStation);
+
+                if (input.getShapeType().getBaseType() != ShapeType.POINT) {
+                    showFeedback("The input viewing station vector should be \n"
+                            + "of a Point or MultiPoint ShapeType.");
+                    return;
+                }
+                
+                for (ShapeFileRecord record : input.records) {
+                    double[][] vertices;
+                    ShapeType shapeType = record.getShapeType();
+                    switch (shapeType) {
+                    case POINT:
+                        whitebox.geospatialfiles.shapefile.Point recPoint =
+                            (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
+                        vertices = recPoint.getPoints();
+                        stationXs.add(vertices[0][0]);
+                        stationYs.add(vertices[0][1]);
+                        break;
+                    case POINTZ:
+                        PointZ recPointZ = (PointZ) (record.getGeometry());
+                        vertices = recPointZ.getPoints();
+                        stationXs.add(vertices[0][0]);
+                        stationYs.add(vertices[0][1]);
+                        break;
+                    case POINTM:
+                        PointM recPointM = (PointM) (record.getGeometry());
+                        vertices = recPointM.getPoints();
+                        stationXs.add(vertices[0][0]);
+                        stationYs.add(vertices[0][1]);
+                        break;
+                    case MULTIPOINT:
+                        MultiPoint recMultiPoint = (MultiPoint) (record.getGeometry());
+                        vertices = recMultiPoint.getPoints();
+                        for (int i = 0; i < vertices.length; i++) {
+                            stationXs.add(vertices[i][0]);
+                            stationYs.add(vertices[i][1]);
+                        }
+                        break;
+                    case MULTIPOINTZ:
+                        MultiPointZ recMultiPointZ = (MultiPointZ) (record.getGeometry());
+                        vertices = recMultiPointZ.getPoints();
+                        for (int i = 0; i < vertices.length; i++) {
+                            stationXs.add(vertices[i][0]);
+                            stationYs.add(vertices[i][1]);
+                        }
+                        break;
+                     case MULTIPOINTM:
+                        MultiPointM recMultiPointM = (MultiPointM) (record.getGeometry());
+                        vertices = recMultiPointM.getPoints();
+                        for (int i = 0; i < vertices.length; i++) {
+                            stationXs.add(vertices[i][0]);
+                            stationYs.add(vertices[i][1]);
+                        }
+                        break;
+                    }
+                }
+
+            } else if (inputViewingStation.toLowerCase().endsWith(".dep")) {
+                WhiteboxRaster viewStation = new WhiteboxRaster(inputViewingStation, "r");
+                int vsRows = viewStation.getNumberRows();
+                int vsCols = viewStation.getNumberColumns();
+                double vsNoData = viewStation.getNoDataValue();
+                for (row = 0; row < vsRows; row++) {
+                    data = viewStation.getRowValues(row);
+                    for (col = 0; col < vsCols; col++) {
+                        z = data[col];
+                        if (z != vsNoData & z != 0) {
+                            stationXs.add(viewStation.getXCoordinateFromColumn(col));
+                            stationYs.add(viewStation.getXCoordinateFromColumn(row));
+                        }
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (int) (100f * row / (vsRows - 1));
+                    updateProgress(progress);
+                }
+            } else {
+                showFeedback("Unrecognized input viewing station file type.");
+                return;
+            }
+
+            int numStations = stationXs.size();
+            
+            //for (int a = 0; a < 500; a++) {
+            for (int a = 0; a < numStations; a++) {
+                stationX = stationXs.get(a);
+                stationY = stationYs.get(a);
+                stationRow = DEM.getRowFromYCoordinate(stationY);
+                stationCol = DEM.getColumnFromXCoordinate(stationX);
                 stationZ = DEM.getValue(stationRow, stationCol) + stationHeight;
-
-
-
+                
                 for (row = 0; row < rows; row++) {
                     data = DEM.getRowValues(row);
                     for (col = 0; col < cols; col++) {
@@ -350,6 +440,10 @@ public class Viewshed implements WhiteboxPlugin {
                             break;
                         }
                     }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
                 }
 
                 //solve the second triangular facet
@@ -376,6 +470,10 @@ public class Viewshed implements WhiteboxPlugin {
                         } else {
                             break;
                         }
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
                     }
                 }
 
@@ -404,6 +502,10 @@ public class Viewshed implements WhiteboxPlugin {
                             break;
                         }
                     }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
                 }
 
                 // solve the fourth triangular facet
@@ -430,6 +532,10 @@ public class Viewshed implements WhiteboxPlugin {
                         } else {
                             break;
                         }
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
                     }
                 }
 
@@ -458,6 +564,10 @@ public class Viewshed implements WhiteboxPlugin {
                             break;
                         }
                     }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
                 }
 
                 // solve the sixth triangular facet
@@ -484,6 +594,10 @@ public class Viewshed implements WhiteboxPlugin {
                         } else {
                             break;
                         }
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
                     }
                 }
 
@@ -512,6 +626,10 @@ public class Viewshed implements WhiteboxPlugin {
                             break;
                         }
                     }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
                 }
 
                 // solve the eigth triangular facet
@@ -538,6 +656,10 @@ public class Viewshed implements WhiteboxPlugin {
                         } else {
                             break;
                         }
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
                     }
                 }
                 //output.flush();

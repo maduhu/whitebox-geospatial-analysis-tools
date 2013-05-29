@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<h1>Number of Upslope Neighbours</h1>
+<h1>Number of upslope neighbours</h1>
 
 <p>
 This tool calculates the number of upslope neighbours of each grid cell in a raster digital elevation model (DEM). The user must specify the name of the input DEM and the output raster name. The tool examines the eight neighbouring cells for each grid cell in a the DEM and calculates the number of neighbours with an elevation <b><i>greater than</i></b> the centre cell of the 3 x 3 window. The output image can therefore have values raning from 0 to 8, although in a DEM that has been hydrologically conditioned (i.e. depressions and flats removed), the values of the output will not exceed 7. This tool can be used with the <a href="NumDownslopeNeighbours.html"><b><i>Number of Downslope Neighbours</i></b></a> tool to assess the degree of local flow divergence/convergence.</p>

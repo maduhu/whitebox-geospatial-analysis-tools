@@ -20,6 +20,7 @@ package plugins;
 import java.io.*;
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.WhiteboxRasterInfo;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
 
@@ -199,16 +200,10 @@ public class HistogramMatching implements WhiteboxPlugin{
             return;
         }
         
-        for (int i = 0; i < args.length; i++) {
-    		if (i == 0) {
-                    inputHeader = args[i];
-                } else if (i == 1) {
-                    referenceHistoFile = args[i];
-                } else if (i == 2) {
-                    outputHeader = args[i];
-            }
-        }
-
+        inputHeader = args[0];
+        referenceHistoFile = args[1];
+        outputHeader = args[2];
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null) || (referenceHistoFile == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -222,7 +217,7 @@ public class HistogramMatching implements WhiteboxPlugin{
             int numCells = 0;
             int i = 0;
             
-            WhiteboxRaster inputFile = new WhiteboxRaster(inputHeader, "r");
+            WhiteboxRasterInfo inputFile = new WhiteboxRasterInfo(inputHeader);
             
             int rows = inputFile.getNumberRows();
             int cols = inputFile.getNumberColumns();
@@ -297,7 +292,7 @@ public class HistogramMatching implements WhiteboxPlugin{
                 while (str.length < 2) {
                     delimiterNum++;
                     if (delimiterNum == delimiters.length) {
-                        showFeedback("the cdf file does not appear to be properly formated.\n"
+                        showFeedback("the histogram file does not appear to be properly formated.\n"
                                 + "It must be delimited using a tab, space, comma, colon, or semicolon.");
                         return;
                     }
@@ -310,7 +305,7 @@ public class HistogramMatching implements WhiteboxPlugin{
             
             raf.close();
             
-            // convert the referene histogram to a cdf.
+            // convert the reference histogram to a cdf.
             for (i = 1; i < numLines; i++) {
                 referenceCDF[i][1] += referenceCDF[i - 1][1];
             }
@@ -362,7 +357,7 @@ public class HistogramMatching implements WhiteboxPlugin{
             for (row = 0; row < rows; row++) {
                 data = inputFile.getRowValues(row);
                 for (col = 0; col < cols; col++) {
-                    z = data[col]; //inputFile.getValue(row, col);
+                    z = data[col];
                     if (z != noData) {
                         binNum = (int)((z - minValue) / binSize);
                         if (binNum > numBinsLessOne) { binNum = numBinsLessOne; }
@@ -387,7 +382,6 @@ public class HistogramMatching implements WhiteboxPlugin{
                                 
                             }
                         }
-                        
                         outputFile.setValue(row, col, xVal);
                     }
 

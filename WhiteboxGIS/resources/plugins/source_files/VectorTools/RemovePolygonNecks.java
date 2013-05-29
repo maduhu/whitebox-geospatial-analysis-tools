@@ -19,12 +19,6 @@ package plugins;
 import java.util.List;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.*;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGON;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGONM;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYGONZ;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINE;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINEM;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POLYLINEZ;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -256,7 +250,7 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
             
             fields[0] = new DBFField();
             fields[0].setName("VALUE");
-            fields[0].setDataType(DBFField.FIELD_TYPE_N);
+            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(4);
             
@@ -295,34 +289,7 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
             for (ShapeFileRecord record : input.records) {
                 recordNum = record.getRecordNumber();
 //                Object[] attData = input.attributeTable.getRecord(recordNum - 1);
-                vertices = record.getGeometry().getPoints(); //new double[0][0];
-//                switch (shapeType) {
-//                    case POLYGON:
-//                        whitebox.geospatialfiles.shapefile.Polygon recPoly =
-//                                    (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
-//                        vertices = recPoly.getPoints();
-//                        break;
-//                    case POLYGONZ:
-//                        PolygonZ recPolygonZ = (PolygonZ)(record.getGeometry());
-//                        vertices = recPolygonZ.getPoints();
-//                        break;
-//                    case POLYGONM:
-//                        PolygonM recPolygonM = (PolygonM)(record.getGeometry());
-//                        vertices = recPolygonM.getPoints();
-//                        break;
-//                    case POLYLINE:
-//                        PolyLine recPolyline = (PolyLine)(record.getGeometry());
-//                        vertices = recPolyline.getPoints();
-//                        break;
-//                    case POLYLINEZ:
-//                        PolyLineZ recPolylineZ = (PolyLineZ)(record.getGeometry());
-//                        vertices = recPolylineZ.getPoints();
-//                        break;
-//                    case POLYLINEM:
-//                        PolyLineM recPolylineM = (PolyLineM)(record.getGeometry());
-//                        vertices = recPolylineM.getPoints();
-//                        break;
-//                }
+                vertices = record.getGeometry().getPoints();
                 numPoints = vertices.length;
                 KdTree<Double> pointsTree = new KdTree.SqrEuclid(2, new Integer(numPoints));
                 for (i = 0; i < numPoints; i++) {

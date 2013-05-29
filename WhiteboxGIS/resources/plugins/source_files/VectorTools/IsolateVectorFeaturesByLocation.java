@@ -22,8 +22,9 @@ import java.io.File;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
-import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.interfaces.WhiteboxPlugin;
@@ -198,12 +199,12 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
         amIActive = true;
         String featureFile = null;
         ShapeFile featureShape;
-        DBFReader reader;
+//        DBFReader reader;
         String dataFile = null;
         ShapeFile dataShape;
         String outputFile = null;
         ShapeFile output;
-        DBFWriter writer;
+//        DBFWriter writer;
         String instructions = null;
         int progress;
         int previousProgress = 0;
@@ -285,10 +286,8 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
             dataShape = new ShapeFile(dataFile);
             numRecsData = dataShape.getNumberOfRecords();
 
-            // set up the output files of the shapefile and the dbf
-            outputShapeType = featureShapeType;
-            output = new ShapeFile(outputFile, outputShapeType);
-            reader = new DBFReader(featureShape.getDatabaseFile());
+//            reader = new DBFReader(featureShape.getDatabaseFile());
+            AttributeTable reader = featureShape.getAttributeTable();
             
             int numFields = reader.getFieldCount();
             DBFField fields[] = new DBFField[numFields];
@@ -298,14 +297,18 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                 fields[a] = inputField;
             }
 
-            String DBFName = output.getDatabaseFile();
-            writer = new DBFWriter(new File(DBFName));
-
-            writer.setFields(fields);
+//            String DBFName = output.getDatabaseFile();
+//            writer = new DBFWriter(new File(DBFName));
+//
+//            writer.setFields(fields);
+            
+            // set up the output files of the shapefile and the dbf
+            outputShapeType = featureShapeType;
+            output = new ShapeFile(outputFile, outputShapeType, fields);
             
             // read all of the data geometries into an array
             ArrayList<com.vividsolutions.jts.geom.Geometry> inputGeometryList =
-                    new ArrayList<com.vividsolutions.jts.geom.Geometry>();
+                    new ArrayList<>();
             com.vividsolutions.jts.geom.Geometry outputGeometry = null;
             
             updateProgress("Loop 1 of 2:", 0);
@@ -356,14 +359,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (g2.intersects(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -397,14 +400,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (!g2.intersects(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -439,14 +442,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (g2.within(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -481,14 +484,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (g2.contains(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -523,14 +526,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (!g2.contains(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -565,14 +568,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (g2.covers(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -607,14 +610,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (g2.coveredBy(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -649,14 +652,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (g2.crosses(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -691,14 +694,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (g2.touches(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -733,14 +736,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (!g2.touches(g1)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -775,14 +778,14 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
                         if (g2.isWithinDistance(g1, distThreshold)) {
                             if (blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         } else {
                             if (!blnSelect) {
                                 // output this geometry to the output file.
-                                output.addRecord(record.getGeometry());
-                                writer.addRecord(rec);
+                                output.addRecord(record.getGeometry(), rec);
+//                                writer.addRecord(rec);
                             }
                         }
                     }
@@ -800,7 +803,7 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
             }
             
             output.write();
-            writer.write();
+//            writer.write();
             
             
             // returning a header file string displays the image.

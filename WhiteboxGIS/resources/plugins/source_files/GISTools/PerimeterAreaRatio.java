@@ -431,10 +431,10 @@ public class PerimeterAreaRatio implements WhiteboxPlugin {
             DBFField field = new DBFField();
             field = new DBFField();
             field.setName("P-A_RATIO");
-            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setDataType(DBFField.DBFDataType.NUMERIC);
             field.setFieldLength(10);
             field.setDecimalCount(4);
-            input.attributeTable.addField(field);
+            input.getAttributeTable().addField(field);
 
             // initialize the shapefile.
             ShapeType inputType = input.getShapeType();
@@ -461,9 +461,9 @@ public class PerimeterAreaRatio implements WhiteboxPlugin {
                 }
                 
                 recNum = record.getRecordNumber() - 1;
-                Object[] recData = input.attributeTable.getRecord(recNum);
+                Object[] recData = input.getAttributeTable().getRecord(recNum);
                 recData[recData.length - 1] = new Double(perimeter / area);
-                input.attributeTable.updateRecord(recNum, recData);
+                input.getAttributeTable().updateRecord(recNum, recData);
 
                 if (cancelOp) {
                     cancelOperation();

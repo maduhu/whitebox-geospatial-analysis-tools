@@ -199,12 +199,10 @@ public class DifferenceFromMeanElevation implements WhiteboxPlugin {
         int filterSize = 3;
         double n;
         double sum;
-        double average;
         int dX[];
         int dY[];
         int midPoint;
         int numPixelsInFilter;
-        boolean filterRounded = true;
         double[] filterShape;
         boolean reflectAtBorders = true;
         double centreValue = 0;
@@ -215,18 +213,12 @@ public class DifferenceFromMeanElevation implements WhiteboxPlugin {
             return;
         }
         
-        for (int i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                neighbourhoodDist = Double.parseDouble(args[i]);
-            }
-        }
-
+        inputHeader = args[0];
+        outputHeader = args[1];
+        neighbourhoodDist = Double.parseDouble(args[2]);
+        
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader == null) || (outputHeader == null)) {
+        if (inputHeader.isEmpty() || outputHeader.isEmpty()) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }

@@ -231,14 +231,14 @@ public class ExtractNodes implements WhiteboxPlugin {
             // set up the output files of the shapefile and the dbf
             outputShapeType = ShapeType.POINT;
             
-            int numOutputFields = input.attributeTable.getFieldCount() + 1;
-            int numInputFields = input.attributeTable.getFieldCount();
-            DBFField[] inputFields = input.attributeTable.getAllFields();
+            int numOutputFields = input.getAttributeTable().getFieldCount() + 1;
+            int numInputFields = input.getAttributeTable().getFieldCount();
+            DBFField[] inputFields = input.getAttributeTable().getAllFields();
             DBFField fields[] = new DBFField[numOutputFields];
             
             fields[0] = new DBFField();
             fields[0].setName("PARENT_ID");
-            fields[0].setDataType(DBFField.FIELD_TYPE_N);
+            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
             
@@ -254,7 +254,7 @@ public class ExtractNodes implements WhiteboxPlugin {
             int recordNum;
             for (ShapeFileRecord record : input.records) {
                 recordNum = record.getRecordNumber();
-                Object[] attData = input.attributeTable.getRecord(recordNum - 1);
+                Object[] attData = input.getAttributeTable().getRecord(recordNum - 1);
                 vertices = new double[0][0];
                 switch (shapeType) {
                     case POLYGON:

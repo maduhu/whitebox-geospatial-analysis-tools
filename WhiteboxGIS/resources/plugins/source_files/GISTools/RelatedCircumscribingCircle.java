@@ -397,10 +397,10 @@ public class RelatedCircumscribingCircle implements WhiteboxPlugin {
             DBFField field = new DBFField();
             field = new DBFField();
             field.setName("RC_CIRCLE");
-            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setDataType(DBFField.DBFDataType.NUMERIC);
             field.setFieldLength(10);
             field.setDecimalCount(4);
-            input.attributeTable.addField(field);
+            input.getAttributeTable().addField(field);
 
             // initialize the shapefile.
             ShapeType inputType = input.getShapeType();
@@ -459,13 +459,13 @@ public class RelatedCircumscribingCircle implements WhiteboxPlugin {
                 }
                 
                 recNum = record.getRecordNumber() - 1;
-                Object[] recData = input.attributeTable.getRecord(recNum);
+                Object[] recData = input.getAttributeTable().getRecord(recNum);
                 if (circleArea > 0) {
                     recData[recData.length - 1] = new Double(1 - featureArea / circleArea);
                 } else {
                     recData[recData.length - 1] = new Double(0);
                 }
-                input.attributeTable.updateRecord(recNum, recData);
+                input.getAttributeTable().updateRecord(recNum, recData);
 
                 if (cancelOp) {
                     cancelOperation();

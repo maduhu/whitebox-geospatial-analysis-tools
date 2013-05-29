@@ -532,17 +532,17 @@ public class ElongationRatio implements WhiteboxPlugin {
             DBFField field = new DBFField();
             field = new DBFField();
             field.setName("ELONGATION");
-            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setDataType(DBFField.DBFDataType.NUMERIC);
             field.setFieldLength(10);
             field.setDecimalCount(4);
-            input.attributeTable.addField(field);
+            input.getAttributeTable().addField(field);
             
             field = new DBFField();
             field.setName("ELONG_DIR");
-            field.setDataType(DBFField.FIELD_TYPE_N);
+            field.setDataType(DBFField.DBFDataType.NUMERIC);
             field.setFieldLength(10);
             field.setDecimalCount(4);
-            input.attributeTable.addField(field);
+            input.getAttributeTable().addField(field);
 
             // initialize the shapefile.
             ShapeType inputType = input.getShapeType();
@@ -631,10 +631,10 @@ public class ElongationRatio implements WhiteboxPlugin {
                 bearing = 90 - Math.toDegrees(slope);
 
                 recNum = record.getRecordNumber() - 1;
-                Object[] recData = input.attributeTable.getRecord(recNum);
+                Object[] recData = input.getAttributeTable().getRecord(recNum);
                 recData[recData.length - 2] = new Double(elongation); //(longAxis - shortAxis) / (longAxis + shortAxis));
                 recData[recData.length - 1] = new Double(bearing);
-                input.attributeTable.updateRecord(recNum, recData);
+                input.getAttributeTable().updateRecord(recNum, recData);
 
                 if (cancelOp) {
                     cancelOperation();

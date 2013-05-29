@@ -6,7 +6,7 @@
   <link rel="stylesheet" type="text/css" href="Help.css">
   </head>
   <body>
-  <h1>Remove Off-Terrain Objects</h1>
+  <h1>Remove off-terrain objects</h1>
 
 <p>
 This tool can be used to create a bare-earth DEM from a fine-resolution digital surface model. The tool is typically applied to LiDAR DEMs which frequently contain numerous off-terrain objects such as buildings, trees and other vegetation, cars, fences and other anthropogenic objects. The algorithm works by finding and removing steep-sided peaks within the DEM. All peaks within a sub-grid, with a dimension of the user-specified <b>Maximum Off-Terrain Object Size</b>, in pixels, are identified and removed. Each of the edge cells of the peaks are then examined to see if they have a slope that is less than the user-specified <b>Minimum OTO Edge Slope</b> and a back-filling procedure is used. This ensures that OTOs are distinguished from natural topographic features such as hills.</p>

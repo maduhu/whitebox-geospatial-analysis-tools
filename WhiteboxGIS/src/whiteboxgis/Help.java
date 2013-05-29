@@ -25,6 +25,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.charset.Charset;
+import java.util.List;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -36,6 +40,10 @@ import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import java.io.DataInputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Paths;
 import whitebox.interfaces.Communicator;
 import whitebox.utilities.FileUtilities;
 
@@ -61,9 +69,12 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     private String title = "Whitebox Help";
     private JTextField indexField = new JTextField();
     private static JList availableHelpFiles;
+    private static JList availableTutorialFiles;
     private JTextField searchField = new JTextField();
     private static JList searchOutput;
     private String[][] helpFiles;
+    private String[][] tutorialFiles;
+    private String[][] allFiles;
     private int[][] searchCounts;
     private String activeTab = "index";
     private ArrayList<String> helpHistory = new ArrayList<>();
@@ -189,7 +200,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
             if (!hlp.exists()) {
                 // use the NoHelp.html file.
-                helpFile = resourcesDirectory + "Help" + pathSep + "NoHelp.html";
+                helpFile = resourcesDirectory + "Help" + pathSep + "other" + pathSep + "NoHelp.html";
             }
             if (helpHistoryIndex == helpHistory.size() - 1) {
                 helpHistory.add(helpFile);
@@ -227,6 +238,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         JTabbedPane sidebarTab = new JTabbedPane();
         JPanel indexPanel = new JPanel();
         JPanel searchPanel = new JPanel();
+        JPanel tutorialPanel = new JPanel();
         try {
             // create the list of available help files.
             findAvailableHelpFiles();
@@ -293,6 +305,49 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             JScrollPane scroller2 = new JScrollPane(searchOutput);
             searchPanel.add(scroller2);
             sidebarTab.add(searchPanel, "Search");
+
+
+
+            // add them to a list
+            availableTutorialFiles = new JList();
+            availableTutorialFiles.removeAll();
+            DefaultListModel model2 = new DefaultListModel();
+            for (int i = 0; i < tutorialFiles.length; i++) {
+                model2.add(i, tutorialFiles[i][1]);
+            }
+            availableTutorialFiles.setModel(model2);
+
+            MouseListener ml2 = new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    JList theList = (JList) e.getSource();
+                    String label = null;
+                    int index = theList.locationToIndex(e.getPoint());
+                    if (index >= 0) {
+                        Object o = theList.getModel().getElementAt(index);
+                        label = o.toString();
+                    }
+                    if (e.getClickCount() == 1 && e.getButton() == 1) {
+                        try {
+                            String tutorialFile = tutorialFiles[index][0];
+
+                            helpPane.setPage(new URL("file:///" + tutorialFile));
+                            //helpPane.navigate(helpFile);
+                        } catch (MalformedURLException me) {
+                        } catch (IOException ioe) {
+                        }
+                    }
+                }
+            };
+            availableTutorialFiles.addMouseListener(ml2);
+            JScrollPane scroller3 = new JScrollPane(availableTutorialFiles);
+
+            tutorialPanel.setLayout(new BoxLayout(tutorialPanel, BoxLayout.Y_AXIS));
+            tutorialPanel.add(scroller3);
+            sidebarTab.add(tutorialPanel, "Tutorials");
+
+
+
             switch (activeTab.toLowerCase()) {
                 case "index":
                     sidebarTab.setSelectedIndex(0);
@@ -300,7 +355,11 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                 case "search":
                     sidebarTab.setSelectedIndex(1);
                     break;
+                case "tutorials":
+                    sidebarTab.setSelectedIndex(2);
+                    break;
             }
+
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -324,6 +383,9 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             ArrayList<String> allHelpFiles =
                     FileUtilities.findAllFilesWithExtension(new File(helpDirectory), ".html", false);
 
+            ArrayList<String> allTutorialFiles =
+                    FileUtilities.findAllFilesWithExtension(new File(helpDirectory + "tutorials" + pathSep), ".html", true);
+
             String[] helpFiles1 = new String[allHelpFiles.size()];
             helpFiles1 = allHelpFiles.toArray(helpFiles1);
 
@@ -336,13 +398,81 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             helpFiles = new String[helpFiles1.length][2];
             for (int a = 0; a < helpFiles1.length; a++) {
                 helpFiles[a][0] = helpFiles1[a];
-                // find out the short name of the file.
-                File file = new File(helpFiles1[a]);
-                helpFiles[a][1] = file.getName().replace(".html", "");
+                helpFiles[a][1] = findTitle(helpFiles1[a]);
+            }
+
+            Arrays.sort(helpFiles, new Comparator<String[]>() {
+                @Override
+                public int compare(String[] str1, String[] str2) {
+                    return str1[1].toLowerCase().compareTo(str2[1].toLowerCase());
+                }
+            });
+            
+            String[] tutorialFiles1 = new String[allTutorialFiles.size()];
+            tutorialFiles1 = allTutorialFiles.toArray(tutorialFiles1);
+
+            Arrays.sort(tutorialFiles1, new Comparator<String>() {
+                @Override
+                public int compare(String str1, String str2) {
+                    return str1.toLowerCase().compareTo(str2.toLowerCase());
+                }
+            });
+            tutorialFiles = new String[tutorialFiles1.length][2];
+            for (int a = 0; a < tutorialFiles1.length; a++) {
+                tutorialFiles[a][0] = tutorialFiles1[a];
+                tutorialFiles[a][1] = findTitle(tutorialFiles1[a]);
+            }
+            
+            
+            Arrays.sort(tutorialFiles, new Comparator<String[]>() {
+                @Override
+                public int compare(String[] str1, String[] str2) {
+                    return str1[1].toLowerCase().compareTo(str2[1].toLowerCase());
+                }
+            });
+
+            allFiles = new String[tutorialFiles.length + helpFiles.length][2];
+            for (int a = 0; a < helpFiles1.length; a++) {
+                allFiles[a][0] = helpFiles[a][0];
+                allFiles[a][1] = helpFiles[a][1];
+            }
+
+            for (int a = 0; a < tutorialFiles1.length; a++) {
+                allFiles[helpFiles.length + a][0] = tutorialFiles[a][0];
+                allFiles[helpFiles.length + a][1] = tutorialFiles[a][1];
             }
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    private String findTitle(String fileName) {
+        try {
+            Path path = Paths.get(fileName);
+            List<String> lines = Files.readAllLines(path, Charset.defaultCharset());
+
+            String htmlText = "";
+            for (String html : lines) {
+                htmlText += html;
+            }
+            String htmlTitle = "";
+            if (htmlText.contains("<title>") && htmlText.contains("</title>")) {
+                int i1 = htmlText.indexOf("<title>");
+                int i2 = htmlText.indexOf("</title>");
+                htmlTitle = htmlText.substring(i1 + 7, i2);
+            }
+            if (htmlTitle.contains("GAT Help")) {
+                if (htmlText.contains("<h1>") && htmlText.contains("</h1>")) {
+                    int i1 = htmlText.indexOf("<h1>");
+                    int i2 = htmlText.indexOf("</h1>");
+                    htmlTitle = htmlText.substring(i1 + 4, i2);
+                }
+            }
+            return htmlTitle; //m.group(1);
+        } catch (Exception e) {
+            System.out.println("Help.findTitle() Error: " + e.getMessage());
+            return null;
         }
     }
 
@@ -456,7 +586,6 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         Help help = new Help();
         help.createHelpTableOfContents();
     }
-    
     private ActionListener indexFieldListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent evt) {
@@ -476,12 +605,11 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         }
     };
 
-
     private void searchForWords() {
         try {
             DefaultListModel model = new DefaultListModel();
 
-            searchCounts = new int[helpFiles.length][2];
+            searchCounts = new int[allFiles.length][2];
 
             String line = searchField.getText().trim().toLowerCase();
 
@@ -517,8 +645,8 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
             int numWordsToMatch = words.length + quotedStrings.size();
 
-            for (int i = 0; i < helpFiles.length; i++) {
-                String fileContents = FileUtilities.readFileAsString(helpFiles[i][0]).toLowerCase();
+            for (int i = 0; i < allFiles.length; i++) {
+                String fileContents = FileUtilities.readFileAsString(allFiles[i][0]).toLowerCase();
                 fileContents = fileContents.replace("-", " ");
                 count = 0;
                 for (String word : words) {
@@ -547,8 +675,8 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                     if (int1 > int2) {
                         return -1;
                     } else if (int1 == int2) {
-                        String str1 = helpFiles[entry1[1]][1];
-                        String str2 = helpFiles[entry2[1]][1];
+                        String str1 = allFiles[entry1[1]][1];
+                        String str2 = allFiles[entry2[1]][1];
                         return str1.compareTo(str2);
                     } else {
                         return 1;
@@ -559,7 +687,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             DecimalFormat df = new DecimalFormat("0.0%");
             for (int i = 19; i >= 0; i--) {
                 if (searchCounts[i][0] > 0) {
-                    model.add(index, helpFiles[searchCounts[i][1]][1] + " (" + df.format((double) searchCounts[i][0] / numWordsToMatch) + ")");
+                    model.add(index, allFiles[searchCounts[i][1]][1] + " (" + df.format((double) searchCounts[i][0] / numWordsToMatch) + ")");
                 }
             }
 
@@ -578,7 +706,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                     if (e.getClickCount() == 1 && e.getButton() == 1) {
                         try {
 
-                            helpFile = helpFiles[searchCounts[index][1]][0];
+                            helpFile = allFiles[searchCounts[index][1]][0];
                             if (helpHistoryIndex == helpHistory.size() - 1) {
                                 helpHistory.add(helpFile);
                                 helpHistoryIndex = helpHistory.size() - 1;

@@ -27,8 +27,9 @@ import java.io.File;
 import java.util.ArrayList;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
-import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
+//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
@@ -335,23 +336,22 @@ public class Difference implements WhiteboxPlugin {
 
 
             ShapeFile output = null;
-            DBFWriter writer = null;
-            DBFReader reader = null;
+//            DBFWriter writer = null;
+//            DBFReader reader = null;
 
-            reader = new DBFReader(input1.getDatabaseFile());
+//            reader = new DBFReader(input1.getDatabaseFile());
+            AttributeTable reader = input1.getAttributeTable();
             
-            // set up the output files of the shapefile and the dbf
-            output = new ShapeFile(outputFile, outputShapeType);
-
+            
             int numFields = 1 + reader.getFieldCount();
             DBFField fields[] = new DBFField[numFields];
 
             fields[0] = new DBFField();
             fields[0].setName("FID");
-            fields[0].setDataType(DBFField.FIELD_TYPE_N);
+            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
-
+            
             for (int a = 0; a < reader.getFieldCount(); a++) {
                 DBFField inputField = reader.getField(a);
                 fields[a + 1] = inputField;
@@ -361,10 +361,14 @@ public class Difference implements WhiteboxPlugin {
                 }
             }
 
-            String DBFName = output.getDatabaseFile();
-            writer = new DBFWriter(new File(DBFName));
+//            String DBFName = output.getDatabaseFile();
+//            writer = new DBFWriter(new File(DBFName));
+//
+//            writer.setFields(fields);
+            
+            // set up the output files of the shapefile and the dbf
+            output = new ShapeFile(outputFile, outputShapeType, fields);
 
-            writer.setFields(fields);
             
             PreparedGeometry[] tests = new PreparedGeometry[g1.getNumGeometries()];
             com.vividsolutions.jts.geom.Geometry[] testGs = new com.vividsolutions.jts.geom.Geometry[g1.getNumGeometries()];
@@ -376,8 +380,8 @@ public class Difference implements WhiteboxPlugin {
                 
             }
             
-            Object[][] attributeTableRecords = new Object[reader.getRecordCount()][numFields];           
-            for (int a = 0; a < reader.getRecordCount(); a++) {
+            Object[][] attributeTableRecords = new Object[reader.getNumberOfRecords()][numFields];           
+            for (int a = 0; a < reader.getNumberOfRecords(); a++) {
                 Object[] rec = reader.nextRecord();
                 for (int b = 0; b < numFields - 1; b++) {
                     attributeTableRecords[a][b + 1] = rec[b];
@@ -407,12 +411,13 @@ public class Difference implements WhiteboxPlugin {
                         // you will loose any z and m information if they are in the input file.
                         // you'll need to fix this some other time when you get a chance.
                         whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(p.x, p.y);
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = attributeTableRecords[parentRecNum - 1];
                         rowData[0] = new Double(FID);
-                        writer.addRecord(rowData);
+//                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
+
                     } else if (gN instanceof LineString
                             && outputShapeType == ShapeType.POLYLINE) {
                         for (int m = 0; m < tests.length; m++) {
@@ -433,12 +438,12 @@ public class Difference implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = attributeTableRecords[parentRecNum - 1]; //new Object[numFields];
                         rowData[0] = new Double(FID);
-                        writer.addRecord(rowData);
+//                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYLINE) {
                         for (int m = 0; m < tests.length; m++) {
@@ -479,14 +484,14 @@ public class Difference implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.PolyLine wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = attributeTableRecords[parentRecNum - 1]; //new Object[numFields];
                         rowData[0] = new Double(FID);
                         //Object[] pRowData = reader.
                         //rowData[1] = new Double(PID);
-                        writer.addRecord(rowData);
+//                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYGON) {
                         for (int m = 0; m < tests.length; m++) {
@@ -496,7 +501,7 @@ public class Difference implements WhiteboxPlugin {
                             }
                         }
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon)gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
@@ -527,14 +532,14 @@ public class Difference implements WhiteboxPlugin {
 
                         PointsList pl = new PointsList(pnts);
                         whitebox.geospatialfiles.shapefile.Polygon wbGeometry = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                        output.addRecord(wbGeometry);
-
+                        
                         FID++;
                         Object[] rowData = attributeTableRecords[parentRecNum - 1]; //new Object[numFields];
                         rowData[0] = new Double(FID);
                         //Object[] pRowData = reader.
                         //rowData[1] = new Double(PID);
-                        writer.addRecord(rowData);
+//                        writer.addRecord(rowData);
+                        output.addRecord(wbGeometry, rowData);
                     } else {
                         // it shouldn't really hit here ever.
                         //showFeedback("An error was encountered when saving the output file.");
@@ -559,7 +564,7 @@ public class Difference implements WhiteboxPlugin {
             }
             
             output.write();
-            writer.write();
+//            writer.write();
             
             
             // returning a header file string displays the image.

@@ -180,22 +180,13 @@ public class FilterConservativeSmoothing implements WhiteboxPlugin {
             return;
         }
         
-        for (int i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                filterSizeX = Integer.parseInt(args[i]);
-            } else if (i == 3) {
-                filterSizeY = Integer.parseInt(args[i]);
-            } else if (i == 4) {
-                filterRounded = Boolean.parseBoolean(args[i]);
-            } else if (i == 5) {
-                reflectAtBorders = Boolean.parseBoolean(args[i]);
-            }
-        }
-
+        inputHeader = args[0];
+        outputHeader = args[1];
+        filterSizeX = Integer.parseInt(args[2]);
+        filterSizeY = Integer.parseInt(args[3]);
+        filterRounded = Boolean.parseBoolean(args[4]);
+        reflectAtBorders = Boolean.parseBoolean(args[5]);
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");

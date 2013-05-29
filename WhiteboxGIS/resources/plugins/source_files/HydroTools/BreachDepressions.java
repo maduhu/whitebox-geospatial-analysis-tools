@@ -271,7 +271,7 @@ public class BreachDepressions implements WhiteboxPlugin {
 
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw");
 
-            // figure out what the value of ASmallNumber should be.
+            // figure out what the value of aSmallNumber should be.
             z = Math.abs(DEM.getMaximumValue());
             if (z <= 9) {
                 aSmallValue = 0.00001F;
@@ -285,6 +285,10 @@ public class BreachDepressions implements WhiteboxPlugin {
                 aSmallValue = 0.01F;
             } else {
                 aSmallValue = 1F;
+            }
+            
+            if (args.length == 5 && !args[4].toLowerCase().equals("not specified")) {
+                aSmallValue = Double.parseDouble(args[4]);
             }
 
             double[][] LNDecrementValue =

@@ -248,25 +248,25 @@ public class MinimumBoundingBox implements WhiteboxPlugin {
 
             fields[0] = new DBFField();
             fields[0].setName("PARENT_ID");
-            fields[0].setDataType(DBFField.FIELD_TYPE_N);
+            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[0].setFieldLength(10);
             fields[0].setDecimalCount(0);
             
             fields[1] = new DBFField();
             fields[1].setName("SHRT_AXIS");
-            fields[1].setDataType(DBFField.FIELD_TYPE_N);
+            fields[1].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[1].setFieldLength(10);
             fields[1].setDecimalCount(3);
             
             fields[2] = new DBFField();
             fields[2].setName("LNG_AXIS");
-            fields[2].setDataType(DBFField.FIELD_TYPE_N);
+            fields[2].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[2].setFieldLength(10);
             fields[2].setDecimalCount(3);
             
             fields[3] = new DBFField();
             fields[3].setName("ELONGATION");
-            fields[3].setDataType(DBFField.FIELD_TYPE_N);
+            fields[3].setDataType(DBFField.DBFDataType.NUMERIC);
             fields[3].setFieldLength(10);
             fields[3].setDecimalCount(3);
             

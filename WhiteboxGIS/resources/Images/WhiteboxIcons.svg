@@ -7506,9 +7506,9 @@
      objecttolerance="10000"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6443632"
-     inkscape:cx="-27.283857"
-     inkscape:cy="432.64402"
+     inkscape:zoom="1.5393718"
+     inkscape:cx="167.81339"
+     inkscape:cy="500.2687"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -7518,7 +7518,7 @@
      inkscape:window-y="0"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:window-maximized="0">
+     inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
        id="grid5637"
@@ -7563,12 +7563,12 @@
        inkscape:export-xdpi="91.010635"
        inkscape:export-ydpi="91.010635" />
     <rect
-       style="fill:#999999;stroke:#ffffff;stroke-width:1.20956254;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       style="fill:none;stroke:none"
        id="rect5306"
-       width="30.790438"
-       height="30.790438"
-       x="39.209564"
-       y="617.36218"
+       width="32"
+       height="32"
+       x="318.89645"
+       y="667.57574"
        inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/SelectFeatureWin.png"
        inkscape:export-xdpi="91.010635"
        inkscape:export-ydpi="91.010635" />
@@ -10151,264 +10151,292 @@
        inkscape:export-xdpi="137.14285"
        inkscape:export-ydpi="137.14285" />
     <g
-       id="g5308"
-       transform="translate(-0.60478115,1.3952216)"
+       id="g4462"
+       transform="translate(67.604781,-60.395219)"
        inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursorWin.png"
        inkscape:export-xdpi="91.010635"
        inkscape:export-ydpi="91.010635">
-      <path
-         inkscape:export-ydpi="90"
-         inkscape:export-xdpi="90"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
-         inkscape:connector-curvature="0"
-         id="path5080-4"
-         d="m 213,685.36218 0,12 12,0 0,-12 z"
-         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="90"
-         inkscape:export-xdpi="90"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
-         inkscape:connector-curvature="0"
-         id="path4237-5-3-1"
-         d="m 219,681.36218 0,6"
-         style="fill:none;stroke:#000000;stroke-width:1.00000036px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="90"
-         inkscape:export-xdpi="90"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
-         inkscape:connector-curvature="0"
-         id="path4237-5-4-2"
-         d="m 219,695.36218 0,6"
-         style="fill:none;stroke:#000000;stroke-width:0.99999964px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="90"
-         inkscape:export-xdpi="90"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
-         inkscape:connector-curvature="0"
-         id="path4239-3-5"
-         d="m 209,691.36218 6,0"
-         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="90"
-         inkscape:export-xdpi="90"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
-         inkscape:connector-curvature="0"
-         id="path4239-7-0"
-         d="m 223,691.36218 6,0"
-         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="90"
-         inkscape:export-xdpi="90"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
-         sodipodi:nodetypes="ccccccccccccccccccccc"
-         inkscape:connector-curvature="0"
-         id="path5132-2"
-         d="m 220,681.36218 0,3 6,0 0,6 c 1.33333,0 1.66667,0 3,0 l 0,2 -3,0 0,6 -6,0 0,3 -2,0 0,-3 -6,0 0,-6 -3,0 0,-2 3,0 0,-6 6,0 0,-3 z"
-         style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <g
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
+         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursorWin.png"
+         transform="translate(-0.60478115,1.3952216)"
+         id="g5308">
+        <path
+           style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 213,685.36218 0,12 12,0 0,-12 z"
+           id="path5080-4"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:1.00000036px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 219,681.36218 0,6"
+           id="path4237-5-3-1"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.99999964px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 219,695.36218 0,6"
+           id="path4237-5-4-2"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 209,691.36218 6,0"
+           id="path4239-3-5"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 223,691.36218 6,0"
+           id="path4239-7-0"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 220,681.36218 0,3 6,0 0,6 c 1.33333,0 1.66667,0 3,0 l 0,2 -3,0 0,6 -6,0 0,3 -2,0 0,-3 -6,0 0,-6 -3,0 0,-2 3,0 0,-6 6,0 0,-3 z"
+           id="path5132-2"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="ccccccccccccccccccccc"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/DigitizeCursor2.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+      </g>
     </g>
     <g
-       id="g5338"
-       transform="translate(75,85.000003)"
-       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/SelectFeature.png"
-       inkscape:export-xdpi="83.485229"
-       inkscape:export-ydpi="83.485229">
-      <path
-         inkscape:export-ydpi="91.297539"
-         inkscape:export-xdpi="91.297539"
+       id="g4471"
+       transform="translate(163.33438,-70.192728)"
+       inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/SelectFeatureWin.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635">
+      <g
+         inkscape:export-ydpi="83.485229"
+         inkscape:export-xdpi="83.485229"
          inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/SelectFeature.png"
-         inkscape:connector-curvature="0"
-         sodipodi:nodetypes="csssssss"
-         id="path730-7-9"
-         d="m 86.27571,671.53469 c 0,0 -0.0574,-18.26622 -0.0574,-18.26622 0,0 12.04009,12.87523 12.04009,12.87523 0,0 -5.20198,-0.11826 -5.20198,-0.11826 0,0 3.4254,5.67716 3.4254,5.67716 0,0 -4.47307,2.11827 -4.47307,2.11827 0,0 -2.00875,-6.45869 -2.00875,-6.45869 0,0 -3.72428,4.17251 -3.72428,4.17251 z"
-         style="font-size:12px;fill-rule:evenodd;stroke:#ffffff;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none" />
-      <text
-         inkscape:export-ydpi="91.297539"
-         inkscape:export-xdpi="91.297539"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/SelectFeature.png"
-         sodipodi:linespacing="124%"
-         id="text5043-8"
-         y="673.13477"
-         x="97.633369"
-         style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:124.00000095%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#ffffff;font-family:Arial;-inkscape-font-specification:Arial"
-         xml:space="preserve"><tspan
-           style="font-size:18px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:124.00000095%;stroke:#ffffff;font-family:Sans;-inkscape-font-specification:Times Bold"
-           y="673.13477"
+         transform="translate(75,85.000003)"
+         id="g5338">
+        <path
+           style="font-size:12px;fill-rule:evenodd;stroke:#ffffff;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+           d="m 86.27571,671.53469 c 0,0 -0.0574,-18.26622 -0.0574,-18.26622 0,0 12.04009,12.87523 12.04009,12.87523 0,0 -5.20198,-0.11826 -5.20198,-0.11826 0,0 3.4254,5.67716 3.4254,5.67716 0,0 -4.47307,2.11827 -4.47307,2.11827 0,0 -2.00875,-6.45869 -2.00875,-6.45869 0,0 -3.72428,4.17251 -3.72428,4.17251 z"
+           id="path730-7-9"
+           sodipodi:nodetypes="csssssss"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/SelectFeature.png"
+           inkscape:export-xdpi="91.297539"
+           inkscape:export-ydpi="91.297539" />
+        <text
+           xml:space="preserve"
+           style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:124.00000095%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#ffffff;font-family:Arial;-inkscape-font-specification:Arial"
            x="97.633369"
-           id="tspan5045-6"
-           sodipodi:role="line">?</tspan></text>
+           y="673.13477"
+           id="text5043-8"
+           sodipodi:linespacing="124%"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/SelectFeature.png"
+           inkscape:export-xdpi="91.297539"
+           inkscape:export-ydpi="91.297539"><tspan
+             sodipodi:role="line"
+             id="tspan5045-6"
+             x="97.633369"
+             y="673.13477"
+             style="font-size:18px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:124.00000095%;stroke:#ffffff;font-family:Sans;-inkscape-font-specification:Times Bold">?</tspan></text>
+      </g>
     </g>
     <g
-       id="g5316"
-       transform="translate(-61,8.0000026)"
+       id="g4438"
+       transform="translate(-54.035203,4.0352026)"
        inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
        inkscape:export-xdpi="91.010635"
        inkscape:export-ydpi="91.010635">
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
-         transform="matrix(0.85211387,0,0,0.91766109,51.521839,197.24641)"
-         d="m 376,494.86218 c 0,3.58985 -3.13401,6.5 -7,6.5 -3.86599,0 -7,-2.91015 -7,-6.5 0,-3.58985 3.13401,-6.5 7,-6.5 3.86599,0 7,2.91015 7,6.5 z"
-         sodipodi:ry="6.5"
-         sodipodi:rx="7"
-         sodipodi:cy="494.86218"
-         sodipodi:cx="369"
-         id="path2816-8-6"
-         style="fill:none;stroke:#ffffff;stroke-width:1.13086307;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-         sodipodi:type="arc" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
-         transform="matrix(0.72116328,0,0,0.77663738,99.842607,267.03371)"
-         d="m 376,494.86218 c 0,3.58985 -3.13401,6.5 -7,6.5 -3.86599,0 -7,-2.91015 -7,-6.5 0,-3.58985 3.13401,-6.5 7,-6.5 3.86599,0 7,2.91015 7,6.5 z"
-         sodipodi:ry="6.5"
-         sodipodi:rx="7"
-         sodipodi:cy="494.86218"
-         sodipodi:cx="369"
-         id="path2816-8"
-         style="fill:none;stroke:#000000;stroke-width:1.33620799;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-         sodipodi:type="arc" />
       <g
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
          inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
-         transform="translate(124.95,-41.929102)"
-         id="g5210">
+         transform="translate(-31.916654,21.000003)"
+         id="g5316">
         <path
-           style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-           d="m 241,689.2204 0,8.14178"
-           id="path5119"
-           inkscape:connector-curvature="0" />
+           sodipodi:type="arc"
+           style="fill:none;stroke:#ffffff;stroke-width:1.13086307;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           id="path2816-8-6"
+           sodipodi:cx="369"
+           sodipodi:cy="494.86218"
+           sodipodi:rx="7"
+           sodipodi:ry="6.5"
+           d="m 376,494.86218 c 0,3.58985 -3.13401,6.5 -7,6.5 -3.86599,0 -7,-2.91015 -7,-6.5 0,-3.58985 3.13401,-6.5 7,-6.5 3.86599,0 7,2.91015 7,6.5 z"
+           transform="matrix(0.85211387,0,0,0.91766109,51.521839,197.24641)"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
         <path
-           style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-           d="m 245.05,693.29129 -8.1,0"
-           id="path5119-5"
-           inkscape:connector-curvature="0" />
+           sodipodi:type="arc"
+           style="fill:none;stroke:#000000;stroke-width:1.33620799;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           id="path2816-8"
+           sodipodi:cx="369"
+           sodipodi:cy="494.86218"
+           sodipodi:rx="7"
+           sodipodi:ry="6.5"
+           d="m 376,494.86218 c 0,3.58985 -3.13401,6.5 -7,6.5 -3.86599,0 -7,-2.91015 -7,-6.5 0,-3.58985 3.13401,-6.5 7,-6.5 3.86599,0 7,2.91015 7,6.5 z"
+           transform="matrix(0.72116328,0,0,0.77663738,99.842607,267.03371)"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <g
+           id="g5210"
+           transform="translate(124.95,-41.929102)"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741">
+          <path
+             inkscape:connector-curvature="0"
+             id="path5119"
+             d="m 241,689.2204 0,8.14178"
+             style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+          <path
+             inkscape:connector-curvature="0"
+             id="path5119-5"
+             d="m 245.05,693.29129 -8.1,0"
+             style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+        </g>
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 362,652.36218 3,0 0,3"
+           id="path5163"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 365,647.36218 0,3 -3,0"
+           id="path5163-3"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 367,655.36218 0,-3 3,0"
+           id="path5163-3-8"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 370,650.36218 -3,0 0,-3"
+           id="path5163-3-5"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           style="fill:#000000;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 369,655.36219 4,4 1,-1 -4,-4 z"
+           id="path5226"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 369,656.36218 4,4 2,-2 -4,-4"
+           id="path5228"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
       </g>
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5163"
-         d="m 362,652.36218 3,0 0,3"
-         style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5163-3"
-         d="m 365,647.36218 0,3 -3,0"
-         style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5163-3-8"
-         d="m 367,655.36218 0,-3 3,0"
-         style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5163-3-5"
-         d="m 370,650.36218 -3,0 0,-3"
-         style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5226"
-         d="m 369,655.36219 4,4 1,-1 -4,-4 z"
-         style="fill:#000000;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5228"
-         d="m 369,656.36218 4,4 2,-2 -4,-4"
-         style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
     </g>
     <g
-       id="g5329"
-       transform="translate(-1.8887459,-1.1223799)"
+       id="g4452"
+       transform="translate(-31.111254,-7.8776175)"
        inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
        inkscape:export-xdpi="91.010635"
        inkscape:export-ydpi="91.010635">
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
+      <g
+         inkscape:export-ydpi="91.010635"
+         inkscape:export-xdpi="91.010635"
          inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
-         transform="matrix(0.85211387,0,0,0.91766109,-24.478163,248.24641)"
-         d="m 376,494.86218 c 0,3.58985 -3.13401,6.5 -7,6.5 -3.86599,0 -7,-2.91015 -7,-6.5 0,-3.58985 3.13401,-6.5 7,-6.5 3.86599,0 7,2.91015 7,6.5 z"
-         sodipodi:ry="6.5"
-         sodipodi:rx="7"
-         sodipodi:cy="494.86218"
-         sodipodi:cx="369"
-         id="path2816-8-6-2"
-         style="fill:none;stroke:#ffffff;stroke-width:1.13086307;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-         sodipodi:type="arc" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
-         transform="matrix(0.72116328,0,0,0.77663738,23.842607,318.03371)"
-         d="m 376,494.86218 c 0,3.58985 -3.13401,6.5 -7,6.5 -3.86599,0 -7,-2.91015 -7,-6.5 0,-3.58985 3.13401,-6.5 7,-6.5 3.86599,0 7,2.91015 7,6.5 z"
-         sodipodi:ry="6.5"
-         sodipodi:rx="7"
-         sodipodi:cy="494.86218"
-         sodipodi:cx="369"
-         id="path2816-8-8"
-         style="fill:none;stroke:#000000;stroke-width:1.33620799;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-         sodipodi:type="arc" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5119-5-9"
-         d="m 294,702.36218 -8.1,0"
-         style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
-      <path
-         sodipodi:nodetypes="cc"
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5163-3-5-2"
-         d="m 294,703.36218 c -2.66667,0 -5.33333,0 -8,0"
-         style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5226-7"
-         d="m 293,706.36218 4,4 1,-1 -4,-4 z"
-         style="fill:#000000;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5228-3"
-         d="m 293,707.36218 4,4 2,-2 -4,-4"
-         style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         sodipodi:nodetypes="cc"
-         inkscape:export-ydpi="177.79741"
-         inkscape:export-xdpi="177.79741"
-         inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
-         inkscape:connector-curvature="0"
-         id="path5163-3-5-2-4"
-         d="m 294,701.36218 c -2.66667,0 -5.33333,0 -8,0"
-         style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+         transform="translate(-1.8887459,-1.1223799)"
+         id="g5329">
+        <path
+           sodipodi:type="arc"
+           style="fill:none;stroke:#ffffff;stroke-width:1.13086307;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           id="path2816-8-6-2"
+           sodipodi:cx="369"
+           sodipodi:cy="494.86218"
+           sodipodi:rx="7"
+           sodipodi:ry="6.5"
+           d="m 376,494.86218 c 0,3.58985 -3.13401,6.5 -7,6.5 -3.86599,0 -7,-2.91015 -7,-6.5 0,-3.58985 3.13401,-6.5 7,-6.5 3.86599,0 7,2.91015 7,6.5 z"
+           transform="matrix(0.85211387,0,0,0.91766109,-24.478163,248.24641)"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           sodipodi:type="arc"
+           style="fill:none;stroke:#000000;stroke-width:1.33620799;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           id="path2816-8-8"
+           sodipodi:cx="369"
+           sodipodi:cy="494.86218"
+           sodipodi:rx="7"
+           sodipodi:ry="6.5"
+           d="m 376,494.86218 c 0,3.58985 -3.13401,6.5 -7,6.5 -3.86599,0 -7,-2.91015 -7,-6.5 0,-3.58985 3.13401,-6.5 7,-6.5 3.86599,0 7,2.91015 7,6.5 z"
+           transform="matrix(0.72116328,0,0,0.77663738,23.842607,318.03371)"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+           d="m 294,702.36218 -8.1,0"
+           id="path5119-5-9"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 294,703.36218 c -2.66667,0 -5.33333,0 -8,0"
+           id="path5163-3-5-2"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741"
+           sodipodi:nodetypes="cc" />
+        <path
+           style="fill:#000000;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 293,706.36218 4,4 1,-1 -4,-4 z"
+           id="path5226-7"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 293,707.36218 4,4 2,-2 -4,-4"
+           id="path5228-3"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 294,701.36218 c -2.66667,0 -5.33333,0 -8,0"
+           id="path5163-3-5-2-4"
+           inkscape:connector-curvature="0"
+           inkscape:export-filename="/Users/johnlindsay/Documents/programming/Whitebox/whitebox-geospatial-analysis-tools/WhiteboxGIS/resources/Images/ZoomOutCursorWin.png"
+           inkscape:export-xdpi="177.79741"
+           inkscape:export-ydpi="177.79741"
+           sodipodi:nodetypes="cc" />
+      </g>
     </g>
     <rect
        style="fill:url(#linearGradient4294-5);fill-opacity:1;fill-rule:nonzero;stroke:url(#linearGradient4296-2);stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"

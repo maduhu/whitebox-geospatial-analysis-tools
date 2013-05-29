@@ -1373,6 +1373,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             helpSearch.setActionCommand("helpSearch");
             helpSearch.addActionListener(this);
             HelpMenu.add(helpSearch);
+            
+            JMenuItem helpTutorials = new JMenuItem("Tutorials");
+            HelpMenu.add(helpTutorials);
+            helpTutorials.setActionCommand("helpTutorials");
+            helpTutorials.addActionListener(this);
+            
             JMenuItem helpAbout = new JMenuItem("About Whitebox GAT");
             helpAbout.setActionCommand("helpAbout");
             helpAbout.addActionListener(this);
@@ -5111,6 +5117,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
             case "helpSearch": {
                 Help help = new Help(this, false, "search");
+                help.setVisible(true);
+                break;
+            }
+            case "helpTutorials": {
+                Help help = new Help(this, false, "tutorials");
                 help.setVisible(true);
                 break;
             }

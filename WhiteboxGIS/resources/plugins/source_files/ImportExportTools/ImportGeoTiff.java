@@ -261,7 +261,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 for (int row = 0; row < nRows; row++) {
                     data = gt.getRowData(row);
                     if (!(data != null)) {
-                        showFeedback("The GeoTIFF reader cannot read RGB, aRGB, or compressed data.");
+                        showFeedback("The GeoTIFF reader cannot read RGB, aRGB, compressed data files, and files with tile offsets.");
                         return;
                     }
                     for (int col = 0; col < nCols; col++) {
