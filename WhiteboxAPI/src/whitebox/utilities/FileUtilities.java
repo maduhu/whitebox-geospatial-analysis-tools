@@ -49,13 +49,17 @@ public class FileUtilities {
         }
     }
     
-    private static ArrayList<String> foundFiles = new ArrayList<String>();
+    private static ArrayList<String> foundFiles = new ArrayList<>();
     private static boolean recursive;
     public static ArrayList<String> findAllFilesWithExtension(File dir, String extension, boolean searchSubDirectories) {
         foundFiles.clear();
         recursive = searchSubDirectories;
         findAllFilesWithExtension2(dir, extension);
-        return foundFiles;
+        ArrayList<String> ret = new ArrayList<>();
+        for (String str : foundFiles) {
+            ret.add(str);
+        }
+        return ret;
     }
     
     private static ArrayList<String> findAllFilesWithExtension2(File dir, String extension) {

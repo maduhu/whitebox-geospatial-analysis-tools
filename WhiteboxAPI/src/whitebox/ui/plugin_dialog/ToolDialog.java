@@ -54,10 +54,10 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     private String pluginName = "";
     private String pathSep = "";
     private String sourceFile = "";
-    private ArrayList<DialogComponent> components = new ArrayList<DialogComponent>();
+    private ArrayList<DialogComponent> components = new ArrayList<>();
     private Communicator host = null;
     private boolean automaticallyClose = true;
-    private ArrayList<String> helpHistory = new ArrayList<String>();
+    private ArrayList<String> helpHistory = new ArrayList<>();
     private int helpHistoryIndex = 0;
     
     public ToolDialog(Frame owner, boolean modal, String pluginName, String title, String helpFile) {
@@ -185,7 +185,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         
         if (!hlp.exists()) {
             // use the NoHelp.html file.
-            helpFile = resourcesDirectory + "Help" + pathSep + "NoHelp.html";
+            helpFile = resourcesDirectory + "Help" + pathSep + "other" + pathSep + "NoHelp.html";
         }
         
         helpPane.setEditable(false);
