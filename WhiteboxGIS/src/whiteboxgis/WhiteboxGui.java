@@ -4830,6 +4830,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         this.numberOfRecentItemsToStore = numberOfRecentItemsToStore;
     }
 
+    @Override
     public Font getDefaultFont() {
         return defaultFont;
     }

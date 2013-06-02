@@ -194,24 +194,30 @@ public class HistogramView extends JDialog implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent ae) {
         String ac = ae.getActionCommand().toLowerCase();
-        if (ac.equals("exit")) {
-            this.dispose();
-        } else if (ac.equals("print")) {
-            printHisto();
-        } else if (ac.equals("save")) {
-            saveHistoAsImage();
-        } else if (ac.equals("switch to cdf")) {
-            cumulativeBool = !cumulativeBool;
-            histo.setCumulative(cumulativeBool);
-            if (!cumulativeBool) {
-                cumulative.setText("Switch to CDF");
-                cumulative.setToolTipText("cumulative distribution function (CDF)");
-            } else {
-                cumulative.setText("Switch to PDF");
-                cumulative.setToolTipText("Probability distribution function (PDF)");
-            }
-        } else if (ac.equals("refresh")) {
-            histo.refresh();
+        switch (ac) {
+            case "exit":
+                this.dispose();
+                break;
+            case "print":
+                printHisto();
+                break;
+            case "save":
+                saveHistoAsImage();
+                break;
+            case "switch to cdf":
+                cumulativeBool = !cumulativeBool;
+                histo.setCumulative(cumulativeBool);
+                if (!cumulativeBool) {
+                    cumulative.setText("Switch to CDF");
+                    cumulative.setToolTipText("cumulative distribution function (CDF)");
+                } else {
+                    cumulative.setText("Switch to PDF");
+                    cumulative.setToolTipText("Probability distribution function (PDF)");
+                }
+                break;
+            case "refresh":
+                histo.refresh();
+                break;
         }
     }
 }

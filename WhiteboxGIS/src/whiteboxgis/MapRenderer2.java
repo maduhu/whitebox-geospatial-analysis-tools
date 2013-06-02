@@ -297,9 +297,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     public void setDigitizingNewFeature(boolean value) {
         digitizingNewFeature = value;
         if (!digitizingNewFeature) {
-            distPoints.clear();
             if (!modifyingPixels && !usingDistanceTool) {
                 digitizing = false;
+                distPoints.clear();
             }
         } else {
             digitizing = true;

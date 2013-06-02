@@ -1,8 +1,8 @@
 <Dialog Name="SplitColourComposite" HelpFile="SplitColourComposite.html">
 	<DialogComponent type="DialogFile">
 		<Name>InputFile</Name>
-		<Description>Enter the name of the DEM file here</Description>
-		<LabelText>Input DEM File:</LabelText>
+		<Description>Enter the name of the image file here</Description>
+		<LabelText>Input Image File:</LabelText>
 		<DialogMode>Open File</DialogMode>
 		<Filter>Raster Files (*.dep), DEP</Filter>
 		<IsVisible>True</IsVisible>

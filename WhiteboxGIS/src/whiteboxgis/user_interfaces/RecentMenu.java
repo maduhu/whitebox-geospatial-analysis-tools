@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class RecentMenu extends JMenu {
 
-    private int numItemsToStore = 5;
+    private int numItemsToStore = 8;
     // The problem with using a LinkedHashSet is that you can't move a 
     // newly added duplicate to the top of the list...it stays in it's 
     // originally added order.
