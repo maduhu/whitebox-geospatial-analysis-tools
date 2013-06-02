@@ -834,40 +834,40 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
     //This method is only used during testing.
     public static void main(String[] args) {
         try {
-            int polyOrder = 4;
-//            String inputGCPFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tiepoints 15-16 image 15.shp";
-//            String inputRasterFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/A19411_15_Blue.dep";
-//            String inputGCPFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tiepoints 15-16 image 16.shp";
-//            String inputRasterFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/A19411_16_Blue.dep";
-//            String outputRasterFile = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/16 registered.dep";
-
-//            String inputGCPFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tiepoints final image 15-16.shp";
-//            String inputRasterFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tmp6.dep";
-//            String inputGCPFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tiepoints final image 17.shp";
-//            String inputRasterFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/17 adjusted.dep";
-//            String outputRasterFile = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/17 registered.dep";
-
-//            String inputGCPFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/image 15 GCPs map.shp";
-//            String inputRasterFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/A19411_15_Blue.dep";
-//            String inputGCPFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/image 15 GCPs.shp";
-//            String outputRasterFile = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/15 registered to map1.dep";
-
-            String inputGCPFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/image 16 GCPs map.shp";
-            String inputRasterFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/A19411_16_Blue.dep";
-            String inputGCPFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/image 16 GCPs.shp";
-            String outputRasterFile = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/16 registered to map1.dep";
-
-
-            args = new String[5];
-            args[0] = inputGCPFile1;
-            args[1] = inputRasterFile1;
-            args[2] = inputGCPFile2;
-            args[3] = outputRasterFile;
-            args[4] = String.valueOf(polyOrder);
-
-            TiePointTransformation tpt = new TiePointTransformation();
-            tpt.setArgs(args);
-            tpt.run();
+//            int polyOrder = 4;
+////            String inputGCPFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tiepoints 15-16 image 15.shp";
+////            String inputRasterFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/A19411_15_Blue.dep";
+////            String inputGCPFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tiepoints 15-16 image 16.shp";
+////            String inputRasterFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/A19411_16_Blue.dep";
+////            String outputRasterFile = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/16 registered.dep";
+//
+////            String inputGCPFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tiepoints final image 15-16.shp";
+////            String inputRasterFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tmp6.dep";
+////            String inputGCPFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/tiepoints final image 17.shp";
+////            String inputRasterFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/17 adjusted.dep";
+////            String outputRasterFile = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/17 registered.dep";
+//
+////            String inputGCPFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/image 15 GCPs map.shp";
+////            String inputRasterFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/A19411_15_Blue.dep";
+////            String inputGCPFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/image 15 GCPs.shp";
+////            String outputRasterFile = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/15 registered to map1.dep";
+//
+//            String inputGCPFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/image 16 GCPs map.shp";
+//            String inputRasterFile1 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/A19411_16_Blue.dep";
+//            String inputGCPFile2 = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/image 16 GCPs.shp";
+//            String outputRasterFile = "/Users/johnlindsay/Documents/Data/Guelph Photomosaic/16 registered to map1.dep";
+//
+//
+//            args = new String[5];
+//            args[0] = inputGCPFile1;
+//            args[1] = inputRasterFile1;
+//            args[2] = inputGCPFile2;
+//            args[3] = outputRasterFile;
+//            args[4] = String.valueOf(polyOrder);
+//
+//            TiePointTransformation tpt = new TiePointTransformation();
+//            tpt.setArgs(args);
+//            tpt.run();
 
         } catch (Exception e) {
             System.err.println(e.getMessage());
