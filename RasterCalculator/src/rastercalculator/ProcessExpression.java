@@ -16,6 +16,7 @@
  */
 package rastercalculator;
 
+import java.awt.Font;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -204,6 +205,11 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
 
     @Override
     public void deleteFeature() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Font getDefaultFont() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
