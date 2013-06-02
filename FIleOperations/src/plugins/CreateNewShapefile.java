@@ -71,7 +71,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-        String[] ret = {"FileUtilities", "VectorTools"};
+        String[] ret = {"FileUtilities", "VectorTools", "ImageTransformations"};
         return ret;
     }
 
