@@ -47,7 +47,7 @@ public class Legend implements CartographicElement, Comparable<CartographicEleme
     private String name = "legend";
     private int selectedOffsetX;
     private int selectedOffsetY;
-    private ArrayList<MapArea> mapAreas = new ArrayList<MapArea>();
+    private ArrayList<MapArea> mapAreas = new ArrayList<>();
     private float borderWidth = 0.75f;
     private float lineWidth = 0.75f;
     

@@ -16,6 +16,7 @@
  */
 package whitebox.plugins;
 
+import java.awt.Font;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.Communicator;
 import whitebox.interfaces.WhiteboxPlugin;
@@ -221,4 +222,9 @@ public class PluginHost implements WhiteboxPluginHost, Communicator {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
+    Font defaultFont = new Font("SanSerif", Font.PLAIN, 10);
+    @Override
+    public Font getDefaultFont() {
+        return defaultFont;
+    }
 }

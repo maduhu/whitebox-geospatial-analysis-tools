@@ -18,6 +18,7 @@
 package whitebox.interfaces;
 
 import java.util.List;
+import java.awt.Font;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
@@ -96,4 +97,11 @@ public interface WhiteboxPluginHost {
      * Used to delete a selected vector feature that is actively being edited.
      */
     public void deleteFeature();
+    
+    /**
+     * The default font.
+     * @return  default font
+     */
+    public Font getDefaultFont();
+    
 }
