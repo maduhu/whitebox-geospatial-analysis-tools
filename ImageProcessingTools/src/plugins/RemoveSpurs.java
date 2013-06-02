@@ -194,7 +194,8 @@ public class RemoveSpurs implements WhiteboxPlugin {
             int nCols = image.getNumberColumns();
             double noData = image.getNoDataValue();
 
-            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
+            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader,
+                    WhiteboxRaster.DataType.FLOAT, noData);
             output.setPreferredPalette("black_white.pal");
             
             // copy the input image into the output.

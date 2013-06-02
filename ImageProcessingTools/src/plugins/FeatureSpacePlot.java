@@ -241,7 +241,7 @@ public class FeatureSpacePlot implements WhiteboxPlugin {
             
             Plot plot = new Plot(featureSpace, image1.getShortHeaderFile(), 
                     image2.getShortHeaderFile(), image1Min, image1Max, image2Min,
-                    image2Max);
+                    image2Max, myHost.getDefaultFont());
 
             image1.close();
             image2.close();
@@ -296,10 +296,10 @@ class Plot extends JPanel implements ActionListener, Printable, MouseMotionListe
     private int backgroundColor = 255;
     private boolean gridOn = true;
     private boolean spectrumPaletteMode = true;
-    
+    private Font myFont;
     // Constructors
     public Plot(int[][] featureSpace, String shortName1, String shortName2, int image1Min,
-            int image1Max, int image2Min, int image2Max) {
+            int image1Max, int image2Min, int image2Max, Font myFont) {
         this.featureSpace = featureSpace.clone();
         this.shortName1 = shortName1;
         this.shortName2 = shortName2;
@@ -307,6 +307,7 @@ class Plot extends JPanel implements ActionListener, Printable, MouseMotionListe
         this.image2Min = image2Min;
         this.image1Max = image1Max;
         this.image2Max = image2Max;
+        this.myFont = myFont;
         
         setMouseMotionListener();
         setMouseListener();
@@ -640,6 +641,9 @@ class Plot extends JPanel implements ActionListener, Printable, MouseMotionListe
         
         leftMargin = 60;
         Graphics2D g2d = (Graphics2D) g;
+        
+        g2d.setFont(myFont);
+        
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2d.setColor(Color.white);
         g2d.fillRect(0, 0, getWidth(), getHeight());

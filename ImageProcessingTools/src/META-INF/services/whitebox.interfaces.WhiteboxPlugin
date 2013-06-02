@@ -29,12 +29,14 @@ plugins.FilterTotal
 plugins.FlipImage
 plugins.GaussianStretch
 plugins.HistogramEqualization
+plugins.ImageRectification
 plugins.InversePrincipalComponentAnalysis
 plugins.kMeansClassification
 plugins.LineThinning
 plugins.MinMaxContrastStretch
 plugins.ModifiedKMeans
 plugins.Mosaic
+plugins.MosaicWithFeathering
 plugins.NDVI
 plugins.OSAVI
 plugins.PanSharpening

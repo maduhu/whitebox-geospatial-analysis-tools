@@ -27,7 +27,7 @@ import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
- * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ * 
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class Mosaic implements WhiteboxPlugin {
@@ -278,73 +278,6 @@ public class Mosaic implements WhiteboxPlugin {
                     WhiteboxRasterBase.DataType.FLOAT, outputNoData, outputNoData);
             
             
-//            // create the whitebox header file.
-//            fw = new FileWriter(destHeader, false);
-//            bw = new BufferedWriter(fw);
-//            out = new PrintWriter(bw, true);
-//
-//            str1 = "Min:\t" + Double.toString(Integer.MAX_VALUE);
-//            out.println(str1);
-//            str1 = "Max:\t" + Double.toString(Integer.MIN_VALUE);
-//            out.println(str1);
-//            str1 = "North:\t" + Double.toString(north);
-//            out.println(str1);
-//            str1 = "South:\t" + Double.toString(south);
-//            out.println(str1);
-//            str1 = "East:\t" + Double.toString(east);
-//            out.println(str1);
-//            str1 = "West:\t" + Double.toString(west);
-//            out.println(str1);
-//            str1 = "Cols:\t" + Integer.toString(nCols);
-//            out.println(str1);
-//            str1 = "Rows:\t" + Integer.toString(nRows);
-//            out.println(str1);
-//            str1 = "Data Type:\t" + "float";
-//            out.println(str1);
-//            str1 = "Z Units:\t" + "not specified";
-//            out.println(str1);
-//            str1 = "XY Units:\t" + "not specified";
-//            out.println(str1);
-//            str1 = "Projection:\t" + "not specified";
-//            out.println(str1);
-//            str1 = "Data Scale:\tcontinuous";
-//            out.println(str1);
-//            str1 = "Preferred Palette:\t" + "spectrum.pal";
-//            out.println(str1);
-//            str1 = "NoData:\t-32768";
-//            out.println(str1);
-//            if (java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN) {
-//                str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
-//            } else {
-//                str1 = "Byte Order:\t" + "BIG_ENDIAN";
-//            }
-//            out.println(str1);
-//
-//            out.flush();
-//            out.close();
-//            
-//            
-//            destination = new WhiteboxRaster(destHeader, "rw");
-//            
-//            // fill it with noData values.
-//            outputNoData = destination.getNoDataValue();
-//            destination.reinitialize(outputNoData);
-
-//            // this just sets up the new file.
-//            destination.setValue(0, 0, outputNoData);
-            
-//            for (row = 0; row < nRows; row++) {
-//                for (col = 0; col < nCols; col++) {
-//                    destination.setValue(row, col, outputNoData);
-//                }
-//                if (cancelOp) {
-//                    cancelOperation();
-//                    return;
-//                }
-//                progress = (int) (100f * row / (nRows - 1));
-//                updateProgress(progress);
-//            }
-            
             int nColsLessOne = nCols - 1;
             int nRowsLessOne = nRows - 1;
             
@@ -451,7 +384,7 @@ public class Mosaic implements WhiteboxPlugin {
                             if (isBetween(y, imageData[a][0], imageData[a][1])
                                     && isBetween(x, imageData[a][2], imageData[a][3])) {
                                 imageNoData = imageData[a][8];
-                                // what are the col and row of the image?
+                                // what are the exact col and row of the image?
                                 srcRow = (imageData[a][0] - y) / imageData[a][10] * (imageData[a][4] - 0.5);
                                 srcCol = (x - imageData[a][3]) / imageData[a][9] * (imageData[a][5] - 0.5);
 
