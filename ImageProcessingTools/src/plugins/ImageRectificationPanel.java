@@ -634,132 +634,6 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
         return ret;
     }
 
-//    private void run() {
-//        WhiteboxRaster input2 = new WhiteboxRaster(inputImageFile, "r");
-//
-//
-//        double image2North = input2.getNorth();
-//        double image2South = input2.getSouth();
-//        double image2West = input2.getWest();
-//        double image2East = input2.getEast();
-//        XYPoint topLeftCorner = getForwardCoordinates(image2West, image2North);
-//        XYPoint topRightCorner = getForwardCoordinates(image2East, image2North);
-//        XYPoint bottomLeftCorner = getForwardCoordinates(image2West, image2South);
-//        XYPoint bottomRightCorner = getForwardCoordinates(image2East, image2South);
-//
-//        double outputNorth = Double.NEGATIVE_INFINITY;
-//        double outputSouth = Double.POSITIVE_INFINITY;
-//        double outputEast = Double.NEGATIVE_INFINITY;
-//        double outputWest = Double.POSITIVE_INFINITY;
-//
-//        if (topLeftCorner.y > outputNorth) {
-//            outputNorth = topLeftCorner.y;
-//        }
-//        if (topLeftCorner.y < outputSouth) {
-//            outputSouth = topLeftCorner.y;
-//        }
-//        if (topLeftCorner.x > outputEast) {
-//            outputEast = topLeftCorner.x;
-//        }
-//        if (topLeftCorner.x < outputWest) {
-//            outputWest = topLeftCorner.x;
-//        }
-//
-//        if (topRightCorner.y > outputNorth) {
-//            outputNorth = topRightCorner.y;
-//        }
-//        if (topRightCorner.y < outputSouth) {
-//            outputSouth = topRightCorner.y;
-//        }
-//        if (topRightCorner.x > outputEast) {
-//            outputEast = topRightCorner.x;
-//        }
-//        if (topRightCorner.x < outputWest) {
-//            outputWest = topRightCorner.x;
-//        }
-//
-//        if (bottomLeftCorner.y > outputNorth) {
-//            outputNorth = bottomLeftCorner.y;
-//        }
-//        if (bottomLeftCorner.y < outputSouth) {
-//            outputSouth = bottomLeftCorner.y;
-//        }
-//        if (bottomLeftCorner.x > outputEast) {
-//            outputEast = bottomLeftCorner.x;
-//        }
-//        if (bottomLeftCorner.x < outputWest) {
-//            outputWest = bottomLeftCorner.x;
-//        }
-//
-//        if (bottomRightCorner.y > outputNorth) {
-//            outputNorth = bottomRightCorner.y;
-//        }
-//        if (bottomRightCorner.y < outputSouth) {
-//            outputSouth = bottomRightCorner.y;
-//        }
-//        if (bottomRightCorner.x > outputEast) {
-//            outputEast = bottomRightCorner.x;
-//        }
-//        if (bottomRightCorner.x < outputWest) {
-//            outputWest = bottomRightCorner.x;
-//        }
-//
-//        double nsRange = outputNorth - outputSouth;
-//        double ewRange = outputEast - outputWest;
-//
-//        int nRows = input2.getNumberRows(); //(int)(nsRange / input2.getCellSizeY());
-//        int nCols = input2.getNumberColumns(); //(int)(ewRange / input2.getCellSizeX());
-//
-//        WhiteboxRaster output = new WhiteboxRaster(outputImageFile, outputNorth,
-//                outputSouth, outputEast, outputWest, nRows, nCols, input2.getDataScale(),
-//                input2.getDataType(), input2.getNoDataValue(), input2.getNoDataValue());
-//
-//
-//        double outputX, outputY;
-//        double inputX, inputY;
-//        int inputCol, inputRow;
-//        XYPoint point;
-//        double z;
-//        int oldProgress = -1;
-//        int progress;
-//        for (int row = 0; row < nRows; row++) {
-//            for (int col = 0; col < nCols; col++) {
-//                outputX = output.getXCoordinateFromColumn(col);
-//                outputY = output.getYCoordinateFromRow(row);
-//
-//                // back transform them into image 2 coordinates.
-//                point = getBackwardCoordinates(outputX, outputY);
-//
-//                inputX = point.x;
-//                inputY = point.y;
-//
-//                inputCol = input2.getColumnFromXCoordinate(inputX);
-//                inputRow = input2.getRowFromYCoordinate(inputY);
-//
-//                z = input2.getValue(inputRow, inputCol);
-//
-//                output.setValue(row, col, z);
-//            }
-//            if (cancelOp) {
-//                cancelOperation();
-//                return;
-//            }
-//            progress = (int) (100f * row / (nRows - 1));
-//            if (progress != oldProgress) {
-//                updateProgress(progress);
-//            }
-//        }
-//
-//        output.addMetadataEntry("Created by the "
-//                + "ImageRectification tool.");
-//        output.addMetadataEntry("Created on " + new Date());
-//
-//        output.close();
-//
-//        returnData(outputImageFile);
-//
-//    }
-
     /**
      * Used to communicate feedback pop-up messages between a plugin tool and
      * the main Whitebox user-interface.
@@ -912,9 +786,6 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
             if (column == 6) {
                 int row = e.getFirstRow();
                 useGCP[row] = (boolean) (dataTable.getValueAt(row, column));
-//                System.out.println("row: " + row + " column: " + column);
-//                dataTable.setColumnSelectionInterval(column + 1, column + 1);
-//                dataTable.setRowSelectionInterval(row, row);
                 createGui();
             }
         }
@@ -965,18 +836,32 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
 
         @Override
         public Void doInBackground() {
-            WhiteboxRaster input2 = new WhiteboxRaster(inputImageFile, "r");
+            WhiteboxRaster inputImage = new WhiteboxRaster(inputImageFile, "r");
 
 
-            double image2North = input2.getNorth();
-            double image2South = input2.getSouth();
-            double image2West = input2.getWest();
-            double image2East = input2.getEast();
+            double image2North = inputImage.getNorth();
+            double image2South = inputImage.getSouth();
+            double image2West = inputImage.getWest();
+            double image2East = inputImage.getEast();
             XYPoint topLeftCorner = getForwardCoordinates(image2West, image2North);
             XYPoint topRightCorner = getForwardCoordinates(image2East, image2North);
             XYPoint bottomLeftCorner = getForwardCoordinates(image2West, image2South);
             XYPoint bottomRightCorner = getForwardCoordinates(image2East, image2South);
+            
+            // figure out the grid resolution
+            double vertCornerDist = Math.sqrt((topLeftCorner.x - bottomLeftCorner.x) * 
+                    (topLeftCorner.x - bottomLeftCorner.x) + 
+                    (topLeftCorner.y - bottomLeftCorner.y) * 
+                    (topLeftCorner.y - bottomLeftCorner.y));
 
+            double horizCornerDist = Math.sqrt((topLeftCorner.x - topRightCorner.x) * 
+                    (topLeftCorner.x - topRightCorner.x) + 
+                    (topLeftCorner.y - topRightCorner.y) * 
+                    (topLeftCorner.y - topRightCorner.y));
+            
+            double avgGridRes = (vertCornerDist / inputImage.getNumberRows() + 
+                    horizCornerDist / inputImage.getNumberColumns()) / 2.0;
+            
             double outputNorth = Double.NEGATIVE_INFINITY;
             double outputSouth = Double.POSITIVE_INFINITY;
             double outputEast = Double.NEGATIVE_INFINITY;
@@ -1034,15 +919,15 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
                 outputWest = bottomRightCorner.x;
             }
 
-//            double nsRange = outputNorth - outputSouth;
-//            double ewRange = outputEast - outputWest;
+            double nsRange = outputNorth - outputSouth;
+            double ewRange = outputEast - outputWest;
 
-            int nRows = input2.getNumberRows(); //(int)(nsRange / input2.getCellSizeY());
-            int nCols = input2.getNumberColumns(); //(int)(ewRange / input2.getCellSizeX());
+            int nRows = (int)(nsRange / avgGridRes);
+            int nCols = (int)(ewRange / avgGridRes);
 
             WhiteboxRaster output = new WhiteboxRaster(outputImageFile, outputNorth,
-                    outputSouth, outputEast, outputWest, nRows, nCols, input2.getDataScale(),
-                    input2.getDataType(), input2.getNoDataValue(), input2.getNoDataValue());
+                    outputSouth, outputEast, outputWest, nRows, nCols, inputImage.getDataScale(),
+                    inputImage.getDataType(), inputImage.getNoDataValue(), inputImage.getNoDataValue());
 
 
             double outputX, outputY;
@@ -1063,10 +948,10 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
                     inputX = point.x;
                     inputY = point.y;
 
-                    inputCol = input2.getColumnFromXCoordinate(inputX);
-                    inputRow = input2.getRowFromYCoordinate(inputY);
+                    inputCol = inputImage.getColumnFromXCoordinate(inputX);
+                    inputRow = inputImage.getRowFromYCoordinate(inputY);
 
-                    z = input2.getValue(inputRow, inputCol);
+                    z = inputImage.getValue(inputRow, inputCol);
 
                     output.setValue(row, col, z);
                 }
