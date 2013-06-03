@@ -127,15 +127,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JPopupMenu mapsPopup = null;
     private JPopupMenu mapAreaPopup = null;
     private JPopupMenu textPopup = null;
-    private JButton pan = null;
-    private JButton zoomIntoBox = null;
-    private JButton zoomOut = null;
-    private JButton select = null;
-    private JButton selectFeature = null;
-    private JButton modifyPixelsVals = null;
-    private JButton distanceToolButton = null;
-    private JButton editVectorButton = null;
-    private JButton digitizeNewFeatureButton = null;
+    private JToggleButton pan = null;
+    private JToggleButton zoomIntoBox = null;
+    private JToggleButton zoomOut = null;
+    private JToggleButton select = null;
+    private JToggleButton selectFeature = null;
+    private JToggleButton modifyPixelVals = null;
+    private JToggleButton distanceToolButton = null;
+    private JToggleButton editVectorButton = null;
+    private JToggleButton digitizeNewFeatureButton = null;
 //    private JButton moveNodesButton = null;
     private JButton deleteFeatureButton = null;
     private JCheckBoxMenuItem modifyPixels = null;
@@ -1775,26 +1775,30 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.add(attributeTable);
 
             toolbar.addSeparator();
-            select = makeToolBarButton("select.png", "select", "Select map elements", "Select");
-            select.setBorderPainted(true);
+            select = makeToggleToolBarButton("select.png", "select", "Select map elements", "Select");
             toolbar.add(select);
-            selectFeature = makeToolBarButton("SelectFeature.png", "selectFeature", "Select feature", "Select Feature");
+            selectFeature = makeToggleToolBarButton("SelectFeature.png", "selectFeature", "Select feature", "Select Feature");
             toolbar.add(selectFeature);
             // Feature selection should go here.
-            pan = makeToolBarButton("Pan2.png", "pan", "Pan", "Pan");
-            pan.setBorderPainted(false);
+            pan = makeToggleToolBarButton("Pan2.png", "pan", "Pan", "Pan");
             toolbar.add(pan);
-            zoomIntoBox = makeToolBarButton("ZoomIn.png", "zoomToBox", "Zoom in", "Zoom");
-            zoomIntoBox.setBorderPainted(false);
+            zoomIntoBox = makeToggleToolBarButton("ZoomIn.png", "zoomToBox", "Zoom in", "Zoom");
             toolbar.add(zoomIntoBox);
-            zoomOut = makeToolBarButton("ZoomOut.png", "zoomOut", "Zoom out", "Zoom out");
-            zoomOut.setBorderPainted(false);
+            zoomOut = makeToggleToolBarButton("ZoomOut.png", "zoomOut", "Zoom out", "Zoom out");
             toolbar.add(zoomOut);
             JButton zoomToFullExtent = makeToolBarButton("Globe.png", "zoomToFullExtent", "Zoom map area to full extent", "Zoom To Full Extent");
             toolbar.add(zoomToFullExtent);
             JButton zoomToPage = makeToolBarButton("ZoomFullExtent3.png", "zoomToPage", "Zoom to page", "Zoom To Page");
             toolbar.add(zoomToPage);
-
+            
+            ButtonGroup viewButtonGroup = new ButtonGroup();
+            viewButtonGroup.add(select);
+            viewButtonGroup.add(selectFeature);
+            viewButtonGroup.add(pan);
+            viewButtonGroup.add(zoomOut);
+            viewButtonGroup.add(zoomIntoBox);
+            select.setSelected(true);
+            
             JButton previousExtent = makeToolBarButton("back.png", "previousExtent", "Previous extent", "Prev Extent");
             toolbar.add(previousExtent);
             JButton nextExtent = makeToolBarButton("forward.png", "nextExtent", "Next extent", "Next Extent");
@@ -1807,18 +1811,23 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.add(paletteManager);
             JButton scripter = makeToolBarButton("ScriptIcon2.png", "scripter", "Scripter", "Scripter");
             toolbar.add(scripter);
-            modifyPixelsVals = makeToolBarButton("ModifyPixels.png", "modifyPixels", "Modify pixels in active layer", "Modify Pixels");
-            toolbar.add(modifyPixelsVals);
-            distanceToolButton = makeToolBarButton("DistanceTool.png", "distanceTool", "Measure distance", "Distance Tool");
+            modifyPixelVals = makeToggleToolBarButton("ModifyPixels.png", "modifyPixels", "Modify pixels in active layer", "Modify Pixels");
+            toolbar.add(modifyPixelVals);
+            distanceToolButton = makeToggleToolBarButton("DistanceTool.png", "distanceTool", "Measure distance", "Distance Tool");
             toolbar.add(distanceToolButton);
 
             toolbar.addSeparator();
 
-            editVectorButton = makeToolBarButton("Digitize.png", "editVector", "Edit Vector", "Edit Vector");
+            editVectorButton = makeToggleToolBarButton("Digitize.png", "editVector", "Edit Vector", "Edit Vector");
             editVectorButton.setEnabled(false);
             toolbar.add(editVectorButton);
-
-            digitizeNewFeatureButton = makeToolBarButton("DigitizeNewFeature.png", "digitizeNewFeature", "Digitize New Feature", "Digitize New Feature");
+            
+//            ButtonGroup toolsButtonGroup = new ButtonGroup();
+//            toolsButtonGroup.add(modifyPixelVals);
+//            toolsButtonGroup.add(distanceToolButton);
+//            toolsButtonGroup.add(editVectorButton);
+            
+            digitizeNewFeatureButton = makeToggleToolBarButton("DigitizeNewFeature.png", "digitizeNewFeature", "Digitize New Feature", "Digitize New Feature");
             digitizeNewFeatureButton.setVisible(false);
             toolbar.add(digitizeNewFeatureButton);
 
@@ -1905,6 +1914,27 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         return button;
     }
+    
+    private JToggleButton makeToggleToolBarButton(String imageName, String actionCommand, String toolTipText, String altText) {
+        //Look for the image.
+        String imgLocation = graphicsDirectory + imageName;
+        ImageIcon image = new ImageIcon(imgLocation, "");
+
+        //Create and initialize the button.
+        JToggleButton button = new JToggleButton();
+        button.setActionCommand(actionCommand);
+        button.setToolTipText(toolTipText);
+        button.addActionListener(this);
+        button.setOpaque(false);
+        try {
+            button.setIcon(image);
+        } catch (Exception e) {
+            showFeedback(e.getMessage());
+        }
+
+        return button;
+    }
+    
     private JPanel layersPanel;
     private FeatureSelectionPanel featuresPanel;
 
@@ -2020,7 +2050,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                     VectorLayerInfo vli = (VectorLayerInfo) openMaps.get(activeMap).getActiveMapArea().getActiveLayer();
                                     if (vli.isActivelyEdited()) {
                                         editVectorButton.setEnabled(true);
-                                        editVectorButton.setBorderPainted(true);
                                         editVectorMenuItem.setState(true);
                                         digitizeNewFeatureButton.setVisible(true);
 //                                        moveNodesButton.setVisible(true);
@@ -2030,11 +2059,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
                                     } else {
                                         editVectorButton.setEnabled(true);
-                                        editVectorButton.setBorderPainted(false);
                                         editVectorMenuItem.setEnabled(true);
                                         editVectorMenuItem.setState(false);
                                         digitizeNewFeatureButton.setVisible(false);
-                                        digitizeNewFeatureButton.setBorderPainted(false);
                                         drawingArea.setDigitizingNewFeature(false);
 //                                        moveNodesButton.setVisible(false);
                                         deleteFeatureButton.setVisible(false);
@@ -2044,11 +2071,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                     }
                                 } else {
                                     editVectorButton.setEnabled(false);
-                                    editVectorButton.setBorderPainted(false);
                                     editVectorMenuItem.setEnabled(false);
                                     editVectorMenuItem.setState(false);
                                     digitizeNewFeatureButton.setVisible(false);
-                                    digitizeNewFeatureButton.setBorderPainted(false);
                                     drawingArea.setDigitizingNewFeature(false);
 //                                        moveNodesButton.setVisible(false);
                                     deleteFeatureButton.setVisible(false);
@@ -4372,16 +4397,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private void modifyPixelValues() {
         if (drawingArea.isModifyingPixels()) { // is true; unset
             drawingArea.setModifyingPixels(false);
-            modifyPixelsVals.setBorderPainted(false);
             modifyPixels.setState(false);
         } else {
             if (openMaps.get(activeMap).getActiveMapArea().getNumRasterLayers() > 0) {
                 drawingArea.setModifyingPixels(true);
-                modifyPixelsVals.setBorderPainted(true);
                 modifyPixels.setState(true);
                 // you can't modify pixels and measure distances
                 drawingArea.setUsingDistanceTool(false);
-                distanceToolButton.setBorderPainted(false);
                 distanceToolMenuItem.setState(false);
             } else {
                 showFeedback("The active map does not contain any raster layers.");
@@ -4392,16 +4414,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private void distanceTool() {
         if (drawingArea.isUsingDistanceTool()) { // is true; unset
             drawingArea.setUsingDistanceTool(false);
-            distanceToolButton.setBorderPainted(false);
             distanceToolMenuItem.setState(false);
         } else {
             if (openMaps.get(activeMap).getActiveMapArea().getNumLayers() > 0) {
                 drawingArea.setUsingDistanceTool(true);
-                distanceToolButton.setBorderPainted(true);
                 distanceToolMenuItem.setState(true);
                 // you can't modify pixels and measure distances
                 drawingArea.setModifyingPixels(false);
-                modifyPixelsVals.setBorderPainted(false);
                 modifyPixels.setState(false);
             } else {
                 showFeedback("The active map does not contain any layers.");
@@ -4439,10 +4458,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 vli.setActivelyEdited(true);
 
                 drawingArea.setModifyingPixels(false);
-                modifyPixelsVals.setBorderPainted(false);
                 modifyPixels.setState(false);
                 drawingArea.setUsingDistanceTool(false);
-                distanceToolButton.setBorderPainted(false);
                 distanceToolMenuItem.setState(false);
 
                 // make sure this is the active layer.
@@ -4454,6 +4471,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
+    boolean currentlyDigitizingNewFeature = false;
     public void digitizeNewFeature() {
         int mapNum, layerOverlayNum, mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
@@ -4476,12 +4494,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         MapLayer layer = ma.getLayer(layerOverlayNum);
         if (layer.getLayerType() == MapLayerType.VECTOR) {
             VectorLayerInfo vli = (VectorLayerInfo) layer;
-            if (digitizeNewFeatureButton.isBorderPainted()) {
-                digitizeNewFeatureButton.setBorderPainted(false);
+            if (currentlyDigitizingNewFeature) {
+                digitizeNewFeatureButton.setSelected(false);
                 digitizeNewFeatureMenuItem.setState(false);
                 drawingArea.setDigitizingNewFeature(false);
+                currentlyDigitizingNewFeature = false;
             } else {
-                digitizeNewFeatureButton.setBorderPainted(true);
+                currentlyDigitizingNewFeature = true;
                 digitizeNewFeatureMenuItem.setState(true);
                 drawingArea.setDigitizingNewFeature(true);
                 vli.getShapefile().refreshAttributeTable();
@@ -4491,7 +4510,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 dataRecordEntry.setVisible(true);
                 Object[] recData = dataRecordEntry.getValue();
                 if (recData == null) {
-                    digitizeNewFeatureButton.setBorderPainted(false);
+                    digitizeNewFeatureButton.setSelected(false);
                     digitizeNewFeatureMenuItem.setState(false);
                     drawingArea.setDigitizingNewFeature(false);
                     return;
@@ -4507,7 +4526,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
 
             if (!vli.isActivelyEdited()) {
-                digitizeNewFeatureButton.setBorderPainted(false);
+                digitizeNewFeatureButton.setSelected(false);
                 digitizeNewFeatureMenuItem.setState(false);
                 drawingArea.setDigitizingNewFeature(false);
             }
@@ -4564,17 +4583,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             VectorLayerInfo vli = (VectorLayerInfo) layer;
             if (vli.isActivelyEdited()) {
                 vli.setActivelyEdited(false);
-                editVectorButton.setBorderPainted(false);
 
             } else {
                 vli.setActivelyEdited(true);
-                editVectorButton.setBorderPainted(true);
-
                 drawingArea.setModifyingPixels(false);
-                modifyPixelsVals.setBorderPainted(false);
                 modifyPixels.setState(false);
                 drawingArea.setUsingDistanceTool(false);
-                distanceToolButton.setBorderPainted(false);
                 distanceToolMenuItem.setState(false);
             }
         } else {
@@ -4970,11 +4984,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 openMaps.get(activeMap).deslectAllCartographicElements();
                 refreshMap(false);
                 drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOMOUT);
-                zoomIntoBox.setBorderPainted(false);
-                zoomOut.setBorderPainted(true);
-                pan.setBorderPainted(false);
-                select.setBorderPainted(false);
-                selectFeature.setBorderPainted(false);
                 selectMenuItem.setState(false);
                 selectFeatureMenuItem.setState(false);
                 zoomMenuItem.setState(false);
@@ -4997,11 +5006,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 openMaps.get(activeMap).deslectAllCartographicElements();
                 refreshMap(false);
                 drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOM);
-                zoomIntoBox.setBorderPainted(true);
-                zoomOut.setBorderPainted(false);
-                pan.setBorderPainted(false);
-                select.setBorderPainted(false);
-                selectFeature.setBorderPainted(false);
                 selectMenuItem.setState(false);
                 selectFeatureMenuItem.setState(false);
                 zoomMenuItem.setState(true);
@@ -5010,11 +5014,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             case "pan":
                 drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_PAN);
-                zoomIntoBox.setBorderPainted(false);
-                zoomOut.setBorderPainted(false);
-                pan.setBorderPainted(true);
-                select.setBorderPainted(false);
-                selectFeature.setBorderPainted(false);
                 selectMenuItem.setState(false);
                 selectFeatureMenuItem.setState(false);
                 zoomMenuItem.setState(false);
@@ -5023,11 +5022,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             case "select":
                 drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_SELECT);
-                zoomIntoBox.setBorderPainted(false);
-                zoomOut.setBorderPainted(false);
-                pan.setBorderPainted(false);
-                select.setBorderPainted(true);
-                selectFeature.setBorderPainted(false);
                 selectMenuItem.setState(true);
                 selectFeatureMenuItem.setState(false);
                 zoomMenuItem.setState(false);
@@ -5036,11 +5030,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             case "selectFeature":
                 drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_FEATURE_SELECT);
-                zoomIntoBox.setBorderPainted(false);
-                zoomOut.setBorderPainted(false);
-                pan.setBorderPainted(false);
-                select.setBorderPainted(false);
-                selectFeature.setBorderPainted(true);
                 selectMenuItem.setState(false);
                 selectFeatureMenuItem.setState(true);
                 zoomMenuItem.setState(false);

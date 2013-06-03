@@ -18,10 +18,12 @@ package whiteboxgis.user_interfaces;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 import java.io.File;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JSeparator;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import whiteboxgis.WhiteboxGui;
@@ -32,7 +34,7 @@ import whiteboxgis.WhiteboxGui;
  */
 public class CartographicToolbar extends JToolBar {
 
-    private JButton alignAndDistribute = new JButton();
+    private JToggleButton alignAndDistribute = new JToggleButton();
     private JButton alignRight = new JButton();
     private JButton alignLeft = new JButton();
     private JButton alignTop = new JButton();
@@ -49,7 +51,7 @@ public class CartographicToolbar extends JToolBar {
     private static String pathSep = File.separator;
     private boolean buttonVisibility = false;
 //    private int separatorOrientation = SwingConstants.HORIZONTAL;
-    
+
     // constructors
     public CartographicToolbar() {
         // no-arg constructor
@@ -85,26 +87,37 @@ public class CartographicToolbar extends JToolBar {
             return;
         }
         this.setOrientation(SwingConstants.VERTICAL);
-        
+
         String imgLocation = host.getResourcesDirectory() + "Images" + pathSep + "AlignAndDistribute.png";
         ImageIcon image = new ImageIcon(imgLocation, "");
 
         //Create and initialize the button.
         alignAndDistribute.setToolTipText("Align And Distribute");
+        alignAndDistribute.setSelected(false);
         alignAndDistribute.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (buttonVisibility) {
-                    buttonVisibility = false;
+//                if (buttonVisibility) {
+//                    buttonVisibility = false;
+//                } else {
+//                    buttonVisibility = true;
+//                }
+//                createToolbar();
+            }
+        });
+        alignAndDistribute.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent ie) {
+
+                if (alignAndDistribute.isSelected()) {
+                    createToolbar(true);
                 } else {
-                    buttonVisibility = true;
+                    createToolbar(false);
                 }
-                
-                createToolbar();
+
             }
         });
         alignAndDistribute.setOpaque(false);
-        alignAndDistribute.setBorderPainted(false);
 
         try {
             alignAndDistribute.setIcon(image);
@@ -112,61 +125,62 @@ public class CartographicToolbar extends JToolBar {
             alignAndDistribute.setText("alignAndDistribute");
             host.showFeedback(e.getMessage());
         }
-        
+
         alignRight = makeToolBarButton("AlignRight.png", "alignRight", "Align Right", "alignRight");
-        
+
         centerVerticalBtn = makeToolBarButton("CenterVertical.png",
                 "centerVertical", "Center Vertical", "centerVertical");
-        
+
         alignLeft = makeToolBarButton("AlignLeft.png", "alignLeft",
                 "Align Left", "alignLeft");
-        
+
         alignTop = makeToolBarButton("AlignTop.png", "alignTop",
                 "Align Top", "alignTop");
-        
+
         centerHorizontalBtn = makeToolBarButton("CenterHorizontal.png",
                 "centerHorizontal", "Center Horizontal", "centerHorizontal");
-        
+
         alignBottom = makeToolBarButton("AlignBottom.png", "alignBottom",
                 "Align Bottom", "alignBottom");
-        
+
         distributeVertically = makeToolBarButton("DistributeVertically.png",
                 "distributeVertically", "Distribute Vertically", "distributeVertically");
-        
+
         distributeHorizontally = makeToolBarButton("DistributeHorizontally.png",
                 "distributeHorizontally", "Distribute Horizontally", "distributeHorizontally");
-        
+
         group = makeToolBarButton("GroupElements.png",
                 "groupElements", "Group elements", "groupElements");
-        
+
         ungroup = makeToolBarButton("UngroupElements.png",
                 "ungroupElements", "Unroup elements", "ungroupElements");
-        
-        
-        createToolbar();
-    }
-    
-    private void createToolbar() {
-        this.removeAll();
-        
-        alignAndDistribute.setBorderPainted(buttonVisibility);
-        add(alignAndDistribute);
 
-        if (buttonVisibility) {
-            addSeparator();
-            add(alignRight);
-            add(centerVerticalBtn);
-            add(alignLeft);
-            add(alignTop);
-            add(centerHorizontalBtn);
-            add(alignBottom);
-            addSeparator();
-            add(distributeVertically);
-            add(distributeHorizontally);
-            addSeparator();
-            add(group);
-            add(ungroup);
+
+        createToolbar(false);
+    }
+
+    private void createToolbar(boolean fullBar) {
+        this.removeAll();
+
+        this.add(alignAndDistribute);
+
+        if (fullBar) {
+            this.addSeparator();
+            this.add(alignRight);
+            this.add(centerVerticalBtn);
+            this.add(alignLeft);
+            this.add(alignTop);
+            this.add(centerHorizontalBtn);
+            this.add(alignBottom);
+            this.addSeparator();
+            this.add(distributeVertically);
+            this.add(distributeHorizontally);
+            this.addSeparator();
+            this.add(group);
+            this.add(ungroup);
         }
+        this.revalidate();
+        this.repaint();
     }
 
     private JButton makeToolBarButton(String imageName, String actionCommand, String toolTipText, String altText) {
