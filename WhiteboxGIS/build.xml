@@ -71,4 +71,13 @@
     nbproject/build-impl.xml file. 
 
     -->
+    <target name="-post-jar"> 
+        <copy todir="${dist.dir}/resources" >  
+            <fileset dir="resources" includes="**/*"/>  
+        </copy>
+        <copy file="resources/ReleaseNotes.txt" tofile="${dist.dir}/ReleaseNotes.txt"/>
+        <copy todir="${build.dir}/classes/whiteboxgis/resources" >  
+            <fileset dir="resources" includes="**/*"/>  
+        </copy>
+    </target>    
 </project>

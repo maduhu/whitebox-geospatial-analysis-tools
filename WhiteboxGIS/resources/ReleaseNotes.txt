@@ -12,9 +12,9 @@ RELEASE NOTES:
 Version 3.0 - Iguazu
 
 This version is codenamed Iguazu, after Iguazu Falls located at Foz do Iguaçu, on the 
-border of Brazil and Argentia. Iguazu Falls is a spectular landform. I have decided to codename 
-each subsequent release of Whitebox after interesting places that I have travelled to as a result 
-of the Whitebox project. This naming convention is inline with the geographical nature of the 
+border of Brazil and Argentia. Iguazu Falls is a spectacular landform. I have decided to code-name 
+each subsequent release of Whitebox after interesting places that I have traveled to as a result 
+of the Whitebox project. This naming convention is in-line with the geographical nature of the 
 software. 
 
 Whitebox 3.0 has seen numerous changes and improvements since the last public release 
@@ -44,7 +44,7 @@ feature in the map area. Shapefiles may also be created through basic on-screen 
 Whitebox now requires Java Runtime Environment (JRE) 7.0, meaning that you will need to 
 update to the most recent JRE version before you run Whitebox. If you double-click the Whitebox 
 JAR file and nothing happens, it is likely because you haven't yet made this update. Visit the 
-Oracle webiste for instructions on how to update Java.
+Oracle website for instructions on how to update Java.
 
 Innumerable bug fixes have been included, along with substantial code refactoring. These are 
 too numerous to list individually.
@@ -100,7 +100,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License below more details.
 
-Whitebox relies on the following libraries, each of which are distributed under their own licences:
+Whitebox relies on the following libraries, each of which are distributed under their own licenses:
 
 Apache Commons Math (Apache License, Version 2.0)
 Java Matrix Package-Jama (Released to the Public Domain)

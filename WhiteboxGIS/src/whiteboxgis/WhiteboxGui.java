@@ -4455,6 +4455,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (vli.isActivelyEdited()) {
                 vli.setActivelyEdited(false);
             } else {
+                if (!editVectorButton.isSelected()) {
+                    editVectorButton.setSelected(true);
+                }
+                if (!editVectorMenuItem.getState()) {
+                    editVectorMenuItem.setState(true);
+                }
                 vli.setActivelyEdited(true);
 
                 drawingArea.setModifyingPixels(false);
@@ -4513,6 +4519,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     digitizeNewFeatureButton.setSelected(false);
                     digitizeNewFeatureMenuItem.setState(false);
                     drawingArea.setDigitizingNewFeature(false);
+                    currentlyDigitizingNewFeature = false;
                     return;
                 }
                 if (vli.getShapeType().getDimension() == ShapeTypeDimension.M) {
