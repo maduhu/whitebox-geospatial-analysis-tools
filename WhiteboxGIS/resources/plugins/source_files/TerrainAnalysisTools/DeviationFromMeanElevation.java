@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2013 Elnaz Baradaran Shokouhi 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,20 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package plugins;
 
+import java.util.Date;
+import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.geospatialfiles.ShapeFile;
-import whitebox.geospatialfiles.shapefile.*;
-import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
- * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * @author Elnaz Baradaran Shokouhi
  */
-public class CreateNewShapefile implements WhiteboxPlugin {
+public class DeviationFromMeanElevation implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -40,7 +40,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "CreateNewShapefile";
+        return "DeviationFromMeanElevation";
     }
 
     /**
@@ -51,7 +51,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Create New Shapefile";
+        return "Deviation From Mean Elevation";
     }
 
     /**
@@ -61,7 +61,8 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-        return "Creates a new blank shapefile ready for digitizing.";
+        return " Calculates the difference from the mean divided "
+                + "by the standard deviation.";
     }
 
     /**
@@ -71,7 +72,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-        String[] ret = {"FileUtilities", "VectorTools", "ImageTransformations"};
+        String[] ret = {"ElevResiduals"};
         return ret;
     }
 
@@ -179,6 +180,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public boolean isActive() {
+
         return amIActive;
     }
 
@@ -186,91 +188,167 @@ public class CreateNewShapefile implements WhiteboxPlugin {
     public void run() {
         amIActive = true;
 
-        int numFiles;
-        ShapeType shapeType;
+        String inputHeader = null;
+        String outputHeader = null;
+        int row, col, x, y;
+        double z;
+        int progress = 0;
+        int a;
+        int filterSize = 3;
+        double n;
+        double sum;
+        double average;
+        double sumOfTheSquares;
+        double stdDev;
+        double devMean;
+        int dX[];
+        int dY[];
+        int midPoint;
+        int numPixelsInFilter;
+        double[] filterShape;
+        boolean reflectAtBorders = true;
+        double centreValue = 0;
+        double neighbourhoodDist = 0;
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
 
-        // read the input parameters
-        String outputFile = args[0];
-        String shapeTypeStr = args[1].toLowerCase();
+        inputHeader = args[0];
+        outputHeader = args[1];
+        neighbourhoodDist = Double.parseDouble(args[2]);
         
         // check to see that the inputHeader and outputHeader are not null.
-        if (outputFile.isEmpty() || shapeTypeStr.isEmpty()) {
+        if (inputHeader.isEmpty() || outputHeader.isEmpty()) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
 
         try {
-            // sort the output shapetype
-            switch (shapeTypeStr) {
-                case "point":
-                    shapeType = ShapeType.POINT;
-                    break;
-                case "pointz":
-                    shapeType = ShapeType.POINTZ;
-                    break;
-                case "pointm":
-                    shapeType = ShapeType.POINTM;
-                    break;
-                case "multipoint":
-                    shapeType = ShapeType.MULTIPOINT;
-                    break;
-                case "multipointz":
-                    shapeType = ShapeType.MULTIPOINTZ;
-                    break;
-                case "multipointm":
-                    shapeType = ShapeType.MULTIPOINTM;
-                    break;
-                case "polyline":
-                    shapeType = ShapeType.POLYLINE;
-                    break;
-                case "polylinez":
-                    shapeType = ShapeType.POLYLINEZ;
-                    break;  
-                case "polylinem":
-                    shapeType = ShapeType.POLYLINEM;
-                    break;
-                case "polygon":
-                    shapeType = ShapeType.POLYGON;
-                    break;
-                case "polygonz":
-                    shapeType = ShapeType.POLYGONZ;
-                    break;
-                case "polygonm":
-                    shapeType = ShapeType.POLYGONM;
-                    break;
-                default:
-                    showFeedback("The specified ShapeType is not supported or recognized");
-                    return;
+
+            WhiteboxRaster DEM = new WhiteboxRaster(inputHeader, "r");
+            DEM.isReflectedAtEdges = reflectAtBorders;
+
+            int rows = DEM.getNumberRows();
+            int cols = DEM.getNumberColumns();
+            double noData = DEM.getNoDataValue();
+
+            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
+            output.setPreferredPalette("grey.pal");
+
+            filterSize = (int) (neighbourhoodDist / ((DEM.getCellSizeX() + DEM.getCellSizeY()) / 2));
+
+            //the filter dimensions must be odd numbers such that there is a middle pixel
+            if (Math.floor(filterSize / 2d) == (filterSize / 2d)) {
+                filterSize++;
             }
             
-            DBFField[] fields = new DBFField[1];
-            
-            fields[0] = new DBFField();
-            fields[0].setName("FID");
-            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
-            fields[0].setFieldLength(10);
-            fields[0].setDecimalCount(0);
-            
-            ShapeFile output = new ShapeFile(outputFile, shapeType, fields);
-            output.write();
-            
-            returnData(outputFile);
-            
-            myHost.editVector();
-            
-            showFeedback("Operation complete.");
-            
+            if (filterSize < 3){
+                filterSize = 3;
+            }                
+
+            numPixelsInFilter = filterSize * filterSize;
+            dX = new int[numPixelsInFilter];
+            dY = new int[numPixelsInFilter];
+            filterShape = new double[numPixelsInFilter];
+
+            //fill the filter DX and DY values
+            midPoint = (int) Math.floor(filterSize / 2);
+            //see which pixels in the filter lie within the largest ellipse 
+            //that fits in the filter box 
+            double aSqr = midPoint * midPoint;
+            double bSqr = midPoint * midPoint;
+            a = 0;
+            for (row = 0; row < filterSize; row++) {
+                for (col = 0; col < filterSize; col++) {
+                    dX[a] = col - midPoint;
+                    dY[a] = row - midPoint;
+                    z = (dX[a] * dX[a]) / aSqr + (dY[a] * dY[a]) / bSqr;
+                    if (z > 1) {
+                        filterShape[a] = 0;
+                    } else {
+                        filterShape[a] = 1;
+                    }
+                    a++;
+                }
+            }
+
+            for (row = 0; row < rows; row++) {
+                for (col = 0; col < cols; col++) {
+                    centreValue = DEM.getValue(row, col);
+                    if (centreValue != noData) {
+                        n = 0;
+                        sum = 0;
+                        sumOfTheSquares = 0;
+                        for (a = 0; a < numPixelsInFilter; a++) {
+                            x = col + dX[a];
+                            y = row + dY[a];
+                            if ((x != midPoint) && (y != midPoint)) {
+                                z = DEM.getValue(y, x);
+                                if (z != noData) {
+                                    n += filterShape[a];
+                                    sum += z * filterShape[a];
+                                    sumOfTheSquares += (z * filterShape[a]) * z;
+                                }
+                            }
+                        }
+                        average = sum / n;
+                        z = centreValue - average;
+
+                        if (n > 2) {
+                            stdDev = Math.sqrt((sumOfTheSquares / n) - (average * average));
+                            devMean = z / stdDev;
+                            output.setValue(row, col, devMean);
+
+                        } else {
+                            output.setValue(row, col, noData);
+                        }
+                    } else {
+                        output.setValue(row, col, noData);
+                    }
+                }
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (100f * row / (rows - 1));
+                updateProgress((int) progress);
+            }
+
+            output.addMetadataEntry("Created by the "
+                    + getDescriptiveName() + " tool.");
+            output.addMetadataEntry("Created on " + new Date());
+
+            DEM.close();
+            output.close();
+
+            // returning a header file string displays the image.
+            returnData(outputHeader);
+
         } catch (Exception e) {
             showFeedback(e.getMessage());
+
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+    // this is only used for testing the tool
+
+    public static void main(String[] args) {
+
+
+        args = new String[3];
+        args[0] = "/Users/ebaradar/Documents/NetBeans 7.3/trunk/WhiteboxGIS/resources/samples/Vermont DEM/Vermont DEM.dep";
+        args[1] = "/Users/ebaradar/Documents/NetBeans 7.3/trunk/WhiteboxGIS/resources/samples/Vermont DEM/testing.dep";
+        args[2] = "990";
+
+        DeviationFromMeanElevation dfme = new DeviationFromMeanElevation();
+        dfme.setArgs(args);
+        dfme.run();
+
     }
 }

@@ -43,7 +43,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <p>1. Using the Netbeans IDE, create a new Java project. There are a 
                 few things that you need to configure before coding the new tool.</p>
 
-
             <p>2. First, add a new package called 'plugins' to the 'Source 
                 Packages' (right-click over 'Source Packages' and select 
                 'Java Package').</p>
@@ -55,7 +54,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 does (unlike the 'MyTool' tool in the example above!). Notice as 
                 well that the Java convention for class names is camel-case, i.e. 
                 capitalize the first letter and any concatenated words.</p>
-
+            
             <p>4. Add a new folder called 'META-INF/services' to the source 
                 packages. Notice that although you will use the path separator, 
                 it will appear as a dot in 'Source Packages'. Letter case is 
@@ -83,7 +82,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 erase anything that may be in the new file before pasting.</p>
 
             <p>9. There will be a number of quick modifications to the code that 
-                you'll need to make now. First, if your new tools doesn't reside 
+                you will need to make now. First, if your new tools does not reside 
                 within the same package (jar file) as the tool you just pasted the 
                 code from, you will need to alter the package statement on the 
                 first line; in the example from the image above, the MyTool class 
@@ -107,8 +106,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 occupying a cell in this string array. You can find out the 
                 names of the various existing toolboxes, or create a new 
                 toolbox, by examining/editing the toolbox.xml file contained 
-                within the ‘Resources’ folder of Whitebox (itself contained 
-                within the ‘lib’ folder). Alternatively you can simply examine 
+                within the 'Resources' folder of Whitebox (itself contained 
+                within the 'lib' folder). Alternatively you can simply examine 
                 the 'getToolbox' returns of a tool contained within the toolbox 
                 that you want your new tool to occupy.</p>
 
@@ -148,7 +147,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <p>13. Once you are done debugging your new tool, compile the 
                 project, find the newly created jar file contained within the 
                 projects 'dist' folder and copy it into the 'plugins' folder 
-                within Whitebox’s ‘Resources’ folder. Whitebox will now discover 
+                within Whitebox's 'Resources' folder. Whitebox will now discover 
                 your new tool when it launches. If Whitebox is already open, 
                 close it and re-launch it. Your new tool should be listed in 
                 the specified toolbox(es) within the tools tree and also in the 
@@ -162,10 +161,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 not all tool need to use a standard dialog and it is possible 
                 for you to embed a custom dialog in Whitebox as well by 
                 returning a jPanel.) The instructions to draw a tool dialog are 
-                contained in an xml file, which is located in the ‘Dialogs’ 
+                contained in an xml file, which is located in the 'Dialogs' 
                 folder within the 'plugins' folder, and which has the same name 
                 as your tool (i.e. the short name, or class name, and not the 
-                descriptive name). It’s probably easiest if you find a tool with 
+                descriptive name). It's probably easiest if you find a tool with 
                 similar input and output parameters to your own and simply copy 
                 and modify its dialog xml file as needed. Importantly, the order 
                 of the parameters in this file must match the order in which you 
@@ -183,7 +182,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 help entry and will be saved in the appropriate folder for it to 
                 be discovered the next time that the dialog is opened.</p>
 
-                <p>Congratulations…you’ve just created a new Whitebox GAT 
+                <p>Congratulations...you've just created a new Whitebox GAT 
                     tool!</p>
         </div>
     </body>

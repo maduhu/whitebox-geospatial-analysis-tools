@@ -204,7 +204,7 @@ public class TwoImageHistogramMatching implements WhiteboxPlugin{
         outputHeader = args[2];
         
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader1 == null) || (outputHeader == null) || (inputHeader2 == null)) {
+        if (inputHeader1.isEmpty() || outputHeader.isEmpty() || inputHeader2.isEmpty()) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
@@ -308,14 +308,6 @@ public class TwoImageHistogramMatching implements WhiteboxPlugin{
                 referenceCDF[i][0] = minValue2 + (i / (float)numBins2) * (maxValue2 - minValue2);
                 referenceCDF[i][1] = referenceCDF[i][1] / numCells2;
             }
-            
-//            for (i = 1; i < numBins2; i++) {
-//                referenceCDF[i][1] += referenceCDF[i - 1][1];
-//            }
-//            double totalFrequency = referenceCDF[numBins2 - 1][1];
-//            for (i = 0; i < numBins2; i++) {
-//                referenceCDF[i][1] = referenceCDF[i][1] / totalFrequency;
-//            }
             
             int[] startingVals = new int[11];
             double pVal = 0;

@@ -35,6 +35,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.logging.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
@@ -53,7 +54,8 @@ import whitebox.utilities.FileUtilities;
  */
 @SuppressWarnings("unchecked")
 public class Help extends JDialog implements ActionListener, HyperlinkListener {
-
+    public static final Logger logger = Logger.getLogger("Help");;
+    
     private JButton viewSource = new JButton("View HTML Source");
     private JButton close = new JButton("Close");
     private JButton back = new JButton();
@@ -128,11 +130,20 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             graphicsDirectory = resourcesDirectory + "Images" + pathSep;
             helpFile = helpDirectory + "Welcome.html";
         } catch (Exception e) {
+            logger.log(Level.SEVERE, "Help.Help Error", e);
         }
     }
 
     private void createGui() {
         try {
+            //FileHandler fh = new FileHandler("Whitebox.log", true);
+            int limit = 1000000; // 1 Mb
+            int numLogFiles = 1;
+            FileHandler fh = new FileHandler("Whitebox%g.log", limit, numLogFiles);
+            fh.setFormatter(new XMLFormatter());
+            //fh.setFormatter(new SimpleFormatter());
+            logger.addHandler(fh);
+      
             if (System.getProperty("os.name").contains("Mac")) {
                 this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
             }
@@ -278,7 +289,9 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                             helpPane.setPage(new URL("file:///" + helpFile));
                             //helpPane.navigate(helpFile);
                         } catch (MalformedURLException me) {
+                            logger.log(Level.SEVERE, "Help.createSidePanel Error", me);
                         } catch (IOException ioe) {
+                            logger.log(Level.SEVERE, "Help.createSidePanel Error", ioe);
                         }
                     }
                 }
@@ -334,7 +347,9 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                             helpPane.setPage(new URL("file:///" + tutorialFile));
                             //helpPane.navigate(helpFile);
                         } catch (MalformedURLException me) {
+                            logger.log(Level.SEVERE, "Help.createSidePanel Error", me);
                         } catch (IOException ioe) {
+                            logger.log(Level.SEVERE, "Help.createSidePanel Error", ioe);
                         }
                     }
                 }
@@ -362,7 +377,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Help.createSidePanel Error", e);
         } finally {
             return sidebarTab;
         }
@@ -443,7 +458,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             }
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Help.findAvailableHelpFiles Error", e);
         }
     }
 
@@ -471,7 +486,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             }
             return htmlTitle; //m.group(1);
         } catch (Exception e) {
-            System.out.println("Help.findTitle() Error: " + e.getMessage());
+            logger.log(Level.SEVERE, fileName, e);
             return null;
         }
     }
@@ -484,7 +499,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         try {
             helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
         } catch (IOException e) {
-            System.err.println(e.getStackTrace());
+            logger.log(Level.SEVERE, "Help.back Error", e);
         }
 
     }
@@ -497,7 +512,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         try {
             helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
         } catch (IOException e) {
-            System.err.println(e.getStackTrace());
+            logger.log(Level.SEVERE, "Help.forward Error", e);
         }
 
     }
@@ -549,7 +564,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             out.println(str);
 
         } catch (java.io.IOException e) {
-            System.err.println("Error: " + e.getMessage());
+            logger.log(Level.SEVERE, "Help.createHelpTableOfContents Error", e);
         } finally {
             if (out != null || bw != null) {
                 out.flush();
@@ -593,7 +608,9 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                 helpFile = helpFiles[availableHelpFiles.getSelectedIndex()][0];
                 helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
             } catch (MalformedURLException me) {
+                logger.log(Level.SEVERE, "Help Error", me);
             } catch (IOException ioe) {
+                logger.log(Level.SEVERE, "Help Error", ioe);
             }
         }
     };
@@ -720,14 +737,17 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
                             helpPane.setPage("file:" + helpHistory.get(helpHistoryIndex));
                         } catch (MalformedURLException me) {
+                            logger.log(Level.SEVERE, "Help Error", me);
                         } catch (IOException ioe) {
+                            logger.log(Level.SEVERE, "Help Error", ioe);
                         }
                     }
                 }
             };
             searchOutput.addMouseListener(ml);
 
-        } catch (IOException ioe) {
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Help.searchForWords Error", e);
         }
     }
 
@@ -747,7 +767,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                 }
                 helpPane.setPage(event.getURL());
             } catch (IOException ioe) {
-                // Some warning to user
+                logger.log(Level.SEVERE, "Help.hyperlinkUpdate Error", ioe);
             }
         }
     }

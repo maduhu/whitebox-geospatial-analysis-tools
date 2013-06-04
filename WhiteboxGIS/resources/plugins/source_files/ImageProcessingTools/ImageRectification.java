@@ -18,18 +18,14 @@ package plugins;
 
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.geospatialfiles.ShapeFile;
-import whitebox.geospatialfiles.shapefile.*;
-import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 
 /**
- * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
- * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * @author johnlindsay
  */
-public class CreateNewShapefile implements WhiteboxPlugin {
+public class ImageRectification implements WhiteboxPlugin {
 
-    private WhiteboxPluginHost myHost = null;
+    private WhiteboxPluginHost myHost;
     private String[] args;
 
     /**
@@ -40,7 +36,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "CreateNewShapefile";
+        return "ImageRectification";
     }
 
     /**
@@ -51,7 +47,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Create New Shapefile";
+        return "Image Rectification";
     }
 
     /**
@@ -61,7 +57,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-        return "Creates a new blank shapefile ready for digitizing.";
+        return "Performs image-to-map rectification and image-to-image registration.";
     }
 
     /**
@@ -71,7 +67,7 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-        String[] ret = {"FileUtilities", "VectorTools", "ImageTransformations"};
+        String[] ret = {"ImageTransformations"};
         return ret;
     }
 
@@ -93,11 +89,11 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      *
      * @param feedback String containing the text to display.
      */
-    private void showFeedback(String message) {
+    private void showFeedback(String feedback) {
         if (myHost != null) {
-            myHost.showFeedback(message);
+            myHost.showFeedback(feedback);
         } else {
-            System.out.println(message);
+            System.out.println(feedback);
         }
     }
 
@@ -112,8 +108,6 @@ public class CreateNewShapefile implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
-    private int previousProgress = 0;
-    private String previousProgressLabel = "";
 
     /**
      * Used to communicate a progress update between a plugin tool and the main
@@ -123,12 +117,11 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress)
-                || (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null) {
             myHost.updateProgress(progressLabel, progress);
+        } else {
+            System.out.println(progressLabel + " " + progress + "%");
         }
-        previousProgress = progress;
-        previousProgressLabel = progressLabel;
     }
 
     /**
@@ -138,10 +131,11 @@ public class CreateNewShapefile implements WhiteboxPlugin {
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
-        if (myHost != null && progress != previousProgress) {
+        if (myHost != null) {
             myHost.updateProgress(progress);
+        } else {
+            System.out.println("Progress: " + progress + "%");
         }
-        previousProgress = progress;
     }
 
     /**
@@ -184,93 +178,16 @@ public class CreateNewShapefile implements WhiteboxPlugin {
 
     @Override
     public void run() {
-        amIActive = true;
 
-        int numFiles;
-        ShapeType shapeType;
-        if (args.length <= 0) {
-            showFeedback("Plugin parameters have not been set.");
-            return;
-        }
-
-        // read the input parameters
-        String outputFile = args[0];
-        String shapeTypeStr = args[1].toLowerCase();
+        String inputImageFile = args[0];
+        String imageGCPFile = args[1];
+        String mapGCPFile = args[2];
+        String outputFile = args[3];
         
-        // check to see that the inputHeader and outputHeader are not null.
-        if (outputFile.isEmpty() || shapeTypeStr.isEmpty()) {
-            showFeedback("One or more of the input parameters have not been set properly.");
-            return;
-        }
+        ImageRectificationPanel ird = new ImageRectificationPanel(inputImageFile,
+                imageGCPFile, mapGCPFile, outputFile, myHost);
 
-        try {
-            // sort the output shapetype
-            switch (shapeTypeStr) {
-                case "point":
-                    shapeType = ShapeType.POINT;
-                    break;
-                case "pointz":
-                    shapeType = ShapeType.POINTZ;
-                    break;
-                case "pointm":
-                    shapeType = ShapeType.POINTM;
-                    break;
-                case "multipoint":
-                    shapeType = ShapeType.MULTIPOINT;
-                    break;
-                case "multipointz":
-                    shapeType = ShapeType.MULTIPOINTZ;
-                    break;
-                case "multipointm":
-                    shapeType = ShapeType.MULTIPOINTM;
-                    break;
-                case "polyline":
-                    shapeType = ShapeType.POLYLINE;
-                    break;
-                case "polylinez":
-                    shapeType = ShapeType.POLYLINEZ;
-                    break;  
-                case "polylinem":
-                    shapeType = ShapeType.POLYLINEM;
-                    break;
-                case "polygon":
-                    shapeType = ShapeType.POLYGON;
-                    break;
-                case "polygonz":
-                    shapeType = ShapeType.POLYGONZ;
-                    break;
-                case "polygonm":
-                    shapeType = ShapeType.POLYGONM;
-                    break;
-                default:
-                    showFeedback("The specified ShapeType is not supported or recognized");
-                    return;
-            }
-            
-            DBFField[] fields = new DBFField[1];
-            
-            fields[0] = new DBFField();
-            fields[0].setName("FID");
-            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
-            fields[0].setFieldLength(10);
-            fields[0].setDecimalCount(0);
-            
-            ShapeFile output = new ShapeFile(outputFile, shapeType, fields);
-            output.write();
-            
-            returnData(outputFile);
-            
-            myHost.editVector();
-            
-            showFeedback("Operation complete.");
-            
-        } catch (Exception e) {
-            showFeedback(e.getMessage());
-        } finally {
-            updateProgress("Progress: ", 0);
-            // tells the main application that this process is completed.
-            amIActive = false;
-            myHost.pluginComplete();
-        }
+        returnData(ird);
+
     }
 }
