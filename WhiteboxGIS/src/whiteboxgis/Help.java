@@ -66,7 +66,6 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     private String graphicsDirectory = "";
     private String helpDirectory = "";
     private String resourcesDirectory = "";
-    private String pathSep = "";
     private Communicator host = null;
     private String title = "Whitebox Help";
     private JTextField indexField = new JTextField();
@@ -81,10 +80,10 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     private String activeTab = "index";
     private ArrayList<String> helpHistory = new ArrayList<>();
     private int helpHistoryIndex = 0;
+    private static final String pathSep = File.separator;
 
     public Help(Frame owner, boolean modal, String startMode) {
         super(owner, modal);
-        pathSep = File.separator;
         host = (Communicator) owner;
         resourcesDirectory = host.getResourcesDirectory();
         helpDirectory = resourcesDirectory + "Help" + pathSep;
@@ -96,7 +95,6 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
     public Help(Frame owner, boolean modal, String startMode, String helpFile) {
         super(owner, modal);
-        pathSep = File.separator;
         host = (Communicator) owner;
         this.helpFile = helpFile;
         resourcesDirectory = host.getResourcesDirectory();
@@ -109,8 +107,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     public Help() {
         // this is really not to be used by anything other than the 'main' method for testing.
         try {
-            pathSep = File.separator;
-
+            
             String applicationDirectory = java.net.URLDecoder.decode(getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
             //getClass().getProtectionDomain().
             if (applicationDirectory.endsWith(".exe") || applicationDirectory.endsWith(".jar")) {
