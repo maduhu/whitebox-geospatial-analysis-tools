@@ -66,10 +66,10 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     private String pluginName = "";
     private String pathSep = "";
     private String sourceFile = "";
-    private ArrayList<DialogComponent> components = new ArrayList<DialogComponent>();
+    private ArrayList<DialogComponent> components = new ArrayList<>();
     private Communicator host = null;
     private boolean automaticallyClose = true;
-    private ArrayList<String> helpHistory = new ArrayList<String>();
+    private ArrayList<String> helpHistory = new ArrayList<>();
     private int helpHistoryIndex = 0;
     
     public ToolDialog(Frame owner, boolean modal, String pluginName, String title, String helpFile) {
@@ -114,11 +114,12 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         box2.add(ok);
         ok.setActionCommand("ok");
         ok.addActionListener(this);
-        box2.add(Box.createRigidArea(new Dimension(5, 30)));
+        //box2.add(Box.createRigidArea(new Dimension(5, 30)));
+        box2.add(Box.createHorizontalStrut(10));
         box2.add(close);
         close.setActionCommand("close");
         close.addActionListener(this);
-        box2.add(Box.createHorizontalStrut(100));
+        box2.add(Box.createHorizontalStrut(10));
         
         File sourceFileDir = new File(resourcesDirectory + "plugins" + 
                 pathSep + "source_files"); // + pathSep + pluginName + ".java";

@@ -12,7 +12,7 @@ RELEASE NOTES:
 Version 3.0 - Iguazu
 
 This version is codenamed Iguazu, after Iguazu Falls located at Foz do Iguaçu, on the 
-border of Brazil and Argentia. Iguazu Falls is a spectacular landform. I have decided to code-name 
+border of Brazil and Argentina. Iguazu Falls is a spectacular landform. I have decided to code-name 
 each subsequent release of Whitebox after interesting places that I have traveled to as a result 
 of the Whitebox project. This naming convention is in-line with the geographical nature of the 
 software. 

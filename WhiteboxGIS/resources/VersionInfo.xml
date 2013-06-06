@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<VersionInfo>
+    <VersionName>"3.0 'Iguazu'"</VersionName>
+    <VersionNumber>"3.0.1"</VersionNumber>
+    <DownloadLocation>"http://code.google.com/p/whitebox-geospatial-analysis-tools/downloads/list"</DownloadLocation>
+    <Announcements number="1">
+        <Announcement>
+            <Date>2013-06-06</Date>
+            <Title>Whitebox News</Title>
+            <Message>"Some news related news events can be found at &lt;a href=&quot;http://www.uoguelph.ca/~hydrogeo/Whitebox/index.html&quot;&gt;http://www.uoguelph.ca/~hydrogeo/Whitebox/index.html&lt;/a&gt;"</Message>
+        </Announcement>
+        <Announcement>
+            <Date>2013-06-06</Date>
+            <Title>Welcome to the Whitebox Announcements System!</Title>
+            <Message>"Welcome to the new Whitebox announcement system. We'll use this system to keep you up-to-date"</Message>
+        </Announcement>
+    </Announcements>
+</VersionInfo>

@@ -31,6 +31,7 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.*;
 import java.lang.reflect.Method;
+import java.net.*;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -50,6 +51,8 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -85,7 +88,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     StatusBar status = new StatusBar(this);
     // common variables
-    static private String versionNumber = "3.0 - 'Iguazu'";
+    static private String versionName = "3.0 'Iguazu'";
+    static private String versionNumber = "3.0.1";
+    private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
     private String applicationDirectory;
     private String resourcesDirectory;
@@ -165,6 +170,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private Color backgroundColour = new Color(225, 245, 255);
     private CartographicToolbar ctb;
     private double defaultMapMargin = 0.0;
+    private ArrayList<WhiteboxAnnouncement> announcements = new ArrayList<>();
+    private int announcementNumber = 0;
 
     public static void main(String[] args) {
         try {
@@ -245,7 +252,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     public WhiteboxGui() {
-        super("Whitebox GAT " + versionNumber);
+        super("Whitebox GAT " + versionName);
         try {
             // initialize the pathSep and GraphicsDirectory variables
             pathSep = File.separator;
@@ -322,8 +329,139 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             checkForNewInstallation();
 
+            checkVersionIsUpToDate();
+
+            if (announcements.size() > 0) {
+                displayAnnouncements();
+            }
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    private boolean checkVersionIsUpToDate() {
+        try {
+            String currentVersionName = "";
+            String currentVersionNumber = "";
+            String downloadLocation = "";
+
+            //make a URL to a known source
+            String baseUrl = "http://www.uoguelph.ca/~hydrogeo/Whitebox/VersionInfo.xml";
+            URL url = new URL(baseUrl);
+
+            //open a connection to that source
+            HttpURLConnection urlConnect = (HttpURLConnection) url.openConnection();
+
+            //trying to retrieve data from the source. If there
+            //is no connection, this line will fail
+            Object objData = urlConnect.getContent();
+
+            InputStream inputStream = (InputStream) urlConnect.getContent();
+            DocumentBuilderFactory docbf = DocumentBuilderFactory.newInstance();
+            docbf.setNamespaceAware(true);
+            DocumentBuilder docbuilder = docbf.newDocumentBuilder();
+            Document document = docbuilder.parse(inputStream, baseUrl);
+
+            document.getDocumentElement().normalize();
+            Element docElement = document.getDocumentElement();
+
+            Element el;
+            NodeList nl = docElement.getElementsByTagName("VersionName");
+            if (nl.getLength() > 0) {
+                el = (Element) nl.item(0);
+                currentVersionName = el.getFirstChild().getNodeValue().replace("\"", "");
+            }
+
+            nl = docElement.getElementsByTagName("VersionNumber");
+            if (nl.getLength() > 0) {
+                el = (Element) nl.item(0);
+                currentVersionNumber = el.getFirstChild().getNodeValue().replace("\"", "");
+            }
+
+            nl = docElement.getElementsByTagName("DownloadLocation");
+            if (nl.getLength() > 0) {
+                el = (Element) nl.item(0);
+                downloadLocation = el.getFirstChild().getNodeValue().replace("\"", "");
+            }
+
+            // read the announcement data, if any
+            nl = docElement.getElementsByTagName("Announcements");
+            if (nl != null && nl.getLength() > 0) {
+                el = (Element) nl.item(0);
+                int thisAnnouncementNumber = Integer.parseInt(el.getAttribute("number"));
+                if (thisAnnouncementNumber > announcementNumber) {
+                    NodeList nl2 = el.getElementsByTagName("Announcement");
+                    if (nl2.getLength() > 0) {
+                        for (int i = 0; i < nl2.getLength(); i++) {
+                            Element el2 = (Element) nl2.item(i);
+                            String date = getTextValue(el2, "Date");
+                            String title = getTextValue(el2, "Title");
+                            String message = getTextValue(el2, "Message");
+                            if (!message.replace("\n", "").isEmpty()) {
+                                WhiteboxAnnouncement wba =
+                                        new WhiteboxAnnouncement(message, title, date);
+                                announcements.add(wba);
+                            }
+                        }
+                    }
+                    announcementNumber = thisAnnouncementNumber;
+                }
+            }
+
+            if (currentVersionName.isEmpty()
+                    || currentVersionNumber.isEmpty()
+                    || downloadLocation.isEmpty()) {
+                return false;
+            }
+
+            if (Integer.parseInt(versionNumber.replace(".", ""))
+                    < Integer.parseInt(currentVersionNumber.replace(".", ""))
+                    && Integer.parseInt(skipVersionNumber.replace(".", ""))
+                    < Integer.parseInt(currentVersionNumber.replace(".", ""))) {
+                //Custom button text
+                Object[] options = {"Yes, proceed to download site", "Not now", "Don't ask again"};
+                int n = JOptionPane.showOptionDialog(this,
+                        "A newer version is available. "
+                        + "Would you like to download Whitebox "
+                        + currentVersionName + " (" + currentVersionNumber
+                        + ")?" + "\nYou are currently using Whitebox " + versionName
+                        + " (" + versionNumber + ").",
+                        "Whitebox Version",
+                        JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        options,
+                        options[0]);
+
+                if (n == 0) {
+                    Desktop d = Desktop.getDesktop();
+                    d.browse(new URI(downloadLocation));
+                } else if (n == 2) {
+                    skipVersionNumber = currentVersionNumber;
+                }
+            }
+        } catch (UnknownHostException e) {
+            return false;
+        } catch (IOException e) {
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    private String getTextValue(Element ele, String tagName) {
+        String textVal = "";
+        try {
+            NodeList nl = ele.getElementsByTagName(tagName);
+            if (nl != null && nl.getLength() > 0) {
+                Element el = (Element) nl.item(0);
+                textVal = el.getFirstChild().getNodeValue().replace("\"", "");
+            }
+        } catch (Exception e) {
+        } finally {
+            return textVal;
         }
     }
 
@@ -661,6 +799,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     }
                 }
 
+                // retrieve the skipVersionNumber
+                if (props.containsKey("skipVersionNumber")) {
+                    skipVersionNumber = props.getProperty("skipVersionNumber");
+                }
+
+                // retrieve the announcementNumber
+                if (props.containsKey("announcementNumber")) {
+                    announcementNumber = Integer.parseInt(props.getProperty("announcementNumber"));
+                }
+
                 // retrieve the plugin usage information
                 String[] pluginNames = props.getProperty("pluginNames").split(",");
                 String[] pluginUsage = props.getProperty("pluginUsage").split(",");
@@ -722,6 +870,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("defaultFont", defaultFont.getName());
         props.setProperty("numberOfRecentItemsToStore", Integer.toString(numberOfRecentItemsToStore));
         props.setProperty("defaultMapMargin", Double.toString(defaultMapMargin));
+        props.setProperty("skipVersionNumber", skipVersionNumber);
+        props.setProperty("announcementNumber", Integer.toString(announcementNumber));
 
         // set the recent data layers
         String recentDataLayers = "";
@@ -909,6 +1059,89 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 splitPane3.setDividerLocation(1.0);
             }
         });
+    }
+
+    private void displayAnnouncements() {
+        if (announcements.size() < 1) {
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
+        sb.append("<html>\n");
+        sb.append("  <head>\n");
+        sb.append("    <title>Whitebox Announcements #");
+        sb.append(announcementNumber);
+        sb.append("</title>\n");
+        //sb.append("<meta content=\"text/html; charset=iso-8859-1\" http-equiv=\"content-type\">\n");
+        sb.append("<style media=\"screen\" type=\"text/css\">\n"
+                + "h1\n"
+                + "{\n"
+                + "font-family: Helvetica, Verdana, Geneva, Arial, sans-serif;\n"
+                + "font-size: 12pt;\n"
+                + "background-color: rgb(200,215,250); \n"
+                + "font-weight: bold;\n"
+                + "line-height: 20pt;\n"
+                + "margin-left: 10px;\n"
+                + "margin-right: 10px;\n"
+                + "}\n"
+                + "p\n"
+                + "{\n"
+                + "text-align: left;\n"
+                + "color:black;\n"
+                + "font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;\n"
+                + "font-size: 10pt;\n"
+                + "background-color: transparent;\n"
+                + "line-height: normal;\n"
+                + "margin-left: 10px;\n"
+                + "margin-right: 10px;\n"
+                + "}"
+                + "\n"
+                + "</style>");
+        sb.append("  </head>\n");
+        sb.append("  <body><h1><b>Whitebox Announcements #").append(announcementNumber).append("</b></h1>\n");
+        for (WhiteboxAnnouncement wba : announcements) {
+            sb.append("    <p>");
+            if (!wba.getTitle().isEmpty()) {
+                sb.append("<b>").append(wba.getTitle()).append("</b><br>\n");
+            }
+            sb.append("      ").append(wba.getMessage()).append("\n");
+            if (!wba.getDate().isEmpty()) {
+                sb.append("<br>Date: ").append(wba.getDate());
+            }
+            sb.append("    <p>\n");
+        }
+        sb.append("  </body>\n");
+        sb.append("</html>\n");
+
+
+        //JFrame frame = new JFrame();
+        //frame.setAlwaysOnTop(true);
+        JEditorPane pane = new JEditorPane();
+        pane.setContentType("text/html");
+        pane.setEditable(false);
+        pane.setText(sb.toString());
+        pane.addHyperlinkListener(new HyperlinkListener() {
+            @Override
+            public void hyperlinkUpdate(HyperlinkEvent r) {
+                try {
+                    if (r.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                        Desktop d = Desktop.getDesktop();
+                        String linkName = r.getURL().toString();
+                        d.browse(new URI(linkName));
+                    }
+                } catch (Exception e) {
+                    System.err.println("WhiteboxGui.displayAnnouncement Error: " + e.toString());
+                }
+            }
+        });
+        JScrollPane scroll = new JScrollPane(pane);
+        JDialog dialog = new JDialog(this, "");
+        Container contentPane = dialog.getContentPane();
+        contentPane.add(scroll, BorderLayout.CENTER);
+        dialog.setPreferredSize(new Dimension(500, 500));
+        dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        dialog.pack();
+        dialog.setVisible(true);
     }
 
     private void createMenu() {
@@ -1373,12 +1606,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             helpSearch.setActionCommand("helpSearch");
             helpSearch.addActionListener(this);
             HelpMenu.add(helpSearch);
-            
+
             JMenuItem helpTutorials = new JMenuItem("Tutorials");
             HelpMenu.add(helpTutorials);
             helpTutorials.setActionCommand("helpTutorials");
             helpTutorials.addActionListener(this);
-            
+
             JMenuItem helpAbout = new JMenuItem("About Whitebox GAT");
             helpAbout.setActionCommand("helpAbout");
             helpAbout.addActionListener(this);
@@ -1790,7 +2023,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.add(zoomToFullExtent);
             JButton zoomToPage = makeToolBarButton("ZoomFullExtent3.png", "zoomToPage", "Zoom to page", "Zoom To Page");
             toolbar.add(zoomToPage);
-            
+
             ButtonGroup viewButtonGroup = new ButtonGroup();
             viewButtonGroup.add(select);
             viewButtonGroup.add(selectFeature);
@@ -1798,7 +2031,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewButtonGroup.add(zoomOut);
             viewButtonGroup.add(zoomIntoBox);
             select.setSelected(true);
-            
+
             JButton previousExtent = makeToolBarButton("back.png", "previousExtent", "Previous extent", "Prev Extent");
             toolbar.add(previousExtent);
             JButton nextExtent = makeToolBarButton("forward.png", "nextExtent", "Next extent", "Next Extent");
@@ -1821,12 +2054,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             editVectorButton = makeToggleToolBarButton("Digitize.png", "editVector", "Edit Vector", "Edit Vector");
             editVectorButton.setEnabled(false);
             toolbar.add(editVectorButton);
-            
+
 //            ButtonGroup toolsButtonGroup = new ButtonGroup();
 //            toolsButtonGroup.add(modifyPixelVals);
 //            toolsButtonGroup.add(distanceToolButton);
 //            toolsButtonGroup.add(editVectorButton);
-            
+
             digitizeNewFeatureButton = makeToggleToolBarButton("DigitizeNewFeature.png", "digitizeNewFeature", "Digitize New Feature", "Digitize New Feature");
             digitizeNewFeatureButton.setVisible(false);
             toolbar.add(digitizeNewFeatureButton);
@@ -1914,7 +2147,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         return button;
     }
-    
+
     private JToggleButton makeToggleToolBarButton(String imageName, String actionCommand, String toolTipText, String altText) {
         //Look for the image.
         String imgLocation = graphicsDirectory + imageName;
@@ -1934,7 +2167,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         return button;
     }
-    
     private JPanel layersPanel;
     private FeatureSelectionPanel featuresPanel;
 
@@ -2680,8 +2912,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             model3.add(i, plugInfo.get(i).getDescriptiveName());
         }
         mostUsedTools.setModel(model3);
-
-
 
     }
 
@@ -4378,12 +4608,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void showAboutDialog() {
-        AboutWhitebox about = new AboutWhitebox(this, true, graphicsDirectory, versionNumber);
+        AboutWhitebox about = new AboutWhitebox(this, true, graphicsDirectory,
+                versionName, versionNumber);
     }
 
     private void callSplashScreen() {
         String splashFile = graphicsDirectory + "WhiteboxLogo.png"; //"SplashScreen.png";
-        SplashWindow sw = new SplashWindow(splashFile, 2000, versionNumber);
+        SplashWindow sw = new SplashWindow(splashFile, 2000, versionName);
         long t0, t1;
         t0 = System.currentTimeMillis();
         do {
@@ -4476,8 +4707,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             showFeedback("The active layer is not a vector.");
         }
     }
-
     boolean currentlyDigitizingNewFeature = false;
+
     public void digitizeNewFeature() {
         int mapNum, layerOverlayNum, mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {

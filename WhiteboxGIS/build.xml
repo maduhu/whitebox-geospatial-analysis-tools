@@ -72,11 +72,11 @@
 
     -->
     <target name="-post-jar"> 
-        <copy todir="${dist.dir}/resources" >  
+        <copy todir="${dist.dir}${file.separator}resources" >  
             <fileset dir="resources" includes="**/*"/>  
         </copy>
-        <copy file="resources/ReleaseNotes.txt" tofile="${dist.dir}/ReleaseNotes.txt"/>
-        <copy todir="${build.dir}/classes/whiteboxgis/resources" >  
+        <copy file="resources/ReleaseNotes.txt" tofile="${dist.dir}${file.separator}ReleaseNotes.txt"/>
+        <copy todir="${build.dir}${file.separator}classes${file.separator}whiteboxgis${file.separator}resources" >  
             <fileset dir="resources" includes="**/*"/>  
         </copy>
     </target>    

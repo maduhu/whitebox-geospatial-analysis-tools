@@ -36,10 +36,13 @@ public class AboutWhitebox extends JDialog implements ActionListener {
 
     String graphicsDirectory = "";
     String versionNumber = "";
-    public AboutWhitebox(Frame owner, boolean modal, String graphicsDirectory, String versionNumber) {
+    String versionName = "";
+    public AboutWhitebox(Frame owner, boolean modal, String graphicsDirectory, 
+            String versionName, String versionNumber) {
         super(owner, modal);
         this.setTitle("About Whitebox GAT");
         this.graphicsDirectory = graphicsDirectory;
+        this.versionName = versionName;
         this.versionNumber = versionNumber;
         createGui();
     }
@@ -64,7 +67,7 @@ public class AboutWhitebox extends JDialog implements ActionListener {
         
         JPanel textPane = new JPanel();
         
-        JLabel label4 = new JLabel(versionNumber + " released 2013");
+        JLabel label4 = new JLabel(versionName + " (" + versionNumber + ") released 2013");
         Box box4 = Box.createHorizontalBox();
         box4.add(label4);
         textPane.add(box4);
