@@ -254,6 +254,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public WhiteboxGui() {
         super("Whitebox GAT " + versionName);
         try {
+            System.out.println(Locale.getDefault());
             // initialize the pathSep and GraphicsDirectory variables
             pathSep = File.separator;
 
@@ -484,11 +485,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         pluginService.initPlugins();
         plugInfo = pluginService.getPluginList();
     }
-    ArrayList<WhiteboxPlugin> activePlugs = new ArrayList<WhiteboxPlugin>();
+    ArrayList<WhiteboxPlugin> activePlugs = new ArrayList<>();
 
     @Override
     public List returnPluginList() {
-        List<String> ret = new ArrayList<String>();
+        List<String> ret = new ArrayList<>();
         for (int i = 0; i < plugInfo.size(); i++) {
             ret.add(plugInfo.get(i).getName());
         }

@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,9 +40,7 @@ import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import java.io.DataInputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Paths;
 import whitebox.interfaces.Communicator;
 import whitebox.utilities.FileUtilities;
@@ -54,7 +51,7 @@ import whitebox.utilities.FileUtilities;
  */
 @SuppressWarnings("unchecked")
 public class Help extends JDialog implements ActionListener, HyperlinkListener {
-    public static final Logger logger = Logger.getLogger("Help");;
+    public static final Logger logger = Logger.getLogger("Help");
     
     private JButton viewSource = new JButton("View HTML Source");
     private JButton close = new JButton("Close");
@@ -135,8 +132,8 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         try {
             //FileHandler fh = new FileHandler("Whitebox.log", true);
             int limit = 1000000; // 1 Mb
-            int numLogFiles = 1;
-            FileHandler fh = new FileHandler("Whitebox%g.log", limit, numLogFiles);
+            int numLogFiles = 3;
+            FileHandler fh = new FileHandler("Log%g.log", limit, numLogFiles);
             fh.setFormatter(new XMLFormatter());
             //fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);
@@ -238,7 +235,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
             pack();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Help.createGui Error", e);
         }
     }
 

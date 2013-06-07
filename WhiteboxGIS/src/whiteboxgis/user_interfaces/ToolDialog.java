@@ -47,7 +47,7 @@ import whiteboxgis.ViewCodeDialog;
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ToolDialog extends JDialog implements Communicator, ActionListener, HyperlinkListener {
-    private JButton ok = new JButton("OK");
+    private JButton ok = new JButton("Run");
     private JButton close = new JButton("Close");
     private JButton viewCode = new JButton("View Code");
     private JButton back = new JButton();
