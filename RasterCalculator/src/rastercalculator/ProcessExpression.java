@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.io.File;
 import java.util.Date;
+import java.util.ResourceBundle;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.ThreadListener;
@@ -210,6 +211,21 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
 
     @Override
     public Font getDefaultFont() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getLogDirectory() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ResourceBundle getGuiLabelsBundle() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ResourceBundle getMessageBundle() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

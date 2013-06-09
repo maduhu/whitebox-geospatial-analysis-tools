@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Vector;
 import javax.swing.*;
 import whitebox.interfaces.ThreadListener;
@@ -39,7 +40,7 @@ import whitebox.structures.ExtensionFileFilter;
 public class RasterCalculator extends JDialog implements ActionListener, 
         ThreadListener {
 
-    String workingDirectory;
+    private String workingDirectory;
     private JList list;
     private JProgressBar progress = new JProgressBar(0, 100);
     private JScrollPane jScrollPane1 = new JScrollPane();
@@ -47,14 +48,20 @@ public class RasterCalculator extends JDialog implements ActionListener,
     private JTextArea textArea = new JTextArea();
     private String pathSep = File.separator;
     private WhiteboxPluginHost host = null;
-    private Map<String, String> images = new HashMap<String, String>();
+    private Map<String, String> images = new HashMap<>();
     private Thread thread = null;
-
+    private ResourceBundle bundle;
+    
     public RasterCalculator(Frame owner, boolean modal, String workingDirectory) {
         super(owner, modal);
+        this.setVisible(false);
+        
         this.workingDirectory = workingDirectory;
         if (owner instanceof WhiteboxPluginHost) {
             host = (WhiteboxPluginHost)owner;
+            bundle = host.getGuiLabelsBundle();
+        } else {
+            bundle = ResourceBundle.getBundle("rastercalculator.labels");
         }
         createGui();
     }
@@ -80,7 +87,7 @@ public class RasterCalculator extends JDialog implements ActionListener,
         return btn;
     }
     
-    Map<String,StringIntPair> map = new HashMap<String,StringIntPair>();
+    Map<String, StringIntPair> map = new HashMap<>();
     private Vector getOtherFunctionsModel() {
         
         Vector data = new Vector();
@@ -119,18 +126,18 @@ public class RasterCalculator extends JDialog implements ActionListener,
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         }
         
-        setTitle("Raster Calculator");
+        setTitle(bundle.getString("RasterCalculator"));
         
         // buttons
-        JButton btnExit = createButton("Exit");
-        JButton btnEvaluate = createButton("Evaluate");
-        JButton btnStop = createButton("Stop");
-        JButton btnHelp = createButton("Help");
-        JButton btnAddImage = createButton("Add Image");
-        JButton btnEqual = createButton("=", "Assignment");
-        JButton btnClear = createButton("Clear");
-        JButton btnBackspace = createButton("DEL", "Backspace");
-        JButton btnSqrBrackets = createButton("[ ]", "Square brackets denote images.");
+        JButton btnExit = createButton(bundle.getString("Exit"));
+        JButton btnEvaluate = createButton(bundle.getString("Evaluate"));
+        JButton btnStop = createButton(bundle.getString("Stop"));
+        JButton btnHelp = createButton(bundle.getString("Help"));
+        JButton btnAddImage = createButton(bundle.getString("AddImage"));
+        JButton btnEqual = createButton("=", bundle.getString("Assignment"));
+        JButton btnClear = createButton(bundle.getString("Clear"));
+        JButton btnBackspace = createButton("DEL", bundle.getString("Backspace"));
+        JButton btnSqrBrackets = createButton("[ ]", bundle.getString("SquareBrackets"));
         JButton btn1 = createButton("1");
         JButton btn2 = createButton("2");
         JButton btn3 = createButton("3");
@@ -145,32 +152,34 @@ public class RasterCalculator extends JDialog implements ActionListener,
         JButton btnNegate = createButton("(-)", "Negate");
         JButton btnPi = createButton("pi", "pi");
         JButton btnBrackets = createButton("( )");
-        JButton btnAbs = createButton("abs", "Absolute Value");
-        JButton btnDivision = createButton("\u00F7", "Floating-Point Division");
-        JButton btnMultiplication = createButton("\u00D7", "Multiplication");
-        JButton btnAddition = createButton("+", "Addition");
-        JButton btnSubtraction = createButton("\u2212", "Subtraction");
+        JButton btnAbs = createButton("abs", bundle.getString("AbsoluteValue"));
+        JButton btnDivision = createButton("\u00F7", 
+                bundle.getString("FloatingDivision"));
+        JButton btnMultiplication = createButton("\u00D7", 
+                bundle.getString("Multiplication"));
+        JButton btnAddition = createButton("+", bundle.getString("Addition"));
+        JButton btnSubtraction = createButton("\u2212", bundle.getString("Subtraction"));
         JButton btnMod = createButton("%", "Modulo (Remainder)");
-        JButton btnIntDiv = createButton("\\", "Integer Division");
-        JButton btnSqrt = createButton("\u221A", "Square Root");
-        JButton btnSqr = createButton("sqr", "Square");
-        JButton btnPow = createButton("pow", "Power");
+        JButton btnIntDiv = createButton("\\", bundle.getString("IntegerDivision"));
+        JButton btnSqrt = createButton("\u221A", bundle.getString("SquareRoot"));
+        JButton btnSqr = createButton("sqr", bundle.getString("Square"));
+        JButton btnPow = createButton("pow", bundle.getString("Power"));
         JButton btnSin = createButton("sin", "Sine");
         JButton btnCos = createButton("cos", "Cosine");
         JButton btnTan = createButton("tan", "Tangent");
         JButton btnLog = createButton("log", "Base-10 Logarithm");
-        JButton btnLn = createButton("Ln", "Natural Logarithm (base-e)");
-        JButton btnExp = createButton("Exp", "Exponentiation");
-        JButton btnEqualTo = createButton("==", "Equal To");
-        JButton btnNotEqualTo = createButton("!=", "Not Equal To");
-        JButton btnGreaterThan = createButton(">", "Greater Than");
-        JButton btnGreaterThanEqualTo = createButton(">=", "Greater Than Equal To");
-        JButton btnLessThan = createButton("<", "Less Than");
-        JButton btnLessThanEqualTo = createButton("<=", "Less Than Equal To");
-        JButton btnAnd = createButton("AND", "Boolean AND");
-        JButton btnNot = createButton("NOT", "Boolean NOT");
-        JButton btnOr = createButton("OR", "Boolean OR");
-        JButton btnXor = createButton("XOR", "Boolean XOR");
+        JButton btnLn = createButton("Ln", bundle.getString("NaturalLog"));
+        JButton btnExp = createButton("Exp", bundle.getString("Exponentiation"));
+        JButton btnEqualTo = createButton("==", bundle.getString("EqualTo"));
+        JButton btnNotEqualTo = createButton("!=", bundle.getString("NotEqualTo"));
+        JButton btnGreaterThan = createButton(">", bundle.getString("GreaterThan"));
+        JButton btnGreaterThanEqualTo = createButton(">=", bundle.getString("GreaterThanEqualTo"));
+        JButton btnLessThan = createButton("<", bundle.getString("LessThan"));
+        JButton btnLessThanEqualTo = createButton("<=", bundle.getString("LessThanEqualTo"));
+        JButton btnAnd = createButton("AND", bundle.getString("BooleanAND"));
+        JButton btnNot = createButton("NOT", bundle.getString("BooleanNOT"));
+        JButton btnOr = createButton("OR", bundle.getString("BooleanOR"));
+        JButton btnXor = createButton("XOR", bundle.getString("BooleanXOR"));
     
         JPanel mainPane = new JPanel();
         mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
@@ -183,7 +192,7 @@ public class RasterCalculator extends JDialog implements ActionListener,
         Box topBox = Box.createHorizontalBox();
         Box expressionBox = Box.createVerticalBox();
         Box labelBox1 = Box.createHorizontalBox();
-        JLabel label1 = new JLabel("Expression:");
+        JLabel label1 = new JLabel(bundle.getString("Expression") + ":");
         labelBox1.add(label1);
         labelBox1.add(Box.createHorizontalGlue());
         expressionBox.add(labelBox1);
@@ -195,7 +204,7 @@ public class RasterCalculator extends JDialog implements ActionListener,
         
         Box functionBox = Box.createVerticalBox();
         Box labelBox2 = Box.createHorizontalBox();
-        JLabel label2 = new JLabel("Other Functions:");
+        JLabel label2 = new JLabel(bundle.getString("OtherFunctions") + ":");
         labelBox2.add(label2);
         labelBox2.add(Box.createHorizontalGlue());
         functionBox.add(labelBox2);
@@ -287,7 +296,7 @@ public class RasterCalculator extends JDialog implements ActionListener,
         
         Box progressBox = Box.createHorizontalBox();
         progressBox.add(Box.createHorizontalStrut(10));
-        JLabel label3 = new JLabel("Progress:");
+        JLabel label3 = new JLabel(bundle.getString("Progress") + ":");
         progressBox.add(label3);
         progressBox.add(Box.createHorizontalStrut(5));
         progressBox.add(progress);
@@ -316,7 +325,7 @@ public class RasterCalculator extends JDialog implements ActionListener,
 
         pack();
 
-        this.setVisible(true);
+        //this.setVisible(true);
     }
     
     boolean firstImageSelected = false;
@@ -325,8 +334,8 @@ public class RasterCalculator extends JDialog implements ActionListener,
         String str;
                 
         // set the filter.
-        ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
-        String filterDescription = "Raster Files (*.dep)";
+        ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
+        String filterDescription = bundle.getString("RasterFiles") + " (*.dep)";
         String[] extensions = {"DEP"};
         ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
 
@@ -368,7 +377,7 @@ public class RasterCalculator extends JDialog implements ActionListener,
             //ProcessExpression pe = (ProcessExpression)thread;
             
             thread.interrupt();
-            textArea.insert("\nOperation Cancelled!", textArea.getText().length());
+            textArea.insert("\n" + bundle.getString("OperationCanceled") + "!", textArea.getText().length());
             textArea.requestFocus();
         }
     }
@@ -539,20 +548,6 @@ public class RasterCalculator extends JDialog implements ActionListener,
     @Override
     public void notifyOfThreadComplete(Runnable thread) {
         progress.setValue(0);
-//        ProcessExpression pe = (ProcessExpression)thread;
-//        String returnValue = pe.getReturnValue();
-//        if (returnValue.contains("IMAGE")) {
-//            returnValue = images.get(returnValue);
-//        }
-//        if (!returnValue.contains(".dep")) {
-//            textArea.setText(textArea.getText() + "\n" + returnValue);
-//        } else {
-//            if (host != null) {
-//                host.returnData(returnValue);
-//            } else {
-//                textArea.setText(textArea.getText() + "\n" + returnValue);
-//            }
-//        }
     }
 
     @Override
