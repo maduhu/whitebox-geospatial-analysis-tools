@@ -24,6 +24,7 @@ import java.io.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ResourceBundle;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -70,7 +71,7 @@ public class Scripter extends JFrame implements ActionListener {
     private JCheckBoxMenuItem python = new JCheckBoxMenuItem("Python");
     private JCheckBoxMenuItem groovy = new JCheckBoxMenuItem("Groovy");
     private JCheckBoxMenuItem javascript = new JCheckBoxMenuItem("Javascript");
-    
+    private ResourceBundle bundle;
     private JButton generateDataButton;
     
     public static final String PROP_SCRIPTING_LANGUAGE = "languageChanged";
@@ -95,8 +96,6 @@ public class Scripter extends JFrame implements ActionListener {
         public String toString() {
             return this.displayName;
         }
-        
-        
     }
     
     public Scripter(Frame owner, boolean modal) {
@@ -113,12 +112,12 @@ public class Scripter extends JFrame implements ActionListener {
                 // directory containing the class files
                 applicationDirectory = new File(applicationDirectory).getParent();
             }
-            //findResourcesDirectory(new File(applicationDirectory));
             findGraphicsDirectory(new File(applicationDirectory));
             findScriptDirectory(new File(applicationDirectory));
             
             if (owner != null && owner instanceof Communicator) {
                 host = (Communicator) owner;
+                bundle = host.getGuiLabelsBundle();
             }
             
             initUI();
@@ -127,20 +126,6 @@ public class Scripter extends JFrame implements ActionListener {
         }
     }
     
-//    private void findResourcesDirectory(File dir) {
-//        File[] files = dir.listFiles();
-//        for (int x = 0; x < files.length; x++) {
-//            if (files[x].isDirectory()) {
-//                if (files[x].toString().endsWith(pathSep + "resources")) {
-//                    resourcesDirectory = files[x].toString() + pathSep;
-//                    break;
-//                } else {
-//                    findResourcesDirectory(files[x]);
-//                }
-//            }
-//        }
-//    }
-
     private void findScriptDirectory(File dir) {
         File[] files = dir.listFiles();
         for (int x = 0; x < files.length; x++) {
@@ -227,31 +212,36 @@ public class Scripter extends JFrame implements ActionListener {
     private JToolBar createToolbar() {
         JToolBar toolbar = new JToolBar();
         
-        JButton openBtn = makeToolBarButton("open.png", "open", "Open file", "Open");
+        JButton openBtn = makeToolBarButton("open.png", "open", bundle.getString("OpenFile"), "Open");
         toolbar.add(openBtn);
         
-        JButton saveBtn = makeToolBarButton("SaveMap.png", "save", "Save file", "Save");
+        JButton saveBtn = makeToolBarButton("SaveMap.png", "save", bundle.getString("SaveFile"), "Save");
         toolbar.add(saveBtn);
         
-        JButton printBtn = makeToolBarButton("print.png", "print", "Print", "Print");
+        JButton printBtn = makeToolBarButton("print.png", "print", 
+                bundle.getString("Print"), "Print");
         toolbar.add(printBtn);
         
         toolbar.addSeparator();
         
-        JButton executeBtn = makeToolBarButton("Execute.png", "execute", "Execute code", "Execute");
+        JButton executeBtn = makeToolBarButton("Execute.png", "execute",
+                bundle.getString("ExecuteCode"), "Execute");
         toolbar.add(executeBtn);
         
-        JButton toggleComment = makeToolBarButton("Comment.png", "Comment", "Toggle Comments", "Comment");
+        JButton toggleComment = makeToolBarButton("Comment.png", "Comment", 
+                bundle.getString("ToggleComments"), "Comment");
         toolbar.add(toggleComment);
         
         toolbar.addSeparator();
         
-        JButton clearConsole = makeToolBarButton("ClearConsole.png", "clearConsole", "Clear the Console", "Clear Console");
+        JButton clearConsole = makeToolBarButton("ClearConsole.png", "clearConsole", 
+                bundle.getString("ClearConsole"), "Clear Console");
         toolbar.add(clearConsole);
         
         toolbar.addSeparator();
         
-        generateDataButton = makeToolBarButton("GenerateData.png", "generateData", "Generate Column Data", "Generate Data");
+        generateDataButton = makeToolBarButton("GenerateData.png", "generateData", 
+                bundle.getString("GenerateColumnData"), "Generate Data");
         toolbar.add(generateDataButton);
         
         showGenerateDataButton(false);
@@ -264,27 +254,27 @@ public class Scripter extends JFrame implements ActionListener {
         try {
             JMenuBar menubar = new JMenuBar();
 
-            JMenu fileMenu = new JMenu("File");
-            JMenuItem open = new JMenuItem("Open File");
+            JMenu fileMenu = new JMenu(bundle.getString("File"));
+            JMenuItem open = new JMenuItem(bundle.getString("OpenFile"));
             open.setActionCommand("open");
             open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             open.addActionListener(this);
             fileMenu.add(open);
-            JMenuItem save = new JMenuItem("Save");
+            JMenuItem save = new JMenuItem(bundle.getString("Save"));
             save.setActionCommand("save");
             save.addActionListener(this);
             save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             fileMenu.add(save);
-            JMenuItem saveAs = new JMenuItem("Save As...");
+            JMenuItem saveAs = new JMenuItem(bundle.getString("SaveAs") + "...");
             saveAs.setActionCommand("saveAs");
             saveAs.addActionListener(this);
             fileMenu.add(saveAs);
-            JMenuItem print = new JMenuItem("Print");
+            JMenuItem print = new JMenuItem(bundle.getString("Print"));
             print.setActionCommand("print");
             print.addActionListener(this);
             print.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             fileMenu.add(print);
-            JMenuItem close = new JMenuItem("Close File");
+            JMenuItem close = new JMenuItem(bundle.getString("CloseFile"));
             close.setActionCommand("close");
             close.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             close.addActionListener(this);
@@ -292,7 +282,7 @@ public class Scripter extends JFrame implements ActionListener {
             
             fileMenu.addSeparator();
             
-            JMenuItem exit = new JMenuItem("Exit");
+            JMenuItem exit = new JMenuItem(bundle.getString("Exit"));
             exit.setActionCommand("exit");
             exit.addActionListener(this);
             exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -300,7 +290,7 @@ public class Scripter extends JFrame implements ActionListener {
             
             menubar.add(fileMenu);
 
-            JMenu languageMenu = new JMenu("Language");
+            JMenu languageMenu = new JMenu(bundle.getString("Language"));
             python.setActionCommand("python");
             python.addActionListener(this);
             python.setState(true);
@@ -318,7 +308,7 @@ public class Scripter extends JFrame implements ActionListener {
 
             menubar.add(languageMenu);
 
-            JMenu sourceMenu = new JMenu("Source");
+            JMenu sourceMenu = new JMenu(bundle.getString("Source"));
             JMenuItem execute = new JMenuItem("Execute");
             execute.setActionCommand("execute");
             execute.addActionListener(this);
@@ -326,7 +316,7 @@ public class Scripter extends JFrame implements ActionListener {
             sourceMenu.add(execute);
             
             sourceMenu.addSeparator();
-            JMenuItem toggleComments = new JMenuItem("Toggle Comments");
+            JMenuItem toggleComments = new JMenuItem(bundle.getString("ToggleComments"));
             toggleComments.setActionCommand("toggleComments");
             toggleComments.addActionListener(this);
             toggleComments.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -376,22 +366,6 @@ public class Scripter extends JFrame implements ActionListener {
     private void initScriptEngine() {
         try {
 
-//            for (ScriptEngineFactory factory : factories) {
-//                System.out.println("ScriptEngineFactory Info");
-//                String engName = factory.getEngineName();
-//                String engVersion = factory.getEngineVersion();
-//                String langName = factory.getLanguageName();
-//                String langVersion = factory.getLanguageVersion();
-//                System.out.printf("\tScript Engine: %s (%s)\n",
-//                        engName, engVersion);
-//                List<String> engNames = factory.getNames();
-//                for (String name : engNames) {
-//                    System.out.printf("\tEngine Alias: %s\n", name);
-//                }
-//                System.out.printf("\tLanguage: %s (%s)\n",
-//                        langName, langVersion);
-//            }
-
             engine = mgr.getEngineByName(language.toString().toLowerCase());
             //StringWriter sw = new StringWriter();
             //PrintWriter pw = new PrintWriter(sw);
@@ -404,7 +378,7 @@ public class Scripter extends JFrame implements ActionListener {
             
             // update the statusbar
             ScriptEngineFactory scriptFactory = engine.getFactory();
-            statusLabel.setText("Script Language: " + scriptFactory.getLanguageName());
+            statusLabel.setText(bundle.getString("ScriptingLanguage") + ": " + scriptFactory.getLanguageName());
         } catch (Exception e) {
             handleError(e.getMessage());
         }
@@ -418,11 +392,11 @@ public class Scripter extends JFrame implements ActionListener {
         fc.setAcceptAllFileFilterUsed(true);
         fc.setCurrentDirectory(new File(scriptsDirectory));
 
-        FileFilter ft = new FileNameExtensionFilter("Javascript Files", "js");
+        FileFilter ft = new FileNameExtensionFilter("Javascript " + bundle.getString("Files"), "js");
         fc.addChoosableFileFilter(ft);
-        ft = new FileNameExtensionFilter("Groovy Files", "groovy");
+        ft = new FileNameExtensionFilter("Groovy " + bundle.getString("Files"), "groovy");
         fc.addChoosableFileFilter(ft);
-        ft = new FileNameExtensionFilter("Python Files", "py");
+        ft = new FileNameExtensionFilter("Python " + bundle.getString("Files"), "py");
         fc.addChoosableFileFilter(ft);
         
         int result = fc.showOpenDialog(this);
@@ -490,11 +464,11 @@ public class Scripter extends JFrame implements ActionListener {
             fc.setAcceptAllFileFilterUsed(true);
             fc.setFileHidingEnabled(true);
 
-            FileFilter ft = new FileNameExtensionFilter("Javascript Files", "js");
+            FileFilter ft = new FileNameExtensionFilter("Javascript " + bundle.getString("Files"), "js");
             fc.addChoosableFileFilter(ft);
-            ft = new FileNameExtensionFilter("Groovy Files", "groovy");
+            ft = new FileNameExtensionFilter("Groovy " + bundle.getString("Files"), "groovy");
             fc.addChoosableFileFilter(ft);
-            ft = new FileNameExtensionFilter("Python Files", "py");
+            ft = new FileNameExtensionFilter("Python " + bundle.getString("Files"), "py");
             fc.addChoosableFileFilter(ft);
             //fc.setFileFilter(ft);
         
@@ -510,8 +484,8 @@ public class Scripter extends JFrame implements ActionListener {
                 if (file.exists()) {
                     Object[] options = {"Yes", "No"};
                     int n = JOptionPane.showOptionDialog(this,
-                            "The file already exists.\n"
-                            + "Would you like to overwrite it?",
+                            host.getMessageBundle().getString("FileExists") + "\n"
+                            + host.getMessageBundle().getString("Overwrite"),
                             "Whitebox GAT Message",
                             JOptionPane.YES_NO_OPTION,
                             JOptionPane.QUESTION_MESSAGE,
@@ -714,44 +688,6 @@ public class Scripter extends JFrame implements ActionListener {
     public static void main(String args[]) throws ScriptException {
         Scripter scripter = new Scripter(null, false);
         scripter.setVisible(true);
-
-//        ScriptEngineManager mgr = new ScriptEngineManager();
-//        ScriptEngine pyEngine = mgr.getEngineByName("python");
-//        try {
-//            pyEngine.eval("print \"Python - Hello, world!\"");
-//            pyEngine.eval("a = 4.3");
-//            pyEngine.eval("b = 6.7");
-//            pyEngine.eval("print a + b");
-//            
-////            pyEngine.eval("from whitebox.geospatialfiles import WhiteboxRaster");
-////            pyEngine.eval("wb = WhiteboxRaster(\"/Users/johnlindsay/Documents/Data/tmp1.dep\", \"r\")");
-////            pyEngine.eval("print wb.getValue(24,56)");
-////            
-//            //pyEngine.eval("from rastercalculator import RasterCalculator");
-//            pyEngine.eval("from rastercalculator import ProcessExpression");
-//            pyEngine.eval("str = '[tmp2]=[tmp1]*10'");
-//            pyEngine.eval("print(str)");
-//            pyEngine.eval("pe = ProcessExpression(\"/Users/johnlindsay/Documents/Data/\", str)");
-//            pyEngine.eval("pe.run()");
-//            pyEngine.eval("print(pe.getReturnValue())");
-//            
-//            //pyEngine.eval("from javax.swing import JFrame");
-//            //pyEngine.eval("frame = JFrame('Hello, Jython!', defaultCloseOperation = JFrame.EXIT_ON_CLOSE, size = (300, 300))");
-//            //pyEngine.eval("rc = RasterCalculator(frame, True, '')");
-//            //pyEngine.eval("rc.visible = True");
-//            //pyEngine.eval("frame.visible = True");
-//            
-//            
-//            // create a script engine manager
-////            ScriptEngineManager factory = new ScriptEngineManager();
-////            // create a JavaScript engine
-////            ScriptEngine engine = factory.getEngineByName("JavaScript");
-////            // evaluate JavaScript code from String
-////            engine.eval("println('Hello, World js')");
-//        } catch (Exception e) {
-//            System.out.println(e.getStackTrace());
-//            //ex.printStackTrace();
-//        }       
     }
 
     public final class TextAreaWriter extends Writer {
@@ -775,206 +711,4 @@ public class Scripter extends JFrame implements ActionListener {
             textArea.append(new String(cbuf, off, len));
         }
     }
-
-////    public final class TextAreaReader extends Reader {
-////
-////        private final JTextArea textArea;
-////
-////        public TextAreaWriter(final JTextArea textArea) {
-////            this.textArea = textArea;
-////        }
-////
-////        @Override
-////        public void flush() {
-////        }
-////
-////        @Override
-////        public void close() {
-////        }
-////
-////        @Override
-////        public void write(char[] cbuf, int off, int len) throws IOException {
-////            textArea.append(new String(cbuf, off, len));
-////        }
-////
-////        @Override
-////        public int read(char[] chars, int i, int i1) throws IOException {
-////            throw new UnsupportedOperationException("Not supported yet.");
-////        }
-////    }
-//    class TextAreaStreamer extends InputStream implements ActionListener {
-//
-//        private JTextArea tf;
-//        private String str = null;
-//        private int pos = 0;
-//
-//        public TextAreaStreamer(JTextArea jta) {
-//            tf = jta;
-//        }
-//
-//        //gets triggered everytime that "Enter" is pressed on the textfield
-//        @Override
-//        public void actionPerformed(ActionEvent e) {
-//            str = tf.getText() + "\n";
-//            pos = 0;
-//            tf.setText("");
-//            synchronized (this) {
-//                //maybe this should only notify() as multiple threads may
-//                //be waiting for input and they would now race for input
-//                this.notifyAll();
-//            }
-//        }
-//
-//        @Override
-//        public int read() {
-//            //test if the available input has reached its end
-//            //and the EOS should be returned 
-//            if (str != null && pos == str.length()) {
-//                str = null;
-//                //this is supposed to return -1 on "end of stream"
-//                //but I'm having a hard time locating the constant
-//                return java.io.StreamTokenizer.TT_EOF;
-//            }
-//            //no input available, block until more is available because that's
-//            //the behavior specified in the Javadocs
-//            while (str == null || pos >= str.length()) {
-//                try {
-//                    //according to the docs read() should block until new input is available
-//                    synchronized (this) {
-//                        this.wait();
-//                    }
-//                } catch (InterruptedException ex) {
-//                    ex.printStackTrace();
-//                }
-//            }
-//            //read an additional character, return it and increment the index
-//            return str.charAt(pos++);
-//        }
-//    }
-//
-//    public final class TextAreaReader extends Reader implements KeyListener {
-//
-//        JTextArea mJArea;
-//        TextArea mAWTArea;
-//        Object mKeyLock = new Object();
-//        Object mLineLock = new Object();
-//        String mLastLine;
-//        int mLastKeyCode = 1;
-//
-//        public TextAreaReader(JTextArea area) {
-//            super();
-//            mJArea = area;
-//            mJArea.addKeyListener(this);
-//        }
-//
-//        public TextAreaReader(TextArea area) {
-//            super();
-//            mAWTArea = area;
-//            mAWTArea.addKeyListener(this);
-//        }
-//
-//        @Override
-//        public void keyPressed(KeyEvent ke) {
-//            mLastKeyCode = ke.getKeyCode();
-//            synchronized (mKeyLock) {
-//                mKeyLock.notifyAll();
-//            }
-//            if (ke.getKeyCode() == KeyEvent.VK_ENTER) {
-//                if (mJArea != null) {
-//                    String txt = mJArea.getText();
-//                    int idx = txt.lastIndexOf('\n', mJArea.getCaretPosition() - 1);
-//                    mLastLine = txt.substring(idx != -1 ? idx : 0, mJArea.getCaretPosition());//txt.length());
-//                    synchronized (mLineLock) {
-//                        mLineLock.notifyAll();
-//                    }
-//                } else {
-//                    String txt = mAWTArea.getText();
-//                    int idx = txt.lastIndexOf('\n', mAWTArea.getCaretPosition() - 1);
-//                    mLastLine = txt.substring(idx != -1 ? idx : 0, mAWTArea.getCaretPosition());//txt.length());
-//                    synchronized (mLineLock) {
-//                        mLineLock.notifyAll();
-//                    }
-//                }
-//            }
-//        }
-//
-//        @Override
-//        public void keyReleased(KeyEvent ke) {
-//        }
-//
-//        @Override
-//        public void keyTyped(KeyEvent ke) {
-//        }
-//
-//        @Override
-//        public int read(char[] arg0, int arg1, int arg2) throws IOException {
-//            throw new IOException("Not supported");
-//        }
-//
-//        public String readLine() {
-//            synchronized (mLineLock) {
-//                try {
-//                    mLineLock.wait();
-//                } catch (InterruptedException ex) {
-//                }
-//            }
-//            return mLastLine;
-//        }
-//
-//        @Override
-//        public int read() {
-//            synchronized (mKeyLock) {
-//                try {
-//                    mKeyLock.wait();
-//                } catch (InterruptedException ex) {
-//                }
-//            }
-//            return mLastKeyCode;
-//        }
-//
-//        @Override
-//        public void close() throws IOException {
-//            // TODO Auto-generated method stub
-//        }
-//
-////	public static void main(String args[]) {
-////		JFrame f = new JFrame("TextAreaInput Test");
-////		JTextArea area = new JTextArea();
-////		final TextAreaReader tar = new TextAreaReader(area);
-////		f.add(area);
-////		
-////		Runnable r1 = new Runnable() {
-////			public void run() {
-////				while (true) {
-////					int code = tar.read();
-////					System.out.println("read: " + code);
-////				}
-////			}
-////		};
-////		Runnable r2 = new Runnable() {
-////			public void run() {
-////				while (true) {
-////					String line = tar.readLine();
-////					System.out.println("read line: " + line);
-////				}
-////			}			
-////		};
-////		Thread t1 = new Thread(r1);
-////		Thread t2 = new Thread(r2);
-////		t1.start();
-////		t2.start();
-////		f.setBounds(100, 100, 200, 200);
-////		f.setVisible(true);
-////	}
-//        public InputStream toInputStream() {
-//            return new MyInputStream();
-//        }
-//
-//        private class MyInputStream extends InputStream {
-//
-//            public int read() {
-//                return TextAreaReader.this.read();
-//            }
-//        }
-//    }
 }

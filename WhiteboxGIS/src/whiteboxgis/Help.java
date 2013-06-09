@@ -51,7 +51,7 @@ import whitebox.utilities.FileUtilities;
  */
 @SuppressWarnings("unchecked")
 public class Help extends JDialog implements ActionListener, HyperlinkListener {
-    public static final Logger logger = Logger.getLogger("Help");
+    public static final Logger logger = Logger.getLogger(Help.class.getPackage().getName());
     
     private JButton viewSource = new JButton("View HTML Source");
     private JButton close = new JButton("Close");
@@ -63,6 +63,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     private String graphicsDirectory = "";
     private String helpDirectory = "";
     private String resourcesDirectory = "";
+    private String logDirectory = "";
     private Communicator host = null;
     private String title = "Whitebox Help";
     private JTextField indexField = new JTextField();
@@ -85,6 +86,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         resourcesDirectory = host.getResourcesDirectory();
         helpDirectory = resourcesDirectory + "Help" + pathSep;
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
+        logDirectory = host.getLogDirectory();
         helpFile = helpDirectory + "Welcome.html";
         activeTab = startMode;
         createGui();
@@ -95,6 +97,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         host = (Communicator) owner;
         this.helpFile = helpFile;
         resourcesDirectory = host.getResourcesDirectory();
+        logDirectory = host.getLogDirectory();
         helpDirectory = resourcesDirectory + "Help" + pathSep;
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
         activeTab = startMode;
@@ -122,6 +125,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             graphicsDirectory = resourcesDirectory + "Images" + pathSep;
             helpDirectory = resourcesDirectory + "Help" + pathSep;
             graphicsDirectory = resourcesDirectory + "Images" + pathSep;
+            logDirectory = applicationDirectory + pathSep + "logs" + pathSep;
             helpFile = helpDirectory + "Welcome.html";
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Help.Help Error", e);
@@ -133,7 +137,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             //FileHandler fh = new FileHandler("Whitebox.log", true);
             int limit = 1000000; // 1 Mb
             int numLogFiles = 3;
-            FileHandler fh = new FileHandler("Log%g.log", limit, numLogFiles);
+            FileHandler fh = new FileHandler(logDirectory + "Help%g_%u.log", limit, numLogFiles, true);
             fh.setFormatter(new XMLFormatter());
             //fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);

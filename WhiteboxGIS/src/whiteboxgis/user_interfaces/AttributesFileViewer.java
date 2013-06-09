@@ -16,6 +16,7 @@
  */
 package whiteboxgis.user_interfaces;
 
+import whiteboxgis.Scripter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,6 +28,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ResourceBundle;
 import java.lang.reflect.InvocationTargetException;
 import javax.script.Bindings;
 import javax.script.CompiledScript;
@@ -44,7 +46,6 @@ import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.geospatialfiles.shapefile.attributes.DBFException;
-import whiteboxgis.Scripter;
 import whiteboxgis.Scripter.ScriptingLanguage;
 
 /**
@@ -63,7 +64,8 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     private JTabbedPane tabs;
     private WhiteboxPluginHost host = null;
     private ShapeFile shapeFile = null;
-    
+    private ResourceBundle bundle;
+    private ResourceBundle messages;
     private Scripter scripter = null;
     private int generateDataColumnIndex = -1;
     
@@ -71,6 +73,8 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         super(owner, modal);
         if (owner instanceof WhiteboxPluginHost) {
             host = (WhiteboxPluginHost)owner;
+            bundle = host.getGuiLabelsBundle();
+            messages = host.getMessageBundle();
         }
         if (owner != null) {
             Dimension parentSize = owner.getSize(); 
@@ -91,9 +95,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         } catch (IOException e) {
             if (owner instanceof WhiteboxPluginHost) {
                 WhiteboxPluginHost wph = (WhiteboxPluginHost)owner;
-                wph.showFeedback("DBF file not read properly. It is possible that there is no database file.");
+                wph.showFeedback(messages.getString("NoDBF"));
             } else {
-                JLabel warning = new JLabel("DBF file not read properly. It is possible that there is no database file.");
+                JLabel warning = new JLabel(messages.getString("NoDBF"));
                 this.add(warning);
             }
         } 
@@ -133,7 +137,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             String shortFileName = file.getName();
             shortFileName = shortFileName.replace(".dbf", "");
         
-            setTitle("Layer Attribute Table: " + shortFileName);
+            setTitle(bundle.getString("LayerAttributeTable") + ": " + shortFileName);
 
             // okay and close buttons.
             Box box1 = Box.createHorizontalBox();
@@ -141,16 +145,16 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             box1.add(Box.createRigidArea(new Dimension(5, 30)));
             box1.add(Box.createRigidArea(new Dimension(5, 30)));
             
-            JButton close = new JButton("Close");
+            JButton close = new JButton(bundle.getString("Close"));
             close.setActionCommand("close");
             close.addActionListener(this);
-            close.setToolTipText("Exit without saving changes");
+            close.setToolTipText(bundle.getString("ExitWithoutSaving"));
             box1.add(close);
             
-            JButton save = new JButton("Save");
+            JButton save = new JButton(bundle.getString("Save"));
             save.setActionCommand("save");
             save.addActionListener(this);
-            save.setToolTipText("Save changes to disk");
+            save.setToolTipText(bundle.getString("SaveChanges"));
             box1.add(save);
             
             box1.add(Box.createHorizontalStrut(100));
@@ -168,7 +172,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             JPanel panel1 = new JPanel();
             panel1.setLayout(new BoxLayout(panel1, BoxLayout.Y_AXIS));
             panel1.add(scroll);
-            tabs.addTab("Attributes Table", panel1);
+            tabs.addTab(bundle.getString("AttributesTable"), panel1);
 
             // field table
                         
@@ -179,7 +183,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
             JScrollPane scroll2 = new JScrollPane(fieldTable);
             panel2.add(scroll2);
-            tabs.addTab("Field Summary", panel2);
+            tabs.addTab(bundle.getString("FieldSummary"), panel2);
             
             mainBox.add(tabs);
             this.getContentPane().add(mainBox, BorderLayout.CENTER);
@@ -352,7 +356,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     private JPopupMenu createDataRevertPopup(final AttributeFileTableModel model, final int row) {
         
         JPopupMenu popup = new JPopupMenu();
-        JMenuItem revertItem = new JMenuItem("Revert Changes");
+        JMenuItem revertItem = new JMenuItem(bundle.getString("RevertChanges"));
         
         if (model.isModified(row)) {
             revertItem.addActionListener(new ActionListener() {
@@ -379,7 +383,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     private JPopupMenu createFieldRevertPopup(final AttributeFieldTableModel model, final int row) {
         
         JPopupMenu popup = new JPopupMenu();
-        JMenuItem revertItem = new JMenuItem("Revert Changes");
+        JMenuItem revertItem = new JMenuItem(bundle.getString("RevertChanges"));
         
         if (model.isModified(row)) {
             revertItem.addActionListener(new ActionListener() {
@@ -395,7 +399,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         
         popup.add(revertItem);
         
-        JMenuItem deleteItem = new JMenuItem("Delete Field");
+        JMenuItem deleteItem = new JMenuItem(bundle.getString("DeleteField"));
         deleteItem.addActionListener(new ActionListener() {
 
             @Override
@@ -413,25 +417,25 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         JMenuBar menubar = new JMenuBar();
 
         // Add Field menu
-        JMenu addFieldMenu = new JMenu("Edit Fields");
+        JMenu addFieldMenu = new JMenu(bundle.getString("EditFields"));
         
-        JMenuItem addNewField = new JMenuItem("Add New Field");
+        JMenuItem addNewField = new JMenuItem(bundle.getString("AddNewField"));
         addNewField.setActionCommand("addNewField");
         addNewField.addActionListener(this);
         addFieldMenu.add(addNewField);
         
-        JMenuItem deleteField = new JMenuItem("Delete Field...");
+        JMenuItem deleteField = new JMenuItem(bundle.getString("DeleteField") + "...");
         deleteField.setActionCommand("deleteField");
         deleteField.addActionListener(this);
         addFieldMenu.add(deleteField);
         
         if (shapeFile.getShapeType().getBaseType() == ShapeType.POLYGON) {
-            JMenuItem addAreaField = new JMenuItem("Add Area Field");
+            JMenuItem addAreaField = new JMenuItem(bundle.getString("AddAreaField"));
             addAreaField.setActionCommand("addAreaField");
             addAreaField.addActionListener(this);
             addFieldMenu.add(addAreaField);
             
-            JMenuItem addPerimeterField = new JMenuItem("Add Perimeter Field");
+            JMenuItem addPerimeterField = new JMenuItem(bundle.getString("AddPerimeterField"));
             addPerimeterField.setActionCommand("addPerimeterField");
             addPerimeterField.addActionListener(this);
             addFieldMenu.add(addPerimeterField);
@@ -440,9 +444,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         menubar.add(addFieldMenu);
         
         
-        JMenu generateFieldData = new JMenu("Generate Data");
+        JMenu generateFieldData = new JMenu(bundle.getString("GenerateData"));
         
-        JMenuItem generateData = new JMenuItem("Generate Data...");
+        JMenuItem generateData = new JMenuItem(bundle.getString("GenerateData") + "...");
         generateData.setActionCommand("generateData");
         generateData.addActionListener(this);
         generateFieldData.add(generateData);
@@ -488,8 +492,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         if (!fieldModel.isSaved()) {
             tabs.setSelectedIndex(1);
             int continueChoice = JOptionPane.showOptionDialog(this, 
-                    "New fields were created and not saved, do you want to continue without saving?", 
-                    "Continue?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+                    messages.getString("NewFieldsCreated"), 
+                    messages.getString("Continue") + "?", 
+                    JOptionPane.YES_NO_CANCEL_OPTION, 
+                    JOptionPane.QUESTION_MESSAGE, null, null, null);
             if (continueChoice != JOptionPane.OK_OPTION) {
                 return;
             }
@@ -497,8 +503,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         if (!dataModel.isSaved()) {
             tabs.setSelectedIndex(0);
             int continueChoice = JOptionPane.showOptionDialog(this, 
-                    "There are unsaved changes to the table data, do you want to continue without saving?", 
-                    "Continue?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+                    messages.getString("UnsavedChanges"), 
+                    messages.getString("Continue") + "?", 
+                    JOptionPane.YES_NO_CANCEL_OPTION, 
+                    JOptionPane.QUESTION_MESSAGE, null, null, null);
             if (continueChoice != JOptionPane.OK_OPTION) {
                 return;
             }
@@ -513,13 +521,19 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         
         if (!dataModel.isSaved()) {
             tabs.setSelectedIndex(0);
-            int option = JOptionPane.showOptionDialog(rootPane, "Are you sure you want to save changes to data?", 
-                "Save Data Changes?", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+            int option = JOptionPane.showOptionDialog(rootPane, 
+                    messages.getString("SaveChangesQuestion"), 
+                messages.getString("SaveChanges") + "?", 
+                JOptionPane.OK_CANCEL_OPTION, 
+                JOptionPane.QUESTION_MESSAGE, null, null, null);
             if (option == JOptionPane.OK_OPTION) {
                 
                 boolean success = dataModel.saveChanges();
                 if (!success) {
-                    JOptionPane.showMessageDialog(this, "Error saving database file. Some changes have not been saved.", "Error Saving", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, 
+                            messages.getString("ErrorSavingChanges"), 
+                            messages.getString("ErrorSaving"), 
+                            JOptionPane.ERROR_MESSAGE);
                 }
                 dataModel.fireTableDataChanged();
             }
@@ -527,13 +541,19 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         
         if (!fieldModel.isSaved()) {
             tabs.setSelectedIndex(1);
-            int option = JOptionPane.showOptionDialog(rootPane, "Are you sure you want to save changes to fields?", 
-                "Save Field Changes?", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+            int option = JOptionPane.showOptionDialog(rootPane, 
+                    messages.getString("SaveChangesQuestion"), 
+                messages.getString("SaveChanges"), 
+                JOptionPane.OK_CANCEL_OPTION, 
+                JOptionPane.QUESTION_MESSAGE, null, null, null);
             if (option == JOptionPane.OK_OPTION) {
                 
                 boolean success = fieldModel.saveChanges();
                 if (!success) {
-                    JOptionPane.showMessageDialog(this, "Error saving database file. Some changes have not been saved.", "Error Saving", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, 
+                            messages.getString("ErrorSavingChanges"), 
+                            messages.getString("ErrorSaving"),
+                            JOptionPane.ERROR_MESSAGE);
                 }
                 
                 fieldModel.fireTableDataChanged();
@@ -599,7 +619,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             
         }
         
-        Object selection = JOptionPane.showInputDialog(this, "Select the field to delete", "Delete Field", JOptionPane.OK_CANCEL_OPTION, null, selectionOptions, null);
+        Object selection = JOptionPane.showInputDialog(this, 
+                messages.getString("SelectFieldToDelete"), 
+                bundle.getString("DeleteField"), 
+                JOptionPane.OK_CANCEL_OPTION, null, selectionOptions, null);
 
         if (selection != null) {
             int selectionIndex = ((SelectionIdentifier)selection).getIndex();
@@ -609,7 +632,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             AttributeFileTableModel dataModel = (AttributeFileTableModel)dataTable.getModel();
             dataModel.hideColumn(selectionIndex);
             
-            System.out.println("Deleting: " + selection.toString());
+            //System.out.println("Deleting: " + selection.toString());
 
         }
  
@@ -621,7 +644,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             ShapeType inputType = shapeFile.getShapeType();
             if (inputType.getBaseType() != ShapeType.POLYGON) {
                 if (host != null) {
-                    host.showFeedback("This function can only be applied to polygon type shapefiles.");
+                    host.showFeedback(messages.getString("PolygonsOnly"));
                     return;
                 }
             }
@@ -629,7 +652,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             int recNum;
 
             DBFField field = new DBFField();
-            field.setName("Area");
+            field.setName(bundle.getString("Area"));
             field.setDataType(DBFField.DBFDataType.NUMERIC);
             field.setFieldLength(10);
             field.setDecimalCount(3);
@@ -658,7 +681,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                 }                        
             }
             
-            host.showFeedback("Calculation complete!");
+            host.showFeedback(messages.getString("CalculationComplete"));
             
         } catch (Exception e) {
             if (host != null) {
@@ -675,7 +698,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             ShapeType inputType = shapeFile.getShapeType();
             if (inputType.getBaseType() != ShapeType.POLYGON) {
                 if (host != null) {
-                    host.showFeedback("This function can only be applied to polygon type shapefiles.");
+                    host.showFeedback(messages.getString("PolygonsOnly"));
                     return;
                 }
             }
@@ -683,7 +706,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             int recNum;
 
             DBFField field = new DBFField();
-            field.setName("Perimeter");
+            field.setName(bundle.getString("Perimeter"));
             field.setDataType(DBFField.DBFDataType.NUMERIC);
             field.setFieldLength(10);
             field.setDecimalCount(3);
@@ -712,7 +735,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
             }
             
-            host.showFeedback("Calculation complete!");
+            host.showFeedback(messages.getString("CalculationComplete"));
             
         } catch (Exception e) {
             if (host != null) {
@@ -734,8 +757,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         
         if (!fieldModel.isSaved()) {
             JOptionPane.showMessageDialog(this, 
-                    "The file must be saved before you can generate data for the table", 
-                    "Save to Continue", JOptionPane.INFORMATION_MESSAGE);
+                    messages.getString("FileMustBeSaved"), 
+                    messages.getString("SaveToContinue"), 
+                    JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         
@@ -750,7 +774,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             
         }
         
-        Object selection = JOptionPane.showInputDialog(this, "Select field", "Generate Column Data", JOptionPane.OK_CANCEL_OPTION, null, selectionOptions, null);
+        Object selection = JOptionPane.showInputDialog(this, 
+                messages.getString("SelectField"), 
+                messages.getString("GenerateColumnData"), 
+                JOptionPane.OK_CANCEL_OPTION, null, selectionOptions, null);
 
         if (selection != null) {
             
@@ -784,9 +811,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     
     private void setScripterDefaultText(ScriptingLanguage lang) {
         
-            String default_text = lang.getCommentMarker() + " This script will be run for every row as identified by index. \n"
-                    + lang.getCommentMarker() + " The last line of the script will be used as the value for the column. \n"
-                    + lang.getCommentMarker() + " The other columns' values will be bound to variables of the same name (case sensitive). \n";
+            String default_text = lang.getCommentMarker() + " " + 
+                    messages.getString("ScriptMessage1") + "\n"
+                    + messages.getString("ScriptMessage2") + "\n"
+                    + messages.getString("ScriptMessage3") + "\n";
         
             switch (lang) {
                 case PYTHON:
@@ -835,7 +863,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                             data = rowData[this.generateDataColumnIndex].getClass().getConstructor(String.class).newInstance(data.toString());
                         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                             System.out.println(e);
-                            host.showFeedback("Unable to convert type. Take return type into consideration.");
+                            host.showFeedback(messages.getString("UnableToConvertDataType"));
                             return;
                         }
                     }
@@ -844,13 +872,13 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
                 } catch (DBFException e) {
                     System.out.println(e);
-                    host.showFeedback("Error adding data to database. Make sure assigned valued isn't outside of data type range.");
+                    host.showFeedback(messages.getString("ErrorAddingData"));
                 }
             }
             
         } catch (ScriptException e) {
             System.out.println(e);
-            host.showFeedback("Error executing script. Check syntax and make sure the desired column value appears on the last line.");
+            host.showFeedback(messages.getString("ErrorExecutingScript"));
         }
     }
     

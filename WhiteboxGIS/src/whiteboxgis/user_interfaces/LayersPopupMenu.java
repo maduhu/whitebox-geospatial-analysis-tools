@@ -18,6 +18,7 @@ package whiteboxgis.user_interfaces;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
+import java.util.ResourceBundle;
 import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.interfaces.MapLayer;
 
@@ -31,16 +32,19 @@ public class LayersPopupMenu extends JPopupMenu {
     MapLayer myLayer;
     String graphicsDirectory;
     ActionListener listener;
+    ResourceBundle bundle;
 
     // constructors
     public LayersPopupMenu() {
         // no-arg constructor
     }
 
-    public LayersPopupMenu(MapLayer layer, ActionListener listener, String graphicsDirectory) {
+    public LayersPopupMenu(MapLayer layer, ActionListener listener, 
+            String graphicsDirectory, ResourceBundle bundle) {
         this.myLayer = layer;
         this.graphicsDirectory = graphicsDirectory;
         this.listener = listener;
+        this.bundle = bundle;
         initialize();
     }
 
@@ -68,97 +72,119 @@ public class LayersPopupMenu extends JPopupMenu {
     public void setListener(ActionListener listener) {
         this.listener = listener;
     }
+
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
+    }
+    
     
     
     // methods
-    public void initialize() {
-        if (myLayer == null || graphicsDirectory == null || listener == null) {
+    public final void initialize() {
+        if (myLayer == null || graphicsDirectory == null || listener == null 
+                || bundle == null) {
             System.err.println("LayersPopupMenu has not been properly initialized");
         }
 
         if (myLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
 
-            JMenuItem mi = new JMenuItem("Layer Display Properties");
+            JMenuItem mi = new JMenuItem(bundle.getString("LayerProperties"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerProperties");
             this.add(mi);
 
-            JMenuItem menuItemAttributeTable = new JMenuItem("View Attribute Table", new ImageIcon(graphicsDirectory + "AttributeTable.png"));
+            JMenuItem menuItemAttributeTable = new JMenuItem(
+                    bundle.getString("ViewAttributeTable"), 
+                    new ImageIcon(graphicsDirectory + "AttributeTable.png"));
             menuItemAttributeTable.addActionListener(listener);
             menuItemAttributeTable.setActionCommand("viewAttributeTable");
             this.add(menuItemAttributeTable);
 
             this.addSeparator();
 
-            mi = new JMenuItem("Toggle Layer Visibility");
+            mi = new JMenuItem(bundle.getString("ToggleLayerVisibility"));
             mi.addActionListener(listener);
             mi.setActionCommand("toggleLayerVisibility");
             this.add(mi);
 
-            mi = new JMenuItem("Change Layer Title");
+            mi = new JMenuItem(bundle.getString("ChangeLayerTitle"));
             mi.addActionListener(listener);
             mi.setActionCommand("changeLayerTitle");
             this.add(mi);
 
-            mi = new JMenuItem("Set As Active Layer");
+            mi = new JMenuItem(bundle.getString("SetAsActiveLayer"));
             mi.addActionListener(listener);
             mi.setActionCommand("setAsActiveLayer");
             this.add(mi);
 
-            mi = new JMenuItem("Toggle Layer Visibility In Legend");
+            mi = new JMenuItem(bundle.getString("ToggleLayerVisibilityInLegend"));
             mi.addActionListener(listener);
             mi.setActionCommand("toggleLayerVisibilityInLegend");
             this.add(mi);
 
             this.addSeparator();
 
-            mi = new JMenuItem("Add Layer", new ImageIcon(graphicsDirectory + "AddLayer.png"));
+            mi = new JMenuItem(bundle.getString("AddLayer"), 
+                    new ImageIcon(graphicsDirectory + "AddLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("addLayer");
             this.add(mi);
 
-            mi = new JMenuItem("Remove Layer", new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
+            mi = new JMenuItem(bundle.getString("RemoveLayer"), 
+                    new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("removeLayer");
             this.add(mi);
 
             this.addSeparator();
 
-            mi = new JMenuItem("Raise Layer", new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
+            mi = new JMenuItem(bundle.getString("RaiseLayer"), 
+                    new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("raiseLayer");
             this.add(mi);
 
-            mi = new JMenuItem("Lower Layer", new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
+            mi = new JMenuItem(bundle.getString("LowerLayer"), 
+                    new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("lowerLayer");
             this.add(mi);
 
-            mi = new JMenuItem("Layer to Top", new ImageIcon(graphicsDirectory + "LayerToTop.png"));
+            mi = new JMenuItem(bundle.getString("LayerToTop"), 
+                    new ImageIcon(graphicsDirectory + "LayerToTop.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerToTop");
             this.add(mi);
 
-            mi = new JMenuItem("Layer to Bottom", new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
+            mi = new JMenuItem(bundle.getString("LayerToBottom"), 
+                    new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerToBottom");
             this.add(mi);
 
             this.addSeparator();
 
-            mi = new JMenuItem("Zoom To Layer", new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
+            mi = new JMenuItem(bundle.getString("ZoomToLayer"), 
+                    new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("zoomToLayer");
             this.add(mi);
-
-            mi = new JMenuItem("Clip Layer to Current Extent");
-            mi.addActionListener(listener);
-            mi.setActionCommand("clipLayerToExtent");
-            this.add(mi);
+            
+            
+            // THIS FEATURE SHOULD BE ADDED IN FUTURE
+//            mi = new JMenuItem(bundle.getString("ClipLayerToCurrentExtent"));
+//            mi.addActionListener(listener);
+//            mi.setActionCommand("clipLayerToExtent");
+//            this.add(mi);
 
             this.addSeparator();
 
-            JCheckBoxMenuItem editLayerMenuItem = new JCheckBoxMenuItem("Edit Layer", new ImageIcon(graphicsDirectory + "Digitize.png"));
+            JCheckBoxMenuItem editLayerMenuItem = new JCheckBoxMenuItem(bundle.getString("EditVector"), 
+                    new ImageIcon(graphicsDirectory + "Digitize.png"));
             editLayerMenuItem.addActionListener(listener);
             editLayerMenuItem.setActionCommand("editVector");
             this.add(editLayerMenuItem);
@@ -167,17 +193,20 @@ public class LayersPopupMenu extends JPopupMenu {
             if (vli.isActivelyEdited()) {
                 editLayerMenuItem.setState(true);
 
-                mi = new JMenuItem("Digitize New Feature", new ImageIcon(graphicsDirectory + "DigitizeNewFeature.png"));
+                mi = new JMenuItem(bundle.getString("DigitizeNewFeature"),
+                        new ImageIcon(graphicsDirectory + "DigitizeNewFeature.png"));
                 mi.addActionListener(listener);
                 mi.setActionCommand("digitizeNewFeature");
                 this.add(mi);
 
-                mi = new JMenuItem("Move Feature Nodes", new ImageIcon(graphicsDirectory + "MoveNodes.png"));
+                mi = new JMenuItem(bundle.getString("MoveNodes"), 
+                        new ImageIcon(graphicsDirectory + "MoveNodes.png"));
                 mi.addActionListener(listener);
                 mi.setActionCommand("moveNodes");
-                this.add(mi);
+                //this.add(mi);
 
-                mi = new JMenuItem("Delete Selected Feature");
+                mi = new JMenuItem(bundle.getString("DeleteFeature"),
+                        new ImageIcon(graphicsDirectory + "DeleteFeature.png"));
                 mi.addActionListener(listener);
                 mi.setActionCommand("deleteSelectedFeature");
                 this.add(mi);
@@ -189,90 +218,97 @@ public class LayersPopupMenu extends JPopupMenu {
 
         } else if (myLayer.getLayerType() == MapLayer.MapLayerType.RASTER) {
 
-            JMenuItem mi = new JMenuItem("Layer Display Properties");
+            JMenuItem mi = new JMenuItem(bundle.getString("LayerProperties"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerProperties");
             this.add(mi);
 
-            JMenuItem menuItemHisto = new JMenuItem("View Histogram");
+            JMenuItem menuItemHisto = new JMenuItem(bundle.getString("ViewHistogram"));
             menuItemHisto.addActionListener(listener);
             menuItemHisto.setActionCommand("viewHistogram");
             this.add(menuItemHisto);
 
             this.addSeparator();
 
-            mi = new JMenuItem("Toggle Layer Visibility");
+            mi = new JMenuItem(bundle.getString("ToggleLayerVisibility"));
             mi.addActionListener(listener);
             mi.setActionCommand("toggleLayerVisibility");
             this.add(mi);
 
-            mi = new JMenuItem("Change Layer Title");
+            mi = new JMenuItem(bundle.getString("ChangeLayerTitle"));
             mi.addActionListener(listener);
             mi.setActionCommand("changeLayerTitle");
             this.add(mi);
 
-            mi = new JMenuItem("Set As Active Layer");
+            mi = new JMenuItem(bundle.getString("SetAsActiveLayer"));
             mi.addActionListener(listener);
             mi.setActionCommand("setAsActiveLayer");
             this.add(mi);
 
-            JMenuItem menuChangePalette = new JMenuItem("Change Palette");
+            JMenuItem menuChangePalette = new JMenuItem(bundle.getString("ChangePalette"));
             menuChangePalette.addActionListener(listener);
             menuChangePalette.setActionCommand("changePalette");
             this.add(menuChangePalette);
 
-            JMenuItem menuReversePalette = new JMenuItem("Reverse Palette");
+            JMenuItem menuReversePalette = new JMenuItem(bundle.getString("ReversePalette"));
             menuReversePalette.addActionListener(listener);
             menuReversePalette.setActionCommand("reversePalette");
             this.add(menuReversePalette);
 
-            mi = new JMenuItem("Toggle Layer Visibility In Legend");
+            mi = new JMenuItem(bundle.getString("ToggleLayerVisibilityInLegend"));
             mi.addActionListener(listener);
             mi.setActionCommand("toggleLayerVisibilityInLegend");
             this.add(mi);
 
             this.addSeparator();
 
-            mi = new JMenuItem("Add Layer", new ImageIcon(graphicsDirectory + "AddLayer.png"));
+            mi = new JMenuItem(bundle.getString("AddLayer"), 
+                    new ImageIcon(graphicsDirectory + "AddLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("addLayer");
             this.add(mi);
 
-            mi = new JMenuItem("Remove Layer", new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
+            mi = new JMenuItem(bundle.getString("RemoveLayer"), 
+                    new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("removeLayer");
             this.add(mi);
 
             this.addSeparator();
 
-            mi = new JMenuItem("Raise Layer", new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
+            mi = new JMenuItem(bundle.getString("RaiseLayer"), 
+                    new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("raiseLayer");
             this.add(mi);
 
-            mi = new JMenuItem("Lower Layer", new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
+            mi = new JMenuItem(bundle.getString("LowerLayer"), 
+                    new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("lowerLayer");
             this.add(mi);
 
-            mi = new JMenuItem("Layer to Top", new ImageIcon(graphicsDirectory + "LayerToTop.png"));
+            mi = new JMenuItem(bundle.getString("LayerToTop"), 
+                    new ImageIcon(graphicsDirectory + "LayerToTop.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerToTop");
             this.add(mi);
 
-            mi = new JMenuItem("Layer to Bottom", new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
+            mi = new JMenuItem(bundle.getString("LayerToBottom"), 
+                    new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerToBottom");
             this.add(mi);
 
             this.addSeparator();
 
-            mi = new JMenuItem("Zoom To Layer", new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
+            mi = new JMenuItem(bundle.getString("ZoomToLayer"), 
+                    new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("zoomToLayer");
             this.add(mi);
 
-            mi = new JMenuItem("Clip Layer to Current Extent");
+            mi = new JMenuItem(bundle.getString("ClipLayerToCurrentExtent"));
             mi.addActionListener(listener);
             mi.setActionCommand("clipLayerToExtent");
             this.add(mi);

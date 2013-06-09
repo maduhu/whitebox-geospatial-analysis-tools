@@ -17,6 +17,7 @@
 
 package whiteboxgis;
 
+import whiteboxgis.user_interfaces.PaletteManager;
 import whiteboxgis.user_interfaces.AttributesFileViewer;
 import whitebox.cartographic.MapInfo;
 import java.awt.*;
@@ -1470,10 +1471,13 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             if (newPaletteFile != null) {
                 if (!newPaletteFile.equals("") && !newPaletteFile.equals("createNewPalette")) {
                     paletteFile = newPaletteFile;
-                    paletteImage.initialize(256, 18, paletteFile, checkReversePalette.isSelected(), PaletteImage.HORIZONTAL_ORIENTATION);
+                    paletteImage.initialize(256, 18, paletteFile, 
+                            checkReversePalette.isSelected(), 
+                            PaletteImage.HORIZONTAL_ORIENTATION);
                     paletteImage.repaint();
                 } else if (newPaletteFile.equals("createNewPalette")) {
-                    PaletteManager pm = new PaletteManager(paletteDirectory);
+                    PaletteManager pm = new PaletteManager(paletteDirectory, 
+                            host.getGuiLabelsBundle());
                     pm.setVisible(true);
                 }
             }
@@ -1483,7 +1487,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             String pathSep = File.separator;
             String paletteDirectory = communicator.getResourcesDirectory() +
                     pathSep + "palettes" + pathSep;
-            PaletteChooser chooser = new PaletteChooser((Frame)this.getOwner(), true, paletteDirectory, vli.getPaletteFile(), 
+            PaletteChooser chooser = new PaletteChooser((Frame)this.getOwner(), 
+                    true, paletteDirectory, vli.getPaletteFile(), 
                     false, 1.0);
             chooser.setSize(300, 300);
             Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1496,10 +1501,12 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             if (newPaletteFile != null) {
                 if (!newPaletteFile.equals("") && !newPaletteFile.equals("createNewPalette")) {
                     paletteFile = newPaletteFile;
-                    paletteImage.initialize(256, 18, paletteFile, false, PaletteImage.HORIZONTAL_ORIENTATION);
+                    paletteImage.initialize(256, 18, paletteFile, false, 
+                            PaletteImage.HORIZONTAL_ORIENTATION);
                     paletteImage.repaint();
                 } else if (newPaletteFile.equals("createNewPalette")) {
-                    PaletteManager pm = new PaletteManager(paletteDirectory);
+                    PaletteManager pm = new PaletteManager(paletteDirectory, 
+                            host.getGuiLabelsBundle());
                     pm.setVisible(true);
                 }
             }

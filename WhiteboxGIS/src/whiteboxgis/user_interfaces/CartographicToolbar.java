@@ -21,6 +21,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.io.File;
+import java.util.ResourceBundle;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
@@ -45,13 +46,10 @@ public class CartographicToolbar extends JToolBar {
     private JButton distributeHorizontally = new JButton();
     private JButton group = new JButton();
     private JButton ungroup = new JButton();
-//    private JSeparator separator1 = new JSeparator();
-//    private JSeparator separator2 = new JSeparator();
     private WhiteboxGui host;
     private static String pathSep = File.separator;
     private boolean buttonVisibility = false;
-//    private int separatorOrientation = SwingConstants.HORIZONTAL;
-
+    private ResourceBundle bundle;
     // constructors
     public CartographicToolbar() {
         // no-arg constructor
@@ -60,6 +58,7 @@ public class CartographicToolbar extends JToolBar {
 
     public CartographicToolbar(WhiteboxGui host, boolean buttonVisibility) {
         this.host = host;
+        this.bundle = host.getGuiLabelsBundle();
         this.buttonVisibility = buttonVisibility;
         init();
     }
@@ -92,7 +91,7 @@ public class CartographicToolbar extends JToolBar {
         ImageIcon image = new ImageIcon(imgLocation, "");
 
         //Create and initialize the button.
-        alignAndDistribute.setToolTipText("Align And Distribute");
+        alignAndDistribute.setToolTipText(bundle.getString("AlignAndDistribute"));
         alignAndDistribute.setSelected(false);
         alignAndDistribute.addActionListener(new ActionListener() {
             @Override
@@ -126,34 +125,41 @@ public class CartographicToolbar extends JToolBar {
             host.showFeedback(e.getMessage());
         }
 
-        alignRight = makeToolBarButton("AlignRight.png", "alignRight", "Align Right", "alignRight");
+        alignRight = makeToolBarButton("AlignRight.png", "alignRight", 
+                bundle.getString("AlignRight"), "alignRight");
 
         centerVerticalBtn = makeToolBarButton("CenterVertical.png",
-                "centerVertical", "Center Vertical", "centerVertical");
+                "centerVertical", bundle.getString("CenterVertically"), 
+                "centerVertical");
 
         alignLeft = makeToolBarButton("AlignLeft.png", "alignLeft",
-                "Align Left", "alignLeft");
+                bundle.getString("AlignLeft"), "alignLeft");
 
         alignTop = makeToolBarButton("AlignTop.png", "alignTop",
-                "Align Top", "alignTop");
+                bundle.getString("AlignTop"), "alignTop");
 
         centerHorizontalBtn = makeToolBarButton("CenterHorizontal.png",
-                "centerHorizontal", "Center Horizontal", "centerHorizontal");
+                "centerHorizontal", bundle.getString("CenterHorizontally"), 
+                "centerHorizontal");
 
         alignBottom = makeToolBarButton("AlignBottom.png", "alignBottom",
-                "Align Bottom", "alignBottom");
+                bundle.getString("AlignBottom"), "alignBottom");
 
         distributeVertically = makeToolBarButton("DistributeVertically.png",
-                "distributeVertically", "Distribute Vertically", "distributeVertically");
+                "distributeVertically", bundle.getString("DistributeVertically"), 
+                "distributeVertically");
 
         distributeHorizontally = makeToolBarButton("DistributeHorizontally.png",
-                "distributeHorizontally", "Distribute Horizontally", "distributeHorizontally");
+                "distributeHorizontally", bundle.getString("DistributeHorizontally"), 
+                "distributeHorizontally");
 
         group = makeToolBarButton("GroupElements.png",
-                "groupElements", "Group elements", "groupElements");
+                "groupElements", bundle.getString("GroupElements"), 
+                "groupElements");
 
         ungroup = makeToolBarButton("UngroupElements.png",
-                "ungroupElements", "Unroup elements", "ungroupElements");
+                "ungroupElements", bundle.getString("UngroupElements"), 
+                "ungroupElements");
 
 
         createToolbar(false);

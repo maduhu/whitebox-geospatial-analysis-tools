@@ -27,6 +27,7 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import whitebox.interfaces.Communicator;
 import whitebox.ui.carto_properties.*;
@@ -47,10 +48,13 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     private WhiteboxGui host = null;
     private String applicationDirectory = "";
     private String resourcesDirectory = "";
+    private String logDirectory = "";
     private NumericProperty printResolution;
     private BooleanProperty autoHideAlignToolbar;
     private FontProperty fontProperty;
     private NumericProperty numRecentItems;
+    private ResourceBundle guiLabelsBundle;
+    private ResourceBundle messages;
 
     public SettingsDialog(Frame owner, boolean modal) {
         super(owner, modal);
@@ -58,6 +62,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         host = (WhiteboxGui) owner;
         applicationDirectory = host.getApplicationDirectory();
         resourcesDirectory = host.getResourcesDirectory();
+        guiLabelsBundle = host.getGuiLabelsBundle();
+        messages = host.getMessageBundle();
         createGui();
     }
 
@@ -236,5 +242,21 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         } else if (source == numRecentItems) {
             host.setNumberOfRecentItemsToStore(Integer.parseInt((String) evt.getNewValue()));
         }
+    }
+
+    
+    @Override
+    public ResourceBundle getGuiLabelsBundle() {
+        return guiLabelsBundle;
+    }
+    
+    @Override
+    public ResourceBundle getMessageBundle() {
+        return messages;
+    }
+    
+    @Override
+    public String getLogDirectory() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

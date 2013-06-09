@@ -24,6 +24,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -43,14 +44,17 @@ public class StatusBar extends JPanel implements MouseListener {
     private JLabel cancelOp = new JLabel("cancel");
     private WhiteboxPluginHost myHost = null;
     private boolean progressVisible = true;
-
+    private ResourceBundle bundle;
+    
     public StatusBar(WhiteboxPluginHost host) {
-        myHost = host;
+        this.myHost = host;
+        this.bundle = host.getGuiLabelsBundle();
         createGui();
     }
     
     public StatusBar(WhiteboxPluginHost host, boolean progressVisible) {
-        myHost = host;
+        this.myHost = host;
+        this.bundle = host.getGuiLabelsBundle();
         this.progressVisible = progressVisible;
         createGui();
     }
@@ -59,9 +63,11 @@ public class StatusBar extends JPanel implements MouseListener {
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(10, 23));
 
+        cancelOp = new JLabel(bundle.getString("Cancel"));
+        
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.X_AXIS));
-        progressLabel.setText("Progress: ");
+        progressLabel.setText(bundle.getString("Progress") + ": ");
         rightPanel.add(progressLabel);
         rightPanel.add(progress);
         setProgressVisible(progressVisible);
@@ -75,7 +81,7 @@ public class StatusBar extends JPanel implements MouseListener {
 
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setPreferredSize(new Dimension(600, 23));
-        label.setText("   Ready");
+        label.setText("   " + bundle.getString("Ready"));
         leftPanel.add(label, BorderLayout.CENTER);
         leftPanel.setOpaque(false);
 
@@ -108,7 +114,7 @@ public class StatusBar extends JPanel implements MouseListener {
             progress.setStringPainted(true);
         } else {
             progress.setStringPainted(false);
-            progressLabel.setText("Progress: ");
+            progressLabel.setText(bundle.getString("Progress") + ": ");
         }
     }
 
@@ -139,33 +145,6 @@ public class StatusBar extends JPanel implements MouseListener {
     public void mouseReleased(MouseEvent arg0) {
         cancelOp.setForeground(Color.BLUE.darker());
     }
-//  protected void paintComponent(Graphics g) {
-//    super.paintComponent(g);
-//
-//    int y = 0;
-//    g.setColor(new Color(156, 154, 140));
-//    g.drawLine(0, y, getWidth(), y);
-//    y++;
-//    g.setColor(new Color(196, 194, 183));
-//    g.drawLine(0, y, getWidth(), y);
-//    y++;
-//    g.setColor(new Color(218, 215, 201));
-//    g.drawLine(0, y, getWidth(), y);
-//    y++;
-//    g.setColor(new Color(233, 231, 217));
-//    g.drawLine(0, y, getWidth(), y);
-//
-//    y = getHeight() - 3;
-//    g.setColor(new Color(233, 232, 218));
-//    g.drawLine(0, y, getWidth(), y);
-//    y++;
-//    g.setColor(new Color(233, 231, 216));
-//    g.drawLine(0, y, getWidth(), y);
-//    y = getHeight() - 1;
-//    g.setColor(new Color(221, 221, 220));
-//    g.drawLine(0, y, getWidth(), y);
-//
-//  }
 }
 class AngledLinesWindowsCornerIcon implements Icon {
 

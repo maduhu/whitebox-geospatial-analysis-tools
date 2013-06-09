@@ -16,6 +16,7 @@
  */
 package whiteboxgis;
 
+import whiteboxgis.user_interfaces.PaletteManager;
 import whiteboxgis.user_interfaces.AttributesFileViewer;
 import whitebox.cartographic.MapInfo;
 import javax.swing.*;
@@ -1423,7 +1424,8 @@ public class SettingsDialog extends JDialog implements ActionListener, Adjustmen
                     paletteImage.initialize(256, 18, paletteFile, checkReversePalette.isSelected(), PaletteImage.HORIZONTAL_ORIENTATION);
                     paletteImage.repaint();
                 } else if (newPaletteFile.equals("createNewPalette")) {
-                    PaletteManager pm = new PaletteManager(paletteDirectory);
+                    PaletteManager pm = new PaletteManager(paletteDirectory, 
+                            host.getGuiLabelsBundle());
                     pm.setVisible(true);
                 }
             }
@@ -1449,7 +1451,8 @@ public class SettingsDialog extends JDialog implements ActionListener, Adjustmen
                     paletteImage.initialize(256, 18, paletteFile, false, PaletteImage.HORIZONTAL_ORIENTATION);
                     paletteImage.repaint();
                 } else if (newPaletteFile.equals("createNewPalette")) {
-                    PaletteManager pm = new PaletteManager(paletteDirectory);
+                    PaletteManager pm = new PaletteManager(paletteDirectory, 
+                            host.getGuiLabelsBundle());
                     pm.setVisible(true);
                 }
             }
