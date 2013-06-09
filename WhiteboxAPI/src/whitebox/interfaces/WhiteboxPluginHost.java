@@ -18,6 +18,7 @@
 package whitebox.interfaces;
 
 import java.util.List;
+import java.util.ResourceBundle;
 import java.awt.Font;
 /**
  *
@@ -39,6 +40,12 @@ public interface WhiteboxPluginHost {
     public void setApplicationDirectory(String applicationDirectory);
     
     public String getResourcesDirectory();
+    
+    public String getLogDirectory();
+    
+    public ResourceBundle getGuiLabelsBundle();
+    
+    public ResourceBundle getMessageBundle();
     
     public List returnPluginList();
     /**

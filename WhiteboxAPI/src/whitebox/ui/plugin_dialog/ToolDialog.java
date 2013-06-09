@@ -22,6 +22,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.io.*;
+import java.util.ResourceBundle;
 import whitebox.interfaces.DialogComponent;
 import whitebox.interfaces.Communicator;
 import javax.swing.event.HyperlinkListener;
@@ -51,6 +52,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     private String workingDirectory = "";
     private String applicationDirectory = "";
     private String resourcesDirectory = "";
+    private String logDirectory = "";
     private String pluginName = "";
     private String pathSep = "";
     private String sourceFile = "";
@@ -419,6 +421,13 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         return resourcesDirectory;
     }
     
+    @Override
+    public String getLogDirectory() {
+        // update the applicationDirectory
+        logDirectory = host.getLogDirectory();
+        return logDirectory;
+    }
+    
     /**
      * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
      * @param feedback String containing the text to display.
@@ -564,5 +573,15 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         components = null;
         host = null;
         super.dispose();
+    }
+
+    @Override
+    public ResourceBundle getGuiLabelsBundle() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ResourceBundle getMessageBundle() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

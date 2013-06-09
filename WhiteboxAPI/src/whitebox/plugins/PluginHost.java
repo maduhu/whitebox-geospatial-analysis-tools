@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  *
@@ -91,7 +92,7 @@ public class PluginHost implements WhiteboxPluginHost, Communicator {
     
     @Override
     public List returnPluginList() {
-        List<String> ret = new ArrayList<String>();
+        List<String> ret = new ArrayList<>();
         for (int i = 0; i < plugInfo.size(); i++) {
             ret.add(plugInfo.get(i).getName());
         }
@@ -226,5 +227,20 @@ public class PluginHost implements WhiteboxPluginHost, Communicator {
     @Override
     public Font getDefaultFont() {
         return defaultFont;
+    }
+
+    @Override
+    public String getLogDirectory() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ResourceBundle getGuiLabelsBundle() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ResourceBundle getMessageBundle() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -17,6 +17,7 @@
 
 package whitebox.interfaces;
 
+import java.util.ResourceBundle;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
@@ -32,9 +33,15 @@ public interface Communicator {
     
     public String getResourcesDirectory();
     
+    public String getLogDirectory();
+    
     public int showFeedback(String message);
     
     public int showFeedback(String message, int optionType, int messageType);
+    
+    public ResourceBundle getGuiLabelsBundle();
+    
+    public ResourceBundle getMessageBundle();
     
     /**
      * Used to run a plugin through the Host app.
