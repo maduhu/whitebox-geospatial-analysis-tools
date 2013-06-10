@@ -314,7 +314,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             guiLabelsBundle = ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
             messages = ResourceBundle.getBundle("whiteboxgis.i18n.messages", currentLocale);
-            pluginToolsText = ResourceBundle.getBundle("whiteboxgis.i18n.pluginToolsText", currentLocale);
+            //pluginToolsText = ResourceBundle.getBundle("whiteboxgis.i18n.pluginToolsText", currentLocale);
 
 
             // create the gui
