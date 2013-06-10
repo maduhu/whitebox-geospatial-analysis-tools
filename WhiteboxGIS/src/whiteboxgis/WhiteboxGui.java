@@ -180,9 +180,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private ArrayList<WhiteboxAnnouncement> announcements = new ArrayList<>();
     private int announcementNumber = 0;
     private Locale currentLocale;
-    private ResourceBundle guiLabelsBundle;
+    private ResourceBundle bundle;
     private ResourceBundle pluginToolsText;
     private ResourceBundle messages;
+    private String language;
+    private String country;
 
     public static void main(String[] args) {
         try {
@@ -304,15 +306,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             logger.addHandler(fh);
 
             // i18n
-            String language;
-            String country;
-
             language = new String("en");
             country = new String("US");
 
             currentLocale = new Locale(language, country);
 
-            guiLabelsBundle = ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
+            bundle = ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
             messages = ResourceBundle.getBundle("whiteboxgis.i18n.messages", currentLocale);
             //pluginToolsText = ResourceBundle.getBundle("whiteboxgis.i18n.pluginToolsText", currentLocale);
 
@@ -985,6 +984,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (props.containsKey("announcementNumber")) {
                     announcementNumber = Integer.parseInt(props.getProperty("announcementNumber"));
                 }
+                
+                // retrieve the langauge setting
+                if (props.containsKey("language")) {
+                    language = props.getProperty("language");
+                }
+                
+                // retrieve the country setting
+                if (props.containsKey("country")) {
+                    country = props.getProperty("country");
+                }
 
                 // retrieve the plugin usage information
                 String[] pluginNames = props.getProperty("pluginNames").split(",");
@@ -1049,6 +1058,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("defaultMapMargin", Double.toString(defaultMapMargin));
         props.setProperty("skipVersionNumber", skipVersionNumber);
         props.setProperty("announcementNumber", Integer.toString(announcementNumber));
+        props.setProperty("language", language);
+        props.setProperty("country", country);
 
         // set the recent data layers
         String recentDataLayers = "";
@@ -1144,14 +1155,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             ctb.setOrientation(SwingConstants.VERTICAL);
             this.getContentPane().add(ctb, BorderLayout.EAST);
 
-            MapInfo mapinfo = new MapInfo("Map1");
-            mapinfo.setMapName("Map1");
+            MapInfo mapinfo = new MapInfo(bundle.getString("Map") + "1");
+            mapinfo.setMapName(bundle.getString("Map") + "1");
             mapinfo.setPageFormat(defaultPageFormat);
             mapinfo.setWorkingDirectory(workingDirectory);
             mapinfo.setDefaultFont(defaultFont);
             mapinfo.setMargin(defaultMapMargin);
 
-            MapArea ma = new MapArea("MapArea1");
+            MapArea ma = new MapArea(bundle.getString("MapArea").replace(" ", "") + "1");
             ma.setUpperLeftX(-32768);
             ma.setUpperLeftY(-32768);
             ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
@@ -1323,31 +1334,31 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         try {
             JMenuBar menubar = new JMenuBar();
 
-            JMenuItem newMap = new JMenuItem(guiLabelsBundle.getString("NewMap"),
+            JMenuItem newMap = new JMenuItem(bundle.getString("NewMap"),
                     new ImageIcon(graphicsDirectory + "map.png"));
-            JMenuItem openMap = new JMenuItem(guiLabelsBundle.getString("OpenMap"),
+            JMenuItem openMap = new JMenuItem(bundle.getString("OpenMap"),
                     new ImageIcon(graphicsDirectory + "open.png"));
-            JMenuItem saveMap = new JMenuItem(guiLabelsBundle.getString("SaveMap"),
+            JMenuItem saveMap = new JMenuItem(bundle.getString("SaveMap"),
                     new ImageIcon(graphicsDirectory + "SaveMap.png"));
-            JMenuItem closeMap = new JMenuItem(guiLabelsBundle.getString("CloseMap"));
-            JMenuItem close = new JMenuItem(guiLabelsBundle.getString("Close"));
+            JMenuItem closeMap = new JMenuItem(bundle.getString("CloseMap"));
+            JMenuItem close = new JMenuItem(bundle.getString("Close"));
 
             JMenuItem layerProperties = new JMenuItem("Layer Display Properties");
             layerProperties.setActionCommand("layerProperties");
             layerProperties.addActionListener(this);
             JMenuItem options = new JMenuItem("Options and Settings");
 
-            JMenuItem rasterCalc = new JMenuItem(guiLabelsBundle.getString("RasterCalculator"),
+            JMenuItem rasterCalc = new JMenuItem(bundle.getString("RasterCalculator"),
                     new ImageIcon(graphicsDirectory + "RasterCalculator.png"));
-            modifyPixels = new JCheckBoxMenuItem(guiLabelsBundle.getString("ModifyPixelValues"),
+            modifyPixels = new JCheckBoxMenuItem(bundle.getString("ModifyPixelValues"),
                     new ImageIcon(graphicsDirectory + "ModifyPixels.png"));
-            JMenuItem paletteManager = new JMenuItem(guiLabelsBundle.getString("PaletteManager"),
+            JMenuItem paletteManager = new JMenuItem(bundle.getString("PaletteManager"),
                     new ImageIcon(graphicsDirectory + "paletteManager.png"));
-            JMenuItem refreshTools = new JMenuItem(guiLabelsBundle.getString("RefreshToolUsage"));
+            JMenuItem refreshTools = new JMenuItem(bundle.getString("RefreshToolUsage"));
 
 
             // File menu
-            JMenu FileMenu = new JMenu(guiLabelsBundle.getString("File"));
+            JMenu FileMenu = new JMenu(bundle.getString("File"));
             FileMenu.add(newMap);
             newMap.setActionCommand("newMap");
             newMap.addActionListener(this);
@@ -1386,7 +1397,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
 
             recentFilesMenu.setNumItemsToStore(numberOfRecentItemsToStore);
-            recentFilesMenu.setText(guiLabelsBundle.getString("RecentDataLayers"));
+            recentFilesMenu.setText(bundle.getString("RecentDataLayers"));
             recentFilesMenu.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -1396,7 +1407,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             FileMenu.add(recentFilesMenu);
 
             recentMapsMenu.setNumItemsToStore(numberOfRecentItemsToStore);
-            recentMapsMenu.setText(guiLabelsBundle.getString("RecentMaps"));
+            recentMapsMenu.setText(bundle.getString("RecentMaps"));
             recentMapsMenu.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -1406,7 +1417,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             FileMenu.add(recentMapsMenu);
 
             recentDirectoriesMenu.setNumItemsToStore(numberOfRecentItemsToStore);
-            recentDirectoriesMenu.setText(guiLabelsBundle.getString("RecentWorkingDirectories"));
+            recentDirectoriesMenu.setText(bundle.getString("RecentWorkingDirectories"));
             recentDirectoriesMenu.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -1418,52 +1429,52 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             menubar.add(FileMenu);
 
             // Layers menu
-            JMenu LayersMenu = new JMenu(guiLabelsBundle.getString("Data_Layers"));
-            JMenuItem addLayers = new JMenuItem(guiLabelsBundle.getString("AddLayersToMap"),
+            JMenu LayersMenu = new JMenu(bundle.getString("Data_Layers"));
+            JMenuItem addLayers = new JMenuItem(bundle.getString("AddLayersToMap"),
                     new ImageIcon(graphicsDirectory + "AddLayer.png"));
             LayersMenu.add(addLayers);
             addLayers.addActionListener(this);
             addLayers.setActionCommand("addLayer");
             addLayers.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             JMenuItem removeLayers = new JMenuItem(
-                    guiLabelsBundle.getString("RemoveActiveLayerFromMap"),
+                    bundle.getString("RemoveActiveLayerFromMap"),
                     new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
             LayersMenu.add(removeLayers);
             removeLayers.addActionListener(this);
             removeLayers.setActionCommand("removeLayer");
             removeLayers.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             JMenuItem removeAllLayers = new JMenuItem(
-                    guiLabelsBundle.getString("RemoveAllLayers"));
+                    bundle.getString("RemoveAllLayers"));
             LayersMenu.add(removeAllLayers);
             removeAllLayers.addActionListener(this);
             removeAllLayers.setActionCommand("removeAllLayers");
             JMenuItem allLayersInvisible = new JMenuItem(
-                    guiLabelsBundle.getString("HideAllLayers"));
+                    bundle.getString("HideAllLayers"));
             LayersMenu.add(allLayersInvisible);
             allLayersInvisible.addActionListener(this);
             allLayersInvisible.setActionCommand("allLayersInvisible");
             JMenuItem allLayersVisible = new JMenuItem(
-                    guiLabelsBundle.getString("ShowAllLayers"));
+                    bundle.getString("ShowAllLayers"));
             LayersMenu.add(allLayersVisible);
             allLayersVisible.addActionListener(this);
             allLayersVisible.setActionCommand("allLayersVisible");
             LayersMenu.addSeparator();
-            JMenuItem raiseLayers = new JMenuItem(guiLabelsBundle.getString("RaiseLayer"),
+            JMenuItem raiseLayers = new JMenuItem(bundle.getString("RaiseLayer"),
                     new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
             LayersMenu.add(raiseLayers);
             raiseLayers.addActionListener(this);
             raiseLayers.setActionCommand("raiseLayer");
-            JMenuItem lowerLayers = new JMenuItem(guiLabelsBundle.getString("LowerLayer"),
+            JMenuItem lowerLayers = new JMenuItem(bundle.getString("LowerLayer"),
                     new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
             LayersMenu.add(lowerLayers);
             lowerLayers.addActionListener(this);
             lowerLayers.setActionCommand("lowerLayer");
-            JMenuItem layerToTop = new JMenuItem(guiLabelsBundle.getString("LayerToTop"),
+            JMenuItem layerToTop = new JMenuItem(bundle.getString("LayerToTop"),
                     new ImageIcon(graphicsDirectory + "LayerToTop.png"));
             LayersMenu.add(layerToTop);
             layerToTop.addActionListener(this);
             layerToTop.setActionCommand("layerToTop");
-            JMenuItem layerToBottom = new JMenuItem(guiLabelsBundle.getString("LayerToBottom"),
+            JMenuItem layerToBottom = new JMenuItem(bundle.getString("LayerToBottom"),
                     new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
             LayersMenu.add(layerToBottom);
             layerToBottom.addActionListener(this);
@@ -1471,19 +1482,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             LayersMenu.addSeparator();
 
-            JMenuItem viewAttributeTable = new JMenuItem(guiLabelsBundle.getString("ViewAttributeTable"),
+            JMenuItem viewAttributeTable = new JMenuItem(bundle.getString("ViewAttributeTable"),
                     new ImageIcon(graphicsDirectory + "AttributeTable.png"));
             LayersMenu.add(viewAttributeTable);
             viewAttributeTable.addActionListener(this);
             viewAttributeTable.setActionCommand("viewAttributeTable");
 
-            JMenuItem histoMenuItem = new JMenuItem(guiLabelsBundle.getString("ViewHistogram"));
+            JMenuItem histoMenuItem = new JMenuItem(bundle.getString("ViewHistogram"));
             histoMenuItem.addActionListener(this);
             histoMenuItem.setActionCommand("viewHistogram");
             LayersMenu.add(histoMenuItem);
 
             LayersMenu.addSeparator();
-            JMenuItem clipLayerToExtent = new JMenuItem(guiLabelsBundle.getString("ClipLayerToCurrentExtent"));
+            JMenuItem clipLayerToExtent = new JMenuItem(bundle.getString("ClipLayerToCurrentExtent"));
             clipLayerToExtent.addActionListener(this);
             clipLayerToExtent.setActionCommand("clipLayerToExtent");
             LayersMenu.add(clipLayerToExtent);
@@ -1492,48 +1503,48 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
 
             // View menu
-            JMenu viewMenu = new JMenu(guiLabelsBundle.getString("View"));
+            JMenu viewMenu = new JMenu(bundle.getString("View"));
 
-            selectMenuItem = new JCheckBoxMenuItem(guiLabelsBundle.getString("SelectMapElement"),
+            selectMenuItem = new JCheckBoxMenuItem(bundle.getString("SelectMapElement"),
                     new ImageIcon(graphicsDirectory + "select.png"));
             viewMenu.add(selectMenuItem);
             selectMenuItem.addActionListener(this);
             selectMenuItem.setActionCommand("select");
 
-            selectFeatureMenuItem = new JCheckBoxMenuItem(guiLabelsBundle.getString("SelectFeature"),
+            selectFeatureMenuItem = new JCheckBoxMenuItem(bundle.getString("SelectFeature"),
                     new ImageIcon(graphicsDirectory + "SelectFeature.png"));
             viewMenu.add(selectFeatureMenuItem);
             selectFeatureMenuItem.addActionListener(this);
             selectFeatureMenuItem.setActionCommand("selectFeature");
 
-            panMenuItem = new JCheckBoxMenuItem(guiLabelsBundle.getString("Pan"),
+            panMenuItem = new JCheckBoxMenuItem(bundle.getString("Pan"),
                     new ImageIcon(graphicsDirectory + "Pan2.png"));
             viewMenu.add(panMenuItem);
             panMenuItem.addActionListener(this);
             panMenuItem.setActionCommand("pan");
 
-            zoomMenuItem = new JCheckBoxMenuItem(guiLabelsBundle.getString("ZoomIn"),
+            zoomMenuItem = new JCheckBoxMenuItem(bundle.getString("ZoomIn"),
                     new ImageIcon(graphicsDirectory + "ZoomIn.png"));
             viewMenu.add(zoomMenuItem);
             zoomMenuItem.addActionListener(this);
             zoomMenuItem.setActionCommand("zoomToBox");
             zoomMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
-            zoomOutMenuItem = new JCheckBoxMenuItem(guiLabelsBundle.getString("ZoomOut"),
+            zoomOutMenuItem = new JCheckBoxMenuItem(bundle.getString("ZoomOut"),
                     new ImageIcon(graphicsDirectory + "ZoomOut.png"));
             viewMenu.add(zoomOutMenuItem);
             zoomOutMenuItem.addActionListener(this);
             zoomOutMenuItem.setActionCommand("zoomOut");
             zoomOutMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
-            JMenuItem zoomToFullExtent = new JMenuItem(guiLabelsBundle.getString("ZoomMapAreaToFullExtent"),
+            JMenuItem zoomToFullExtent = new JMenuItem(bundle.getString("ZoomMapAreaToFullExtent"),
                     new ImageIcon(graphicsDirectory + "Globe.png"));
             zoomToFullExtent.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             viewMenu.add(zoomToFullExtent);
             zoomToFullExtent.addActionListener(this);
             zoomToFullExtent.setActionCommand("zoomToFullExtent");
 
-            JMenuItem zoomToPage = new JMenuItem(guiLabelsBundle.getString("ZoomToPage"),
+            JMenuItem zoomToPage = new JMenuItem(bundle.getString("ZoomToPage"),
                     new ImageIcon(graphicsDirectory + "ZoomToPage.png"));
             viewMenu.add(zoomToPage);
             zoomToPage.addActionListener(this);
@@ -1545,56 +1556,56 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             zoomOutMenuItem.setState(false);
             panMenuItem.setState(false);
 
-            JMenuItem panLeft = new JMenuItem(guiLabelsBundle.getString("PanLeft"));
+            JMenuItem panLeft = new JMenuItem(bundle.getString("PanLeft"));
             viewMenu.add(panLeft);
             panLeft.addActionListener(this);
             panLeft.setActionCommand("panLeft");
             panLeft.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
-            JMenuItem panRight = new JMenuItem(guiLabelsBundle.getString("PanRight"));
+            JMenuItem panRight = new JMenuItem(bundle.getString("PanRight"));
             viewMenu.add(panRight);
             panRight.addActionListener(this);
             panRight.setActionCommand("panRight");
             panRight.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
-            JMenuItem panUp = new JMenuItem(guiLabelsBundle.getString("PanUp"));
+            JMenuItem panUp = new JMenuItem(bundle.getString("PanUp"));
             viewMenu.add(panUp);
             panUp.addActionListener(this);
             panUp.setActionCommand("panUp");
             panUp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_UP, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
-            JMenuItem panDown = new JMenuItem(guiLabelsBundle.getString("PanDown"));
+            JMenuItem panDown = new JMenuItem(bundle.getString("PanDown"));
             viewMenu.add(panDown);
             panDown.addActionListener(this);
             panDown.setActionCommand("panDown");
             panDown.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
-            JMenuItem previousExtent = new JMenuItem(guiLabelsBundle.getString("PreviousExtent"),
+            JMenuItem previousExtent = new JMenuItem(bundle.getString("PreviousExtent"),
                     new ImageIcon(graphicsDirectory + "back.png"));
             viewMenu.add(previousExtent);
             previousExtent.addActionListener(this);
             previousExtent.setActionCommand("previousExtent");
 
-            JMenuItem nextExtent = new JMenuItem(guiLabelsBundle.getString("NextExtent"),
+            JMenuItem nextExtent = new JMenuItem(bundle.getString("NextExtent"),
                     new ImageIcon(graphicsDirectory + "forward.png"));
             viewMenu.add(nextExtent);
             nextExtent.addActionListener(this);
             nextExtent.setActionCommand("nextExtent");
 
             viewMenu.addSeparator();
-            JMenuItem refresh = new JMenuItem(guiLabelsBundle.getString("RefreshMap"));
+            JMenuItem refresh = new JMenuItem(bundle.getString("RefreshMap"));
             viewMenu.add(refresh);
             refresh.addActionListener(this);
             refresh.setActionCommand("refreshMap");
 
-            linkMap = new JCheckBoxMenuItem(guiLabelsBundle.getString("LinkOpenMaps"));
+            linkMap = new JCheckBoxMenuItem(bundle.getString("LinkOpenMaps"));
             viewMenu.add(linkMap);
             linkMap.setActionCommand("linkMap");
             linkMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             linkMap.addActionListener(this);
 
             viewMenu.addSeparator();
-            JMenuItem mapProperties = new JMenuItem(guiLabelsBundle.getString("MapProperties"));
+            JMenuItem mapProperties = new JMenuItem(bundle.getString("MapProperties"));
             mapProperties.addActionListener(this);
             mapProperties.setActionCommand("mapProperties");
             viewMenu.add(mapProperties);
@@ -1611,52 +1622,52 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
 
             // Cartographic menu
-            JMenu cartoMenu = new JMenu(guiLabelsBundle.getString("Cartographic"));
+            JMenu cartoMenu = new JMenu(bundle.getString("Cartographic"));
 
-            JMenuItem insertTitle = new JMenuItem(guiLabelsBundle.getString("InsertMapTitle"));
+            JMenuItem insertTitle = new JMenuItem(bundle.getString("InsertMapTitle"));
             cartoMenu.add(insertTitle);
             insertTitle.addActionListener(this);
             insertTitle.setActionCommand("insertTitle");
 
-            JMenuItem insertNorthArrow = new JMenuItem(guiLabelsBundle.getString("InsertNorthArrow"));
+            JMenuItem insertNorthArrow = new JMenuItem(bundle.getString("InsertNorthArrow"));
             cartoMenu.add(insertNorthArrow);
             insertNorthArrow.addActionListener(this);
             insertNorthArrow.setActionCommand("insertNorthArrow");
 
-            JMenuItem insertScale = new JMenuItem(guiLabelsBundle.getString("InsertScale"));
+            JMenuItem insertScale = new JMenuItem(bundle.getString("InsertScale"));
             cartoMenu.add(insertScale);
             insertScale.addActionListener(this);
             insertScale.setActionCommand("insertScale");
 
-            JMenuItem insertLegend = new JMenuItem(guiLabelsBundle.getString("InsertLegend"));
+            JMenuItem insertLegend = new JMenuItem(bundle.getString("InsertLegend"));
             cartoMenu.add(insertLegend);
             insertLegend.addActionListener(this);
             insertLegend.setActionCommand("insertLegend");
 
-            JMenuItem insertNeatline = new JMenuItem(guiLabelsBundle.getString("InsertNeatline"));
+            JMenuItem insertNeatline = new JMenuItem(bundle.getString("InsertNeatline"));
             cartoMenu.add(insertNeatline);
             insertNeatline.addActionListener(this);
             insertNeatline.setActionCommand("insertNeatline");
 
-            JMenuItem insertMapArea = new JMenuItem(guiLabelsBundle.getString("InsertMapArea"),
+            JMenuItem insertMapArea = new JMenuItem(bundle.getString("InsertMapArea"),
                     new ImageIcon(graphicsDirectory + "mapArea.png"));
             cartoMenu.add(insertMapArea);
             insertMapArea.addActionListener(this);
             insertMapArea.setActionCommand("insertMapArea");
 
-            JMenuItem insertTextArea = new JMenuItem(guiLabelsBundle.getString("InsertTextArea"));
+            JMenuItem insertTextArea = new JMenuItem(bundle.getString("InsertTextArea"));
             cartoMenu.add(insertTextArea);
             insertTextArea.addActionListener(this);
             insertTextArea.setActionCommand("insertTextArea");
 
-            JMenuItem insertImage = new JMenuItem(guiLabelsBundle.getString("InsertImage"));
+            JMenuItem insertImage = new JMenuItem(bundle.getString("InsertImage"));
             cartoMenu.add(insertImage);
             insertImage.addActionListener(this);
             insertImage.setActionCommand("insertImage");
 
             cartoMenu.addSeparator();
 
-            JMenuItem pageProps = new JMenuItem(guiLabelsBundle.getString("PageProperties"),
+            JMenuItem pageProps = new JMenuItem(bundle.getString("PageProperties"),
                     new ImageIcon(graphicsDirectory + "page.png"));
             cartoMenu.add(pageProps);
             pageProps.addActionListener(this);
@@ -1665,40 +1676,40 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // align and distribute sub-menu
             cartoMenu.addSeparator();
-            JMenu alignAndDistribute = new JMenu(guiLabelsBundle.getString("AlignAndDistribute"));
+            JMenu alignAndDistribute = new JMenu(bundle.getString("AlignAndDistribute"));
             cartoMenu.add(alignAndDistribute);
 
-            JMenuItem alignRightMenu = new JMenuItem(guiLabelsBundle.getString("AlignRight"),
+            JMenuItem alignRightMenu = new JMenuItem(bundle.getString("AlignRight"),
                     new ImageIcon(graphicsDirectory + "AlignRight.png"));
             alignRightMenu.addActionListener(this);
             alignRightMenu.setActionCommand("alignRight");
             alignAndDistribute.add(alignRightMenu);
 
-            JMenuItem centerVerticalMenu = new JMenuItem(guiLabelsBundle.getString("CenterVertically"),
+            JMenuItem centerVerticalMenu = new JMenuItem(bundle.getString("CenterVertically"),
                     new ImageIcon(graphicsDirectory + "CenterVertical.png"));
             centerVerticalMenu.addActionListener(this);
             centerVerticalMenu.setActionCommand("centerVertical");
             alignAndDistribute.add(centerVerticalMenu);
 
-            JMenuItem alignLeftMenu = new JMenuItem(guiLabelsBundle.getString("AlignLeft"),
+            JMenuItem alignLeftMenu = new JMenuItem(bundle.getString("AlignLeft"),
                     new ImageIcon(graphicsDirectory + "AlignLeft.png"));
             alignLeftMenu.addActionListener(this);
             alignLeftMenu.setActionCommand("alignLeft");
             alignAndDistribute.add(alignLeftMenu);
 
-            JMenuItem alignTopMenu = new JMenuItem(guiLabelsBundle.getString("AlignTop"),
+            JMenuItem alignTopMenu = new JMenuItem(bundle.getString("AlignTop"),
                     new ImageIcon(graphicsDirectory + "AlignTop.png"));
             alignTopMenu.addActionListener(this);
             alignTopMenu.setActionCommand("alignTop");
             alignAndDistribute.add(alignTopMenu);
 
-            JMenuItem centerHorizontalMenu = new JMenuItem(guiLabelsBundle.getString("CenterHorizontally"),
+            JMenuItem centerHorizontalMenu = new JMenuItem(bundle.getString("CenterHorizontally"),
                     new ImageIcon(graphicsDirectory + "CenterHorizontal.png"));
             centerHorizontalMenu.addActionListener(this);
             centerHorizontalMenu.setActionCommand("centerHorizontal");
             alignAndDistribute.add(centerHorizontalMenu);
 
-            JMenuItem alignBottomMenu = new JMenuItem(guiLabelsBundle.getString("AlignBottom"),
+            JMenuItem alignBottomMenu = new JMenuItem(bundle.getString("AlignBottom"),
                     new ImageIcon(graphicsDirectory + "AlignBottom.png"));
             alignBottomMenu.addActionListener(this);
             alignBottomMenu.setActionCommand("alignBottom");
@@ -1706,25 +1717,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             alignAndDistribute.addSeparator();
 
-            JMenuItem distributeVerticallyMenu = new JMenuItem(guiLabelsBundle.getString("DistributeVertically"),
+            JMenuItem distributeVerticallyMenu = new JMenuItem(bundle.getString("DistributeVertically"),
                     new ImageIcon(graphicsDirectory + "DistributeVertically.png"));
             distributeVerticallyMenu.addActionListener(this);
             distributeVerticallyMenu.setActionCommand("distributeVertically");
             alignAndDistribute.add(distributeVerticallyMenu);
 
-            JMenuItem distributeHorizontallyMenu = new JMenuItem(guiLabelsBundle.getString("DistributeHorizontally"),
+            JMenuItem distributeHorizontallyMenu = new JMenuItem(bundle.getString("DistributeHorizontally"),
                     new ImageIcon(graphicsDirectory + "DistributeHorizontally.png"));
             distributeHorizontallyMenu.addActionListener(this);
             distributeHorizontallyMenu.setActionCommand("distributeHorizontally");
             alignAndDistribute.add(distributeHorizontallyMenu);
 
-            JMenuItem groupMenu = new JMenuItem(guiLabelsBundle.getString("GroupElements"),
+            JMenuItem groupMenu = new JMenuItem(bundle.getString("GroupElements"),
                     new ImageIcon(graphicsDirectory + "GroupElements.png"));
             groupMenu.addActionListener(this);
             groupMenu.setActionCommand("groupElements");
             cartoMenu.add(groupMenu);
 
-            JMenuItem ungroupMenu = new JMenuItem(guiLabelsBundle.getString("UngroupElements"),
+            JMenuItem ungroupMenu = new JMenuItem(bundle.getString("UngroupElements"),
                     new ImageIcon(graphicsDirectory + "UngroupElements.png"));
             ungroupMenu.addActionListener(this);
             ungroupMenu.setActionCommand("ungroupElements");
@@ -1734,7 +1745,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
 
             // Tools menu
-            JMenu ToolsMenu = new JMenu(guiLabelsBundle.getString("Tools"));
+            JMenu ToolsMenu = new JMenu(bundle.getString("Tools"));
 
             ToolsMenu.add(rasterCalc);
             rasterCalc.setActionCommand("rasterCalculator");
@@ -1745,7 +1756,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             paletteManager.setActionCommand("paletteManager");
             paletteManager.addActionListener(this);
 
-            JMenuItem scripter = new JMenuItem(guiLabelsBundle.getString("Scripting"),
+            JMenuItem scripter = new JMenuItem(bundle.getString("Scripting"),
                     new ImageIcon(graphicsDirectory + "ScriptIcon2.png"));
             scripter.addActionListener(this);
             scripter.setActionCommand("scripter");
@@ -1755,7 +1766,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             modifyPixels.addActionListener(this);
             modifyPixels.setActionCommand("modifyPixels");
 
-            distanceToolMenuItem = new JCheckBoxMenuItem(guiLabelsBundle.getString("MeasureDistance"),
+            distanceToolMenuItem = new JCheckBoxMenuItem(bundle.getString("MeasureDistance"),
                     new ImageIcon(graphicsDirectory + "DistanceTool.png"));
             ToolsMenu.add(distanceToolMenuItem);
             distanceToolMenuItem.addActionListener(this);
@@ -1765,7 +1776,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             refreshTools.addActionListener(this);
             refreshTools.setActionCommand("refreshTools");
 
-            JMenuItem newHelp = new JMenuItem(guiLabelsBundle.getString("CreateNewHelpEntry"));
+            JMenuItem newHelp = new JMenuItem(bundle.getString("CreateNewHelpEntry"));
             newHelp.addActionListener(this);
             newHelp.setActionCommand("newHelp");
             ToolsMenu.add(newHelp);
@@ -1774,23 +1785,23 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             ToolsMenu.addSeparator();
 
-            JMenu editVectorMenu = new JMenu(guiLabelsBundle.getString("On-ScreenDigitizing"));
+            JMenu editVectorMenu = new JMenu(bundle.getString("On-ScreenDigitizing"));
 
-            editVectorMenuItem = new JCheckBoxMenuItem(guiLabelsBundle.getString("EditVector"),
+            editVectorMenuItem = new JCheckBoxMenuItem(bundle.getString("EditVector"),
                     new ImageIcon(graphicsDirectory + "Digitize.png"));
             editVectorMenu.add(editVectorMenuItem);
             editVectorMenuItem.addActionListener(this);
             editVectorMenuItem.setActionCommand("editVector");
             editVectorMenuItem.setEnabled(false);
 
-            digitizeNewFeatureMenuItem = new JCheckBoxMenuItem(guiLabelsBundle.getString("DigitizeNewFeature"),
+            digitizeNewFeatureMenuItem = new JCheckBoxMenuItem(bundle.getString("DigitizeNewFeature"),
                     new ImageIcon(graphicsDirectory + "DigitizeNewFeature.png"));
             editVectorMenu.add(digitizeNewFeatureMenuItem);
             digitizeNewFeatureMenuItem.addActionListener(this);
             digitizeNewFeatureMenuItem.setActionCommand("digitizeNewFeature");
             digitizeNewFeatureMenuItem.setEnabled(false);
 
-            deleteFeatureMenuItem = new JMenuItem(guiLabelsBundle.getString("DeleteFeature"),
+            deleteFeatureMenuItem = new JMenuItem(bundle.getString("DeleteFeature"),
                     new ImageIcon(graphicsDirectory + "DeleteFeature.png"));
             editVectorMenu.add(deleteFeatureMenuItem);
             deleteFeatureMenuItem.addActionListener(this);
@@ -1803,19 +1814,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
 
             // Help menu
-            JMenu HelpMenu = new JMenu(guiLabelsBundle.getString("Help"));
-            JMenuItem helpIndex = new JMenuItem(guiLabelsBundle.getString("Index"),
+            JMenu HelpMenu = new JMenu(bundle.getString("Help"));
+            JMenuItem helpIndex = new JMenuItem(bundle.getString("Index"),
                     new ImageIcon(graphicsDirectory + "help.png"));
             HelpMenu.add(helpIndex);
             helpIndex.setActionCommand("helpIndex");
             helpIndex.addActionListener(this);
 
-            JMenuItem helpSearch = new JMenuItem(guiLabelsBundle.getString("Search"));
+            JMenuItem helpSearch = new JMenuItem(bundle.getString("Search"));
             helpSearch.setActionCommand("helpSearch");
             helpSearch.addActionListener(this);
             HelpMenu.add(helpSearch);
 
-            JMenuItem helpTutorials = new JMenuItem(guiLabelsBundle.getString("Tutorials"));
+            JMenuItem helpTutorials = new JMenuItem(bundle.getString("Tutorials"));
             HelpMenu.add(helpTutorials);
             helpTutorials.setActionCommand("helpTutorials");
             helpTutorials.addActionListener(this);
@@ -1827,7 +1838,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             HelpMenu.addSeparator();
 
-            JMenuItem helpReport = new JMenuItem(guiLabelsBundle.getString("HelpCompletenessReport"));
+            JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
             helpReport.setActionCommand("helpReport");
             helpReport.addActionListener(this);
             HelpMenu.add(helpReport);
@@ -1848,60 +1859,60 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         // maps menu
         mapsPopup = new JPopupMenu();
 
-        JMenuItem mi = new JMenuItem(guiLabelsBundle.getString("MapProperties"));
+        JMenuItem mi = new JMenuItem(bundle.getString("MapProperties"));
         mi.addActionListener(this);
         mi.setActionCommand("mapProperties");
         mapsPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("RenameMap"));
+        mi = new JMenuItem(bundle.getString("RenameMap"));
         mi.addActionListener(this);
         mi.setActionCommand("renameMap");
         mapsPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("SetAsActiveMap"));
+        mi = new JMenuItem(bundle.getString("SetAsActiveMap"));
         mi.addActionListener(this);
         mi.setActionCommand("setAsActiveMap");
         mapsPopup.add(mi);
 
         mapsPopup.addSeparator();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("SaveMap"),
+        mi = new JMenuItem(bundle.getString("SaveMap"),
                 new ImageIcon(graphicsDirectory + "SaveMap.png"));
         mi.addActionListener(this);
         mi.setActionCommand("saveMap");
         mapsPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("OpenMap"),
+        mi = new JMenuItem(bundle.getString("OpenMap"),
                 new ImageIcon(graphicsDirectory + "open.png"));
         mi.addActionListener(this);
         mi.setActionCommand("openMap");
         mapsPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("AddNewMap"),
+        mi = new JMenuItem(bundle.getString("AddNewMap"),
                 new ImageIcon(graphicsDirectory + "map.png"));
         mi.addActionListener(this);
         mi.setActionCommand("newMap");
         mapsPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("PrintMap"),
+        mi = new JMenuItem(bundle.getString("PrintMap"),
                 new ImageIcon(graphicsDirectory + "Print.png"));
         mi.addActionListener(this);
         mi.setActionCommand("printMap");
         mapsPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("ExportMapAsImage"));
+        mi = new JMenuItem(bundle.getString("ExportMapAsImage"));
         mi.addActionListener(this);
         mi.setActionCommand("exportMapAsImage");
         mapsPopup.add(mi);
 
         mapsPopup.addSeparator();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("RefreshMap"));
+        mi = new JMenuItem(bundle.getString("RefreshMap"));
         mi.addActionListener(this);
         mi.setActionCommand("refreshMap");
         mapsPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("ZoomToPage"),
+        mi = new JMenuItem(bundle.getString("ZoomToPage"),
                 new ImageIcon(graphicsDirectory + "ZoomFullExtent3.png"));
         mi.addActionListener(this);
         mi.setActionCommand("zoomToPage");
@@ -1909,7 +1920,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         mapsPopup.addSeparator();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("CloseMap"));
+        mi = new JMenuItem(bundle.getString("CloseMap"));
         mi.addActionListener(this);
         mi.setActionCommand("closeMap");
         mapsPopup.add(mi);
@@ -1922,25 +1933,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         // map area popup menu
         mapAreaPopup = new JPopupMenu();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("AddLayer"),
+        mi = new JMenuItem(bundle.getString("AddLayer"),
                 new ImageIcon(graphicsDirectory + "AddLayer.png"));
         mi.addActionListener(this);
         mi.setActionCommand("addLayer");
         mapAreaPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("RemoveLayer"),
+        mi = new JMenuItem(bundle.getString("RemoveLayer"),
                 new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
         mi.addActionListener(this);
         mi.setActionCommand("removeLayer");
         mapAreaPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("RemoveAllLayers"));
+        mi = new JMenuItem(bundle.getString("RemoveAllLayers"));
         mi.addActionListener(this);
         mi.setActionCommand("removeAllLayers");
         mapAreaPopup.add(mi);
 
         recentFilesPopupMenu.setNumItemsToStore(numberOfRecentItemsToStore);
-        recentFilesPopupMenu.setText(guiLabelsBundle.getString("AddRecentDataLayer"));
+        recentFilesPopupMenu.setText(bundle.getString("AddRecentDataLayer"));
         recentFilesPopupMenu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1951,30 +1962,30 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         mapAreaPopup.addSeparator();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("FitMapToPage"));
+        mi = new JMenuItem(bundle.getString("FitMapToPage"));
         mi.addActionListener(this);
         mi.setActionCommand("fitMapAreaToPage");
         mapAreaPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("FitToData"));
+        mi = new JMenuItem(bundle.getString("FitToData"));
         mi.addActionListener(this);
         mi.setActionCommand("fitMapAreaToData");
         mapAreaPopup.add(mi);
 
         JCheckBoxMenuItem miCheck = new JCheckBoxMenuItem(
-                guiLabelsBundle.getString("MaximizeScreenSize"));
+                bundle.getString("MaximizeScreenSize"));
         miCheck.addActionListener(this);
         miCheck.setActionCommand("maximizeMapAreaScreenSize");
         mapAreaPopup.add(miCheck);
 
 
-        mi = new JMenuItem(guiLabelsBundle.getString("ZoomToActiveLayer"),
+        mi = new JMenuItem(bundle.getString("ZoomToActiveLayer"),
                 new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
         mi.addActionListener(this);
         mi.setActionCommand("zoomToLayer");
         mapAreaPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("ZoomToFullExtent"),
+        mi = new JMenuItem(bundle.getString("ZoomToFullExtent"),
                 new ImageIcon(graphicsDirectory + "Globe.png"));
         mi.addActionListener(this);
         mi.setActionCommand("zoomToFullExtent");
@@ -1982,31 +1993,31 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         mapAreaPopup.addSeparator();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("ShowAllLayers"));
+        mi = new JMenuItem(bundle.getString("ShowAllLayers"));
         mi.addActionListener(this);
         mi.setActionCommand("allLayersVisible");
         mapAreaPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("HideAllLayers"));
+        mi = new JMenuItem(bundle.getString("HideAllLayers"));
         mi.addActionListener(this);
         mi.setActionCommand("allLayersInvisible");
         mapAreaPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("ToggleVisibilityOfAllLayers"));
+        mi = new JMenuItem(bundle.getString("ToggleVisibilityOfAllLayers"));
         mi.addActionListener(this);
         mi.setActionCommand("toggleAllLayerVisibility");
         mapAreaPopup.add(mi);
 
         mapAreaPopup.addSeparator();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("ShowProperties"));
+        mi = new JMenuItem(bundle.getString("ShowProperties"));
         mi.addActionListener(this);
         mi.setActionCommand("mapAreaProperties");
         mapAreaPopup.add(mi);
 
         mapAreaPopup.addSeparator();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("DeleteMapArea"));
+        mi = new JMenuItem(bundle.getString("DeleteMapArea"));
         mi.addActionListener(this);
         mi.setActionCommand("deleteMapArea");
         mapAreaPopup.add(mi);
@@ -2016,49 +2027,49 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         // text popup menu
         textPopup = new JPopupMenu();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("Open"));
+        mi = new JMenuItem(bundle.getString("Open"));
         mi.addActionListener(this);
         mi.setActionCommand("openText");
         textPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("Save"));
+        mi = new JMenuItem(bundle.getString("Save"));
         mi.addActionListener(this);
         mi.setActionCommand("saveText");
         textPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("Close"));
+        mi = new JMenuItem(bundle.getString("Close"));
         mi.addActionListener(this);
         mi.setActionCommand("closeText");
         textPopup.add(mi);
 
         textPopup.addSeparator();
 
-        mi = new JMenuItem(guiLabelsBundle.getString("Clear"));
+        mi = new JMenuItem(bundle.getString("Clear"));
         mi.addActionListener(this);
         mi.setActionCommand("clearText");
         textPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("Cut"));
+        mi = new JMenuItem(bundle.getString("Cut"));
         mi.addActionListener(this);
         mi.setActionCommand("cutText");
         textPopup.add(mi);
-        mi = new JMenuItem(guiLabelsBundle.getString("Copy"));
+        mi = new JMenuItem(bundle.getString("Copy"));
         mi.addActionListener(this);
         mi.setActionCommand("copyText");
         textPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("Paste"));
+        mi = new JMenuItem(bundle.getString("Paste"));
         mi.addActionListener(this);
         mi.setActionCommand("pasteText");
         textPopup.add(mi);
 
-        mi = new JMenuItem(guiLabelsBundle.getString("SelectAll"));
+        mi = new JMenuItem(bundle.getString("SelectAll"));
         mi.addActionListener(this);
         mi.setActionCommand("selectAllText");
         textPopup.add(mi);
 
         textPopup.addSeparator();
-        wordWrap = new JCheckBoxMenuItem(guiLabelsBundle.getString("WordWrap"));
+        wordWrap = new JCheckBoxMenuItem(bundle.getString("WordWrap"));
         wordWrap.addActionListener(this);
         wordWrap.setActionCommand("wordWrap");
         wordWrap.setState(false);
@@ -2078,63 +2089,63 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JToolBar toolbar = new JToolBar();
 //            toolbar.setBackground(backgroundColour);
             JButton newMap = makeToolBarButton("map.png", "newMap",
-                    guiLabelsBundle.getString("NewMap"), "New");
+                    bundle.getString("NewMap"), "New");
 
             toolbar.add(newMap);
             JButton openMap = makeToolBarButton("open.png", "openMap",
-                    guiLabelsBundle.getString("OpenMap"), "Open");
+                    bundle.getString("OpenMap"), "Open");
             toolbar.add(openMap);
             JButton saveMap = makeToolBarButton("SaveMap.png", "saveMap",
-                    guiLabelsBundle.getString("SaveMap"), "Save");
+                    bundle.getString("SaveMap"), "Save");
             toolbar.add(saveMap);
             JButton printMap = makeToolBarButton("Print.png", "printMap",
-                    guiLabelsBundle.getString("PrintMap"), "Print");
+                    bundle.getString("PrintMap"), "Print");
             toolbar.add(printMap);
             toolbar.addSeparator();
             JButton addLayer = makeToolBarButton("AddLayer.png", "addLayer",
-                    guiLabelsBundle.getString("AddLayer"), "Add Layer");
+                    bundle.getString("AddLayer"), "Add Layer");
             toolbar.add(addLayer);
             JButton removeLayer = makeToolBarButton("RemoveLayer.png", "removeLayer",
-                    guiLabelsBundle.getString("RemoveLayer"), "Remove Layer");
+                    bundle.getString("RemoveLayer"), "Remove Layer");
             toolbar.add(removeLayer);
             JButton raiseLayer = makeToolBarButton("PromoteLayer.png", "raiseLayer",
-                    guiLabelsBundle.getString("RaiseLayer"), "Raise Layer");
+                    bundle.getString("RaiseLayer"), "Raise Layer");
             toolbar.add(raiseLayer);
             JButton lowerLayer = makeToolBarButton("DemoteLayer.png", "lowerLayer",
-                    guiLabelsBundle.getString("LowerLayer"), "Lower Layer");
+                    bundle.getString("LowerLayer"), "Lower Layer");
             toolbar.add(lowerLayer);
             JButton layerToTop = makeToolBarButton("LayerToTop.png", "layerToTop",
-                    guiLabelsBundle.getString("LayerToTop"), "Layer To Top");
+                    bundle.getString("LayerToTop"), "Layer To Top");
             toolbar.add(layerToTop);
             JButton layerToBottom = makeToolBarButton("LayerToBottom.png", "layerToBottom",
-                    guiLabelsBundle.getString("LayerToBottom"), "Layer To Bottom");
+                    bundle.getString("LayerToBottom"), "Layer To Bottom");
             toolbar.add(layerToBottom);
             JButton attributeTable = makeToolBarButton("AttributeTable.png", "viewAttributeTable",
-                    guiLabelsBundle.getString("ViewAttributeTable"), "View Attribute Table");
+                    bundle.getString("ViewAttributeTable"), "View Attribute Table");
             toolbar.add(attributeTable);
 
             toolbar.addSeparator();
             select = makeToggleToolBarButton("select.png", "select",
-                    guiLabelsBundle.getString("SelectMapElement"), "Select");
+                    bundle.getString("SelectMapElement"), "Select");
             toolbar.add(select);
             selectFeature = makeToggleToolBarButton("SelectFeature.png", "selectFeature",
-                    guiLabelsBundle.getString("SelectFeature"), "Select Feature");
+                    bundle.getString("SelectFeature"), "Select Feature");
             toolbar.add(selectFeature);
             // Feature selection should go here.
             pan = makeToggleToolBarButton("Pan2.png", "pan",
-                    guiLabelsBundle.getString("Pan"), "Pan");
+                    bundle.getString("Pan"), "Pan");
             toolbar.add(pan);
             zoomIntoBox = makeToggleToolBarButton("ZoomIn.png", "zoomToBox",
-                    guiLabelsBundle.getString("ZoomIn"), "Zoom");
+                    bundle.getString("ZoomIn"), "Zoom");
             toolbar.add(zoomIntoBox);
             zoomOut = makeToggleToolBarButton("ZoomOut.png", "zoomOut",
-                    guiLabelsBundle.getString("ZoomOut"), "Zoom out");
+                    bundle.getString("ZoomOut"), "Zoom out");
             toolbar.add(zoomOut);
             JButton zoomToFullExtent = makeToolBarButton("Globe.png", "zoomToFullExtent",
-                    guiLabelsBundle.getString("ZoomToFullExtent"), "Zoom To Full Extent");
+                    bundle.getString("ZoomToFullExtent"), "Zoom To Full Extent");
             toolbar.add(zoomToFullExtent);
             JButton zoomToPage = makeToolBarButton("ZoomFullExtent3.png", "zoomToPage",
-                    guiLabelsBundle.getString("ZoomToPage"), "Zoom To Page");
+                    bundle.getString("ZoomToPage"), "Zoom To Page");
             toolbar.add(zoomToPage);
 
             ButtonGroup viewButtonGroup = new ButtonGroup();
@@ -2146,33 +2157,33 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             select.setSelected(true);
 
             JButton previousExtent = makeToolBarButton("back.png", "previousExtent",
-                    guiLabelsBundle.getString("PreviousExtent"), "Prev Extent");
+                    bundle.getString("PreviousExtent"), "Prev Extent");
             toolbar.add(previousExtent);
             JButton nextExtent = makeToolBarButton("forward.png", "nextExtent",
-                    guiLabelsBundle.getString("NextExtent"), "Next Extent");
+                    bundle.getString("NextExtent"), "Next Extent");
             nextExtent.setActionCommand("nextExtent");
             toolbar.add(nextExtent);
             toolbar.addSeparator();
             JButton rasterCalculator = makeToolBarButton("RasterCalculator.png", "rasterCalculator",
-                    guiLabelsBundle.getString("RasterCalculator"), "Raster Calc");
+                    bundle.getString("RasterCalculator"), "Raster Calc");
             toolbar.add(rasterCalculator);
             JButton paletteManager = makeToolBarButton("paletteManager.png", "paletteManager",
-                    guiLabelsBundle.getString("PaletteManager"), "Palette Manager");
+                    bundle.getString("PaletteManager"), "Palette Manager");
             toolbar.add(paletteManager);
             JButton scripter = makeToolBarButton("ScriptIcon2.png", "scripter",
-                    guiLabelsBundle.getString("Scripting"), "Scripter");
+                    bundle.getString("Scripting"), "Scripter");
             toolbar.add(scripter);
             modifyPixelVals = makeToggleToolBarButton("ModifyPixels.png", "modifyPixels",
-                    guiLabelsBundle.getString("ModifyPixelValues"), "Modify Pixels");
+                    bundle.getString("ModifyPixelValues"), "Modify Pixels");
             toolbar.add(modifyPixelVals);
             distanceToolButton = makeToggleToolBarButton("DistanceTool.png", "distanceTool",
-                    guiLabelsBundle.getString("MeasureDistance"), "Distance Tool");
+                    bundle.getString("MeasureDistance"), "Distance Tool");
             toolbar.add(distanceToolButton);
 
             toolbar.addSeparator();
 
             editVectorButton = makeToggleToolBarButton("Digitize.png", "editVector",
-                    guiLabelsBundle.getString("EditVector"), "Edit Vector");
+                    bundle.getString("EditVector"), "Edit Vector");
             editVectorButton.setEnabled(false);
             toolbar.add(editVectorButton);
 
@@ -2182,12 +2193,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //            toolsButtonGroup.add(editVectorButton);
 
             digitizeNewFeatureButton = makeToggleToolBarButton("DigitizeNewFeature.png", "digitizeNewFeature",
-                    guiLabelsBundle.getString("DigitizeNewFeature"), "Digitize New Feature");
+                    bundle.getString("DigitizeNewFeature"), "Digitize New Feature");
             digitizeNewFeatureButton.setVisible(false);
             toolbar.add(digitizeNewFeatureButton);
 
             deleteFeatureButton = makeToolBarButton("DeleteFeature.png", "deleteFeature",
-                    guiLabelsBundle.getString("DeleteFeature"), "Delete Feature");
+                    bundle.getString("DeleteFeature"), "Delete Feature");
             deleteFeatureButton.setVisible(false);
             toolbar.add(deleteFeatureButton);
 
@@ -2197,7 +2208,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             toolbar.addSeparator();
             JButton help = makeToolBarButton("Help.png", "helpIndex",
-                    guiLabelsBundle.getString("Help"), "Help");
+                    bundle.getString("Help"), "Help");
             toolbar.add(help);
 
             toolbar.addSeparator();
@@ -2300,13 +2311,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JTabbedPane createTabbedPane() {
         try {
             JSplitPane wbTools = getToolbox();
-            tabs.insertTab(guiLabelsBundle.getString("Tools"), null, wbTools, "", 0);
+            tabs.insertTab(bundle.getString("Tools"), null, wbTools, "", 0);
             layersPanel = new JPanel(new BorderLayout());
             layersPanel.setBackground(Color.white);
             updateLayersTab();
-            tabs.insertTab(guiLabelsBundle.getString("Layers"), null, layersPanel, "", 1);
+            tabs.insertTab(bundle.getString("Layers"), null, layersPanel, "", 1);
             featuresPanel = new FeatureSelectionPanel();
-            tabs.insertTab(guiLabelsBundle.getString("Features"), null, featuresPanel, "", 2);
+            tabs.insertTab(bundle.getString("Features"), null, featuresPanel, "", 2);
 
             return tabs;
         } catch (Exception e) {
@@ -2598,7 +2609,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
                 if (activeMapArea != null) {
                     LayersPopupMenu layersPopup = new LayersPopupMenu(activeMapArea.getLayer(layerNum),
-                            this, graphicsDirectory, guiLabelsBundle);
+                            this, graphicsDirectory, bundle);
                     layersPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
                 }
             }
@@ -2644,7 +2655,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                             if (n.getChildCount() == 0) {
                                 label = selPath.getLastPathComponent().toString();
                                 showToolDescription(label);
-                            } else if (n.toString().equals(guiLabelsBundle.getString("topmost"))) {
+                            } else if (n.toString().equals(bundle.getString("topmost"))) {
                                 // set the message indicating the number of plugins that were located.
                                 status.setMessage(" " + plugInfo.size() + " " + messages.getString("PluginsWereLocated"));
                             }
@@ -2716,7 +2727,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             allToolsPanel.setLayout(new BoxLayout(allToolsPanel, BoxLayout.Y_AXIS));
             Box box = Box.createHorizontalBox();
             box.add(Box.createHorizontalStrut(3));
-            box.add(new JLabel(guiLabelsBundle.getString("Search") + ":"));
+            box.add(new JLabel(bundle.getString("Search") + ":"));
             box.add(Box.createHorizontalStrut(3));
             searchText.setMaximumSize(new Dimension(275, 22));
             box.setMaximumSize(new Dimension(275, 24));
@@ -2725,9 +2736,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             allToolsPanel.add(box);
             allToolsPanel.add(scroller1);
 
-            qlTabs.insertTab(guiLabelsBundle.getString("Recent"), null, scroller2, "", 0);
-            qlTabs.insertTab(guiLabelsBundle.getString("Most_Used"), null, scroller3, "", 1);
-            qlTabs.insertTab(guiLabelsBundle.getString("All"), null, allToolsPanel, "", 2); // + plugInfo.size() + " tools", null, scroller1, "", 2);
+            qlTabs.insertTab(bundle.getString("Recent"), null, scroller2, "", 0);
+            qlTabs.insertTab(bundle.getString("Most_Used"), null, scroller3, "", 1);
+            qlTabs.insertTab(bundle.getString("All"), null, allToolsPanel, "", 2); // + plugInfo.size() + " tools", null, scroller1, "", 2);
 
             //qlTabs.setPreferredSize(new Dimension(200, splitterToolboxLoc));
 
@@ -2848,8 +2859,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         String label = e.getAttribute("label");
         String toolboxName = e.getAttribute("name");
         DefaultMutableTreeNode result;
-        if (guiLabelsBundle.containsKey(toolboxName)) {
-            result = new DefaultMutableTreeNode(guiLabelsBundle.getString(toolboxName));
+        if (bundle.containsKey(toolboxName)) {
+            result = new DefaultMutableTreeNode(bundle.getString(toolboxName));
         } else {
             result = new DefaultMutableTreeNode(label);
         }
@@ -2860,8 +2871,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 label = childElement.getAttribute("label");
                 toolboxName = childElement.getAttribute("name");
                 DefaultMutableTreeNode childTreeNode;
-                if (guiLabelsBundle.containsKey(toolboxName)) {
-                    childTreeNode = new DefaultMutableTreeNode(guiLabelsBundle.getString(toolboxName));
+                if (bundle.containsKey(toolboxName)) {
+                    childTreeNode = new DefaultMutableTreeNode(bundle.getString(toolboxName));
                 } else {
                     childTreeNode = new DefaultMutableTreeNode(label);
                 }
@@ -2924,7 +2935,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     @Override
     public ResourceBundle getGuiLabelsBundle() {
-        return guiLabelsBundle;
+        return bundle;
     }
 
     @Override
@@ -3299,7 +3310,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void newMap() {
 
-        String str = JOptionPane.showInputDialog("Enter the name of the new Map: ", "Map" + (numOpenMaps + 1));
+        String str = JOptionPane.showInputDialog(messages.getString("NewMapName") 
+                + ": ", bundle.getString("Map") + (numOpenMaps + 1));
 
         if (str != null) {
             numOpenMaps++;
@@ -3310,7 +3322,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapinfo.setDefaultFont(defaultFont);
             mapinfo.setMargin(defaultMapMargin);
 
-            MapArea ma = new MapArea("MapArea1");
+            MapArea ma = new MapArea(bundle.getString("MapArea").replace(" ", "") + "1");
             ma.setUpperLeftX(-32768);
             ma.setUpperLeftY(-32768);
             ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
@@ -3345,7 +3357,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (numOpenMaps > 0) {
                     drawingArea.setMapInfo(openMaps.get(activeMap));
                 } else {
-                    drawingArea.setMapInfo(new MapInfo("Map"));
+                    drawingArea.setMapInfo(new MapInfo(bundle.getString("Map")));
                 }
                 drawingArea.repaint();
             } else {
@@ -3361,7 +3373,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (numOpenMaps > 0) {
                     drawingArea.setMapInfo(openMaps.get(activeMap));
                 } else {
-                    drawingArea.setMapInfo(new MapInfo("Map"));
+                    drawingArea.setMapInfo(new MapInfo(bundle.getString("Map")));
                 }
                 drawingArea.repaint();
 
@@ -4068,7 +4080,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     refreshMap(true);
                 } else if (newPaletteFile.equals("createNewPalette")) {
                     PaletteManager pm = new PaletteManager(paletteDirectory,
-                            guiLabelsBundle);
+                            bundle);
                     pm.setVisible(true);
                 }
             }
@@ -5442,7 +5454,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             case "paletteManager":
                 PaletteManager pm = new PaletteManager(paletteDirectory,
-                        guiLabelsBundle);
+                        bundle);
                 pm.setVisible(true);
                 break;
             case "rasterCalculator":
@@ -5577,7 +5589,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             case "insertMapArea":
                 int numMapAreas = openMaps.get(activeMap).getMapAreas().size();
-                MapArea ma = new MapArea("MapArea" + (numMapAreas + 1));
+                MapArea ma = new MapArea(bundle.getString("MapArea").replace(" ", "") + (numMapAreas + 1));
                 ma.setUpperLeftX(0);
                 ma.setUpperLeftY(0);
                 ma.setWidth(300);
