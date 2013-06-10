@@ -22,7 +22,7 @@ import java.awt.print.Paper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
+import java.util.ResourceBundle;
 import whitebox.interfaces.CartographicElement;
 import whitebox.structures.BoundingBox;
 
@@ -46,6 +46,7 @@ public class MapInfo implements java.io.Serializable {
 //    private boolean showInLegend = true;
     private ArrayList<CartographicElement> listOfCartographicElements = new ArrayList<>();
     private Font defaultFont = new Font("SanSerif", Font.PLAIN, 11);
+    private ResourceBundle bundle;
 
     /**
      * MapInfo constructor
