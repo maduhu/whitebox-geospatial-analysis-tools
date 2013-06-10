@@ -37,6 +37,7 @@ import java.util.Comparator;
 import java.util.logging.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -53,8 +54,8 @@ import whitebox.utilities.FileUtilities;
 public class Help extends JDialog implements ActionListener, HyperlinkListener {
     public static final Logger logger = Logger.getLogger(Help.class.getPackage().getName());
     
-    private JButton viewSource = new JButton("View HTML Source");
-    private JButton close = new JButton("Close");
+    private JButton viewSource;
+    private JButton close;
     private JButton back = new JButton();
     private JButton forward = new JButton();
     private String helpFile = "";
@@ -65,7 +66,6 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     private String resourcesDirectory = "";
     private String logDirectory = "";
     private Communicator host = null;
-    private String title = "Whitebox Help";
     private JTextField indexField = new JTextField();
     private static JList availableHelpFiles;
     private static JList availableTutorialFiles;
@@ -79,6 +79,8 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     private ArrayList<String> helpHistory = new ArrayList<>();
     private int helpHistoryIndex = 0;
     private static final String pathSep = File.separator;
+    private ResourceBundle bundle;
+//    private ResourceBundle messages;
 
     public Help(Frame owner, boolean modal, String startMode) {
         super(owner, modal);
@@ -134,7 +136,6 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
     private void createGui() {
         try {
-            //FileHandler fh = new FileHandler("Whitebox.log", true);
             int limit = 1000000; // 1 Mb
             int numLogFiles = 3;
             FileHandler fh = new FileHandler(logDirectory + "Help%g_%u.log", limit, numLogFiles, true);
@@ -145,6 +146,13 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             if (System.getProperty("os.name").contains("Mac")) {
                 this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
             }
+            
+            bundle = host.getGuiLabelsBundle();
+//            messages = host.getMessageBundle();
+            
+            
+            
+            
             this.setPreferredSize(new Dimension(950, 700));
 
             JTabbedPane sidebarPane = createSidePanel();
@@ -158,10 +166,13 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
             Box box2 = Box.createHorizontalBox();
             box2.add(Box.createRigidArea(new Dimension(10, 30)));
+            close = new JButton(bundle.getString("Close"));
             box2.add(close);
             close.setActionCommand("close");
             close.addActionListener(this);
             box2.add(Box.createHorizontalGlue());
+            
+            viewSource = new JButton(bundle.getString("ViewHTML"));
             box2.add(viewSource);
             viewSource.setActionCommand("viewSource");
             viewSource.addActionListener(this);
@@ -172,7 +183,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             imgLocation = graphicsDirectory + "HelpBack.png";
             image = new ImageIcon(imgLocation, "");
             back.setActionCommand("back");
-            back.setToolTipText("back");
+            back.setToolTipText(bundle.getString("Back"));
             back.addActionListener(this);
             try {
                 back.setIcon(image);
@@ -186,7 +197,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             imgLocation = graphicsDirectory + "HelpForward.png";
             image = new ImageIcon(imgLocation, "");
             forward.setActionCommand("forward");
-            forward.setToolTipText("forward");
+            forward.setToolTipText(bundle.getString("Forward"));
             forward.addActionListener(this);
             try {
                 forward.setIcon(image);
@@ -234,11 +245,12 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 //                    helpMousePress(e);
 //                }
 //            });
-
+            
+            String title = "Whitebox " + bundle.getString("Help");
             setTitle(title);
 
             pack();
-        } catch (Exception e) {
+        } catch (IOException | SecurityException e) {
             logger.log(Level.SEVERE, "Help.createGui Error", e);
         }
     }
@@ -304,7 +316,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             indexPanel.add(indexField);
             indexPanel.add(Box.createVerticalStrut(10));
             indexPanel.add(scroller1);
-            sidebarTab.add(indexPanel, "Index");
+            sidebarTab.add(indexPanel, bundle.getString("Index"));
 
 
             searchField.setMaximumSize(new Dimension(500, 20));
@@ -315,7 +327,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             searchOutput = new JList();
             JScrollPane scroller2 = new JScrollPane(searchOutput);
             searchPanel.add(scroller2);
-            sidebarTab.add(searchPanel, "Search");
+            sidebarTab.add(searchPanel, bundle.getString("Search"));
 
 
 
@@ -357,7 +369,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
             tutorialPanel.setLayout(new BoxLayout(tutorialPanel, BoxLayout.Y_AXIS));
             tutorialPanel.add(scroller3);
-            sidebarTab.add(tutorialPanel, "Tutorials");
+            sidebarTab.add(tutorialPanel, bundle.getString("Tutorials"));
 
 
 
@@ -385,7 +397,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     private void createPopupMenus() {
         helpPopup = new JPopupMenu();
 
-        JMenuItem mi = new JMenuItem("View Help File Source");
+        JMenuItem mi = new JMenuItem(bundle.getString("ViewHelpSource"));
         mi.addActionListener(this);
         mi.setActionCommand("viewHelpFileSource");
         helpPopup.add(mi);

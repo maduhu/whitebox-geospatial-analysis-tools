@@ -38,6 +38,7 @@ import whitebox.ui.carto_properties.*;
 import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.BoundingBox;
+import java.util.ResourceBundle;
 
 /**
  *
@@ -68,6 +69,8 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     private JPanel elementPropertiesPanel = new JPanel();
     private JList possibleElementsList = new JList(new DefaultListModel());
     private int activeElement;
+    private ResourceBundle bundle;
+    private ResourceBundle messages;
 
     public MapProperties(Frame owner, boolean modal, MapInfo map) {
         super(owner, modal);
@@ -78,6 +81,8 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         }
 
         this.host = (WhiteboxPluginHost) (owner);
+        bundle = this.host.getGuiLabelsBundle();
+        messages = this.host.getMessageBundle();
         this.map = map;
         createGui();
         this.tabs.setSelectedIndex(1);
@@ -92,6 +97,8 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         }
 
         this.host = (WhiteboxPluginHost) (owner);
+        bundle = this.host.getGuiLabelsBundle();
+        messages = this.host.getMessageBundle();
         this.map = map;
         //this.activeTab = activeTab.toLowerCase();
         this.activeElement = activeElement;
@@ -108,34 +115,37 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             return;
         }
 
-        setTitle("Map Properties: " + map.getMapName());
+        setTitle(bundle.getString("MapProperties") + ": " + map.getMapName());
 
         createPageSizeMap();
 
         // okay and close buttons.
         Box box1 = Box.createHorizontalBox();
         box1.add(Box.createHorizontalGlue());
+        ok = new JButton(bundle.getString("OK"));
         box1.add(ok);
         ok.setActionCommand("ok");
         ok.addActionListener(this);
-        ok.setToolTipText("Save changes and exit");
+        ok.setToolTipText(bundle.getString("SaveChangesAndExit"));
         box1.add(Box.createRigidArea(new Dimension(5, 30)));
+
+        update = new JButton(bundle.getString("UpdateMap"));
         box1.add(update);
         update.setActionCommand("update");
         update.addActionListener(this);
-        update.setToolTipText("Save changes without exiting Layer Properties");
+        update.setToolTipText(bundle.getString("UpdateMapTooltip"));
         box1.add(Box.createRigidArea(new Dimension(5, 30)));
         box1.add(close);
         close.setActionCommand("close");
         close.addActionListener(this);
-        close.setToolTipText("Exit without saving changes");
+        close.setToolTipText(bundle.getString("CloseTooltip"));
         box1.add(Box.createHorizontalStrut(100));
         box1.add(Box.createHorizontalGlue());
 
         add(box1, BorderLayout.SOUTH);
 
-        tabs.addTab("Map Elements", getMapElementsListing());
-        tabs.addTab("Page", getPageBox());
+        tabs.addTab(bundle.getString("MapElements"), getMapElementsListing());
+        tabs.addTab(bundle.getString("Page"), getPageBox());
 
         getContentPane().add(tabs, BorderLayout.CENTER);
 
@@ -188,7 +198,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
 
             Box vbox = Box.createVerticalBox();
             Box hbox = Box.createHorizontalBox();
-            label = new JLabel("Map Elements:");
+            label = new JLabel(bundle.getString("MapElements") + ":");
             label.setForeground(Color.darkGray);
             //Font f = label.getFont();
             //label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
@@ -200,14 +210,14 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             possibleElementsList.addMouseListener(ml1);
 
             DefaultListModel model = new DefaultListModel();
-            model.add(0, "Legend");
-            model.add(1, "Map Area");
-            model.add(2, "Neatline");
-            model.add(3, "North Arrow");
-            model.add(4, "Scale");
-            model.add(5, "Text Area");
-            model.add(6, "Title");
-            model.add(7, "Image");
+            model.add(0, bundle.getString("Legend"));
+            model.add(1, bundle.getString("MapArea"));
+            model.add(2, bundle.getString("Neatline"));
+            model.add(3, bundle.getString("NorthArrow"));
+            model.add(4, bundle.getString("Scale"));
+            model.add(5, bundle.getString("TextArea"));
+            model.add(6, bundle.getString("Title"));
+            model.add(7, bundle.getString("Image"));
 
             possibleElementsList.setModel(model);
 
@@ -216,7 +226,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
 
 
             Box hbox4 = Box.createHorizontalBox();
-            JButton addButton = new JButton("Add");
+            JButton addButton = new JButton(bundle.getString("Add"));
             addButton.setActionCommand("addElement");
             addButton.addActionListener(this);
             hbox4.add(Box.createHorizontalGlue());
@@ -228,7 +238,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             listBox.add(Box.createHorizontalStrut(10));
 
             vbox = Box.createVerticalBox();
-            label = new JLabel("Current Map Elements:");
+            label = new JLabel(bundle.getString("CurrentMapElements") + ":");
             label.setForeground(Color.darkGray);
             Box hbox1 = Box.createHorizontalBox();
             hbox1.add(label);
@@ -243,7 +253,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             vbox.add(scroller2);
 
             Box hbox2 = Box.createHorizontalBox();
-            JButton deleteButton = new JButton("Remove");
+            JButton deleteButton = new JButton(bundle.getString("Remove"));
             deleteButton.setActionCommand("removeElement");
             deleteButton.addActionListener(this);
             hbox2.add(Box.createHorizontalGlue());
@@ -274,7 +284,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
 
             Box hbox3 = Box.createHorizontalBox();
             hbox3.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Elements Properties:");
+            label = new JLabel(bundle.getString("ElementsProperties") + ":");
             //f = label.getFont();
             //label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
             label.setForeground(Color.darkGray);
@@ -392,25 +402,12 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
             panel.add(scroll);
 
-            JPanel underConstructionBox = new JPanel();
-            underConstructionBox.setLayout(new BoxLayout(underConstructionBox, BoxLayout.X_AXIS));
-            underConstructionBox.setBackground(Color.WHITE);
-            underConstructionBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("This feature is under active development");
-            Font f = label.getFont();
-            label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
-            //label.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
-            underConstructionBox.add(label);
-            underConstructionBox.add(Box.createHorizontalGlue());
-            underConstructionBox.add(Box.createHorizontalStrut(10));
-            mainBox.add(underConstructionBox);
-
             // page visibility
             JPanel pageVisibleBox = new JPanel();
             pageVisibleBox.setLayout(new BoxLayout(pageVisibleBox, BoxLayout.X_AXIS));
             pageVisibleBox.setBackground(Color.WHITE);
             pageVisibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Draw the page?");
+            label = new JLabel(bundle.getString("DrawThePage"));
             label.setPreferredSize(new Dimension(180, 24));
             pageVisibleBox.add(label);
             pageVisibleBox.add(Box.createHorizontalGlue());
@@ -426,13 +423,13 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             orientationBox.setLayout(new BoxLayout(orientationBox, BoxLayout.X_AXIS));
             orientationBox.setBackground(backColour);
             orientationBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Page Orientation:");
+            label = new JLabel(bundle.getString("PageOrientation") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             orientationBox.add(label);
             orientationBox.add(Box.createHorizontalGlue());
-            landscape = new JRadioButton("Landscape", true);
+            landscape = new JRadioButton(bundle.getString("Landscape"), true);
             orientationBox.add(landscape);
-            portrait = new JRadioButton("Portrait", true);
+            portrait = new JRadioButton(bundle.getString("Portrait"), true);
             orientationBox.add(portrait);
             orientationBox.add(Box.createHorizontalStrut(10));
             ButtonGroup group = new ButtonGroup();
@@ -459,7 +456,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             paperNameBox.setLayout(new BoxLayout(paperNameBox, BoxLayout.X_AXIS));
             paperNameBox.setBackground(Color.WHITE);
             paperNameBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Paper Type:");
+            label = new JLabel(bundle.getString("PaperType") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             paperNameBox.add(label);
             paperNameBox.add(Box.createHorizontalGlue());
@@ -481,7 +478,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             marginBox.setLayout(new BoxLayout(marginBox, BoxLayout.X_AXIS));
             marginBox.setBackground(backColour);
             marginBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Margin Size:");
+            label = new JLabel(bundle.getString("MarginSize") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             marginBox.add(label);
             marginBox.add(Box.createHorizontalGlue());
@@ -501,24 +498,6 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             label.setPreferredSize(new Dimension(180, 24));
             maxBox.add(label);
             maxBox.add(Box.createHorizontalGlue());
-//            maxVal = new JTextField(Double.toString(rli.getDisplayMaxVal()), 15);
-//            maxVal.setHorizontalAlignment(JTextField.RIGHT);
-//            maxVal.setMaximumSize(new Dimension(50, 22));
-//            maxBox.add(maxVal);
-//            maxValButton = new JButton("Reset");
-//            maxValButton.setActionCommand("resetMaximum");
-//            maxValButton.addActionListener(this);
-//            maxBox.add(maxValButton);
-//            maxBox.add(Box.createHorizontalStrut(2));
-//            clipUpperTail.setActionCommand("clipUpperTail");
-//            clipUpperTail.addActionListener(this);
-//            clipAmountUpper = new JTextField("2.0%", 4);
-//            clipAmountUpper.setHorizontalAlignment(JTextField.RIGHT);
-//            clipAmountUpper.setMaximumSize(new Dimension(50, 22));
-//            maxBox.add(clipAmountUpper);
-//            maxBox.add(clipUpperTail);
-//            maxBox.add(Box.createHorizontalStrut(10));
-
 
             mainBox.add(Box.createVerticalStrut(330));
         } catch (Exception e) {
@@ -619,7 +598,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
             }
             if (map.getMargin() != margin) {
                 map.setMargin(margin);
-                WhiteboxGui wb = (WhiteboxGui)host;
+                WhiteboxGui wb = (WhiteboxGui) host;
                 wb.setDefaultMapMargin(margin);
             }
         }
@@ -666,45 +645,36 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
 
     private void addElement() {
         String label = possibleElementsList.getSelectedValue().toString();
-        switch (label.toLowerCase()) {
-            case "scale":
-                map.addMapScale();
-                break;
-            case "legend":
-                map.addLegend();
-                break;
-            case "north arrow":
-                map.addNorthArrow();
-                break;
-            case "map area":
-                map.addMapArea();
-                populateElementsList();
-                break;
-            case "title":
-                map.addMapTitle();
-                break;
-            case "neatline":
-                map.addNeatline();
-                break;
-            case "text area":
-                map.addMapTextArea();
-                break;
-            case "image":
-                whitebox.ui.ImageFileChooser ifc = new whitebox.ui.ImageFileChooser();
-                ifc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-                ifc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                ifc.setMultiSelectionEnabled(false);
-                ifc.setAcceptAllFileFilterUsed(false);
-                ifc.setCurrentDirectory(new File(host.getWorkingDirectory()));
+        if (label.equals(bundle.getString("Scale"))) {
+            map.addMapScale();
+        } else if (label.equals(bundle.getString("Legend"))) {
+            map.addLegend();
+        } else if (label.equals(bundle.getString("NorthArrow"))) {
+            map.addNorthArrow();
+        } else if (label.equals(bundle.getString("MapArea"))) {
+            map.addMapArea();
+            populateElementsList();
+        } else if (label.equals(bundle.getString("Title"))) {
+            map.addMapTitle();
+        } else if (label.equals(bundle.getString("Neatline"))) {
+            map.addNeatline();
+        } else if (label.equals(bundle.getString("TextArea"))) {
+            map.addMapTextArea();
+        } else if (label.equals(bundle.getString("Image"))) {
+            whitebox.ui.ImageFileChooser ifc = new whitebox.ui.ImageFileChooser();
+            ifc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+            ifc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            ifc.setMultiSelectionEnabled(false);
+            ifc.setAcceptAllFileFilterUsed(false);
+            ifc.setCurrentDirectory(new File(host.getWorkingDirectory()));
 
-                int result = ifc.showOpenDialog(this);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    File file = ifc.getSelectedFile();
-                    String selectedFile = file.toString();
-                    String fileName = "";
-                    map.addMapImage(selectedFile);
-                    break;
-                }
+            int result = ifc.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = ifc.getSelectedFile();
+                String selectedFile = file.toString();
+                String fileName = "";
+                map.addMapImage(selectedFile);
+            }
 
         }
         populateElementsList();
@@ -714,45 +684,38 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     }
 
     private void addElement(String elementType) {
-        switch (elementType.toLowerCase()) {
-            case "scale":
-                map.addMapScale();
-                break;
-            case "legend":
-                map.addLegend();
-                break;
-            case "north arrow":
-                map.addNorthArrow();
-                break;
-            case "map area":
-                map.addMapArea();
-                break;
-            case "title":
-                map.addMapTitle();
-                break;
-            case "neatline":
-                map.addNeatline();
-                break;
-            case "text area":
-                map.addMapTextArea();
-                break;
-            case "image":
-                whitebox.ui.ImageFileChooser ifc = new whitebox.ui.ImageFileChooser();
-                ifc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-                ifc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                ifc.setMultiSelectionEnabled(false);
-                ifc.setAcceptAllFileFilterUsed(false);
-                ifc.setCurrentDirectory(new File(host.getWorkingDirectory()));
 
-                int result = ifc.showOpenDialog(this);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    File file = ifc.getSelectedFile();
-                    String selectedFile = file.toString();
-                    String fileName = "";
-                    map.addMapImage(selectedFile);
-                    break;
-                }
+        if (elementType.equals(bundle.getString("Scale"))) {
+            map.addMapScale();
+        } else if (elementType.equals(bundle.getString("Legend"))) {
+            map.addLegend();
+        } else if (elementType.equals(bundle.getString("NorthArrow"))) {
+            map.addNorthArrow();
+        } else if (elementType.equals(bundle.getString("MapArea"))) {
+            map.addMapArea();
+        } else if (elementType.equals(bundle.getString("Title"))) {
+            map.addMapTitle();
+        } else if (elementType.equals(bundle.getString("Neatline"))) {
+            map.addNeatline();
+        } else if (elementType.equals(bundle.getString("TextArea"))) {
+            map.addMapTextArea();
+        } else if (elementType.equals(bundle.getString("Image"))) {
+            whitebox.ui.ImageFileChooser ifc = new whitebox.ui.ImageFileChooser();
+            ifc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+            ifc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            ifc.setMultiSelectionEnabled(false);
+            ifc.setAcceptAllFileFilterUsed(false);
+            ifc.setCurrentDirectory(new File(host.getWorkingDirectory()));
+
+            int result = ifc.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = ifc.getSelectedFile();
+                String selectedFile = file.toString();
+                String fileName = "";
+                map.addMapImage(selectedFile);
+            }
         }
+
         populateElementsList();
 
         mapElementsList.setSelectedIndex(0);
@@ -795,22 +758,30 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
     public void actionPerformed(ActionEvent e) {
         //Object source = e.getSource();
         String actionCommand = e.getActionCommand();
-        if (actionCommand.equals("close")) {
-            setVisible(false);
-            this.dispose();
-        } else if (actionCommand.equals("ok")) {
-            updateMap();
-            this.dispose();
-        } else if (actionCommand.equals("update")) {
-            updateMap();
-        } else if (actionCommand.equals("addElement")) {
-            addElement();
-        } else if (actionCommand.equals("removeElement")) {
-            removeElement();
-        } else if (actionCommand.equals("elementUp")) {
-            elementUp();
-        } else if (actionCommand.equals("elementDown")) {
-            elementDown();
+        switch (actionCommand) {
+            case "close":
+                setVisible(false);
+                this.dispose();
+                break;
+            case "ok":
+                updateMap();
+                this.dispose();
+                break;
+            case "update":
+                updateMap();
+                break;
+            case "addElement":
+                addElement();
+                break;
+            case "removeElement":
+                removeElement();
+                break;
+            case "elementUp":
+                elementUp();
+                break;
+            case "elementDown":
+                elementDown();
+                break;
         }
     }
 

@@ -42,8 +42,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     private int rightMargin = 10;
     private int leftMargin = 10;
     private Color backColour = new Color(225, 245, 255);
-    private JButton ok = new JButton("OK");
-    private JButton close = new JButton("Close");
+    private JButton ok;
+    private JButton close;
     private String pathSep = "";
     private WhiteboxGui host = null;
     private String applicationDirectory = "";
@@ -53,7 +53,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     private BooleanProperty autoHideAlignToolbar;
     private FontProperty fontProperty;
     private NumericProperty numRecentItems;
-    private ResourceBundle guiLabelsBundle;
+    private ResourceBundle bundle;
     private ResourceBundle messages;
 
     public SettingsDialog(Frame owner, boolean modal) {
@@ -62,7 +62,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         host = (WhiteboxGui) owner;
         applicationDirectory = host.getApplicationDirectory();
         resourcesDirectory = host.getResourcesDirectory();
-        guiLabelsBundle = host.getGuiLabelsBundle();
+        bundle = host.getGuiLabelsBundle();
         messages = host.getMessageBundle();
         createGui();
     }
@@ -72,14 +72,16 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         }
 
-        this.setTitle("Whitebox Settings");
+        this.setTitle("Whitebox " + bundle.getString("Settings"));
 
         Box box2 = Box.createHorizontalBox();
         box2.add(Box.createHorizontalStrut(10));
+        ok = new JButton(bundle.getString("OK"));
         box2.add(ok);
         ok.setActionCommand("ok");
         ok.addActionListener(this);
         box2.add(Box.createRigidArea(new Dimension(5, 30)));
+        close = new JButton(bundle.getString("Close"));
         box2.add(close);
         close.setActionCommand("close");
         close.addActionListener(this);
@@ -99,7 +101,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         int preferredWidth = 310;
 
         // print resolution
-        printResolution = new NumericProperty("Print resolution:", String.valueOf(host.getPrintResolution()));
+        printResolution = new NumericProperty(bundle.getString("PrintResolution") +
+                ":", String.valueOf(host.getPrintResolution()));
         printResolution.setLeftMargin(leftMargin);
         printResolution.setRightMargin(rightMargin);
         printResolution.setBackColour(backColour);
@@ -110,7 +113,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         printResolution.addPropertyChangeListener("value", this);
         mainBox.add(printResolution);
 
-        autoHideAlignToolbar = new BooleanProperty("Automatically hide align toolbar?",
+        autoHideAlignToolbar = new BooleanProperty(bundle.getString("HideToolbar"),
                 host.isHideAlignToolbar());
         autoHideAlignToolbar.setLeftMargin(leftMargin);
         autoHideAlignToolbar.setRightMargin(rightMargin);
@@ -120,7 +123,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         autoHideAlignToolbar.addPropertyChangeListener("value", this);
         mainBox.add(autoHideAlignToolbar);
 
-        fontProperty = new FontProperty("Default font:", host.getDefaultFont());
+        fontProperty = new FontProperty(bundle.getString("DefaultFont") + 
+                ":", host.getDefaultFont());
         fontProperty.setLeftMargin(leftMargin);
         fontProperty.setRightMargin(rightMargin);
         fontProperty.setBackColour(backColour);
@@ -131,7 +135,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         mainBox.add(fontProperty);
 
         // number of recent items
-        numRecentItems = new NumericProperty("Number of recent items:", String.valueOf(host.getNumberOfRecentItemsToStore()));
+        numRecentItems = new NumericProperty(bundle.getString("NumberOfRecentItems") 
+                + ":", String.valueOf(host.getNumberOfRecentItemsToStore()));
         numRecentItems.setLeftMargin(leftMargin);
         numRecentItems.setRightMargin(rightMargin);
         numRecentItems.setBackColour(Color.WHITE);
@@ -247,7 +252,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     
     @Override
     public ResourceBundle getGuiLabelsBundle() {
-        return guiLabelsBundle;
+        return bundle;
     }
     
     @Override

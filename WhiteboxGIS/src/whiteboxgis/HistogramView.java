@@ -26,6 +26,7 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
@@ -44,17 +45,25 @@ public class HistogramView extends JDialog implements ActionListener {
     private Frame owner;
     private JButton cumulative;
     private boolean cumulativeBool = false;
+    private WhiteboxPluginHost host;
+    private ResourceBundle bundle;
+    private ResourceBundle messages;
     
     public HistogramView(Frame owner, boolean modal, String headerFile, String workingDirectory) {
         super(owner, modal);
         this.owner = owner;
+        if (owner instanceof WhiteboxPluginHost) {
+            host = (WhiteboxPluginHost) owner;
+            bundle = host.getGuiLabelsBundle();
+            messages = host.getMessageBundle();
+        }
         this.headerFile = headerFile;
         this.workingDirectory = workingDirectory;
         createGui();
     }
     
     private void createGui() {
-        setTitle("Histogram");
+        setTitle(bundle.getString("Histogram"));
         if (System.getProperty("os.name").contains("Mac")) {
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         }
@@ -63,11 +72,16 @@ public class HistogramView extends JDialog implements ActionListener {
         
         JPanel buttonPane = new JPanel();
         buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
-        JButton btnSaveImage = createButton("Save", "Export the histogram as an image");
-        JButton btnPrint = createButton("Print", "Print histogram");
-        JButton btnExit = createButton("Exit", "Exit");
-        cumulative = createButton("Switch to CDF", "cumulative distribution function (CDF)");
-        JButton btnRefresh = createButton("Refresh", "Refresh histogram");
+        JButton btnSaveImage = createButton(bundle.getString("Save"), 
+                bundle.getString("ExportHistogram"));
+        JButton btnPrint = createButton(bundle.getString("Print"), 
+                bundle.getString("PrintHistogram"));
+        JButton btnExit = createButton(bundle.getString("Exit"), 
+                bundle.getString("Exit"));
+        cumulative = createButton(bundle.getString("SwitchToCDF"), 
+                bundle.getString("SwitchToCDFTip"));
+        JButton btnRefresh = createButton(bundle.getString("Refresh"), 
+                bundle.getString("Refresh"));
         
         buttonPane.add(Box.createHorizontalStrut(10));
         buttonPane.add(btnSaveImage);
@@ -101,8 +115,7 @@ public class HistogramView extends JDialog implements ActionListener {
     }
     
     private int showFeedback(String message) {
-        if (owner instanceof WhiteboxPluginHost) {
-            WhiteboxPluginHost host = (WhiteboxPluginHost)owner;
+        if (host != null) {
             return host.showFeedback(message);
         } else {
             return -1;
@@ -124,9 +137,9 @@ public class HistogramView extends JDialog implements ActionListener {
         fc.setSelectedFile(f);
                 
         // set the filter.
-        ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
+        ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
         String[] extensions = ImageIO.getReaderFormatNames(); //{"PNG", "JPEG", "JPG"};
-        String filterDescription = "Image Files (" + extensions[0];
+        String filterDescription = bundle.getString("ImageFiles") + " (" + extensions[0];
         for (int i = 1; i < extensions.length; i++) {
             filterDescription += ", " + extensions[i];
         }
@@ -153,8 +166,8 @@ public class HistogramView extends JDialog implements ActionListener {
             if (file.exists()) {
                 Object[] options = {"Yes", "No"};
                 int n = JOptionPane.showOptionDialog(this,
-                        "The file already exists.\n"
-                        + "Would you like to overwrite it?",
+                        messages.getString("FileExists") + "\n"
+                        + messages.getString("Overwrite"),
                         "Whitebox GAT Message",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE,
@@ -169,7 +182,7 @@ public class HistogramView extends JDialog implements ActionListener {
                 }
             }
             if (!histo.saveToImage(file.toString())) {
-                showFeedback("An error occurred while saving the map to the image file.");
+                showFeedback(messages.getString("ErrorWhileSaving"));
             }
         }
         
@@ -185,7 +198,7 @@ public class HistogramView extends JDialog implements ActionListener {
             try {
                 job.print(aset);
             } catch (PrinterException ex) {
-                showFeedback("An error was encountered while printing." + ex);
+                showFeedback(messages.getString("PrintingError") + " " + ex);
                 /* The job did not successfully complete */
             }
         }
@@ -208,11 +221,11 @@ public class HistogramView extends JDialog implements ActionListener {
                 cumulativeBool = !cumulativeBool;
                 histo.setCumulative(cumulativeBool);
                 if (!cumulativeBool) {
-                    cumulative.setText("Switch to CDF");
-                    cumulative.setToolTipText("cumulative distribution function (CDF)");
+                    cumulative.setText(bundle.getString("SwitchToCDF"));
+                    cumulative.setToolTipText(bundle.getString("SwitchToCDFTip"));
                 } else {
-                    cumulative.setText("Switch to PDF");
-                    cumulative.setToolTipText("Probability distribution function (PDF)");
+                    cumulative.setText(bundle.getString("SwitchToPDF"));
+                    cumulative.setToolTipText(bundle.getString("SwitchToPDFTip"));
                 }
                 break;
             case "refresh":
