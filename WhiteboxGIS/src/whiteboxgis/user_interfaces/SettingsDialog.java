@@ -24,10 +24,14 @@ import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.Locale;
 import javax.swing.*;
 import whitebox.interfaces.Communicator;
 import whitebox.ui.carto_properties.*;
@@ -55,7 +59,10 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     private NumericProperty numRecentItems;
     private ResourceBundle bundle;
     private ResourceBundle messages;
-
+    private String language;
+    private String country;
+    
+    
     public SettingsDialog(Frame owner, boolean modal) {
         super(owner, modal);
         pathSep = File.separator;
@@ -101,8 +108,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         int preferredWidth = 310;
 
         // print resolution
-        printResolution = new NumericProperty(bundle.getString("PrintResolution") +
-                ":", String.valueOf(host.getPrintResolution()));
+        printResolution = new NumericProperty(bundle.getString("PrintResolution")
+                + ":", String.valueOf(host.getPrintResolution()));
         printResolution.setLeftMargin(leftMargin);
         printResolution.setRightMargin(rightMargin);
         printResolution.setBackColour(backColour);
@@ -123,8 +130,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         autoHideAlignToolbar.addPropertyChangeListener("value", this);
         mainBox.add(autoHideAlignToolbar);
 
-        fontProperty = new FontProperty(bundle.getString("DefaultFont") + 
-                ":", host.getDefaultFont());
+        fontProperty = new FontProperty(bundle.getString("DefaultFont")
+                + ":", host.getDefaultFont());
         fontProperty.setLeftMargin(leftMargin);
         fontProperty.setRightMargin(rightMargin);
         fontProperty.setBackColour(backColour);
@@ -135,7 +142,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         mainBox.add(fontProperty);
 
         // number of recent items
-        numRecentItems = new NumericProperty(bundle.getString("NumberOfRecentItems") 
+        numRecentItems = new NumericProperty(bundle.getString("NumberOfRecentItems")
                 + ":", String.valueOf(host.getNumberOfRecentItemsToStore()));
         numRecentItems.setLeftMargin(leftMargin);
         numRecentItems.setRightMargin(rightMargin);
@@ -146,7 +153,48 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         numRecentItems.revalidate();
         numRecentItems.addPropertyChangeListener("value", this);
         mainBox.add(numRecentItems);
+
+        // language code
+        Locale[] availableLocales = Locale.getAvailableLocales();
+        String[] languages = new String[availableLocales.length];
+        int i = 0;
+        for (Locale locale : availableLocales) {
+            if (locale.getDisplayCountry().isEmpty()) {
+                languages[i] = locale.getDisplayLanguage();
+            } else if (locale.getDisplayVariant().isEmpty()) {
+                languages[i] = locale.getDisplayLanguage() + " (" + locale.getDisplayCountry() + ")";
+            } else {
+                languages[i] = locale.getDisplayLanguage() + " (" + locale.getDisplayCountry() + " " + locale.getDisplayVariant() + ")";
+            }
+            i++;
+        }
+        Arrays.sort(languages);
+        ComboBoxProperty languageChooser = new ComboBoxProperty("Language:", languages, 1);
+        languageChooser.setLeftMargin(leftMargin);
+        languageChooser.setRightMargin(rightMargin);
+        languageChooser.setBackColour(Color.WHITE);
+        languageChooser.setPreferredWidth(preferredWidth);
+        languageChooser.revalidate();
+        ItemListener il = new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    Object item = e.getItem();
+                    //setValue(item.toString());
+                }
+            }
+        };
+        languageChooser.parentListener = il;
+
+        languageChooser.addPropertyChangeListener("value", this);
+        mainBox.add(languageChooser);
+
+//        for (String lang : Locale.getISOCountries()) {
+//            System.out.println(lang);
+//        }
         
+        // country code
+
         JScrollPane scroll = new JScrollPane(mainBox);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -243,23 +291,22 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         } else if (source == autoHideAlignToolbar) {
             host.setHideAlignToolbar((Boolean) evt.getNewValue());
         } else if (source == fontProperty) {
-            host.setDefaultFont((Font)evt.getNewValue());
+            host.setDefaultFont((Font) evt.getNewValue());
         } else if (source == numRecentItems) {
             host.setNumberOfRecentItemsToStore(Integer.parseInt((String) evt.getNewValue()));
         }
     }
 
-    
     @Override
     public ResourceBundle getGuiLabelsBundle() {
         return bundle;
     }
-    
+
     @Override
     public ResourceBundle getMessageBundle() {
         return messages;
     }
-    
+
     @Override
     public String getLogDirectory() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
