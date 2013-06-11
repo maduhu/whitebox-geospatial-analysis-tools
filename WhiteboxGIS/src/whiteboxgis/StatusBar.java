@@ -67,8 +67,9 @@ public class StatusBar extends JPanel implements MouseListener {
         
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.X_AXIS));
-        progressLabel.setText(bundle.getString("Progress") + ": ");
+        progressLabel.setText(bundle.getString("Progress"));
         rightPanel.add(progressLabel);
+        rightPanel.add(Box.createHorizontalStrut(5));
         rightPanel.add(progress);
         setProgressVisible(progressVisible);
         rightPanel.add(Box.createHorizontalStrut(5));
@@ -81,7 +82,8 @@ public class StatusBar extends JPanel implements MouseListener {
 
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setPreferredSize(new Dimension(600, 23));
-        label.setText("   " + bundle.getString("Ready"));
+        label.setText(bundle.getString("Ready"));
+        leftPanel.add(Box.createHorizontalStrut(5));
         leftPanel.add(label, BorderLayout.CENTER);
         leftPanel.setOpaque(false);
 

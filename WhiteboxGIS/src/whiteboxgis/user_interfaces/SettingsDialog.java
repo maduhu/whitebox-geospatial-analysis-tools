@@ -155,24 +155,33 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         mainBox.add(numRecentItems);
 
         // language code
-        Locale[] availableLocales = Locale.getAvailableLocales();
-        String[] languages = new String[availableLocales.length];
-        int i = 0;
-        for (Locale locale : availableLocales) {
-            if (locale.getDisplayCountry().isEmpty()) {
-                languages[i] = locale.getDisplayLanguage();
-            } else if (locale.getDisplayVariant().isEmpty()) {
-                languages[i] = locale.getDisplayLanguage() + " (" + locale.getDisplayCountry() + ")";
-            } else {
-                languages[i] = locale.getDisplayLanguage() + " (" + locale.getDisplayCountry() + " " + locale.getDisplayVariant() + ")";
+//        Locale[] availableLocales = Locale.getAvailableLocales();
+//        String[] languages = new String[availableLocales.length];
+//        int i = 0;
+//        for (Locale locale : availableLocales) {
+//            if (locale.getDisplayCountry().isEmpty()) {
+//                languages[i] = locale.getDisplayLanguage();
+//            } else if (locale.getDisplayVariant().isEmpty()) {
+//                languages[i] = locale.getDisplayLanguage() + " (" + locale.getDisplayCountry() + ")";
+//            } else {
+//                languages[i] = locale.getDisplayLanguage() + " (" + locale.getDisplayCountry() + " " + locale.getDisplayVariant() + ")";
+//            }
+//            i++;
+//        }
+        String[] languages = { "English (Canada)", "English (UK)", "English (US)", "Persian (Iran)" };
+        String[] codes = { "en_CA", "en_GB", "en_US", "fa_IR" };
+        int selectedIndex = 0;
+        for (int a = 0; a < codes.length; a++) {
+            if (codes[a].equals(host.getLanguageCountryCode())) {
+                selectedIndex = a;
             }
-            i++;
         }
-        Arrays.sort(languages);
-        ComboBoxProperty languageChooser = new ComboBoxProperty("Language:", languages, 1);
+        //Arrays.sort(languages);
+        ComboBoxProperty languageChooser = new ComboBoxProperty(
+                bundle.getString("Language") + ":", languages, selectedIndex);
         languageChooser.setLeftMargin(leftMargin);
         languageChooser.setRightMargin(rightMargin);
-        languageChooser.setBackColour(Color.WHITE);
+        languageChooser.setBackColour(backColour);
         languageChooser.setPreferredWidth(preferredWidth);
         languageChooser.revalidate();
         ItemListener il = new ItemListener() {
@@ -180,11 +189,29 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     Object item = e.getItem();
-                    //setValue(item.toString());
+                    String code;
+                    switch (item.toString().toLowerCase()) {
+                        case "english (canada)":
+                            code = "en_CA";
+                            break;
+                        case "english (uk)":
+                            code = "en_GB";
+                            break;
+                        case "english (us)":
+                            code = "en_US";
+                            break;
+                        case "persian (iran)":
+                            code = "fa_IR";
+                            break;
+                        default:
+                            code = "en_CA";
+                    }
+                    
+                    host.setLanguageCountryCode(code);
                 }
             }
         };
-        languageChooser.parentListener = il;
+        languageChooser.setParentListener(il);
 
         languageChooser.addPropertyChangeListener("value", this);
         mainBox.add(languageChooser);
@@ -209,7 +236,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         int screenHeight = dim.height;
         int screenWidth = dim.width;
-        int myWidth = 800; //this.getWidth();
+        int myWidth = 900; //this.getWidth();
         int myHeight = 400; //this.getHeight();
         setLocation((int) (screenWidth / 2.0 - myWidth / 2.0), (int) (screenHeight / 2.0 - myHeight / 2.0));
     }

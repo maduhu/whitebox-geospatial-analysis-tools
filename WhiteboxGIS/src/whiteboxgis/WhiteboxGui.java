@@ -183,8 +183,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private ResourceBundle bundle;
     private ResourceBundle pluginToolsText;
     private ResourceBundle messages;
-    private String language;
-    private String country;
+    private String language = "en";
+    private String country = "CA";
 
     public static void main(String[] args) {
         try {
@@ -270,7 +270,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public WhiteboxGui() {
         super("Whitebox GAT " + versionName);
         try {
-
             // initialize the pathSep and GraphicsDirectory variables
             pathSep = File.separator;
 
@@ -305,10 +304,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             //fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);
 
+            this.loadPlugins();
+            this.getApplicationProperties();
+            
             // i18n
-            language = new String("en");
-            country = new String("US");
-
+//            language = new String("fa"); //en");
+//            country = new String("IR"); //US");
             currentLocale = new Locale(language, country);
 
             bundle = ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
@@ -355,8 +356,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             });
 
-            this.loadPlugins();
-            this.getApplicationProperties();
+//            this.loadPlugins();
+//            this.getApplicationProperties();
 
             if (defaultQuantPalette.equals("")) {
                 defaultQuantPalette = "spectrum.pal";
@@ -375,7 +376,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //                displayAnnouncements();
 //            }
 
-        } catch (Exception e) {
+        } catch (IOException | SecurityException e) {
             logger.log(Level.SEVERE, "WhiteboxGui.constructor", e);
             //System.out.println(e.getMessage());
         }
@@ -1343,10 +1344,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JMenuItem closeMap = new JMenuItem(bundle.getString("CloseMap"));
             JMenuItem close = new JMenuItem(bundle.getString("Close"));
 
-            JMenuItem layerProperties = new JMenuItem("Layer Display Properties");
+            JMenuItem layerProperties = new JMenuItem(bundle.getString("LayerDisplayProperties"));
             layerProperties.setActionCommand("layerProperties");
             layerProperties.addActionListener(this);
-            JMenuItem options = new JMenuItem("Options and Settings");
+            JMenuItem options = new JMenuItem(bundle.getString("OptionsAndSettings"));
 
             JMenuItem rasterCalc = new JMenuItem(bundle.getString("RasterCalculator"),
                     new ImageIcon(graphicsDirectory + "RasterCalculator.png"));
@@ -1377,12 +1378,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             //closeMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             closeMap.addActionListener(this);
             FileMenu.addSeparator();
-            JMenuItem printMap = new JMenuItem("Print Map", new ImageIcon(graphicsDirectory + "Print.png"));
+            JMenuItem printMap = new JMenuItem(bundle.getString("PrintMap"), new ImageIcon(graphicsDirectory + "Print.png"));
             FileMenu.add(printMap);
             printMap.addActionListener(this);
             printMap.setActionCommand("printMap");
             printMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            JMenuItem exportMap = new JMenuItem("Export Map As Image");
+            JMenuItem exportMap = new JMenuItem(bundle.getString("ExportMapAsImage"));
             FileMenu.add(exportMap);
             exportMap.addActionListener(this);
             exportMap.setActionCommand("exportMapAsImage");
@@ -1598,11 +1599,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             refresh.addActionListener(this);
             refresh.setActionCommand("refreshMap");
 
-            linkMap = new JCheckBoxMenuItem(bundle.getString("LinkOpenMaps"));
-            viewMenu.add(linkMap);
-            linkMap.setActionCommand("linkMap");
-            linkMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            linkMap.addActionListener(this);
+//            linkMap = new JCheckBoxMenuItem(bundle.getString("LinkOpenMaps"));
+//            viewMenu.add(linkMap);
+//            linkMap.setActionCommand("linkMap");
+//            linkMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+//            linkMap.addActionListener(this);
 
             viewMenu.addSeparator();
             JMenuItem mapProperties = new JMenuItem(bundle.getString("MapProperties"));
@@ -1610,7 +1611,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapProperties.setActionCommand("mapProperties");
             viewMenu.add(mapProperties);
             viewMenu.add(layerProperties);
-            JMenuItem viewHistogram = new JMenuItem("View Histogram");
+            JMenuItem viewHistogram = new JMenuItem(bundle.getString("ViewHistogram"));
             viewHistogram.setActionCommand("viewHistogram");
             viewHistogram.addActionListener(this);
             viewMenu.add(viewHistogram);
@@ -2941,6 +2942,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     @Override
     public ResourceBundle getMessageBundle() {
         return messages;
+    }
+    
+    public String getLanguageCountryCode() {
+        return language + "_" + country;
+    }
+    
+    public void setLanguageCountryCode(String code) {
+        String[] str = code.split("_");
+        if (str.length != 2) {
+            showFeedback("Language-Country code improperly formated");
+            return;
+        }
+        language = str[0];
+        country = str[1];
+        showFeedback(messages.getString("CloseWhiteboxToTakeEffect"));
     }
 
     public class SortIgnoreCase implements Comparator<Object> {

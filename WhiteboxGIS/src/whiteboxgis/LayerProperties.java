@@ -26,6 +26,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import whitebox.cartographic.PointMarkers;
 import whitebox.cartographic.PointMarkers.MarkerStyle;
@@ -104,6 +105,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private JTextField ZUnitsText;
     private boolean updatedFileHeader = false;
     private JScrollBar scrollGeneralizeLevel = new JScrollBar(Adjustable.HORIZONTAL, 0, 0, 0, 100);
+    private ResourceBundle bundle;
     
     public LayerProperties(Frame owner, boolean modal, MapLayer layer, MapInfo map) {
         super(owner, modal);
@@ -114,6 +116,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         }
         
         this.host = (WhiteboxPluginHost)(owner);
+        bundle = host.getGuiLabelsBundle();
         this.layer = layer;
         if (layer instanceof RasterLayerInfo) {
             RasterLayerInfo rli = (RasterLayerInfo)layer;
@@ -135,25 +138,31 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             return;
         }
         
-        setTitle("Layer Properties: " + layer.getLayerTitle());
+        setTitle(bundle.getString("LayerProperties") + ": " + layer.getLayerTitle());
         
+        ok = new JButton(bundle.getString("OK"));
+        update = new JButton(bundle.getString("UpdateMap"));
+        close = new JButton(bundle.getString("Close"));
+        clipUpperTail = new JButton(bundle.getString("Clip"));
+        clipLowerTail = new JButton(bundle.getString("Clip"));
+    
         // okay and close buttons.
         Box box1 = Box.createHorizontalBox();
         box1.add(Box.createHorizontalStrut(10));
         box1.add(ok);
         ok.setActionCommand("ok");
         ok.addActionListener(this);
-        ok.setToolTipText("Save changes and exit");
+        ok.setToolTipText(bundle.getString("SaveChangesAndExit"));
         box1.add(Box.createRigidArea(new Dimension(5, 30)));
         box1.add(update);
         update.setActionCommand("update");
         update.addActionListener(this);
-        update.setToolTipText("Save changes without exiting Layer Properties");
+        update.setToolTipText(bundle.getString("UpdateMapTooltip"));
         box1.add(Box.createRigidArea(new Dimension(5, 30)));
         box1.add(close);
         close.setActionCommand("close");
         close.addActionListener(this);
-        close.setToolTipText("Exit without saving changes");
+        close.setToolTipText(bundle.getString("CloseTooltip"));
         box1.add(Box.createHorizontalStrut(100));
         box1.add(Box.createHorizontalGlue());
         
@@ -174,7 +183,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.X_AXIS));
             titleBox.setBackground(Color.white);
             titleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Legend Title");
+            label = new JLabel(bundle.getString("LegendTitle"));
             label.setPreferredSize(new Dimension(180, 24));
             titleBox.add(label);
             titleBox.add(Box.createHorizontalGlue());
@@ -187,7 +196,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             minBox.setLayout(new BoxLayout(minBox, BoxLayout.X_AXIS));
             minBox.setBackground(backColour);
             minBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Display Minimum");
+            label = new JLabel(bundle.getString("DisplayMinimum"));
             label.setPreferredSize(new Dimension(180, 24));
             minBox.add(label);
             minBox.add(Box.createHorizontalGlue());
@@ -195,7 +204,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             minVal.setHorizontalAlignment(JTextField.RIGHT);
             minVal.setMaximumSize(new Dimension(50, 22));
             minBox.add(minVal);
-            minValButton = new JButton("Reset");
+            minValButton = new JButton(bundle.getString("Reset"));
             minValButton.setActionCommand("resetMinimum");
             minValButton.addActionListener(this);
             minBox.add(minValButton);
@@ -213,7 +222,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             maxBox.setLayout(new BoxLayout(maxBox, BoxLayout.X_AXIS));
             maxBox.setBackground(Color.white);
             maxBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Display Maximum");
+            label = new JLabel(bundle.getString("DisplayMaximum"));
             label.setPreferredSize(new Dimension(180, 24));
             maxBox.add(label);
             maxBox.add(Box.createHorizontalGlue());
@@ -221,7 +230,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             maxVal.setHorizontalAlignment(JTextField.RIGHT);
             maxVal.setMaximumSize(new Dimension(50, 22));
             maxBox.add(maxVal);
-            maxValButton = new JButton("Reset");
+            maxValButton = new JButton(bundle.getString("Reset"));
             maxValButton.setActionCommand("resetMaximum");
             maxValButton.addActionListener(this);
             maxBox.add(maxValButton);
@@ -239,7 +248,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             overlayBox.setLayout(new BoxLayout(overlayBox, BoxLayout.X_AXIS));
             overlayBox.setBackground(backColour);
             overlayBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Overlay Number");
+            label = new JLabel(bundle.getString("OverlayNumber"));
             label.setPreferredSize(new Dimension(180, 24));
             overlayBox.add(label);
             overlayBox.add(Box.createHorizontalGlue());
@@ -255,7 +264,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             paletteBox.setLayout(new BoxLayout(paletteBox, BoxLayout.X_AXIS));
             paletteBox.setBackground(Color.white);
             paletteBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Palette");
+            label = new JLabel(bundle.getString("Palette"));
             label.setPreferredSize(new Dimension(180, 24));
             paletteBox.add(label);
             paletteBox.add(Box.createHorizontalGlue());
@@ -272,7 +281,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             reversePaletteBox.setLayout(new BoxLayout(reversePaletteBox, BoxLayout.X_AXIS));
             reversePaletteBox.setBackground(backColour);
             reversePaletteBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is Palette Reversed?");
+            label = new JLabel(bundle.getString("IsPaletteReversed"));
             label.setPreferredSize(new Dimension(180, 24));
             reversePaletteBox.add(label);
             reversePaletteBox.add(Box.createHorizontalGlue());
@@ -288,7 +297,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             scalePaletteBox.setLayout(new BoxLayout(scalePaletteBox, BoxLayout.X_AXIS));
             scalePaletteBox.setBackground(Color.white);
             scalePaletteBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Stretch palette?");
+            label = new JLabel(bundle.getString("StretchPalette"));
             label.setPreferredSize(new Dimension(180, 24));
             scalePaletteBox.add(label);
             scalePaletteBox.add(Box.createHorizontalGlue());
@@ -307,7 +316,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             nonlinearityBox.setLayout(new BoxLayout(nonlinearityBox, BoxLayout.X_AXIS));
             nonlinearityBox.setBackground(backColour);
             nonlinearityBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Palette Nonlinearity:");
+            label = new JLabel(bundle.getString("PaletteNonlinearity") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             nonlinearityBox.add(label);
             nonlinearityBox.add(Box.createHorizontalGlue());
@@ -325,7 +334,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             visibleBox.setLayout(new BoxLayout(visibleBox, BoxLayout.X_AXIS));
             visibleBox.setBackground(Color.white);
             visibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is Layer Visible?");
+            label = new JLabel(bundle.getString("IsLayerVisible"));
             label.setPreferredSize(new Dimension(180, 24));
             visibleBox.add(label);
             visibleBox.add(Box.createHorizontalGlue());
@@ -339,7 +348,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             alphaBox.setLayout(new BoxLayout(alphaBox, BoxLayout.X_AXIS));
             alphaBox.setBackground(backColour);
             alphaBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Opacity");
+            label = new JLabel(bundle.getString("Opacity"));
             label.setPreferredSize(new Dimension(180, 24));
             alphaBox.add(label);
             alphaBox.add(Box.createHorizontalGlue());
@@ -378,7 +387,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel titleBox = new JPanel();
             titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.X_AXIS));
             titleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Legend Title");
+            label = new JLabel(bundle.getString("LegendTitle"));
             label.setPreferredSize(new Dimension(180, 24));
             titleBox.add(label);
             titleBox.add(Box.createHorizontalGlue());
@@ -390,7 +399,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel overlayBox = new JPanel();
             overlayBox.setLayout(new BoxLayout(overlayBox, BoxLayout.X_AXIS));
             overlayBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Overlay Number");
+            label = new JLabel(bundle.getString("OverlayNumber"));
             label.setPreferredSize(new Dimension(180, 24));
             overlayBox.add(label);
             overlayBox.add(Box.createHorizontalGlue());
@@ -405,7 +414,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel visibleBox = new JPanel();
             visibleBox.setLayout(new BoxLayout(visibleBox, BoxLayout.X_AXIS));
             visibleBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Is Layer Visible?");
+            label = new JLabel(bundle.getString("IsLayerVisible"));
             label.setPreferredSize(new Dimension(180, 24));
             visibleBox.add(label);
             visibleBox.add(Box.createHorizontalGlue());
@@ -420,9 +429,9 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             filledBox.add(Box.createHorizontalStrut(10));
             if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM ||
                     st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
-                label = new JLabel("Fill Polygons?");
+                label = new JLabel(bundle.getString("FillPolygons"));
             } else {
-                label = new JLabel("Fill Points?");
+                label = new JLabel(bundle.getString("FillPoints"));
             }
             label.setPreferredSize(new Dimension(180, 24));
             filledBox.add(label);
@@ -438,9 +447,9 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             outlinedBox.add(Box.createHorizontalStrut(10));
             if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM ||
                     st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
-                label = new JLabel("Outline Polygons?");
+                label = new JLabel(bundle.getString("OutlinePolygons"));
             } else {
-                label = new JLabel("Outline Points?");
+                label = new JLabel(bundle.getString("OutlinePoints"));
             }
             label.setPreferredSize(new Dimension(180, 24));
             outlinedBox.add(label);
@@ -454,11 +463,11 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel lineThicknessBox = new JPanel();
             lineThicknessBox.setLayout(new BoxLayout(lineThicknessBox, BoxLayout.X_AXIS));
             lineThicknessBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Line Thickness");
+            label = new JLabel(bundle.getString("LineThickness") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             lineThicknessBox.add(label);
             lineThicknessBox.add(Box.createHorizontalGlue());
-            labelLineThickness.setText("Value: " + Float.toString(vli.getLineThickness()));
+            labelLineThickness.setText(bundle.getString("Value") + ": " + Float.toString(vli.getLineThickness()));
             lineThicknessBox.add(labelLineThickness);
             lineThicknessBox.add(Box.createHorizontalStrut(10));
             scrollLineThickness.setValue((int)(vli.getLineThickness() * 100 - minLineThickness));
@@ -470,13 +479,13 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel lineColourBox = new JPanel();
             lineColourBox.setLayout(new BoxLayout(lineColourBox, BoxLayout.X_AXIS));
             lineColourBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Line Colour:");
+            label = new JLabel(bundle.getString("LineColor") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             lineColourBox.add(label);
             lineColourBox.add(Box.createHorizontalGlue());
             sampleColourLine = vli.getLineColour();
             sampleColourPanelLine = new SampleColour(sampleWidth, sampleHeight, sampleColourLine);
-            sampleColourPanelLine.setToolTipText("Click to select new color.");
+            sampleColourPanelLine.setToolTipText(bundle.getString("ClickToSelectColor"));
             sampleColourPanelLine.addMouseListener(this);
             lineColourBox.add(sampleColourPanelLine);
             lineColourBox.add(Box.createHorizontalStrut(10));
@@ -484,11 +493,11 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel markerBox = new JPanel();
             markerBox.setLayout(new BoxLayout(markerBox, BoxLayout.X_AXIS));
             markerBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Marker Size:");
+            label = new JLabel(bundle.getString("MarkerSize") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             markerBox.add(label);
             markerBox.add(Box.createHorizontalGlue());
-            labelMarkerSize.setText("Value: " + Float.toString(vli.getMarkerSize()));
+            labelMarkerSize.setText(bundle.getString("Value") + ": " + Float.toString(vli.getMarkerSize()));
             markerSize = vli.getMarkerSize();
             markerBox.add(labelMarkerSize);
             markerBox.add(Box.createHorizontalStrut(10));
@@ -501,7 +510,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel dashComboBox = new JPanel();
             dashComboBox.setLayout(new BoxLayout(dashComboBox, BoxLayout.X_AXIS));
             dashComboBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Line Style:");
+            label = new JLabel(bundle.getString("LineStyle") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             dashComboBox.add(label);
             dashComboBox.add(Box.createHorizontalGlue());
@@ -517,21 +526,21 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel fillColourBox = new JPanel();
             fillColourBox.setLayout(new BoxLayout(fillColourBox, BoxLayout.X_AXIS));
             fillColourBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Fill Colour:");
+            label = new JLabel(bundle.getString("FillColor") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             fillColourBox.add(label);
             fillColourBox.add(Box.createHorizontalGlue());
             sampleColourFill = vli.getFillColour();
             sampleColourPanelFill = new SampleColour(sampleWidth, sampleHeight, sampleColourFill);
-            sampleColourPanelFill.setToolTipText("Click to select new color.");
+            sampleColourPanelFill.setToolTipText(bundle.getString("ClickToSelectColor"));
             sampleColourPanelFill.addMouseListener(this);
-            uniqueFillColour = new JRadioButton("Use a unique colour", true);
+            uniqueFillColour = new JRadioButton(bundle.getString("UseUniqueColor"), true);
             uniqueFillColour.setOpaque(false);
             fillColourBox.add(uniqueFillColour);
             fillColourBox.add(Box.createHorizontalStrut(5));
             fillColourBox.add(sampleColourPanelFill);
             fillColourBox.add(Box.createHorizontalStrut(10));
-            fieldBasedFillColour = new JRadioButton("Fill based on an attribute", false);
+            fieldBasedFillColour = new JRadioButton(bundle.getString("FillBasedOnAttribute"), false);
             fieldBasedFillColour.setOpaque(false);
             fillColourBox.add(fieldBasedFillColour);
             fillColourBox.add(Box.createHorizontalStrut(10));
@@ -539,7 +548,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel markerComboBox = new JPanel();
             markerComboBox.setLayout(new BoxLayout(markerComboBox, BoxLayout.X_AXIS));
             markerComboBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Marker Style:");
+            label = new JLabel(bundle.getString("MarkerStyle") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             markerComboBox.add(label);
             markerComboBox.add(Box.createHorizontalGlue());
@@ -551,7 +560,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             alphaBox.setLayout(new BoxLayout(alphaBox, BoxLayout.X_AXIS));
             alphaBox.setBackground(backColour);
             alphaBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Opacity");
+            label = new JLabel(bundle.getString("Opacity"));
             label.setPreferredSize(new Dimension(180, 24));
             alphaBox.add(label);
             alphaBox.add(Box.createHorizontalGlue());
@@ -567,7 +576,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             valueFieldBox = new JPanel();
             valueFieldBox.setLayout(new BoxLayout(valueFieldBox, BoxLayout.X_AXIS));
             valueFieldBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Choose an attribute:");
+            label = new JLabel(bundle.getString("ChooseAnAttribute") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             valueFieldBox.add(label);
             valueFieldBox.add(Box.createHorizontalGlue());
@@ -581,7 +590,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             valueFieldBox.add(Box.createHorizontalStrut(5));
             viewAttributesTable.setActionCommand("viewAttributesTable");
             viewAttributesTable.addActionListener(this);
-            viewAttributesTable.setToolTipText("View Attributes Table");
+            viewAttributesTable.setToolTipText(bundle.getString("ViewAttributeTable"));
             valueFieldBox.add(viewAttributesTable);
             valueFieldBox.add(Box.createHorizontalStrut(10));
             
@@ -597,21 +606,21 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel lineColourBox2 = new JPanel();
             lineColourBox2.setLayout(new BoxLayout(lineColourBox2, BoxLayout.X_AXIS));
             lineColourBox2.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Line Colour:");
+            label = new JLabel(bundle.getString("LineColor") + ":");
             label.setPreferredSize(new Dimension(180, 24));
             lineColourBox2.add(label);
             lineColourBox2.add(Box.createHorizontalGlue());
             sampleColourLine = vli.getLineColour();
             sampleColourPanelLine2 = new SampleColour(sampleWidth, sampleHeight, sampleColourLine);
-            sampleColourPanelLine2.setToolTipText("Click to select new color.");
+            sampleColourPanelLine2.setToolTipText(bundle.getString("ClickToSelectColor"));
             sampleColourPanelLine2.addMouseListener(this);
-            uniqueLineColour = new JRadioButton("Use a unique colour", true);
+            uniqueLineColour = new JRadioButton(bundle.getString("UseUniqueColor"), true);
             uniqueLineColour.setOpaque(false);
             lineColourBox2.add(uniqueLineColour);
             lineColourBox2.add(Box.createHorizontalStrut(5));
             lineColourBox2.add(sampleColourPanelLine2);
             lineColourBox2.add(Box.createHorizontalStrut(10));
-            fieldBasedLineColour = new JRadioButton("Colour based on an attribute", false);
+            fieldBasedLineColour = new JRadioButton(bundle.getString("ColorBasedOnAttribute"), false);
             fieldBasedLineColour.setOpaque(false);
             lineColourBox2.add(fieldBasedLineColour);
             lineColourBox2.add(Box.createHorizontalStrut(10));
@@ -629,7 +638,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             paletteBox.setLayout(new BoxLayout(paletteBox, BoxLayout.X_AXIS));
             paletteBox.setBackground(Color.white);
             paletteBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Choose a palette");
+            label = new JLabel(bundle.getString("ChoosePalette"));
             label.setPreferredSize(new Dimension(180, 24));
             paletteBox.add(label);
             paletteBox.add(Box.createHorizontalGlue());
@@ -644,7 +653,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             scalePaletteBox = new JPanel();
             scalePaletteBox.setLayout(new BoxLayout(scalePaletteBox, BoxLayout.X_AXIS));
             scalePaletteBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Stretch palette?");
+            label = new JLabel(bundle.getString("StretchPalette"));
             label.setPreferredSize(new Dimension(180, 24));
             scalePaletteBox.add(label);
             scalePaletteBox.add(Box.createHorizontalGlue());
@@ -697,19 +706,18 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             JPanel generalizedBox = new JPanel();
             generalizedBox.setLayout(new BoxLayout(generalizedBox, BoxLayout.X_AXIS));
             generalizedBox.add(Box.createHorizontalStrut(10));
-            label = new JLabel("Cartographic generalization");
-            generalizedBox.setToolTipText("Generalized layers render far quicker but can " +
-                    "result in artifacts at small spatial scales.");
+            label = new JLabel(bundle.getString("CartographicGeneralization"));
+            generalizedBox.setToolTipText(bundle.getString("CartographicGeneralizationTooltip"));
             label.setPreferredSize(new Dimension(180, 24));
             generalizedBox.add(label);
             generalizedBox.add(Box.createHorizontalGlue());
-            generalizedBox.add(new JLabel("Low"));
+            generalizedBox.add(new JLabel(bundle.getString("Low")));
             generalizedBox.add(Box.createHorizontalStrut(5));
             scrollGeneralizeLevel.setValue((int)(vli.getCartographicGeneralizationLevel() / 5.0 * 100));
             scrollGeneralizeLevel.setMaximumSize(new Dimension(200, 22));
             generalizedBox.add(scrollGeneralizeLevel);
             generalizedBox.add(Box.createHorizontalStrut(5));
-            generalizedBox.add(new JLabel("High"));
+            generalizedBox.add(new JLabel(bundle.getString("High")));
             generalizedBox.add(Box.createHorizontalStrut(10));
             
             if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM ||
@@ -811,7 +819,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         JPanel panel1 = new JPanel();
         panel1.setLayout(new BoxLayout(panel1, BoxLayout.Y_AXIS));
         panel1.add(scroll);
-        tabs.addTab("Display", panel1);
+        tabs.addTab(bundle.getString("Display"), panel1);
         
         
         Box fileMainBox = getFileMainBox();
@@ -819,7 +827,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         JPanel panel2 = new JPanel();
         panel2.setLayout(new BoxLayout(panel2, BoxLayout.Y_AXIS));
         panel2.add(scroll2);
-        tabs.addTab("File", panel2);
+        tabs.addTab(bundle.getString("File"), panel2);
         
         getContentPane().add(tabs, BorderLayout.CENTER);
         
@@ -849,7 +857,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 fileNameBox.setLayout(new BoxLayout(fileNameBox, BoxLayout.X_AXIS));
                 fileNameBox.setBackground(Color.white);
                 fileNameBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("File Name");
+                label = new JLabel(bundle.getString("FileName"));
                 label.setPreferredSize(new Dimension(180, 24));
                 fileNameBox.add(label);
                 fileNameBox.add(Box.createHorizontalGlue());
@@ -865,7 +873,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 dataTypeBox.setLayout(new BoxLayout(dataTypeBox, BoxLayout.X_AXIS));
                 dataTypeBox.setBackground(backColour);
                 dataTypeBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Data Type");
+                label = new JLabel(bundle.getString("DataType"));
                 dataTypeBox.add(label);
                 dataTypeBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getDataType().name()));
@@ -878,7 +886,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 dataScaleBox.setLayout(new BoxLayout(dataScaleBox, BoxLayout.X_AXIS));
                 dataScaleBox.setBackground(Color.white);
                 dataScaleBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Data Scale");
+                label = new JLabel(bundle.getString("DataScale"));
                 dataScaleBox.add(label);
                 dataScaleBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getDataScale().name()));
@@ -891,7 +899,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 numRowsBox.setLayout(new BoxLayout(numRowsBox, BoxLayout.X_AXIS));
                 numRowsBox.setBackground(backColour);
                 numRowsBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Num. Rows");
+                label = new JLabel(bundle.getString("NumberOfRows"));
                 numRowsBox.add(label);
                 numRowsBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getNumberRows()));
@@ -904,7 +912,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 numColsBox.setLayout(new BoxLayout(numColsBox, BoxLayout.X_AXIS));
                 numColsBox.setBackground(Color.white);
                 numColsBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Num. Columns");
+                label = new JLabel(bundle.getString("NumberOfColumns"));
                 numColsBox.add(label);
                 numColsBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getNumberColumns()));
@@ -917,7 +925,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 xMinBox.setLayout(new BoxLayout(xMinBox, BoxLayout.X_AXIS));
                 xMinBox.setBackground(backColour);
                 xMinBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("South");
+                label = new JLabel(bundle.getString("South"));
                 xMinBox.add(label);
                 xMinBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getSouth()));
@@ -930,7 +938,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 xMaxBox.setLayout(new BoxLayout(xMaxBox, BoxLayout.X_AXIS));
                 xMaxBox.setBackground(Color.white);
                 xMaxBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("North");
+                label = new JLabel(bundle.getString("North"));
                 xMaxBox.add(label);
                 xMaxBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getNorth()));
@@ -943,7 +951,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 yMinBox.setLayout(new BoxLayout(yMinBox, BoxLayout.X_AXIS));
                 yMinBox.setBackground(backColour);
                 yMinBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("East");
+                label = new JLabel(bundle.getString("East"));
                 yMinBox.add(label);
                 yMinBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getEast()));
@@ -956,7 +964,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 yMaxBox.setLayout(new BoxLayout(yMaxBox, BoxLayout.X_AXIS));
                 yMaxBox.setBackground(Color.white);
                 yMaxBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("West");
+                label = new JLabel(bundle.getString("West"));
                 yMaxBox.add(label);
                 yMaxBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getWest()));
@@ -969,7 +977,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 minValBox.setLayout(new BoxLayout(minValBox, BoxLayout.X_AXIS));
                 minValBox.setBackground(backColour);
                 minValBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Min. Value");
+                label = new JLabel(bundle.getString("MinimumValue"));
                 minValBox.add(label);
                 minValBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getMinimumValue()));
@@ -982,7 +990,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 maxValBox.setLayout(new BoxLayout(maxValBox, BoxLayout.X_AXIS));
                 maxValBox.setBackground(Color.white);
                 maxValBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Max. Value");
+                label = new JLabel(bundle.getString("MaximumValue"));
                 maxValBox.add(label);
                 maxValBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getMaximumValue()));
@@ -995,7 +1003,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 minDispValBox.setLayout(new BoxLayout(minDispValBox, BoxLayout.X_AXIS));
                 minDispValBox.setBackground(backColour);
                 minDispValBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Min. Displayed Value");
+                label = new JLabel(bundle.getString("MinDisplayValue"));
                 minDispValBox.add(label);
                 minDispValBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getDisplayMinimum()));
@@ -1008,7 +1016,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 maxDispValBox.setLayout(new BoxLayout(maxDispValBox, BoxLayout.X_AXIS));
                 maxDispValBox.setBackground(Color.white);
                 maxDispValBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Max. Displayed Value");
+                label = new JLabel(bundle.getString("MinDisplayValue"));
                 maxDispValBox.add(label);
                 maxDispValBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getDisplayMaximum()));
@@ -1021,7 +1029,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 cellSizeXBox.setLayout(new BoxLayout(cellSizeXBox, BoxLayout.X_AXIS));
                 cellSizeXBox.setBackground(backColour);
                 cellSizeXBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Cell Size X");
+                label = new JLabel(bundle.getString("CellSizeX"));
                 cellSizeXBox.add(label);
                 cellSizeXBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getCellSizeX()));
@@ -1034,7 +1042,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 cellSizeYBox.setLayout(new BoxLayout(cellSizeYBox, BoxLayout.X_AXIS));
                 cellSizeYBox.setBackground(Color.white);
                 cellSizeYBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Cell Size Y");
+                label = new JLabel(bundle.getString("CellSizeY"));
                 cellSizeYBox.add(label);
                 cellSizeYBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getCellSizeY()));
@@ -1047,7 +1055,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 noDataBox.setLayout(new BoxLayout(noDataBox, BoxLayout.X_AXIS));
                 noDataBox.setBackground(backColour);
                 noDataBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("NoData Value");
+                label = new JLabel(bundle.getString("NoDataValue"));
                 noDataBox.add(label);
                 noDataBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getNoDataValue()));
@@ -1060,7 +1068,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 XYUnitBox.setLayout(new BoxLayout(XYUnitBox, BoxLayout.X_AXIS));
                 XYUnitBox.setBackground(Color.white);
                 XYUnitBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("XY Units");
+                label = new JLabel(bundle.getString("XYUnits"));
                 label.setPreferredSize(new Dimension(180, 24));
                 XYUnitBox.add(label);
                 XYUnitBox.add(Box.createHorizontalGlue());
@@ -1078,7 +1086,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 ZUnitBox.setLayout(new BoxLayout(ZUnitBox, BoxLayout.X_AXIS));
                 ZUnitBox.setBackground(backColour);
                 ZUnitBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Z Units");
+                label = new JLabel(bundle.getString("ZUnits"));
                 label.setPreferredSize(new Dimension(180, 24));
                 ZUnitBox.add(label);
                 ZUnitBox.add(Box.createHorizontalGlue());
@@ -1096,7 +1104,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 byteOrderBox.setLayout(new BoxLayout(byteOrderBox, BoxLayout.X_AXIS));
                 byteOrderBox.setBackground(Color.white);
                 byteOrderBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Byte Order");
+                label = new JLabel(bundle.getString("ByteOrder"));
                 byteOrderBox.add(label);
                 byteOrderBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(wri.getByteOrder()));
@@ -1109,7 +1117,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 fileLengthBox.setLayout(new BoxLayout(fileLengthBox, BoxLayout.X_AXIS));
                 fileLengthBox.setBackground(backColour);
                 fileLengthBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("File Length");
+                label = new JLabel(bundle.getString("FileLength"));
                 fileLengthBox.add(label);
                 fileLengthBox.add(Box.createHorizontalGlue());
                 String fileLengthUnits = " kB";
@@ -1135,7 +1143,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 metaDataBox.add(Box.createHorizontalStrut(10));
                 Box metaDataVBox1 = Box.createVerticalBox();
                 metaDataVBox1.setBackground(Color.white);
-                metaDataVBox1.add(new JLabel("Metadata"));
+                metaDataVBox1.add(new JLabel(bundle.getString("Metadata")));
                 metaDataVBox1.add(Box.createVerticalGlue());
                 metaDataBox.add(metaDataVBox1);
                 metaDataBox.add(Box.createHorizontalGlue());

@@ -235,7 +235,7 @@ public class Scripter extends JFrame implements ActionListener {
         toolbar.addSeparator();
         
         JButton clearConsole = makeToolBarButton("ClearConsole.png", "clearConsole", 
-                bundle.getString("ClearConsole"), "Clear Console");
+                bundle.getString("ClearConsole"), bundle.getString("ClearConsole"));
         toolbar.add(clearConsole);
         
         toolbar.addSeparator();
@@ -309,7 +309,7 @@ public class Scripter extends JFrame implements ActionListener {
             menubar.add(languageMenu);
 
             JMenu sourceMenu = new JMenu(bundle.getString("Source"));
-            JMenuItem execute = new JMenuItem("Execute");
+            JMenuItem execute = new JMenuItem(bundle.getString("ExecuteCode"));
             execute.setActionCommand("execute");
             execute.addActionListener(this);
             execute.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
