@@ -21,8 +21,6 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.DocumentEvent;
 
 /**
  *
@@ -41,7 +39,7 @@ public class ComboBoxProperty extends JComponent implements MouseListener {
     private int defaultItem = 0;
 //    private int comboBoxWidth = 15;
     private JComboBox combo = new JComboBox();
-    public ItemListener parentListener;
+    private ItemListener parentListener;
     
     // constructors
     public ComboBoxProperty() {
@@ -116,13 +114,15 @@ public class ComboBoxProperty extends JComponent implements MouseListener {
         this.rightMargin = rightMargin;
     }
 
-//    public int getComboboxWidth() {
-//        return comboBoxWidth;
-//    }
-//
-//    public void setComboBoxWidth(int textboxWidth) {
-//        this.comboBoxWidth = textboxWidth;
-//    }
+    public ItemListener getParentListener() {
+        return parentListener;
+    }
+
+    public void setParentListener(ItemListener parentListener) {
+        this.parentListener = parentListener;
+        revalidate();
+    }
+    
     public String[] getListItems() {
         return listItems;
     }
