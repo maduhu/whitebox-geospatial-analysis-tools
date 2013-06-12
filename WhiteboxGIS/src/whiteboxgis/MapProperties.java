@@ -33,7 +33,7 @@ import javax.print.attribute.standard.*;
 import javax.swing.*;
 import whitebox.cartographic.*;
 import whitebox.cartographic.Neatline;
-import whitebox.ui.carto_properties.ColourProperty;
+import whitebox.ui.ColourProperty;
 import whitebox.ui.carto_properties.*;
 import whitebox.interfaces.CartographicElement;
 import whitebox.interfaces.WhiteboxPluginHost;

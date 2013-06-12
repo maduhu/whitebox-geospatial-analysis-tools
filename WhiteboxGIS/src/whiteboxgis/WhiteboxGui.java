@@ -185,6 +185,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private ResourceBundle messages;
     private String language = "en";
     private String country = "CA";
+    private boolean checkForUpdates = true;
+    private boolean receiveAnnouncements = true;
 
     public static void main(String[] args) {
         try {
@@ -306,7 +308,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             this.loadPlugins();
             this.getApplicationProperties();
-            
+
             // i18n
 //            language = new String("fa"); //en");
 //            country = new String("IR"); //US");
@@ -372,10 +374,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             checkVersionIsUpToDate();
 
-//            if (announcements.size() > 0) {
-//                displayAnnouncements();
-//            }
-
         } catch (IOException | SecurityException e) {
             logger.log(Level.SEVERE, "WhiteboxGui.constructor", e);
             //System.out.println(e.getMessage());
@@ -388,107 +386,114 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             @Override
             public void run() {
                 try {
-                    String currentVersionName = "";
-                    String currentVersionNumber = "";
-                    String downloadLocation = "";
+                    if (checkForUpdates || receiveAnnouncements) {
+                        String currentVersionName = "";
+                        String currentVersionNumber = "";
+                        String downloadLocation = "";
 
-                    //make a URL to a known source
-                    String baseUrl = "http://www.uoguelph.ca/~hydrogeo/Whitebox/VersionInfo.xml";
-                    URL url = new URL(baseUrl);
+                        //make a URL to a known source
+                        String baseUrl = "http://www.uoguelph.ca/~hydrogeo/Whitebox/VersionInfo.xml";
+                        URL url = new URL(baseUrl);
 
-                    //open a connection to that source
-                    HttpURLConnection urlConnect = (HttpURLConnection) url.openConnection();
+                        //open a connection to that source
+                        HttpURLConnection urlConnect = (HttpURLConnection) url.openConnection();
 
-                    //trying to retrieve data from the source. If there
-                    //is no connection, this line will fail
-                    Object objData = urlConnect.getContent();
+                        //trying to retrieve data from the source. If there
+                        //is no connection, this line will fail
+                        Object objData = urlConnect.getContent();
 
-                    InputStream inputStream = (InputStream) urlConnect.getContent();
-                    DocumentBuilderFactory docbf = DocumentBuilderFactory.newInstance();
-                    docbf.setNamespaceAware(true);
-                    DocumentBuilder docbuilder = docbf.newDocumentBuilder();
-                    Document document = docbuilder.parse(inputStream, baseUrl);
+                        InputStream inputStream = (InputStream) urlConnect.getContent();
+                        DocumentBuilderFactory docbf = DocumentBuilderFactory.newInstance();
+                        docbf.setNamespaceAware(true);
+                        DocumentBuilder docbuilder = docbf.newDocumentBuilder();
+                        Document document = docbuilder.parse(inputStream, baseUrl);
 
-                    document.getDocumentElement().normalize();
-                    Element docElement = document.getDocumentElement();
+                        document.getDocumentElement().normalize();
+                        Element docElement = document.getDocumentElement();
 
-                    Element el;
-                    NodeList nl = docElement.getElementsByTagName("VersionName");
-                    if (nl.getLength() > 0) {
-                        el = (Element) nl.item(0);
-                        currentVersionName = el.getFirstChild().getNodeValue().replace("\"", "");
-                    }
+                        Element el;
+                        NodeList nl = docElement.getElementsByTagName("VersionName");
+                        if (nl.getLength() > 0) {
+                            el = (Element) nl.item(0);
+                            currentVersionName = el.getFirstChild().getNodeValue().replace("\"", "");
+                        }
 
-                    nl = docElement.getElementsByTagName("VersionNumber");
-                    if (nl.getLength() > 0) {
-                        el = (Element) nl.item(0);
-                        currentVersionNumber = el.getFirstChild().getNodeValue().replace("\"", "");
-                    }
+                        nl = docElement.getElementsByTagName("VersionNumber");
+                        if (nl.getLength() > 0) {
+                            el = (Element) nl.item(0);
+                            currentVersionNumber = el.getFirstChild().getNodeValue().replace("\"", "");
+                        }
 
-                    nl = docElement.getElementsByTagName("DownloadLocation");
-                    if (nl.getLength() > 0) {
-                        el = (Element) nl.item(0);
-                        downloadLocation = el.getFirstChild().getNodeValue().replace("\"", "");
-                    }
+                        nl = docElement.getElementsByTagName("DownloadLocation");
+                        if (nl.getLength() > 0) {
+                            el = (Element) nl.item(0);
+                            downloadLocation = el.getFirstChild().getNodeValue().replace("\"", "");
+                        }
 
-                    // read the announcement data, if any
-                    nl = docElement.getElementsByTagName("Announcements");
-                    if (nl != null && nl.getLength() > 0) {
-                        el = (Element) nl.item(0);
-                        int thisAnnouncementNumber = Integer.parseInt(el.getAttribute("number"));
-                        if (thisAnnouncementNumber > announcementNumber) {
-                            NodeList nl2 = el.getElementsByTagName("Announcement");
-                            if (nl2.getLength() > 0) {
-                                for (int i = 0; i < nl2.getLength(); i++) {
-                                    Element el2 = (Element) nl2.item(i);
-                                    String date = getTextValue(el2, "Date");
-                                    String title = getTextValue(el2, "Title");
-                                    String message = getTextValue(el2, "Message");
-                                    if (!message.replace("\n", "").isEmpty()) {
-                                        WhiteboxAnnouncement wba =
-                                                new WhiteboxAnnouncement(message, title, date);
-                                        announcements.add(wba);
+                        if (receiveAnnouncements) {
+                            // read the announcement data, if any
+                            nl = docElement.getElementsByTagName("Announcements");
+                            if (nl != null && nl.getLength() > 0) {
+                                el = (Element) nl.item(0);
+                                int thisAnnouncementNumber = Integer.parseInt(el.getAttribute("number"));
+                                if (thisAnnouncementNumber > announcementNumber) {
+                                    NodeList nl2 = el.getElementsByTagName("Announcement");
+                                    if (nl2.getLength() > 0) {
+                                        for (int i = 0; i < nl2.getLength(); i++) {
+                                            Element el2 = (Element) nl2.item(i);
+                                            String date = getTextValue(el2, "Date");
+                                            String title = getTextValue(el2, "Title");
+                                            String message = getTextValue(el2, "Message");
+                                            if (!message.replace("\n", "").isEmpty()) {
+                                                WhiteboxAnnouncement wba =
+                                                        new WhiteboxAnnouncement(message, title, date);
+                                                announcements.add(wba);
+                                            }
+                                        }
                                     }
+                                    announcementNumber = thisAnnouncementNumber;
                                 }
                             }
-                            announcementNumber = thisAnnouncementNumber;
+
+                            if (announcements.size() > 0) {
+                                displayAnnouncements();
+                            }
+
                         }
-                    }
 
-                    if (currentVersionName.isEmpty()
-                            || currentVersionNumber.isEmpty()
-                            || downloadLocation.isEmpty()) {
-                        return;
-                    }
-                    
-                    if (announcements.size() > 0) {
-                        displayAnnouncements();
-                    }
+                        if (currentVersionName.isEmpty()
+                                || currentVersionNumber.isEmpty()
+                                || downloadLocation.isEmpty()) {
+                            return;
+                        }
 
-                    if (Integer.parseInt(versionNumber.replace(".", ""))
-                            < Integer.parseInt(currentVersionNumber.replace(".", ""))
-                            && Integer.parseInt(skipVersionNumber.replace(".", ""))
-                            < Integer.parseInt(currentVersionNumber.replace(".", ""))) {
-                        //Custom button text
-                        Object[] options = {"Yes, proceed to download site", "Not now", "Don't ask again"};
-                        int n = JOptionPane.showOptionDialog(null,
-                                "A newer version is available. "
-                                + "Would you like to download Whitebox "
-                                + currentVersionName + " (" + currentVersionNumber
-                                + ")?" + "\nYou are currently using Whitebox " + versionName
-                                + " (" + versionNumber + ").",
-                                "Whitebox Version",
-                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                JOptionPane.QUESTION_MESSAGE,
-                                null,
-                                options,
-                                options[0]);
+                        if (checkForUpdates) {
+                            if (Integer.parseInt(versionNumber.replace(".", ""))
+                                    < Integer.parseInt(currentVersionNumber.replace(".", ""))
+                                    && Integer.parseInt(skipVersionNumber.replace(".", ""))
+                                    < Integer.parseInt(currentVersionNumber.replace(".", ""))) {
+                                //Custom button text
+                                Object[] options = {"Yes, proceed to download site", "Not now", "Don't ask again"};
+                                int n = JOptionPane.showOptionDialog(null,
+                                        "A newer version is available. "
+                                        + "Would you like to download Whitebox "
+                                        + currentVersionName + " (" + currentVersionNumber
+                                        + ")?" + "\nYou are currently using Whitebox " + versionName
+                                        + " (" + versionNumber + ").",
+                                        "Whitebox Version",
+                                        JOptionPane.YES_NO_CANCEL_OPTION,
+                                        JOptionPane.QUESTION_MESSAGE,
+                                        null,
+                                        options,
+                                        options[0]);
 
-                        if (n == 0) {
-                            Desktop d = Desktop.getDesktop();
-                            d.browse(new URI(downloadLocation));
-                        } else if (n == 2) {
-                            skipVersionNumber = currentVersionNumber;
+                                if (n == 0) {
+                                    Desktop d = Desktop.getDesktop();
+                                    d.browse(new URI(downloadLocation));
+                                } else if (n == 2) {
+                                    skipVersionNumber = currentVersionNumber;
+                                }
+                            }
                         }
                     }
                 } catch (UnknownHostException e) {
@@ -985,15 +990,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (props.containsKey("announcementNumber")) {
                     announcementNumber = Integer.parseInt(props.getProperty("announcementNumber"));
                 }
-                
+
                 // retrieve the langauge setting
                 if (props.containsKey("language")) {
                     language = props.getProperty("language");
                 }
-                
+
                 // retrieve the country setting
                 if (props.containsKey("country")) {
                     country = props.getProperty("country");
+                }
+                
+                // receive announcements
+                if (props.containsKey("receiveAnnouncements")) {
+                    receiveAnnouncements = Boolean.parseBoolean(props.getProperty("receiveAnnouncements"));
+                }
+                
+                // check for updates
+                if (props.containsKey("checkForUpdates")) {
+                    checkForUpdates = Boolean.parseBoolean(props.getProperty("checkForUpdates"));
                 }
 
                 // retrieve the plugin usage information
@@ -1061,6 +1076,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("announcementNumber", Integer.toString(announcementNumber));
         props.setProperty("language", language);
         props.setProperty("country", country);
+        props.setProperty("receiveAnnouncements", Boolean.toString(receiveAnnouncements));
+        props.setProperty("checkForUpdates", Boolean.toString(checkForUpdates));
 
         // set the recent data layers
         String recentDataLayers = "";
@@ -2943,11 +2960,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public ResourceBundle getMessageBundle() {
         return messages;
     }
-    
+
     public String getLanguageCountryCode() {
         return language + "_" + country;
     }
-    
+
     public void setLanguageCountryCode(String code) {
         String[] str = code.split("_");
         if (str.length != 2) {
@@ -2957,6 +2974,22 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         language = str[0];
         country = str[1];
         showFeedback(messages.getString("CloseWhiteboxToTakeEffect"));
+    }
+
+    public boolean isCheckForUpdates() {
+        return checkForUpdates;
+    }
+
+    public void setCheckForUpdates(boolean checkForUpdates) {
+        this.checkForUpdates = checkForUpdates;
+    }
+
+    public boolean isReceiveAnnouncements() {
+        return receiveAnnouncements;
+    }
+
+    public void setReceiveAnnouncements(boolean receiveAnnouncements) {
+        this.receiveAnnouncements = receiveAnnouncements;
     }
 
     public class SortIgnoreCase implements Comparator<Object> {
@@ -3326,7 +3359,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void newMap() {
 
-        String str = JOptionPane.showInputDialog(messages.getString("NewMapName") 
+        String str = JOptionPane.showInputDialog(messages.getString("NewMapName")
                 + ": ", bundle.getString("Map") + (numOpenMaps + 1));
 
         if (str != null) {
