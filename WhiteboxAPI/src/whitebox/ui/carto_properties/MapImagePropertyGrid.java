@@ -16,10 +16,13 @@
  */
 package whitebox.ui.carto_properties;
 
+import whitebox.ui.NumericProperty;
+import whitebox.ui.ColourProperty;
+import whitebox.ui.BooleanProperty;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import whitebox.cartographic.MapImage;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -45,6 +48,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
     private NumericProperty width;
     private NumericProperty height;
     private BooleanProperty aspectRatio;
+    private ResourceBundle bundle;
     
     public MapImagePropertyGrid() {
         createUI();
@@ -53,6 +57,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
     public MapImagePropertyGrid(MapImage mapImage, WhiteboxPluginHost host) {
         this.mapImage = mapImage;
         this.host = host;
+        bundle = host.getGuiLabelsBundle();
         createUI();
     }
 
@@ -96,9 +101,18 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
         this.host = host;
     }
     
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
+    }
+    
     public final void createUI() {
         try {
             
+            if (bundle == null) { return; }
             this.setBackground(Color.WHITE);
             
             //JLabel label = null;
@@ -110,7 +124,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
 //            this.setPreferredSize(new Dimension(preferredWidth, 500));
             
             
-            elementVisible = new BooleanProperty("Is the image visible?", 
+            elementVisible = new BooleanProperty(bundle.getString("IsElementVisible"), 
                     mapImage.isVisible());
             elementVisible.setLeftMargin(leftMargin);
             elementVisible.setRightMargin(rightMargin);
@@ -120,7 +134,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
             elementVisible.revalidate();
             mainBox.add(elementVisible);
 
-            borderVisible = new BooleanProperty("Is the border visible?", 
+            borderVisible = new BooleanProperty(bundle.getString("IsBorderVisible"), 
                     mapImage.isBorderVisible());
             borderVisible.setLeftMargin(leftMargin);
             borderVisible.setRightMargin(rightMargin);
@@ -130,7 +144,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
             borderVisible.addPropertyChangeListener("value", this);
             mainBox.add(borderVisible);
             
-            lineWidth = new NumericProperty("Line width", 
+            lineWidth = new NumericProperty(bundle.getString("LineWidth"), 
                     String.valueOf(mapImage.getLineWidth()));
             lineWidth.setLeftMargin(leftMargin);
             lineWidth.setRightMargin(rightMargin);
@@ -142,7 +156,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
             lineWidth.revalidate();
             mainBox.add(lineWidth);
             
-            borderColour = new ColourProperty("Border colour", 
+            borderColour = new ColourProperty(bundle.getString("BorderColor"), 
                     mapImage.getBorderColour());
             borderColour.setLeftMargin(leftMargin);
             borderColour.setRightMargin(rightMargin);
@@ -152,7 +166,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
             borderColour.addPropertyChangeListener("value", this);
             mainBox.add(borderColour);
             
-            upperLeftX = new NumericProperty("Upper-left x", 
+            upperLeftX = new NumericProperty(bundle.getString("UpperLeftX"), 
                     String.valueOf(mapImage.getUpperLeftX()));
             upperLeftX.setLeftMargin(leftMargin);
             upperLeftX.setRightMargin(rightMargin);
@@ -164,7 +178,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
             upperLeftX.revalidate();
             mainBox.add(upperLeftX);
             
-            upperLeftY = new NumericProperty("Upper-left y", 
+            upperLeftY = new NumericProperty(bundle.getString("UpperLeftY"), 
                     String.valueOf(mapImage.getUpperLeftY()));
             upperLeftY.setLeftMargin(leftMargin);
             upperLeftY.setRightMargin(rightMargin);
@@ -176,7 +190,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
             upperLeftY.revalidate();
             mainBox.add(upperLeftY);
             
-            width = new NumericProperty("Width", 
+            width = new NumericProperty(bundle.getString("Width"), 
                     String.valueOf(mapImage.getWidth()));
             width.setLeftMargin(leftMargin);
             width.setRightMargin(rightMargin);
@@ -188,7 +202,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
             width.revalidate();
             mainBox.add(width);
             
-            height = new NumericProperty("Height", 
+            height = new NumericProperty(bundle.getString("Height"), 
                     String.valueOf(mapImage.getHeight()));
             height.setLeftMargin(leftMargin);
             height.setRightMargin(rightMargin);
@@ -200,7 +214,7 @@ public class MapImagePropertyGrid extends JPanel implements PropertyChangeListen
             height.revalidate();
             mainBox.add(height);
             
-            aspectRatio = new BooleanProperty("Maintain the aspect ratio?", 
+            aspectRatio = new BooleanProperty(bundle.getString("MaintainAspectRatio"), 
                     mapImage.isMaintainAspectRatio());
             aspectRatio.setLeftMargin(leftMargin);
             aspectRatio.setRightMargin(rightMargin);

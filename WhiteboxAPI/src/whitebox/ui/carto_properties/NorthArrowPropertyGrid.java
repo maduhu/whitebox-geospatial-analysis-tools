@@ -16,10 +16,13 @@
  */
 package whitebox.ui.carto_properties;
 
+import whitebox.ui.NumericProperty;
+import whitebox.ui.ColourProperty;
+import whitebox.ui.BooleanProperty;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import whitebox.cartographic.NorthArrow;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -44,6 +47,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
     private ColourProperty borderColour;
     private NumericProperty marginSize;
     private NumericProperty markerSize;
+    private ResourceBundle bundle;
     
     public NorthArrowPropertyGrid() {
         createUI();
@@ -52,6 +56,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
     public NorthArrowPropertyGrid(NorthArrow northArrow, WhiteboxPluginHost host) {
         this.northArrow = northArrow;
         this.host = host;
+        bundle = host.getGuiLabelsBundle();
         createUI();
     }
 
@@ -95,21 +100,27 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
         this.host = host;
     }
     
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
+    }
+    
     public final void createUI() {
         try {
             
+            if (bundle == null) { return; }
             this.setBackground(Color.WHITE);
             
-            //JLabel label = null;
             Box mainBox = Box.createVerticalBox();
-            //JScrollPane scroll = new JScrollPane(mainBox);
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             int preferredWidth = 470;
             this.add(mainBox);
-//            this.setPreferredSize(new Dimension(preferredWidth, 500));
             
             
-            northArrowVisible = new BooleanProperty("Is the arrow visible?", 
+            northArrowVisible = new BooleanProperty(bundle.getString("IsElementVisible"), 
                     northArrow.isVisible());
             northArrowVisible.setLeftMargin(leftMargin);
             northArrowVisible.setRightMargin(rightMargin);
@@ -119,7 +130,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
             northArrowVisible.revalidate();
             mainBox.add(northArrowVisible);
 
-            markerSize = new NumericProperty("Marker size (points)", 
+            markerSize = new NumericProperty(bundle.getString("MarginSize2"), 
                     String.valueOf(northArrow.getMarkerSize()));
             markerSize.setLeftMargin(leftMargin);
             markerSize.setRightMargin(rightMargin);
@@ -133,7 +144,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
             markerSize.revalidate();
             mainBox.add(markerSize);
             
-            outlineColourBox = new ColourProperty("Outline colour", 
+            outlineColourBox = new ColourProperty(bundle.getString("OutlineColor"), 
                     northArrow.getOutlineColour());
             outlineColourBox.setLeftMargin(leftMargin);
             outlineColourBox.setRightMargin(rightMargin);
@@ -143,7 +154,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
             outlineColourBox.addPropertyChangeListener("value", this);
             mainBox.add(outlineColourBox);
             
-            backgroundVisible = new BooleanProperty("Is the background visible?", 
+            backgroundVisible = new BooleanProperty(bundle.getString("IsBackgroundVisible"), 
                     northArrow.isBackgroundVisible());
             backgroundVisible.setLeftMargin(leftMargin);
             backgroundVisible.setRightMargin(rightMargin);
@@ -153,7 +164,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
             backgroundVisible.addPropertyChangeListener("value", this);
             mainBox.add(backgroundVisible);
             
-            backgroundColourBox = new ColourProperty("Background colour", 
+            backgroundColourBox = new ColourProperty(bundle.getString("BackgroundColor"), 
                     northArrow.getBackColour());
             backgroundColourBox.setLeftMargin(leftMargin);
             backgroundColourBox.setRightMargin(rightMargin);
@@ -163,7 +174,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
             backgroundColourBox.addPropertyChangeListener("value", this);
             mainBox.add(backgroundColourBox);
             
-            borderVisible = new BooleanProperty("Is the border visible?", 
+            borderVisible = new BooleanProperty(bundle.getString("IsBorderVisible"), 
                     northArrow.isBorderVisible());
             borderVisible.setLeftMargin(leftMargin);
             borderVisible.setRightMargin(rightMargin);
@@ -173,7 +184,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
             borderVisible.addPropertyChangeListener("value", this);
             mainBox.add(borderVisible);
             
-            borderColour = new ColourProperty("Border colour", 
+            borderColour = new ColourProperty(bundle.getString("BorderColor"), 
                     northArrow.getBorderColour());
             borderColour.setLeftMargin(leftMargin);
             borderColour.setRightMargin(rightMargin);
@@ -183,7 +194,7 @@ public class NorthArrowPropertyGrid extends JPanel implements PropertyChangeList
             borderColour.addPropertyChangeListener("value", this);
             mainBox.add(borderColour);
             
-            marginSize = new NumericProperty("Margin size (points)", 
+            marginSize = new NumericProperty(bundle.getString("MarginSize2"), 
                     String.valueOf(northArrow.getMargin()));
             marginSize.setLeftMargin(leftMargin);
             marginSize.setRightMargin(rightMargin);

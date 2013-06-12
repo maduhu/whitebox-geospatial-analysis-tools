@@ -16,18 +16,18 @@
  */
 package whitebox.ui.carto_properties;
 
+import whitebox.ui.StringProperty;
+import whitebox.ui.NumericProperty;
+import whitebox.ui.ColourProperty;
+import whitebox.ui.FontProperty;
+import whitebox.ui.BooleanProperty;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import javax.swing.JMenu;
+import java.util.ResourceBundle;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import whitebox.cartographic.MapScale;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -58,6 +58,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
     private NumericProperty scaleHeight;
     private FontProperty fontProperty;
     private NumericProperty scaleStyle;
+    private ResourceBundle bundle;
     
     public ScalePropertyGrid() {
         createUI();
@@ -66,6 +67,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
     public ScalePropertyGrid(MapScale mapScale, WhiteboxPluginHost host) {
         this.mapScale = mapScale;
         this.host = host;
+        bundle = host.getGuiLabelsBundle();
         createUI();
     }
 
@@ -109,23 +111,26 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
         this.host = host;
     }
     
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
+    }
+    
     public final void createUI() {
         try {
             
+            if (bundle == null) { return; }
             this.setBackground(Color.WHITE);
             
-            //JLabel label = null;
             Box mainBox = Box.createVerticalBox();
-            //JScrollPane scroll = new JScrollPane(mainBox);
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             int preferredWidth = 470;
-            //scroll.setMaximumSize(new Dimension(1000, preferredWidth));
-            //this.add(scroll);
             this.add(mainBox);
             
-            //this.setPreferredSize(new Dimension(this.getParent().getPreferredSize().width, 500));
-            
-            scaleVisible = new BooleanProperty("Is the scale visible?", 
+            scaleVisible = new BooleanProperty(bundle.getString("IsElementVisible"), 
                     mapScale.isVisible());
             scaleVisible.setLeftMargin(leftMargin);
             scaleVisible.setRightMargin(rightMargin);
@@ -135,7 +140,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             scaleVisible.revalidate();
             mainBox.add(scaleVisible);
             
-            backgroundVisible = new BooleanProperty("Is the background visible?", 
+            backgroundVisible = new BooleanProperty(bundle.getString("IsBackgroundVisible"), 
                     mapScale.isBackgroundVisible());
             backgroundVisible.setLeftMargin(leftMargin);
             backgroundVisible.setRightMargin(rightMargin);
@@ -145,7 +150,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             backgroundVisible.addPropertyChangeListener("value", this);
             mainBox.add(backgroundVisible);
             
-            backgroundColourBox = new ColourProperty("Background colour", 
+            backgroundColourBox = new ColourProperty(bundle.getString("BackgroundColor"), 
                     mapScale.getBackColour());
             backgroundColourBox.setLeftMargin(leftMargin);
             backgroundColourBox.setRightMargin(rightMargin);
@@ -155,7 +160,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             backgroundColourBox.addPropertyChangeListener("value", this);
             mainBox.add(backgroundColourBox);
             
-            borderVisible = new BooleanProperty("Is the border visible?", 
+            borderVisible = new BooleanProperty(bundle.getString("IsBorderVisible"), 
                     mapScale.isBorderVisible());
             borderVisible.setLeftMargin(leftMargin);
             borderVisible.setRightMargin(rightMargin);
@@ -165,7 +170,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             borderVisible.addPropertyChangeListener("value", this);
             mainBox.add(borderVisible);
 
-            borderColourBox = new ColourProperty("Border colour", 
+            borderColourBox = new ColourProperty(bundle.getString("BorderColor"), 
                     mapScale.getFontColour());
             borderColourBox.setLeftMargin(leftMargin);
             borderColourBox.setRightMargin(rightMargin);
@@ -177,7 +182,8 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             
             
             // scale units
-            scaleUnits = new StringProperty("Scale units:", mapScale.getUnits());
+            scaleUnits = new StringProperty(bundle.getString("ScaleUnits"), 
+                    mapScale.getUnits());
             scaleUnits.setLeftMargin(leftMargin);
             scaleUnits.setRightMargin(rightMargin);
             scaleUnits.setBackColour(Color.WHITE);
@@ -187,7 +193,8 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             mainBox.add(scaleUnits);
             
             // scale width
-            scaleWidth = new NumericProperty("Scale width:", String.valueOf(mapScale.getWidth()));
+            scaleWidth = new NumericProperty(bundle.getString("Width"), 
+                    String.valueOf(mapScale.getWidth()));
             scaleWidth.setLeftMargin(leftMargin);
             scaleWidth.setRightMargin(rightMargin);
             scaleWidth.setBackColour(backColour);
@@ -199,7 +206,8 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             mainBox.add(scaleWidth);
             
             // scale height
-            scaleHeight = new NumericProperty("Scale height:", String.valueOf(mapScale.getHeight()));
+            scaleHeight = new NumericProperty(bundle.getString("Height"), 
+                    String.valueOf(mapScale.getHeight()));
             scaleHeight.setLeftMargin(leftMargin);
             scaleHeight.setRightMargin(rightMargin);
             scaleHeight.setBackColour(Color.WHITE);
@@ -211,7 +219,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             mainBox.add(scaleHeight);
             
             // scale margin
-            marginSize = new NumericProperty("Margin size (points)", 
+            marginSize = new NumericProperty(bundle.getString("MarginSize2"), 
                     String.valueOf(mapScale.getMargin()));
             marginSize.setLeftMargin(leftMargin);
             marginSize.setRightMargin(rightMargin);
@@ -224,7 +232,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             mainBox.add(marginSize);
             
             // scale representative fraction
-            scaleRepFracVisible = new BooleanProperty("Show representative fraction?", 
+            scaleRepFracVisible = new BooleanProperty(bundle.getString("ShowRepresentativeFraction"), 
                     mapScale.isBorderVisible());
             scaleRepFracVisible.setLeftMargin(leftMargin);
             scaleRepFracVisible.setRightMargin(rightMargin);
@@ -234,7 +242,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             scaleRepFracVisible.addPropertyChangeListener("value", this);
             mainBox.add(scaleRepFracVisible);
             
-            outlineColourBox = new ColourProperty("Outline colour", 
+            outlineColourBox = new ColourProperty(bundle.getString("OutlineColor"), 
                     mapScale.getOutlineColour());
             outlineColourBox.setLeftMargin(leftMargin);
             outlineColourBox.setRightMargin(rightMargin);
@@ -244,7 +252,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             outlineColourBox.addPropertyChangeListener("value", this);
             mainBox.add(outlineColourBox);
             
-            fontProperty = new FontProperty("Font:", mapScale.getLabelFont());
+            fontProperty = new FontProperty(bundle.getString("Font"), mapScale.getLabelFont());
             fontProperty.setLeftMargin(leftMargin);
             fontProperty.setRightMargin(rightMargin);
             fontProperty.setBackColour(Color.WHITE);
@@ -254,7 +262,7 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
             fontProperty.revalidate();
             mainBox.add(fontProperty);
             
-            graphicalScaleVisible = new BooleanProperty("Is the graphical scale visible?", 
+            graphicalScaleVisible = new BooleanProperty(bundle.getString("IsGraphicalScaleVisible"), 
                     mapScale.isGraphicalScaleVisible());
             graphicalScaleVisible.setLeftMargin(leftMargin);
             graphicalScaleVisible.setRightMargin(rightMargin);
@@ -288,7 +296,8 @@ public class ScalePropertyGrid extends JPanel implements PropertyChangeListener 
 //            scaleStyle.addPropertyChangeListener("value", this);
 //            mainBox.add(scaleStyle);
             
-            scaleStyle = new NumericProperty("Scale Style:", String.valueOf(mapScale.getScaleStyle().ordinal() + 1));
+            scaleStyle = new NumericProperty(bundle.getString("ScaleStyle"), 
+                    String.valueOf(mapScale.getScaleStyle().ordinal() + 1));
             scaleStyle.setLeftMargin(leftMargin);
             scaleStyle.setRightMargin(rightMargin);
             scaleStyle.setBackColour(Color.WHITE);

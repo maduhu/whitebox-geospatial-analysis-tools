@@ -17,10 +17,16 @@
 
 package whitebox.ui.carto_properties;
 
+import whitebox.ui.StringProperty;
+import whitebox.ui.NumericProperty;
+import whitebox.ui.ColourProperty;
+import whitebox.ui.FontProperty;
+import whitebox.ui.BooleanProperty;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import whitebox.cartographic.Legend;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -52,6 +58,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
     private NumericProperty lineWidth;
     private NumericProperty upperLeftX;
     private NumericProperty upperLeftY;
+    private ResourceBundle bundle;
     
     public LegendPropertyGrid() {
         createUI();
@@ -60,6 +67,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
     public LegendPropertyGrid(Legend legend, WhiteboxPluginHost host) {
         this.legend = legend;
         this.host = host;
+        bundle = host.getGuiLabelsBundle();
         createUI();
     }
 
@@ -103,9 +111,18 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
         this.host = host;
     }
     
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
+    }
+    
     public final void createUI() {
         try {
             
+            if (bundle == null) { return; }
             this.setBackground(Color.WHITE);
             
             Box mainBox = Box.createVerticalBox();
@@ -115,7 +132,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             
             Font labelFont = legend.getLabelFont();
             
-            titleString = new StringProperty("Label text", 
+            titleString = new StringProperty(bundle.getString("LabelText"), 
                     legend.getLabel());
             titleString.setLeftMargin(leftMargin);
             titleString.setRightMargin(rightMargin);
@@ -126,7 +143,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             titleString.revalidate();
             mainBox.add(titleString);
             
-            height = new NumericProperty("Height", 
+            height = new NumericProperty(bundle.getString("Height"), 
                     String.valueOf(legend.getHeight()));
             height.setLeftMargin(leftMargin);
             height.setRightMargin(rightMargin);
@@ -138,7 +155,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             height.revalidate();
             mainBox.add(height);
             
-            width = new NumericProperty("Width", 
+            width = new NumericProperty(bundle.getString("Width"), 
                     String.valueOf(legend.getWidth()));
             width.setLeftMargin(leftMargin);
             width.setRightMargin(rightMargin);
@@ -150,7 +167,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             width.revalidate();
             mainBox.add(width);
             
-            upperLeftX = new NumericProperty("Upper-left x", 
+            upperLeftX = new NumericProperty(bundle.getString("UpperLeftX"), 
                     String.valueOf(legend.getUpperLeftX()));
             upperLeftX.setLeftMargin(leftMargin);
             upperLeftX.setRightMargin(rightMargin);
@@ -162,7 +179,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             upperLeftX.revalidate();
             mainBox.add(upperLeftX);
             
-            upperLeftY = new NumericProperty("Upper-left y", 
+            upperLeftY = new NumericProperty(bundle.getString("UpperLeftY"), 
                     String.valueOf(legend.getUpperLeftY()));
             upperLeftY.setLeftMargin(leftMargin);
             upperLeftY.setRightMargin(rightMargin);
@@ -174,7 +191,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             upperLeftY.revalidate();
             mainBox.add(upperLeftY);
             
-            legendVisible = new BooleanProperty("Is the title visible?", 
+            legendVisible = new BooleanProperty(bundle.getString("IsElementVisible"), 
                     legend.isVisible());
             legendVisible.setLeftMargin(leftMargin);
             legendVisible.setRightMargin(rightMargin);
@@ -184,7 +201,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             legendVisible.revalidate();
             mainBox.add(legendVisible);
 
-            fontProperty = new FontProperty("Font:", labelFont);
+            fontProperty = new FontProperty(bundle.getString("Font"), labelFont);
             fontProperty.setLeftMargin(leftMargin);
             fontProperty.setRightMargin(rightMargin);
             fontProperty.setBackColour(Color.WHITE);
@@ -194,7 +211,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             fontProperty.revalidate();
             mainBox.add(fontProperty);
       
-            fontColourBox = new ColourProperty("Font colour", 
+            fontColourBox = new ColourProperty(bundle.getString("FontColor"), 
                     legend.getFontColour());
             fontColourBox.setLeftMargin(leftMargin);
             fontColourBox.setRightMargin(rightMargin);
@@ -204,7 +221,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             fontColourBox.addPropertyChangeListener("value", this);
             mainBox.add(fontColourBox);
                         
-            backgroundVisible = new BooleanProperty("Is the background visible?", 
+            backgroundVisible = new BooleanProperty(bundle.getString("IsBackgroundVisible"), 
                     legend.isBackgroundVisible());
             backgroundVisible.setLeftMargin(leftMargin);
             backgroundVisible.setRightMargin(rightMargin);
@@ -214,7 +231,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             backgroundVisible.addPropertyChangeListener("value", this);
             mainBox.add(backgroundVisible);
             
-            backgroundColourBox = new ColourProperty("Background colour", 
+            backgroundColourBox = new ColourProperty(bundle.getString("BackgroundColor"), 
                     legend.getBackgroundColour());
             backgroundColourBox.setLeftMargin(leftMargin);
             backgroundColourBox.setRightMargin(rightMargin);
@@ -224,7 +241,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             backgroundColourBox.addPropertyChangeListener("value", this);
             mainBox.add(backgroundColourBox);
             
-            borderVisible = new BooleanProperty("Is the border visible?", 
+            borderVisible = new BooleanProperty(bundle.getString("IsBorderVisible"), 
                     legend.isBorderVisible());
             borderVisible.setLeftMargin(leftMargin);
             borderVisible.setRightMargin(rightMargin);
@@ -234,7 +251,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             borderVisible.addPropertyChangeListener("value", this);
             mainBox.add(borderVisible);
             
-            borderColour = new ColourProperty("Border colour", 
+            borderColour = new ColourProperty(bundle.getString("BorderColor"), 
                     legend.getBorderColour());
             borderColour.setLeftMargin(leftMargin);
             borderColour.setRightMargin(rightMargin);
@@ -244,7 +261,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             borderColour.addPropertyChangeListener("value", this);
             mainBox.add(borderColour);
             
-            borderWidth = new NumericProperty("Border width", 
+            borderWidth = new NumericProperty(bundle.getString("BorderWidth"), 
                     String.valueOf(legend.getBorderWidth()));
             borderWidth.setLeftMargin(leftMargin);
             borderWidth.setRightMargin(rightMargin);
@@ -258,7 +275,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             borderWidth.revalidate();
             mainBox.add(borderWidth);
             
-            marginSize = new NumericProperty("Margin size (points)", 
+            marginSize = new NumericProperty(bundle.getString("MarginSize2"), 
                     String.valueOf(legend.getMargin()));
             marginSize.setLeftMargin(leftMargin);
             marginSize.setRightMargin(rightMargin);
@@ -270,7 +287,7 @@ public class LegendPropertyGrid extends JPanel implements PropertyChangeListener
             marginSize.revalidate();
             mainBox.add(marginSize);
             
-            lineWidth = new NumericProperty("Line width", 
+            lineWidth = new NumericProperty(bundle.getString("LineWidth"), 
                     String.valueOf(legend.getLineWidth()));
             lineWidth.setLeftMargin(leftMargin);
             lineWidth.setRightMargin(rightMargin);

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package whitebox.ui.carto_properties;
+package whitebox.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -27,7 +27,6 @@ import javax.swing.*;
  * @author johnlindsay
  */
 public class ComboBoxProperty extends JComponent implements MouseListener {
-
     private String labelText;
     private String value;
     private Color backColour = Color.WHITE;
@@ -37,7 +36,6 @@ public class ComboBoxProperty extends JComponent implements MouseListener {
     private int preferredHeight = 24;
     private String[] listItems;
     private int defaultItem = 0;
-//    private int comboBoxWidth = 15;
     private JComboBox combo = new JComboBox();
     private ItemListener parentListener;
     

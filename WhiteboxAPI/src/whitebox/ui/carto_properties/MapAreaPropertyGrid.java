@@ -16,6 +16,11 @@
  */
 package whitebox.ui.carto_properties;
 
+import whitebox.ui.StringProperty;
+import whitebox.ui.NumericProperty;
+import whitebox.ui.ColourProperty;
+import whitebox.ui.FontProperty;
+import whitebox.ui.BooleanProperty;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
@@ -23,6 +28,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import java.util.ResourceBundle;
 import whitebox.cartographic.MapArea;
 import whitebox.interfaces.WhiteboxPluginHost;
 
@@ -51,6 +57,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
     private StringProperty xyUnits;
     private FontProperty fontProperty;
     private BooleanProperty fitToData;
+    private ResourceBundle bundle;
     
     public MapAreaPropertyGrid() {
         createUI();
@@ -59,6 +66,8 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
     public MapAreaPropertyGrid(MapArea mapArea, WhiteboxPluginHost host) {
         this.mapArea = mapArea;
         this.host = host;
+        bundle = host.getGuiLabelsBundle();
+        
         createUI();
     }
 
@@ -101,9 +110,19 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
     public void setHost(WhiteboxPluginHost host) {
         this.host = host;
     }
+
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
+    }
     
     public final void createUI() {
         try {
+            
+            if (bundle == null) { return; }
             
             this.setBackground(Color.WHITE);
             
@@ -113,7 +132,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             int preferredWidth = 470;
             this.add(mainBox);
             
-            mapAreaVisible = new BooleanProperty("Is the map area visible?", 
+            mapAreaVisible = new BooleanProperty(bundle.getString("IsElementVisible"), 
                     mapArea.isVisible());
             mapAreaVisible.setLeftMargin(leftMargin);
             mapAreaVisible.setRightMargin(rightMargin);
@@ -123,7 +142,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mapAreaVisible.revalidate();
             mainBox.add(mapAreaVisible);
             
-            backgroundVisible = new BooleanProperty("Is the background visible?", 
+            backgroundVisible = new BooleanProperty(bundle.getString("IsBackgroundVisible"), 
                     mapArea.isBackgroundVisible());
             backgroundVisible.setLeftMargin(leftMargin);
             backgroundVisible.setRightMargin(rightMargin);
@@ -133,7 +152,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             backgroundVisible.addPropertyChangeListener("value", this);
             mainBox.add(backgroundVisible);
             
-            backgroundColourBox = new ColourProperty("Background colour", 
+            backgroundColourBox = new ColourProperty(bundle.getString("BackgroundColor"), 
                     mapArea.getBackgroundColour());
             backgroundColourBox.setLeftMargin(leftMargin);
             backgroundColourBox.setRightMargin(rightMargin);
@@ -143,7 +162,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             backgroundColourBox.addPropertyChangeListener("value", this);
             mainBox.add(backgroundColourBox);
             
-            borderVisible = new BooleanProperty("Is the border visible?", 
+            borderVisible = new BooleanProperty(bundle.getString("IsBorderVisible"), 
                     mapArea.isBorderVisible());
             borderVisible.setLeftMargin(leftMargin);
             borderVisible.setRightMargin(rightMargin);
@@ -153,7 +172,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             borderVisible.addPropertyChangeListener("value", this);
             mainBox.add(borderVisible);
 
-            borderColourBox = new ColourProperty("Border colour", 
+            borderColourBox = new ColourProperty(bundle.getString("BorderColor"), 
                     mapArea.getBorderColour());
             borderColourBox.setLeftMargin(leftMargin);
             borderColourBox.setRightMargin(rightMargin);
@@ -163,7 +182,8 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             borderColourBox.addPropertyChangeListener("value", this);
             mainBox.add(borderColourBox);
             
-            referenceMarksVisible = new BooleanProperty("Are reference marks visible?", mapArea.isReferenceMarksVisible());
+            referenceMarksVisible = new BooleanProperty(bundle.getString("AreReferenceMarksVisible"), 
+                    mapArea.isReferenceMarksVisible());
             referenceMarksVisible.setLeftMargin(leftMargin);
             referenceMarksVisible.setRightMargin(rightMargin);
             referenceMarksVisible.setBackColour(Color.WHITE);
@@ -172,7 +192,8 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             referenceMarksVisible.addPropertyChangeListener("value", this);
             mainBox.add(referenceMarksVisible);
             
-            referenceMarkSize = new NumericProperty("Reference mark size", String.valueOf(mapArea.getReferenceMarksSize()));
+            referenceMarkSize = new NumericProperty(bundle.getString("ReferenceMarkSize"), 
+                    String.valueOf(mapArea.getReferenceMarksSize()));
             referenceMarkSize.setLeftMargin(leftMargin);
             referenceMarkSize.setRightMargin(rightMargin);
             referenceMarkSize.setBackColour(backColour);
@@ -183,7 +204,8 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             referenceMarkSize.addPropertyChangeListener("value", this);
             mainBox.add(referenceMarkSize);
             
-            neatlineVisible = new BooleanProperty("Is the neatline visible?", mapArea.isNeatlineVisible());
+            neatlineVisible = new BooleanProperty(bundle.getString("IsNeatlineVisible"), 
+                    mapArea.isNeatlineVisible());
             neatlineVisible.setLeftMargin(leftMargin);
             neatlineVisible.setRightMargin(rightMargin);
             neatlineVisible.setBackColour(Color.WHITE);
@@ -192,7 +214,8 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             neatlineVisible.addPropertyChangeListener("value", this);
             mainBox.add(neatlineVisible);
             
-            mapAreaWidth = new NumericProperty("Map area width", String.valueOf(mapArea.getWidth()));
+            mapAreaWidth = new NumericProperty(bundle.getString("Width"), 
+                    String.valueOf(mapArea.getWidth()));
             mapAreaWidth.setLeftMargin(leftMargin);
             mapAreaWidth.setRightMargin(rightMargin);
             mapAreaWidth.setBackColour(backColour);
@@ -204,7 +227,8 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mainBox.add(mapAreaWidth);
             
             // scale height
-            mapAreaHeight = new NumericProperty("Map area height", String.valueOf(mapArea.getHeight()));
+            mapAreaHeight = new NumericProperty(bundle.getString("Height"), 
+                    String.valueOf(mapArea.getHeight()));
             mapAreaHeight.setLeftMargin(leftMargin);
             mapAreaHeight.setRightMargin(rightMargin);
             mapAreaHeight.setBackColour(Color.WHITE);
@@ -216,7 +240,8 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             mainBox.add(mapAreaHeight);
             
             // xy units
-            xyUnits = new StringProperty("X-Y units", mapArea.getXYUnits());
+            xyUnits = new StringProperty(bundle.getString("XYUnits"),
+                    mapArea.getXYUnits());
             xyUnits.setLeftMargin(leftMargin);
             xyUnits.setRightMargin(rightMargin);
             xyUnits.setBackColour(backColour);
@@ -226,7 +251,8 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             xyUnits.addPropertyChangeListener("value", this);
             mainBox.add(xyUnits);
             
-            fontProperty = new FontProperty("Font", mapArea.getLabelFont());
+            fontProperty = new FontProperty(bundle.getString("Font"), 
+                    mapArea.getLabelFont());
             fontProperty.setLeftMargin(leftMargin);
             fontProperty.setRightMargin(rightMargin);
             fontProperty.setBackColour(Color.WHITE);
@@ -236,7 +262,7 @@ public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListene
             fontProperty.revalidate();
             mainBox.add(fontProperty);
             
-            fitToData = new BooleanProperty("Fit to data?", 
+            fitToData = new BooleanProperty(bundle.getString("FitToData2"), 
                     mapArea.isFitToData());
             fitToData.setLeftMargin(leftMargin);
             fitToData.setRightMargin(rightMargin);

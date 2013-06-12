@@ -1,9 +1,10 @@
-package whitebox.ui.carto_properties;
+package whitebox.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.*;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
@@ -25,6 +26,7 @@ public class StringProperty extends JComponent implements MouseListener {
     private boolean showTextArea = false;
     private JTextArea textArea = new JTextArea();
     private JTextField text = new JTextField();
+    private ResourceBundle bundle;
 
     public StringProperty() {
         setOpaque(true);
@@ -37,7 +39,15 @@ public class StringProperty extends JComponent implements MouseListener {
         this.value = value;
         revalidate();
     }
-
+    
+    public StringProperty(String labelText, String value, ResourceBundle bundle) {
+        setOpaque(true);
+        this.labelText = labelText;
+        this.value = value;
+        this.bundle = bundle;
+        revalidate();
+    }
+    
     public Color getBackColour() {
         return backColour;
     }
@@ -131,7 +141,11 @@ public class StringProperty extends JComponent implements MouseListener {
             textArea.setText(value);
             text.setText("...");
             text.setHorizontalAlignment(JTextField.RIGHT);
-            text.setToolTipText("Click to add text.");
+            if (bundle == null) {
+                text.setToolTipText("Click to add text.");
+            } else {
+                 text.setToolTipText(bundle.getString("ClickToAddText"));
+            }
             text.addMouseListener(this);
             
         } else {
@@ -186,8 +200,15 @@ public class StringProperty extends JComponent implements MouseListener {
             scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
             scroll.setPreferredSize(new Dimension(250, 200));
             myPanel.add(scroll);
-            int result = JOptionPane.showConfirmDialog(text, myPanel,
+            int result;
+            if (bundle == null) {
+                result = JOptionPane.showConfirmDialog(text, myPanel,
                     "Enter Text", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            } else {
+                result = JOptionPane.showConfirmDialog(text, myPanel,
+                    bundle.getString("EnterText"), JOptionPane.OK_CANCEL_OPTION, 
+                    JOptionPane.PLAIN_MESSAGE);
+            }
             if (result == JOptionPane.OK_OPTION) {
                 setValue(textArea.getText());
             }

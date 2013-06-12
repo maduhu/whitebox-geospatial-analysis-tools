@@ -16,10 +16,16 @@
  */
 package whitebox.ui.carto_properties;
 
+import whitebox.ui.StringProperty;
+import whitebox.ui.NumericProperty;
+import whitebox.ui.ColourProperty;
+import whitebox.ui.FontProperty;
+import whitebox.ui.BooleanProperty;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import whitebox.cartographic.MapTextArea;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -36,7 +42,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
     private Color backColour = new Color(225, 245, 255);
     private WhiteboxPluginHost host = null;
     
-    private StringProperty titleString;
+    private StringProperty textAreaString;
     private BooleanProperty titleVisible;
     private ColourProperty fontColourBox;
     private BooleanProperty backgroundVisible;
@@ -46,6 +52,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
     private NumericProperty marginSize;
     private NumericProperty interlineSpacing;
     private FontProperty fontProperty;
+    private ResourceBundle bundle;
     
     public MapTextAreaPropertyGrid() {
         createUI();
@@ -54,6 +61,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
     public MapTextAreaPropertyGrid(MapTextArea mapTextArea, WhiteboxPluginHost host) {
         this.mapTextArea = mapTextArea;
         this.host = host;
+        bundle = host.getGuiLabelsBundle();
         createUI();
     }
 
@@ -97,9 +105,18 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
         this.host = host;
     }
     
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
+    }
+    
     public final void createUI() {
         try {
             
+            if (bundle == null) { return; }
             this.setBackground(Color.WHITE);
             
             Box mainBox = Box.createVerticalBox();
@@ -109,19 +126,19 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             
 //            Font labelFont = mapTextArea.getLabelFont();
             
-            titleString = new StringProperty("Label text", 
+            textAreaString = new StringProperty(bundle.getString("LabelText"), 
                     mapTextArea.getLabel());
-            titleString.setLeftMargin(leftMargin);
-            titleString.setRightMargin(rightMargin);
-            titleString.setBackColour(Color.WHITE);
-            titleString.setTextboxWidth(8);
-            titleString.setPreferredWidth(preferredWidth);
-            titleString.addPropertyChangeListener("value", this);
-            titleString.setShowTextArea(true);
-            titleString.revalidate();
-            mainBox.add(titleString);
+            textAreaString.setLeftMargin(leftMargin);
+            textAreaString.setRightMargin(rightMargin);
+            textAreaString.setBackColour(Color.WHITE);
+            textAreaString.setTextboxWidth(8);
+            textAreaString.setPreferredWidth(preferredWidth);
+            textAreaString.addPropertyChangeListener("value", this);
+            textAreaString.setShowTextArea(true);
+            textAreaString.revalidate();
+            mainBox.add(textAreaString);
             
-            titleVisible = new BooleanProperty("Is the text area visible?", 
+            titleVisible = new BooleanProperty(bundle.getString("IsElementVisible"), 
                     mapTextArea.isVisible());
             titleVisible.setLeftMargin(leftMargin);
             titleVisible.setRightMargin(rightMargin);
@@ -131,7 +148,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             titleVisible.revalidate();
             mainBox.add(titleVisible);
             
-            fontProperty = new FontProperty("Font:", mapTextArea.getLabelFont());
+            fontProperty = new FontProperty(bundle.getString("Font"), mapTextArea.getLabelFont());
             fontProperty.setLeftMargin(leftMargin);
             fontProperty.setRightMargin(rightMargin);
             fontProperty.setBackColour(Color.WHITE);
@@ -141,7 +158,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             fontProperty.revalidate();
             mainBox.add(fontProperty);
             
-            fontColourBox = new ColourProperty("Font colour", 
+            fontColourBox = new ColourProperty(bundle.getString("FontColor"), 
                     mapTextArea.getFontColour());
             fontColourBox.setLeftMargin(leftMargin);
             fontColourBox.setRightMargin(rightMargin);
@@ -151,7 +168,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             fontColourBox.addPropertyChangeListener("value", this);
             mainBox.add(fontColourBox);
             
-            interlineSpacing = new NumericProperty("Interline spacing:", 
+            interlineSpacing = new NumericProperty(bundle.getString("InterlineSpacing"), 
                     String.valueOf(mapTextArea.getInterlineSpace()));
             interlineSpacing.setLeftMargin(leftMargin);
             interlineSpacing.setRightMargin(rightMargin);
@@ -165,7 +182,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             interlineSpacing.revalidate();
             mainBox.add(interlineSpacing);
             
-            backgroundVisible = new BooleanProperty("Is the background visible?", 
+            backgroundVisible = new BooleanProperty(bundle.getString("IsBackgroundVisible"), 
                     mapTextArea.isBackgroundVisible());
             backgroundVisible.setLeftMargin(leftMargin);
             backgroundVisible.setRightMargin(rightMargin);
@@ -175,7 +192,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             backgroundVisible.addPropertyChangeListener("value", this);
             mainBox.add(backgroundVisible);
             
-            backgroundColourBox = new ColourProperty("Background colour", 
+            backgroundColourBox = new ColourProperty(bundle.getString("BackgroundColor"), 
                     mapTextArea.getBackColour());
             backgroundColourBox.setLeftMargin(leftMargin);
             backgroundColourBox.setRightMargin(rightMargin);
@@ -185,7 +202,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             backgroundColourBox.addPropertyChangeListener("value", this);
             mainBox.add(backgroundColourBox);
             
-            borderVisible = new BooleanProperty("Is the border visible?", 
+            borderVisible = new BooleanProperty(bundle.getString("IsBorderVisible"), 
                     mapTextArea.isBorderVisible());
             borderVisible.setLeftMargin(leftMargin);
             borderVisible.setRightMargin(rightMargin);
@@ -195,7 +212,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             borderVisible.addPropertyChangeListener("value", this);
             mainBox.add(borderVisible);
             
-            borderColour = new ColourProperty("Border colour", 
+            borderColour = new ColourProperty(bundle.getString("BorderColor"), 
                     mapTextArea.getBorderColour());
             borderColour.setLeftMargin(leftMargin);
             borderColour.setRightMargin(rightMargin);
@@ -205,7 +222,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             borderColour.addPropertyChangeListener("value", this);
             mainBox.add(borderColour);
             
-            marginSize = new NumericProperty("Margin size (points)", 
+            marginSize = new NumericProperty(bundle.getString("MarginSize2"), 
                     String.valueOf(mapTextArea.getMargin()));
             marginSize.setLeftMargin(leftMargin);
             marginSize.setRightMargin(rightMargin);
@@ -230,7 +247,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
         if (!evt.getPropertyName().equals("value")) {
             return;
         }
-        if (source == titleString) {
+        if (source == textAreaString) {
             mapTextArea.setLabel((String) evt.getNewValue());
             didSomething = true;
         } else if (source == titleVisible) {

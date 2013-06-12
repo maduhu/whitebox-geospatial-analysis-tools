@@ -16,9 +16,13 @@
  */
 package whitebox.ui.carto_properties;
 
+import whitebox.ui.NumericProperty;
+import whitebox.ui.ColourProperty;
+import whitebox.ui.BooleanProperty;
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import whitebox.cartographic.Neatline;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -46,6 +50,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
     private NumericProperty doubleLineGap;
     private NumericProperty innerLineWidth;
     private NumericProperty outerLineThickness;
+    private ResourceBundle bundle;
     
     public NeatlinePropertyGrid() {
         createUI();
@@ -54,6 +59,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
     public NeatlinePropertyGrid(Neatline neatline, WhiteboxPluginHost host) {
         this.neatline = neatline;
         this.host = host;
+        bundle = host.getGuiLabelsBundle();
         createUI();
     }
 
@@ -97,9 +103,18 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
         this.host = host;
     }
     
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
+    }
+    
     public final void createUI() {
         try {
             
+            if (bundle == null) { return; }
             this.setBackground(Color.WHITE);
             
             Box mainBox = Box.createVerticalBox();
@@ -109,7 +124,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             //this.setPreferredSize(new Dimension(preferredWidth, 500));
             
             
-            neatlineVisible = new BooleanProperty("Is the neatline visible?", 
+            neatlineVisible = new BooleanProperty(bundle.getString("IsElementVisible"), 
                     neatline.isVisible());
             neatlineVisible.setLeftMargin(leftMargin);
             neatlineVisible.setRightMargin(rightMargin);
@@ -119,7 +134,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             neatlineVisible.revalidate();
             mainBox.add(neatlineVisible);
 
-            height = new NumericProperty("Height", 
+            height = new NumericProperty(bundle.getString("Height"), 
                     String.valueOf(neatline.getHeight()));
             height.setLeftMargin(leftMargin);
             height.setRightMargin(rightMargin);
@@ -132,7 +147,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             height.revalidate();
             mainBox.add(height);
             
-            width = new NumericProperty("Width", 
+            width = new NumericProperty(bundle.getString("Width"), 
                     String.valueOf(neatline.getWidth()));
             width.setLeftMargin(leftMargin);
             width.setRightMargin(rightMargin);
@@ -145,7 +160,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             width.revalidate();
             mainBox.add(width);
             
-            backgroundVisible = new BooleanProperty("Is the background visible?", 
+            backgroundVisible = new BooleanProperty(bundle.getString("IsBackgroundVisible"), 
                     neatline.isBackgroundVisible());
             backgroundVisible.setLeftMargin(leftMargin);
             backgroundVisible.setRightMargin(rightMargin);
@@ -155,7 +170,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             backgroundVisible.addPropertyChangeListener("value", this);
             mainBox.add(backgroundVisible);
             
-            backgroundColourBox = new ColourProperty("Background colour", 
+            backgroundColourBox = new ColourProperty(bundle.getString("BackgroundColor"), 
                     neatline.getBackgroundColour());
             backgroundColourBox.setLeftMargin(leftMargin);
             backgroundColourBox.setRightMargin(rightMargin);
@@ -165,7 +180,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             backgroundColourBox.addPropertyChangeListener("value", this);
             mainBox.add(backgroundColourBox);
             
-            borderVisible = new BooleanProperty("Is the border visible?", 
+            borderVisible = new BooleanProperty(bundle.getString("IsBorderVisible"), 
                     neatline.isBorderVisible());
             borderVisible.setLeftMargin(leftMargin);
             borderVisible.setRightMargin(rightMargin);
@@ -175,7 +190,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             borderVisible.addPropertyChangeListener("value", this);
             mainBox.add(borderVisible);
             
-            borderColour = new ColourProperty("Border colour", 
+            borderColour = new ColourProperty(bundle.getString("BorderColor"), 
                     neatline.getBorderColour());
             borderColour.setLeftMargin(leftMargin);
             borderColour.setRightMargin(rightMargin);
@@ -185,7 +200,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             borderColour.addPropertyChangeListener("value", this);
             mainBox.add(borderColour);
             
-            doubleLine = new BooleanProperty("Use a double-line?", 
+            doubleLine = new BooleanProperty(bundle.getString("UseDoubleLine"), 
                     neatline.isDoubleLine());
             doubleLine.setLeftMargin(leftMargin);
             doubleLine.setRightMargin(rightMargin);
@@ -195,7 +210,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             doubleLine.revalidate();
             mainBox.add(doubleLine);
             
-            doubleLineGap = new NumericProperty("Double-line gap", 
+            doubleLineGap = new NumericProperty(bundle.getString("DoubleLineGap"), 
                     String.valueOf(neatline.getDoubleLineGap()));
             doubleLineGap.setLeftMargin(leftMargin);
             doubleLineGap.setRightMargin(rightMargin);
@@ -209,7 +224,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             doubleLineGap.revalidate();
             mainBox.add(doubleLineGap);
             
-            innerLineWidth = new NumericProperty("Inner-line width", 
+            innerLineWidth = new NumericProperty(bundle.getString("InnerLineWidth"), 
                     String.valueOf(neatline.getInnerLineWidth()));
             innerLineWidth.setLeftMargin(leftMargin);
             innerLineWidth.setRightMargin(rightMargin);
@@ -223,7 +238,7 @@ public class NeatlinePropertyGrid extends JPanel implements PropertyChangeListen
             innerLineWidth.revalidate();
             mainBox.add(innerLineWidth);
             
-            outerLineThickness = new NumericProperty("Outer-line width", 
+            outerLineThickness = new NumericProperty(bundle.getString("OuterLineWidth"), 
                     String.valueOf(neatline.getOuterLineWidth()));
             outerLineThickness.setLeftMargin(leftMargin);
             outerLineThickness.setRightMargin(rightMargin);

@@ -17,10 +17,16 @@
 
 package whitebox.ui.carto_properties;
 
+import whitebox.ui.StringProperty;
+import whitebox.ui.NumericProperty;
+import whitebox.ui.ColourProperty;
+import whitebox.ui.FontProperty;
+import whitebox.ui.BooleanProperty;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import whitebox.cartographic.MapTitle;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -48,6 +54,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
     private ColourProperty borderColour;
     private NumericProperty marginSize;
     private FontProperty fontProperty;
+    private ResourceBundle bundle;
     
     public MapTitlePropertyGrid() {
         createUI();
@@ -56,6 +63,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
     public MapTitlePropertyGrid(MapTitle mapTitle, WhiteboxPluginHost host) {
         this.mapTitle = mapTitle;
         this.host = host;
+        bundle = host.getGuiLabelsBundle();
         createUI();
     }
 
@@ -99,9 +107,18 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
         this.host = host;
     }
     
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
+    }
+    
     public final void createUI() {
         try {
             
+            if (bundle == null) { return; }
             this.setBackground(Color.WHITE);
             
             Box mainBox = Box.createVerticalBox();
@@ -111,7 +128,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             
             Font labelFont = mapTitle.getLabelFont();
             
-            titleString = new StringProperty("Label text", 
+            titleString = new StringProperty(bundle.getString("LabelText"), 
                     mapTitle.getLabel());
             titleString.setLeftMargin(leftMargin);
             titleString.setRightMargin(rightMargin);
@@ -122,7 +139,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             titleString.revalidate();
             mainBox.add(titleString);
             
-            titleVisible = new BooleanProperty("Is the title visible?", 
+            titleVisible = new BooleanProperty(bundle.getString("IsElementVisible"), 
                     mapTitle.isVisible());
             titleVisible.setLeftMargin(leftMargin);
             titleVisible.setRightMargin(rightMargin);
@@ -132,7 +149,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             titleVisible.revalidate();
             mainBox.add(titleVisible);
 
-            fontProperty = new FontProperty("Font:", labelFont);
+            fontProperty = new FontProperty(bundle.getString("Font"), labelFont);
             fontProperty.setLeftMargin(leftMargin);
             fontProperty.setRightMargin(rightMargin);
             fontProperty.setBackColour(Color.WHITE);
@@ -142,7 +159,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             fontProperty.revalidate();
             mainBox.add(fontProperty);
       
-            fontColourBox = new ColourProperty("Font colour", 
+            fontColourBox = new ColourProperty(bundle.getString("FontColor"), 
                     mapTitle.getFontColour());
             fontColourBox.setLeftMargin(leftMargin);
             fontColourBox.setRightMargin(rightMargin);
@@ -152,7 +169,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             fontColourBox.addPropertyChangeListener("value", this);
             mainBox.add(fontColourBox);
             
-            outlineVisible = new BooleanProperty("Is the outline visible?", 
+            outlineVisible = new BooleanProperty(bundle.getString("IsOutlineVisible"), 
                     mapTitle.isOutlineVisible());
             outlineVisible.setLeftMargin(leftMargin);
             outlineVisible.setRightMargin(rightMargin);
@@ -162,7 +179,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             outlineVisible.addPropertyChangeListener("value", this);
             mainBox.add(outlineVisible);
             
-            outlineColourBox = new ColourProperty("Outline colour", 
+            outlineColourBox = new ColourProperty(bundle.getString("OutlineColor"), 
                     mapTitle.getOutlineColour());
             outlineColourBox.setLeftMargin(leftMargin);
             outlineColourBox.setRightMargin(rightMargin);
@@ -172,7 +189,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             outlineColourBox.addPropertyChangeListener("value", this);
             mainBox.add(outlineColourBox);
             
-            backgroundVisible = new BooleanProperty("Is the background visible?", 
+            backgroundVisible = new BooleanProperty(bundle.getString("IsBackgroundVisible"), 
                     mapTitle.isBackgroundVisible());
             backgroundVisible.setLeftMargin(leftMargin);
             backgroundVisible.setRightMargin(rightMargin);
@@ -182,7 +199,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             backgroundVisible.addPropertyChangeListener("value", this);
             mainBox.add(backgroundVisible);
             
-            backgroundColourBox = new ColourProperty("Background colour", 
+            backgroundColourBox = new ColourProperty(bundle.getString("BackgroundColor"), 
                     mapTitle.getBackColour());
             backgroundColourBox.setLeftMargin(leftMargin);
             backgroundColourBox.setRightMargin(rightMargin);
@@ -192,7 +209,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             backgroundColourBox.addPropertyChangeListener("value", this);
             mainBox.add(backgroundColourBox);
             
-            borderVisible = new BooleanProperty("Is the border visible?", 
+            borderVisible = new BooleanProperty(bundle.getString("IsBorderVisible"), 
                     mapTitle.isBorderVisible());
             borderVisible.setLeftMargin(leftMargin);
             borderVisible.setRightMargin(rightMargin);
@@ -202,7 +219,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             borderVisible.addPropertyChangeListener("value", this);
             mainBox.add(borderVisible);
             
-            borderColour = new ColourProperty("Border colour", 
+            borderColour = new ColourProperty(bundle.getString("BorderColor"), 
                     mapTitle.getBorderColour());
             borderColour.setLeftMargin(leftMargin);
             borderColour.setRightMargin(rightMargin);
@@ -212,7 +229,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             borderColour.addPropertyChangeListener("value", this);
             mainBox.add(borderColour);
             
-            marginSize = new NumericProperty("Margin size (points)", 
+            marginSize = new NumericProperty(bundle.getString("MarginSize2"), 
                     String.valueOf(mapTitle.getMargin()));
             marginSize.setLeftMargin(leftMargin);
             marginSize.setRightMargin(rightMargin);

@@ -1,4 +1,4 @@
-package whitebox.ui.carto_properties;
+package whitebox.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
