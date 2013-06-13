@@ -19,13 +19,15 @@ package whiteboxgis.user_interfaces;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-
+import java.util.ResourceBundle;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import whitebox.interfaces.WhiteboxPluginHost;
+import whiteboxgis.WhiteboxGui;
 
 
 /**
@@ -34,16 +36,26 @@ import javax.swing.JPanel;
  */
 public class AboutWhitebox extends JDialog implements ActionListener {
 
-    String graphicsDirectory = "";
-    String versionNumber = "";
-    String versionName = "";
+    private String graphicsDirectory = "";
+    private String versionNumber = "";
+    private String versionName = "";
+    private ResourceBundle bundle;
+    
     public AboutWhitebox(Frame owner, boolean modal, String graphicsDirectory, 
             String versionName, String versionNumber) {
         super(owner, modal);
-        this.setTitle("About Whitebox GAT");
+        if (bundle != null) {
+            this.setTitle(bundle.getString("About") + " Whitebox GAT");
+        } else {
+            this.setTitle("About Whitebox GAT");
+        }
         this.graphicsDirectory = graphicsDirectory;
         this.versionName = versionName;
         this.versionNumber = versionNumber;
+        if (owner instanceof WhiteboxPluginHost) {
+            WhiteboxPluginHost host = (WhiteboxPluginHost) owner;
+            this.bundle = host.getGuiLabelsBundle();
+        }
         createGui();
     }
 
@@ -65,43 +77,73 @@ public class AboutWhitebox extends JDialog implements ActionListener {
         mainPane.add(imagePane);
         mainPane.add(Box.createVerticalStrut(10));
         
-        JPanel textPane = new JPanel();
-        
         JLabel label4 = new JLabel(versionName + " (" + versionNumber + ") released 2013");
         Box box4 = Box.createHorizontalBox();
+        box4.add(Box.createHorizontalGlue());
         box4.add(label4);
-        textPane.add(box4);
-        textPane.add(Box.createVerticalStrut(15));
+        box4.add(Box.createHorizontalGlue());
+        mainPane.add(box4);
+        mainPane.add(Box.createVerticalStrut(10));
         
-        textPane.setLayout(new BoxLayout(textPane, BoxLayout.Y_AXIS));
-        JLabel label1 = new JLabel("Dr. John Lindsay (Lead Developer)");
-        Box box1 = Box.createHorizontalBox();
-        box1.add(label1);
-        box1.add(Box.createHorizontalGlue());
         
-        JLabel label5 = new JLabel("Centre for Hydrogeomatics");
-        Box box5 = Box.createHorizontalBox();
-        box5.add(label5);
-        box5.add(Box.createHorizontalGlue());
+        JTextArea contributors = new JTextArea();
+        JScrollPane scroll = new JScrollPane(contributors);
+        StringBuilder strBuilder = new StringBuilder();
+        strBuilder.append("Dr. John Lindsay (Lead Developer)\n");
+        strBuilder.append("Centre for Hydrogeomatics\n");
+        strBuilder.append("The University of Guelph, Canada\n");
+        strBuilder.append("e-mail: jlindsay@uoguelph.ca\n\n");
         
-        JLabel label2 = new JLabel("The University of Guelph, Canada");
-        Box box2 = Box.createHorizontalBox();
-        box2.add(label2);
-        box2.add(Box.createHorizontalGlue());
+        strBuilder.append(bundle.getString("i18nContributors")).append("\n\n");
+        strBuilder.append("Ehsan Roshani\n");
+        strBuilder.append("George Miliaresis\n");
+        strBuilder.append("Hu Xuemei\n");
+        strBuilder.append("Heikki Doeleman\n");
         
-        JLabel label3 = new JLabel("e-mail: jlindsay@uoguelph.ca");
-        Box box3 = Box.createHorizontalBox();
-        box3.add(label3);
-        box3.add(Box.createHorizontalGlue());
+        contributors.setText(strBuilder.toString());
+        contributors.setLineWrap(true);
+        contributors.setWrapStyleWord(true);
+        contributors.setCaretPosition(0);
+        contributors.setEditable(false);
+        mainPane.add(scroll);
         
-        Box vbox = Box.createVerticalBox();
-        vbox.add(box1);
-        vbox.add(box2);
-        vbox.add(box3);
-        //vbox.add(box4);
-        
-        textPane.add(vbox);
-        mainPane.add(textPane);
+//        JPanel textPane = new JPanel();
+//        
+//        JLabel label4 = new JLabel(versionName + " (" + versionNumber + ") released 2013");
+//        Box box4 = Box.createHorizontalBox();
+//        box4.add(label4);
+//        textPane.add(box4);
+//        textPane.add(Box.createVerticalStrut(15));
+//        
+//        textPane.setLayout(new BoxLayout(textPane, BoxLayout.Y_AXIS));
+//        JLabel label1 = new JLabel("Dr. John Lindsay (Lead Developer)");
+//        Box box1 = Box.createHorizontalBox();
+//        box1.add(label1);
+//        box1.add(Box.createHorizontalGlue());
+//        
+//        JLabel label5 = new JLabel("Centre for Hydrogeomatics");
+//        Box box5 = Box.createHorizontalBox();
+//        box5.add(label5);
+//        box5.add(Box.createHorizontalGlue());
+//        
+//        JLabel label2 = new JLabel("The University of Guelph, Canada");
+//        Box box2 = Box.createHorizontalBox();
+//        box2.add(label2);
+//        box2.add(Box.createHorizontalGlue());
+//        
+//        JLabel label3 = new JLabel("e-mail: jlindsay@uoguelph.ca");
+//        Box box3 = Box.createHorizontalBox();
+//        box3.add(label3);
+//        box3.add(Box.createHorizontalGlue());
+//        
+//        Box vbox = Box.createVerticalBox();
+//        vbox.add(box1);
+//        vbox.add(box2);
+//        vbox.add(box3);
+//        //vbox.add(box4);
+//        
+//        textPane.add(vbox);
+//        mainPane.add(textPane);
         mainPane.add(Box.createVerticalStrut(10));
         
 

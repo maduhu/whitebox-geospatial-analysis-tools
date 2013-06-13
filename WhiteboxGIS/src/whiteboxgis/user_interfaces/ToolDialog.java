@@ -210,7 +210,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
 
         if (!hlp.exists()) {
             // use the NoHelp.html file.
-            helpFile = resourcesDirectory + "Help" + pathSep + "NoHelp.html";
+            helpFile = resourcesDirectory + "Help" + pathSep + "other" + pathSep + "NoHelp.html";
             newHelp.setVisible(true);
         } else {
             modifyHelp.setVisible(true);

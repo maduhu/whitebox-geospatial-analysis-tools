@@ -16,10 +16,7 @@
  */
 package whiteboxgis.user_interfaces;
 
-import whitebox.ui.NumericProperty;
-import whitebox.ui.FontProperty;
-import whitebox.ui.BooleanProperty;
-import whitebox.ui.ComboBoxProperty;
+import whitebox.ui.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -33,12 +30,9 @@ import java.awt.event.ItemEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.Arrays;
 import java.util.ResourceBundle;
-import java.util.Locale;
 import javax.swing.*;
 import whitebox.interfaces.Communicator;
-import whitebox.ui.carto_properties.*;
 import whiteboxgis.WhiteboxGui;
 
 /**
@@ -158,74 +152,16 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         numRecentItems.addPropertyChangeListener("value", this);
         mainBox.add(numRecentItems);
 
-        // language code
-//        Locale[] availableLocales = Locale.getAvailableLocales();
-//        String[] languages = new String[availableLocales.length];
-//        int i = 0;
-//        for (Locale locale : availableLocales) {
-//            if (locale.getDisplayCountry().isEmpty()) {
-//                languages[i] = locale.getDisplayLanguage();
-//            } else if (locale.getDisplayVariant().isEmpty()) {
-//                languages[i] = locale.getDisplayLanguage() + " (" + locale.getDisplayCountry() + ")";
-//            } else {
-//                languages[i] = locale.getDisplayLanguage() + " (" + locale.getDisplayCountry() + " " + locale.getDisplayVariant() + ")";
-//            }
-//            i++;
-//        }
-        String[] languages = { "Chinese (China)", "English (Canada)", "English (UK)", 
-            "English (US)", "Greek (Greece)", "Persian (Iran)" };
-        String[] codes = { "zh_CN", "en_CA", "en_GB", "en_US", "el_GR", "fa_IR" };
-        int selectedIndex = 0;
-        for (int a = 0; a < codes.length; a++) {
-            if (codes[a].equals(host.getLanguageCountryCode())) {
-                selectedIndex = a;
-            }
-        }
-        //Arrays.sort(languages);
-        ComboBoxProperty languageChooser = new ComboBoxProperty(
-                bundle.getString("Language") + ":", languages, selectedIndex);
+        
+        ComboBoxProperty languageChooser = 
+                SupportedLanguageChooser.getLanguageChooser(host, false);
         languageChooser.setName("languageChooser");
         languageChooser.setLeftMargin(leftMargin);
         languageChooser.setRightMargin(rightMargin);
         languageChooser.setBackColour(backColour);
         languageChooser.setPreferredWidth(preferredWidth);
         languageChooser.revalidate();
-        ItemListener il = new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    Object item = e.getItem();
-                    String code;
-                    switch (item.toString().toLowerCase()) {
-                        case "chinese (china)":
-                            code = "zh_CN";
-                            break;
-                        case "english (canada)":
-                            code = "en_CA";
-                            break;
-                        case "english (uk)":
-                            code = "en_GB";
-                            break;
-                        case "english (us)":
-                            code = "en_US";
-                            break;
-                        case "greek (greece)":
-                            code = "el_GR";
-                            break;
-                        case "persian (iran)":
-                            code = "fa_IR";
-                            break;
-                        default:
-                            code = "en_CA";
-                    }
-                    
-                    host.setLanguageCountryCode(code);
-                }
-            }
-        };
-        languageChooser.setParentListener(il);
-
-        languageChooser.addPropertyChangeListener("value", this);
+        
         mainBox.add(languageChooser);
 
 

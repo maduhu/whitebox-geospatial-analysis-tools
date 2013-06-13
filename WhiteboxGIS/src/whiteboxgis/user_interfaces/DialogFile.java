@@ -52,7 +52,7 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
     private String workingDirectory;
     private String resourcesDirectory;
     private String pathSep;
-    private ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
+    private ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
     private Communicator hostDialog = null;
     
     /** Initialization method

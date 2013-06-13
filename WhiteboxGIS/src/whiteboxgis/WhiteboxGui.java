@@ -76,7 +76,9 @@ import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.geospatialfiles.shapefile.ShapeTypeDimension;
 import whitebox.serialization.MapInfoSerializer;
 import whitebox.serialization.MapInfoDeserializer;
+import whitebox.ui.ComboBoxProperty;
 import whitebox.ui.ShapefileDatabaseRecordEntry;
+import whitebox.ui.SupportedLanguageChooser;
 import whiteboxgis.user_interfaces.FeatureSelectionPanel;
 import whiteboxgis.user_interfaces.SettingsDialog;
 import whiteboxgis.user_interfaces.RecentMenu;
@@ -310,13 +312,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             this.getApplicationProperties();
 
             // i18n
-//            language = new String("fa"); //en");
-//            country = new String("IR"); //US");
             currentLocale = new Locale(language, country);
-
             bundle = ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
             messages = ResourceBundle.getBundle("whiteboxgis.i18n.messages", currentLocale);
             //pluginToolsText = ResourceBundle.getBundle("whiteboxgis.i18n.pluginToolsText", currentLocale);
+
+            boolean newInstall = checkForNewInstallation();
 
 
             // create the gui
@@ -358,9 +359,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             });
 
-//            this.loadPlugins();
-//            this.getApplicationProperties();
-
             if (defaultQuantPalette.equals("")) {
                 defaultQuantPalette = "spectrum.pal";
             }
@@ -370,7 +368,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             this.createGui();
 
-            checkForNewInstallation();
+            if (newInstall) {
+                refreshToolUsage();
+                recentDirectoriesMenu.removeAllMenuItems();
+                recentFilesMenu.removeAllMenuItems();
+                recentFilesPopupMenu.removeAllMenuItems();
+                recentMapsMenu.removeAllMenuItems();
+            }
 
             checkVersionIsUpToDate();
 
@@ -635,18 +639,76 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void checkForNewInstallation() {
+    private boolean checkForNewInstallation() {
         if (userName == null || !userName.equals(System.getProperty("user.name"))) {
-            refreshToolUsage();
-            recentDirectoriesMenu.removeAllMenuItems();
-            recentFilesMenu.removeAllMenuItems();
-            recentFilesPopupMenu.removeAllMenuItems();
-            recentMapsMenu.removeAllMenuItems();
 
             userName = System.getProperty("user.name");
+
+            final JDialog dialog = new JDialog(this, "", true);
+
+            Box mainBox = Box.createVerticalBox();
+            mainBox.add(Box.createVerticalStrut(15));
+
+            Box hbox1 = Box.createHorizontalBox();
+            hbox1.add(Box.createHorizontalGlue());
             String message = messages.getString("Welcome") + " Whitebox " + userName + ".";
-            showFeedback(message);
+            JLabel welcomeLabel = new JLabel(message);
+            hbox1.add(welcomeLabel);
+            hbox1.add(Box.createHorizontalGlue());
+            mainBox.add(hbox1);
+
+            mainBox.add(Box.createVerticalStrut(15));
+
+            Box hbox2 = Box.createHorizontalBox();
+            hbox2.add(Box.createHorizontalStrut(15));
+            hbox2.add(new JLabel("Please select your preferred language..."));
+            hbox2.add(Box.createHorizontalGlue());
+            mainBox.add(hbox2);
+
+            mainBox.add(Box.createVerticalStrut(5));
+
+            Box hbox3 = Box.createHorizontalBox();
+            hbox3.add(Box.createHorizontalStrut(15));
+            ComboBoxProperty languageChooser =
+                    SupportedLanguageChooser.getLanguageChooser(this, true);
+            languageChooser.setName("languageChooser");
+            hbox3.add(languageChooser);
+            hbox3.add(Box.createHorizontalStrut(15));
+            mainBox.add(hbox3);
+
+            mainBox.add(Box.createVerticalStrut(15));
+
+            Box btnBox = Box.createHorizontalBox();
+            btnBox.add(Box.createHorizontalGlue());
+            JButton ok = new JButton(bundle.getString("OK"));
+            ok.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    dialog.setVisible(false);
+                }
+            });
+            btnBox.add(ok);
+
+            btnBox.add(Box.createHorizontalGlue());
+
+            mainBox.add(btnBox);
+
+            mainBox.add(Box.createVerticalStrut(15));
+
+            Container contentPane = dialog.getContentPane();
+            contentPane.add(mainBox, BorderLayout.CENTER);
+            dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            dialog.pack();
+
+            // centers on screen
+            dialog.setLocationRelativeTo(null);
+            dialog.setVisible(true);
+
+            return true;
+
         }
+
+        return false;
     }
 
     private void loadPlugins() {
@@ -1000,12 +1062,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (props.containsKey("country")) {
                     country = props.getProperty("country");
                 }
-                
+
                 // receive announcements
                 if (props.containsKey("receiveAnnouncements")) {
                     receiveAnnouncements = Boolean.parseBoolean(props.getProperty("receiveAnnouncements"));
                 }
-                
+
                 // check for updates
                 if (props.containsKey("checkForUpdates")) {
                     checkForUpdates = Boolean.parseBoolean(props.getProperty("checkForUpdates"));
@@ -1849,17 +1911,17 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             helpTutorials.setActionCommand("helpTutorials");
             helpTutorials.addActionListener(this);
 
-            JMenuItem helpAbout = new JMenuItem("About Whitebox GAT");
+            JMenuItem helpAbout = new JMenuItem(bundle.getString("About") + " Whitebox GAT");
             helpAbout.setActionCommand("helpAbout");
             helpAbout.addActionListener(this);
             HelpMenu.add(helpAbout);
 
-            HelpMenu.addSeparator();
-
-            JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
-            helpReport.setActionCommand("helpReport");
-            helpReport.addActionListener(this);
-            HelpMenu.add(helpReport);
+//            HelpMenu.addSeparator();
+//
+//            JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
+//            helpReport.setActionCommand("helpReport");
+//            helpReport.addActionListener(this);
+//            HelpMenu.add(helpReport);
 
             menubar.add(HelpMenu);
 
@@ -2754,10 +2816,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             allToolsPanel.add(box);
             allToolsPanel.add(scroller1);
 
-            qlTabs.insertTab(bundle.getString("Recent"), null, scroller2, "", 0);
+            qlTabs.insertTab(bundle.getString("All"), null, allToolsPanel, "", 0); // + plugInfo.size() + " tools", null, scroller1, "", 2);
             qlTabs.insertTab(bundle.getString("Most_Used"), null, scroller3, "", 1);
-            qlTabs.insertTab(bundle.getString("All"), null, allToolsPanel, "", 2); // + plugInfo.size() + " tools", null, scroller1, "", 2);
-
+            qlTabs.insertTab(bundle.getString("Recent"), null, scroller2, "", 2);
+            
             //qlTabs.setPreferredSize(new Dimension(200, splitterToolboxLoc));
 
             qlTabs.setSelectedIndex(qlTabsIndex);
@@ -2961,10 +3023,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         return messages;
     }
 
+    @Override
     public String getLanguageCountryCode() {
         return language + "_" + country;
     }
 
+    @Override
     public void setLanguageCountryCode(String code) {
         String[] str = code.split("_");
         if (str.length != 2) {
@@ -2973,7 +3037,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
         language = str[0];
         country = str[1];
-        showFeedback(messages.getString("CloseWhiteboxToTakeEffect"));
+
+        currentLocale = new Locale(language, country);
+        bundle = ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
+        messages = ResourceBundle.getBundle("whiteboxgis.i18n.messages", currentLocale);
     }
 
     public boolean isCheckForUpdates() {
