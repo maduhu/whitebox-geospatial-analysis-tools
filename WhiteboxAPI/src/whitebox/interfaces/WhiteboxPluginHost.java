@@ -47,6 +47,10 @@ public interface WhiteboxPluginHost {
     
     public ResourceBundle getMessageBundle();
     
+    public String getLanguageCountryCode();
+
+    public void setLanguageCountryCode(String code);
+    
     public List returnPluginList();
     /**
      * Used to cancel any currently running plugin.
