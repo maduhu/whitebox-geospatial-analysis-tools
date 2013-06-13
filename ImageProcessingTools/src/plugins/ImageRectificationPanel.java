@@ -41,6 +41,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.XYPoint;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ResourceBundle;
  
 /**
  *
@@ -76,6 +77,8 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
     private JProgressBar progressBar;
     private Task task;
     private JLabel cancel;
+    private ResourceBundle bundle;
+    private ResourceBundle messages;
 
     // constructors
     public ImageRectificationPanel() {
@@ -89,6 +92,8 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
         this.mapGCPFile = mapGCPFile;
         this.outputImageFile = outputImageFile;
         this.myHost = host;
+        this.bundle = host.getGuiLabelsBundle();
+        this.messages = host.getMessageBundle();
 
         readFiles();
 
@@ -175,8 +180,8 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
 
         JPanel buttonPane = new JPanel();
         buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
-        JButton btnOK = createButton("OK", "OK");
-        JButton btnExit = createButton("Exit", "Exit");
+        JButton btnOK = createButton(bundle.getString("OK"), bundle.getString("OK"));
+        JButton btnExit = createButton(bundle.getString("Close"), bundle.getString("Close"));
         //JButton btnRefresh = createButton("Cancel", "Cancel");
 
         buttonPane.add(Box.createHorizontalStrut(10));
@@ -190,7 +195,7 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
         progressBar = new JProgressBar(0, 100);
         buttonPane.add(progressBar);
         buttonPane.add(Box.createHorizontalStrut(5));
-        cancel = new JLabel("Cancel");
+        cancel = new JLabel(bundle.getString("Cancel"));
         cancel.setForeground(Color.BLUE.darker());
         cancel.addMouseListener(this);
         buttonPane.add(cancel);
@@ -204,7 +209,7 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
 
         Box box1 = Box.createHorizontalBox();
         box1.add(Box.createHorizontalStrut(10));
-        box1.add(new JLabel("Polynomial Order: "));
+        box1.add(new JLabel(bundle.getString("PolynomialOrder") + ": "));
         SpinnerModel model =
                 new SpinnerNumberModel(polyOrder, //initial value
                 1, //min
@@ -243,7 +248,9 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
             dataValues[i][6] = useGCP[i];
         }
 
-        String columnNames[] = {"GCP", "Image X", "Image Y", "Map X", "MapY", "Error", "Use"};
+        String columnNames[] = {"GCP", bundle.getString("Image") + " X", 
+            bundle.getString("Image") + " Y", bundle.getString("Map") + " X", 
+            bundle.getString("Map") + " Y", messages.getString("Error"), "Use"};
 
         DefaultTableModel tableModel = new DefaultTableModel(dataValues, columnNames);
 
@@ -508,7 +515,7 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
             // now the y-coordinate 
             constants = new ArrayRealVector(mapY, false);
             solution = solver.solve(constants);
-            forwardRegressCoeffY = new double[n];
+            forwardRegressCoeffY = new double[numCoefficients];
             for (int a = 0; a < numCoefficients; a++) {
                 forwardRegressCoeffY[a] = solution.getEntry(a);
             }
@@ -574,7 +581,7 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
             // do the x-coordinate first
             constants = new ArrayRealVector(imageX, false);
             solution = solver.solve(constants);
-            backRegressCoeffX = new double[n];
+            backRegressCoeffX = new double[numCoefficients];
             for (int a = 0; a < numCoefficients; a++) {
                 backRegressCoeffX[a] = solution.getEntry(a);
             }
