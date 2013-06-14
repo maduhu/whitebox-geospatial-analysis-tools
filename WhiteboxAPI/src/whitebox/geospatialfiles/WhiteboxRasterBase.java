@@ -1134,6 +1134,8 @@ public abstract class WhiteboxRasterBase {
                 break;
             }
         }
+        if (retVal < minimumValue) { retVal = minimumValue; }
+        if (retVal > maximumValue) { retVal = maximumValue; }
         return retVal;
     }
     
