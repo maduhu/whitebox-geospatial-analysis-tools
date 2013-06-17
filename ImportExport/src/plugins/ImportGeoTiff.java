@@ -16,10 +16,12 @@
  */
 package plugins;
 
+import java.nio.ByteOrder;
 import java.io.*;
 import java.util.Date;
 import whitebox.geospatialfiles.GeoTiff;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 //import whitebox.utilities.BitOps;
@@ -211,51 +213,58 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 // see if they exist, and if so, delete them.
                 (new File(whiteboxHeaderFile)).delete();
                 (new File(whiteboxDataFile)).delete();
+                
+                ByteOrder byteOrder = gt.getByteOrder();
+                
+                WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, gt.getNorth(), gt.getSouth(), gt.getEast(),
+                        gt.getWest(), nRows, nCols, WhiteboxRasterBase.DataScale.CONTINUOUS,
+                        WhiteboxRasterBase.DataType.FLOAT, 0, gt.getNoData());
+                wbr.setByteOrder(byteOrder.toString());
 
-                // create the whitebox header file.
-                fw = new FileWriter(whiteboxHeaderFile, false);
-                bw = new BufferedWriter(fw);
-                out = new PrintWriter(bw, true);
-
-                str1 = "Min:\t" + Double.toString(Integer.MAX_VALUE);
-                out.println(str1);
-                str1 = "Max:\t" + Double.toString(Integer.MIN_VALUE);
-                out.println(str1);
-                str1 = "North:\t" + Double.toString(gt.getNorth());
-                out.println(str1);
-                str1 = "South:\t" + Double.toString(gt.getSouth());
-                out.println(str1);
-                str1 = "East:\t" + Double.toString(gt.getEast());
-                out.println(str1);
-                str1 = "West:\t" + Double.toString(gt.getWest());
-                out.println(str1);
-                str1 = "Cols:\t" + Integer.toString(nCols);
-                out.println(str1);
-                str1 = "Rows:\t" + Integer.toString(nRows);
-                out.println(str1);
-                str1 = "Data Type:\t" + "float";
-                out.println(str1);
-                str1 = "Z Units:\t" + "not specified";
-                out.println(str1);
-                str1 = "XY Units:\t" + "not specified";
-                out.println(str1);
-                str1 = "Projection:\t" + "not specified";
-                out.println(str1);
-                str1 = "Data Scale:\tcontinuous";
-                out.println(str1);
-                str1 = "Preferred Palette:\t" + "grey.pal";
-                out.println(str1);
-                str1 = "NoData:\t" + gt.getNoData(); //-32768";
-                out.println(str1);
-                if (java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN) {
-                    str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
-                } else {
-                    str1 = "Byte Order:\t" + "BIG_ENDIAN";
-                }
-                out.println(str1);
-
-                // Create the whitebox raster object.
-                WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, "rw");
+//                // create the whitebox header file.
+//                fw = new FileWriter(whiteboxHeaderFile, false);
+//                bw = new BufferedWriter(fw);
+//                out = new PrintWriter(bw, true);
+//
+//                str1 = "Min:\t" + Double.toString(Integer.MAX_VALUE);
+//                out.println(str1);
+//                str1 = "Max:\t" + Double.toString(Integer.MIN_VALUE);
+//                out.println(str1);
+//                str1 = "North:\t" + Double.toString(gt.getNorth());
+//                out.println(str1);
+//                str1 = "South:\t" + Double.toString(gt.getSouth());
+//                out.println(str1);
+//                str1 = "East:\t" + Double.toString(gt.getEast());
+//                out.println(str1);
+//                str1 = "West:\t" + Double.toString(gt.getWest());
+//                out.println(str1);
+//                str1 = "Cols:\t" + Integer.toString(nCols);
+//                out.println(str1);
+//                str1 = "Rows:\t" + Integer.toString(nRows);
+//                out.println(str1);
+//                str1 = "Data Type:\t" + "float";
+//                out.println(str1);
+//                str1 = "Z Units:\t" + "not specified";
+//                out.println(str1);
+//                str1 = "XY Units:\t" + "not specified";
+//                out.println(str1);
+//                str1 = "Projection:\t" + "not specified";
+//                out.println(str1);
+//                str1 = "Data Scale:\tcontinuous";
+//                out.println(str1);
+//                str1 = "Preferred Palette:\t" + "grey.pal";
+//                out.println(str1);
+//                str1 = "NoData:\t" + gt.getNoData(); //-32768";
+//                out.println(str1);
+//                if (java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN) {
+//                    str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
+//                } else {
+//                    str1 = "Byte Order:\t" + "BIG_ENDIAN";
+//                }
+//                out.println(str1);
+//
+//                // Create the whitebox raster object.
+//                WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, "rw");
 
                 double[] data = null;
                 for (int row = 0; row < nRows; row++) {
