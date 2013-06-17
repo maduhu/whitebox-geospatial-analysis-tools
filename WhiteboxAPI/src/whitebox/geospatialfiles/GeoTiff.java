@@ -54,12 +54,12 @@ public class GeoTiff {
     private String filename;
     private RandomAccessFile file;
     private FileChannel channel;
-    private List<IFDEntry> tags = new ArrayList<IFDEntry>();
+    private List<IFDEntry> tags = new ArrayList<>();
     private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
     private boolean readonly;
     private boolean showBytes = false, debugRead = false, debugReadGeoKey = false;
     private boolean showHeaderBytes = false;
-
+    
     /**
      * Constructor. Does not open or create the file.
      * @param filename pathname of file
@@ -590,10 +590,10 @@ public class GeoTiff {
                     } else if (sampleFormat == 1 && bitsPerSample[0] == 16) { // unsigned 16-bit short
                         int b1;
                         int b2;
-                        for (int i = 0; i < size; i++) {
+                        for (int i = 0; i < nCols; i++) {
                             b1 = (0x000000FF & ((int)buffer.get()));
                             b2 = (0x000000FF & ((int)buffer.get()));
-                            data[i] = (b1 << 8 | b2);
+                            data[i] = (b2 << 8 | b1);
                         }
                     } else if (sampleFormat == 2 && bitsPerSample[0] == 16) { // signed 16-bit short
                         ShortBuffer sb = buffer.asShortBuffer();
@@ -692,6 +692,10 @@ public class GeoTiff {
         }
 
         return firstIFD;
+    }
+    
+    public ByteOrder getByteOrder() {
+        return byteOrder;
     }
 
     private int readIFD(FileChannel channel, int start) throws IOException {

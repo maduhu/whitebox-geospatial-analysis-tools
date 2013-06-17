@@ -629,8 +629,8 @@ public abstract class WhiteboxRasterBase {
                         this.numberRows =  Integer.parseInt(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("data type") || 
                             (str[0].toLowerCase().contains("data") && 
-                            str[1].toLowerCase().contains("type")) || 
-                            str[0].toLowerCase().contains("data:")) {
+                            str[1].toLowerCase().contains("type") && str.length > 2)) { //|| 
+                            //str[0].toLowerCase().contains("data:")) {
                         //this.setDataType(str[1]);
                         if (str[dataCol].toLowerCase().contains("double")) {
                             this.setDataType(DataType.DOUBLE);

@@ -42,8 +42,8 @@ public abstract class SupportedLanguageChooser {
 //            "English (US)", "Greek (Greece)", "Persian (Iran)" };
 //        String[] codes = { "zh_CN", "nl_NL", "en_CA", "en_GB", "en_US", "el_GR", "fa_IR" };
         String[] languages = { "English (Canada)", "English (UK)", 
-            "English (US)", "Greek (Greece)", "Persian (Iran)" };
-        String[] codes = { "en_CA", "en_GB", "en_US", "el_GR", "fa_IR" };
+            "English (US)", "German (Germany)", "Greek (Greece)", "Persian (Iran)" };
+        String[] codes = { "en_CA", "en_GB", "en_US", "de_DE", "el_GR", "fa_IR" };
         
         int selectedIndex = 0;
         for (int a = 0; a < codes.length; a++) {
@@ -82,6 +82,9 @@ public abstract class SupportedLanguageChooser {
                             break;
                         case "persian (iran)":
                             code = "fa_IR";
+                            break;
+                        case "german (germany)":
+                            code = "de_DE";
                             break;
                         default:
                             code = "en_CA";
