@@ -332,7 +332,7 @@ public class IntDiv implements WhiteboxPlugin {
                 double noData = inputFile2.getNoDataValue();
 
                 WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", 
-                        inputHeader1, WhiteboxRaster.DataType.FLOAT, noData);
+                        inputHeader2, WhiteboxRaster.DataType.FLOAT, noData);
                 outputFile.setPreferredPalette(inputFile2.getPreferredPalette());
 
                 int const1 = (int)constant1;
