@@ -76,7 +76,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     private boolean automaticallyClose = true;
     private ArrayList<String> helpHistory = new ArrayList<>();
     private int helpHistoryIndex = 0;
-    private ResourceBundle guiLabelsBundle;
+    private ResourceBundle bundle;
     private ResourceBundle messages;
 
     public ToolDialog(Frame owner, boolean modal, String pluginName, String title, String helpFile) {
@@ -96,7 +96,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             host.showFeedback(messages.getString("ParameterFileNotLocated"));
         }
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
-        guiLabelsBundle = host.getGuiLabelsBundle();
+        bundle = host.getGuiLabelsBundle();
         messages = host.getMessageBundle();
         createGui(title);
     }
@@ -110,11 +110,11 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
 
         createPopupMenus();
 
-        ok = new JButton(guiLabelsBundle.getString("Run"));
-        close = new JButton(guiLabelsBundle.getString("Close"));
-        viewCode = new JButton(guiLabelsBundle.getString("ViewCode"));
-        newHelp = new JButton(guiLabelsBundle.getString("NewHelp"));
-        modifyHelp = new JButton(guiLabelsBundle.getString("ModifyHelp"));
+        ok = new JButton(bundle.getString("Run"));
+        close = new JButton(bundle.getString("Close"));
+        viewCode = new JButton(bundle.getString("ViewCode"));
+        newHelp = new JButton(bundle.getString("NewHelp"));
+        modifyHelp = new JButton(bundle.getString("ModifyHelp"));
 
         helpPane.addHyperlinkListener(this);
         helpPane.setContentType("text/html");
@@ -167,7 +167,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         imgLocation = graphicsDirectory + "HelpBack.png";
         image = new ImageIcon(imgLocation, "");
         back.setActionCommand("back");
-        back.setToolTipText(guiLabelsBundle.getString("Back"));
+        back.setToolTipText(bundle.getString("Back"));
         back.addActionListener(this);
         try {
             back.setIcon(image);
@@ -181,7 +181,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         imgLocation = graphicsDirectory + "HelpForward.png";
         image = new ImageIcon(imgLocation, "");
         forward.setActionCommand("forward");
-        forward.setToolTipText(guiLabelsBundle.getString("Forward"));
+        forward.setToolTipText(bundle.getString("Forward"));
         forward.addActionListener(this);
         try {
             forward.setIcon(image);
@@ -255,7 +255,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     private void createPopupMenus() {
         helpPopup = new JPopupMenu();
 
-        JMenuItem mi = new JMenuItem(guiLabelsBundle.getString("ViewHelpFileSource"));
+        JMenuItem mi = new JMenuItem(bundle.getString("ViewHelpFileSource"));
         mi.addActionListener(this);
         mi.setActionCommand("viewHelpFileSource");
         helpPopup.add(mi);
@@ -288,6 +288,15 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
                         args[0] = getTextValue(el, "Name");
                         args[1] = getTextValue(el, "Description");
                         args[2] = getTextValue(el, "LabelText");
+                        if (args[2].toLowerCase().contains("input raster file")) {
+                            args[2] = bundle.getString("InputRaster");
+                        } else if (args[2].toLowerCase().contains("output raster file")) {
+                            args[2] = bundle.getString("OutputRaster");
+                        } else if (args[2].toLowerCase().contains("input vector file")) {
+                            args[2] = bundle.getString("InputVector");
+                        } else if (args[2].toLowerCase().contains("output vector file")) {
+                            args[2] = bundle.getString("OutputVector");
+                        }
                         String dialogMode = getTextValue(el, "DialogMode");
                         if (dialogMode.toLowerCase().contains("open")) {
                             args[3] = Integer.toString(DialogFile.MODE_OPEN);
@@ -717,7 +726,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
 
     @Override
     public ResourceBundle getGuiLabelsBundle() {
-        return guiLabelsBundle;
+        return bundle;
     }
     
     @Override
