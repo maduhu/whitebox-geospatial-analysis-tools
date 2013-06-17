@@ -18,7 +18,6 @@ package whitebox.ui;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.beans.PropertyChangeListener;
 import java.util.ResourceBundle;
 import whitebox.interfaces.WhiteboxPluginHost;
 /**
@@ -39,9 +38,13 @@ public abstract class SupportedLanguageChooser {
         
         final boolean supressWarning = suppressResartWarning;
         
-        String[] languages = { "Chinese (China)", "Dutch (Netherlands)", "English (Canada)", "English (UK)", 
+//        String[] languages = { "Chinese (China)", "Dutch (Netherlands)", "English (Canada)", "English (UK)", 
+//            "English (US)", "Greek (Greece)", "Persian (Iran)" };
+//        String[] codes = { "zh_CN", "nl_NL", "en_CA", "en_GB", "en_US", "el_GR", "fa_IR" };
+        String[] languages = { "English (Canada)", "English (UK)", 
             "English (US)", "Greek (Greece)", "Persian (Iran)" };
-        String[] codes = { "zh_CN", "nl_NL", "en_CA", "en_GB", "en_US", "el_GR", "fa_IR" };
+        String[] codes = { "en_CA", "en_GB", "en_US", "el_GR", "fa_IR" };
+        
         int selectedIndex = 0;
         for (int a = 0; a < codes.length; a++) {
             if (codes[a].equals(myHost.getLanguageCountryCode())) {
