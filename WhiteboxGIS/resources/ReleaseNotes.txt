@@ -9,6 +9,14 @@ remote sensing software package for advanced analysis and visualization of geosp
 
 RELEASE NOTES:
 
+Version 3.0.1 - Iguazu
+
+-Fixed a bug that affected the launch of Whitebox on 32-bit Windows computers.
+-Added preliminary support for Persian and Greek languages.
+-Added a feature that checks for updated version.
+-Added a feature for announcements.
+-Added basic error logging capabilities.
+
 Version 3.0 - Iguazu
 
 This version is codenamed Iguazu, after Iguazu Falls located at Foz do Iguaçu, on the 

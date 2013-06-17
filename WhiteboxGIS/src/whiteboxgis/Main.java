@@ -91,7 +91,7 @@ public class Main {
                 if (System.getProperty("sun.arch.data.model").contains("32")) {
                     heapSizeUnit = "M";
                     if (196608 < amountOfMemory / 2) {
-                        heapSize = 1536;
+                        heapSize = 1200;
                     } else {
                         heapSize = (int) (amountOfMemory / 2);
                     }
