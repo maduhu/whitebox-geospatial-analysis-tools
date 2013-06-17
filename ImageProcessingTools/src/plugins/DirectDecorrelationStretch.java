@@ -260,6 +260,16 @@ public class DirectDecorrelationStretch implements WhiteboxPlugin {
                             bOut = 255;
                         }
                         
+                        if (rOut < 0) {
+                            rOut = 0;
+                        }
+                        if (gOut < 0) {
+                            gOut = 0;
+                        }
+                        if (bOut < 0) {
+                            bOut = 0;
+                        }
+                        
                         if (rOut > rMax) { rMax = rOut; }
                         if (gOut > gMax) { gMax = gOut; }
                         if (bOut > bMax) { bMax = bOut; }
@@ -300,6 +310,16 @@ public class DirectDecorrelationStretch implements WhiteboxPlugin {
                         }
                         if (bOut > 255) {
                             bOut = 255;
+                        }
+                        
+                        if (rOut < 0) {
+                            rOut = 0;
+                        }
+                        if (gOut < 0) {
+                            gOut = 0;
+                        }
+                        if (bOut < 0) {
+                            bOut = 0;
                         }
                         
                         z = (double) ((255 << 24) | (bOut << 16) | (gOut << 8) | rOut);

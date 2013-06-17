@@ -346,6 +346,16 @@ public class BalanceContrastEnhancement implements WhiteboxPlugin {
                             bOut = 255;
                         }
                         
+                        if (rOut < 0) {
+                            rOut = 0;
+                        }
+                        if (gOut < 0) {
+                            gOut = 0;
+                        }
+                        if (bOut < 0) {
+                            bOut = 0;
+                        }
+                        
                         z = (double) ((255 << 24) | (bOut << 16) | (gOut << 8) | rOut);
                         output.setValue(row, col, z);
                     }
