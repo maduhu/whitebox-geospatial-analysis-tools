@@ -1,5 +1,7 @@
+plugins.BalanceContrastEnhancement
 plugins.ChangeVectorAnalysis
 plugins.CreateColourComposite
+plugins.DirectDecorrelationStretch
 plugins.FeatureSpacePlot
 plugins.FillMissingDataHoles
 plugins.FilterAdaptive

@@ -26,7 +26,7 @@ import whitebox.interfaces.WhiteboxPlugin;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author johnlindsay
  */
-public class GaussianStretch implements WhiteboxPlugin{
+public class GaussianStretch implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
