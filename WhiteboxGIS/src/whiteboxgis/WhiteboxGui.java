@@ -5211,7 +5211,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
             layerOverlayNum = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
             if (layerOverlayNum < 0) {
-                showFeedback(messages.getString("NoVectors"));
+                showFeedback(messages.getString("NoVectorLayers"));
                 return;
             }
         }
