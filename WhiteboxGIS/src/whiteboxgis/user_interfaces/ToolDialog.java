@@ -288,13 +288,13 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
                         args[0] = getTextValue(el, "Name");
                         args[1] = getTextValue(el, "Description");
                         args[2] = getTextValue(el, "LabelText");
-                        if (args[2].toLowerCase().contains("input raster file")) {
+                        if (args[2].toLowerCase().replace(":", "").equals("input raster file")) {
                             args[2] = bundle.getString("InputRaster");
-                        } else if (args[2].toLowerCase().contains("output raster file")) {
+                        } else if (args[2].toLowerCase().replace(":", "").equals("output raster file")) {
                             args[2] = bundle.getString("OutputRaster");
-                        } else if (args[2].toLowerCase().contains("input vector file")) {
+                        } else if (args[2].toLowerCase().replace(":", "").equals("input vector file")) {
                             args[2] = bundle.getString("InputVector");
-                        } else if (args[2].toLowerCase().contains("output vector file")) {
+                        } else if (args[2].toLowerCase().replace(":", "").equals("output vector file")) {
                             args[2] = bundle.getString("OutputVector");
                         }
                         String dialogMode = getTextValue(el, "DialogMode");

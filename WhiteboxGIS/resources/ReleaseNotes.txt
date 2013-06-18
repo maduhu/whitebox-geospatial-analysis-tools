@@ -9,15 +9,22 @@ remote sensing software package for advanced analysis and visualization of geosp
 
 RELEASE NOTES:
 
-Version 3.0.1 - Iguazu
+Version 3.0.2
+
+-Fixed a bug with the math tools that would not allow for a constant as the first operand.
+-Added support for German
+-Added BalanceContrastEnhancement and DirectDecorrelationStretch tools.
+
+Version 3.0.1
 
 -Fixed a bug that affected the launch of Whitebox on 32-bit Windows computers.
 -Added preliminary support for Persian and Greek languages.
 -Added a feature that checks for updated version.
 -Added a feature for announcements.
 -Added basic error logging capabilities.
+-Added trend surface analysis tools.
 
-Version 3.0 - Iguazu
+Version 3.0
 
 This version is codenamed Iguazu, after Iguazu Falls located at Foz do Iguaçu, on the 
 border of Brazil and Argentina. Iguazu Falls is a spectacular landform. I have decided to code-name 

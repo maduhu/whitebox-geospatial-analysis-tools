@@ -1167,7 +1167,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 fileNameBox.setLayout(new BoxLayout(fileNameBox, BoxLayout.X_AXIS));
                 fileNameBox.setBackground(Color.white);
                 fileNameBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("File Name");
+                label = new JLabel(bundle.getString("FileName"));
                 label.setPreferredSize(new Dimension(180, 24));
                 fileNameBox.add(label);
                 fileNameBox.add(Box.createHorizontalGlue());
@@ -1183,7 +1183,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 shapeTypeBox.setLayout(new BoxLayout(shapeTypeBox, BoxLayout.X_AXIS));
                 shapeTypeBox.setBackground(backColour);
                 shapeTypeBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Shape Type");
+                label = new JLabel(bundle.getString("ShapeType"));
                 shapeTypeBox.add(label);
                 shapeTypeBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(shapefile.getShapeType().name());
@@ -1196,7 +1196,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 xMinBox.setLayout(new BoxLayout(xMinBox, BoxLayout.X_AXIS));
                 xMinBox.setBackground(Color.white);
                 xMinBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("X Minimum");
+                label = new JLabel(bundle.getString("XMin"));
                 xMinBox.add(label);
                 xMinBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(shapefile.getxMin()));
@@ -1209,7 +1209,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 xMaxBox.setLayout(new BoxLayout(xMaxBox, BoxLayout.X_AXIS));
                 xMaxBox.setBackground(backColour);
                 xMaxBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("X Maximum");
+                label = new JLabel(bundle.getString("XMax"));
                 xMaxBox.add(label);
                 xMaxBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(shapefile.getxMax()));
@@ -1222,7 +1222,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 yMinBox.setLayout(new BoxLayout(yMinBox, BoxLayout.X_AXIS));
                 yMinBox.setBackground(Color.white);
                 yMinBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Y Minimum");
+                label = new JLabel(bundle.getString("YMin"));
                 yMinBox.add(label);
                 yMinBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(shapefile.getyMin()));
@@ -1235,7 +1235,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 yMaxBox.setLayout(new BoxLayout(yMaxBox, BoxLayout.X_AXIS));
                 yMaxBox.setBackground(backColour);
                 yMaxBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Y Maximum");
+                label = new JLabel(bundle.getString("YMax"));
                 yMaxBox.add(label);
                 yMaxBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(shapefile.getyMax()));
@@ -1251,7 +1251,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                     zMinBox.setLayout(new BoxLayout(zMinBox, BoxLayout.X_AXIS));
                     zMinBox.setBackground(Color.white);
                     zMinBox.add(Box.createHorizontalStrut(10));
-                    label = new JLabel("Z Minimum");
+                    label = new JLabel(bundle.getString("ZMin"));
                     zMinBox.add(label);
                     zMinBox.add(Box.createHorizontalGlue());
                     label2 = new JLabel(String.valueOf(shapefile.getzMin()));
@@ -1264,7 +1264,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                     zMaxBox.setLayout(new BoxLayout(zMaxBox, BoxLayout.X_AXIS));
                     zMaxBox.setBackground(backColour);
                     zMaxBox.add(Box.createHorizontalStrut(10));
-                    label = new JLabel("Z Maximum");
+                    label = new JLabel(bundle.getString("ZMax"));
                     zMaxBox.add(label);
                     zMaxBox.add(Box.createHorizontalGlue());
                     label2 = new JLabel(String.valueOf(shapefile.getzMax()));
@@ -1278,7 +1278,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 fileLengthBox.setLayout(new BoxLayout(fileLengthBox, BoxLayout.X_AXIS));
                 fileLengthBox.setBackground(Color.white);
                 fileLengthBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("File Length");
+                label = new JLabel(bundle.getString("FileLength"));
                 fileLengthBox.add(label);
                 fileLengthBox.add(Box.createHorizontalGlue());
                 String fileLengthUnits = " kB";
@@ -1302,7 +1302,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 numRecsBox.setLayout(new BoxLayout(numRecsBox, BoxLayout.X_AXIS));
                 numRecsBox.setBackground(backColour);
                 numRecsBox.add(Box.createHorizontalStrut(10));
-                label = new JLabel("Num. of Records");
+                label = new JLabel(bundle.getString("NumRecords"));
                 numRecsBox.add(label);
                 numRecsBox.add(Box.createHorizontalGlue());
                 label2 = new JLabel(String.valueOf(shapefile.getNumberOfRecords()));

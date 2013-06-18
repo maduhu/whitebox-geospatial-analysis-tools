@@ -2,7 +2,7 @@
 	<DialogComponent type="DialogFile">
 		<Name>InputFile</Name>
 		<Description>Enter the name of the input file here</Description>
-		<LabelText>Input Raster File Or Constant Value:</LabelText>
+		<LabelText>Input Raster File:</LabelText>
 		<DialogMode>Open File</DialogMode>
 		<Filter>Raster Files (*.dep), DEP</Filter>
 		<IsVisible>True</IsVisible>
@@ -12,7 +12,7 @@
 	<DialogComponent type="DialogFile">
 		<Name>InputFile</Name>
 		<Description>Enter the name of the input file here</Description>
-		<LabelText>Input Raster File Or Constant Value:</LabelText>
+		<LabelText>Input Raster File:</LabelText>
 		<DialogMode>Open File</DialogMode>
 		<Filter>Raster Files (*.dep), DEP</Filter>
 		<IsVisible>True</IsVisible>

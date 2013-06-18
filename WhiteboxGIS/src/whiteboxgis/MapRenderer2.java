@@ -426,7 +426,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
             // into integer pixels
             BufferedImage bi = new BufferedImage((int) w, (int) h, BufferedImage.TYPE_INT_ARGB);
-
+           
             Graphics ig = bi.createGraphics();
             printingMap = true;
             map.deslectAllCartographicElements();
