@@ -217,6 +217,11 @@ public class DirectDecorrelationStretch implements WhiteboxPlugin {
             int progress = 0;
 
             WhiteboxRaster input = new WhiteboxRaster(inputHeader, "r");
+            
+            if (input.getDataScale() != WhiteboxRasterBase.DataScale.RGB) {
+                showFeedback("The input image should be of an RGB data scale.");
+                return;
+            }
 
             int rows = input.getNumberRows();
             int cols = input.getNumberColumns();

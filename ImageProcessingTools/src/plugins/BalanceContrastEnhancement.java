@@ -214,6 +214,11 @@ public class BalanceContrastEnhancement implements WhiteboxPlugin {
 
             WhiteboxRaster input = new WhiteboxRaster(inputHeader, "r");
 
+            if (input.getDataScale() != WhiteboxRasterBase.DataScale.RGB) {
+                showFeedback("The input image should be of an RGB data scale.");
+                return;
+            }
+            
             int rows = input.getNumberRows();
             int cols = input.getNumberColumns();
 
