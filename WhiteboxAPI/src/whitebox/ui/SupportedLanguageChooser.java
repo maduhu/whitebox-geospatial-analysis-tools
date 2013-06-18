@@ -41,9 +41,9 @@ public abstract class SupportedLanguageChooser {
 //        String[] languages = { "Chinese (China)", "Dutch (Netherlands)", "English (Canada)", "English (UK)", 
 //            "English (US)", "Greek (Greece)", "Persian (Iran)" };
 //        String[] codes = { "zh_CN", "nl_NL", "en_CA", "en_GB", "en_US", "el_GR", "fa_IR" };
-        String[] languages = { "English (Canada)", "English (UK)", 
+        String[] languages = { "Català (Spain)", "English (Canada)", "English (UK)", 
             "English (US)", "German (Germany)", "Greek (Greece)", "Persian (Iran)", "Polish (Poland)" };
-        String[] codes = { "en_CA", "en_GB", "en_US", "de_DE", "el_GR", "fa_IR", "pl_PL" };
+        String[] codes = { "ca_ES", "en_CA", "en_GB", "en_US", "de_DE", "el_GR", "fa_IR", "pl_PL" };
         
         int selectedIndex = 0;
         for (int a = 0; a < codes.length; a++) {
@@ -88,6 +88,9 @@ public abstract class SupportedLanguageChooser {
                             break;
                         case "polish (poland)":
                             code = "pl_PL";
+                            break;
+                        case "català (spain)":
+                            code = "ca_ES";
                             break;
                         default:
                             code = "en_CA";
