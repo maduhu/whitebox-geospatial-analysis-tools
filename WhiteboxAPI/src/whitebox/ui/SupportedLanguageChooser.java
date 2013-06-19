@@ -41,13 +41,14 @@ public abstract class SupportedLanguageChooser {
 //        String[] languages = { "Chinese (China)", "Dutch (Netherlands)", "English (Canada)", "English (UK)", 
 //            "English (US)", "Greek (Greece)", "Persian (Iran)" };
 //        String[] codes = { "zh_CN", "nl_NL", "en_CA", "en_GB", "en_US", "el_GR", "fa_IR" };
-        String[] languages = { "Català (Spain)", "English (Canada)", "English (UK)", 
-            "English (US)", "German (Germany)", "Greek (Greece)", "Persian (Iran)", "Polish (Poland)" };
-        String[] codes = { "ca_ES", "en_CA", "en_GB", "en_US", "de_DE", "el_GR", "fa_IR", "pl_PL" };
+        String[] languages = { "Català (Spain)", "Deutsch (Germany)", "Elliniká (Greece)", 
+            "English (Canada)", "English (UK)", "English (US)", "Español (Spain)", "Persian (Iran)", "Polski (Poland)" };
+        String[] codes = { "ca_ES", "de_DE", "el_GR", "en_CA", "en_GB", "en_US", "fa_IR", "pl_PL" };
         
         int selectedIndex = 0;
+        String hostLanguageCode = myHost.getLanguageCountryCode();
         for (int a = 0; a < codes.length; a++) {
-            if (codes[a].equals(myHost.getLanguageCountryCode())) {
+            if (codes[a].equals(hostLanguageCode)) {
                 selectedIndex = a;
             }
         }
@@ -77,20 +78,23 @@ public abstract class SupportedLanguageChooser {
                         case "english (us)":
                             code = "en_US";
                             break;
-                        case "greek (greece)":
+                        case "elliniká (greece)":
                             code = "el_GR";
                             break;
                         case "persian (iran)":
                             code = "fa_IR";
                             break;
-                        case "german (germany)":
+                        case "deutsch (germany)":
                             code = "de_DE";
                             break;
-                        case "polish (poland)":
+                        case "polski (poland)":
                             code = "pl_PL";
                             break;
                         case "català (spain)":
                             code = "ca_ES";
+                            break;
+                        case "español (spain)":
+                            code = "es_ES";
                             break;
                         default:
                             code = "en_CA";

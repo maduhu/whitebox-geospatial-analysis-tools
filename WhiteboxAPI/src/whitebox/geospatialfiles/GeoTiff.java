@@ -606,7 +606,7 @@ public class GeoTiff {
                         sa = null;
                     } else if (sampleFormat == 1 && bitsPerSample[0] == 32) { // unsigned 32-bit int
                         int b1, b2, b3, b4;
-                        for (int i = 0; i < size; i++) {
+                        for (int i = 0; i < nCols; i++) {
                             b1 = (0x000000FF & ((int)buffer.get()));
                             b2 = (0x000000FF & ((int)buffer.get()));
                             b3 = (0x000000FF & ((int)buffer.get()));
