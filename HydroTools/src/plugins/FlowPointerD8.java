@@ -255,6 +255,7 @@ public class FlowPointerD8 implements WhiteboxPlugin {
             returnData(outputHeader);
 
         } catch (Exception e) {
+            myHost.logException("Error in FlowPointerD8.run", e);
             showFeedback(e.getMessage());
         } finally {
             updateProgress("Progress: ", 0);
