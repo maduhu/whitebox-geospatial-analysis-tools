@@ -93,6 +93,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
                 + pathSep + "Dialogs" + pathSep + pluginName + ".xml";
         // see if the parameterFile exists.
         if (!(new File(parameterFile).exists())) {
+            logException("ParameterFileNotLocated", new Exception("ParameterFileNotLocated"));
             host.showFeedback(messages.getString("ParameterFileNotLocated"));
         }
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
@@ -434,6 +435,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             //mainPanel.add(box);
             mainScrollPane = new JScrollPane(mainPanel);
         } catch (ParserConfigurationException | SAXException | IOException e) {
+            logException("ToolDialog.drawMainPanel", e);
             showFeedback(e.getMessage());
         }
     }
@@ -732,5 +734,12 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     @Override
     public ResourceBundle getMessageBundle() {
         return messages;
+    }
+
+    @Override
+    public void logException(String message, Exception e) {
+        if (host != null) {
+            host.logException(message, e);
+        }
     }
 }

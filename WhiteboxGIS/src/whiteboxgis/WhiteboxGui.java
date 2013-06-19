@@ -84,6 +84,7 @@ import whiteboxgis.user_interfaces.SettingsDialog;
 import whiteboxgis.user_interfaces.RecentMenu;
 import whiteboxgis.user_interfaces.CartographicToolbar;
 import whiteboxgis.user_interfaces.LayersPopupMenu;
+import whitebox.internationalization.WhiteboxInternationalizationTools;
 
 /**
  *
@@ -181,9 +182,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private double defaultMapMargin = 0.0;
     private ArrayList<WhiteboxAnnouncement> announcements = new ArrayList<>();
     private int announcementNumber = 0;
-    private Locale currentLocale;
+//    private Locale currentLocale;
     private ResourceBundle bundle;
-    private ResourceBundle pluginToolsText;
+//    private ResourceBundle pluginToolsText;
     private ResourceBundle messages;
     private String language = "en";
     private String country = "CA";
@@ -312,9 +313,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             this.getApplicationProperties();
 
             // i18n
-            currentLocale = new Locale(language, country);
-            bundle = ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
-            messages = ResourceBundle.getBundle("whiteboxgis.i18n.messages", currentLocale);
+            //currentLocale = new Locale(language, country);
+            WhiteboxInternationalizationTools.setLocale(language, country);
+            bundle = WhiteboxInternationalizationTools.getGuiLabelsBundle(); //ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
+            messages = WhiteboxInternationalizationTools.getMessagesBundle(); //ResourceBundle.getBundle("whiteboxgis.i18n.messages", currentLocale);
             //pluginToolsText = ResourceBundle.getBundle("whiteboxgis.i18n.pluginToolsText", currentLocale);
 
             boolean newInstall = checkForNewInstallation();
@@ -3042,9 +3044,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         language = str[0];
         country = str[1];
 
-        currentLocale = new Locale(language, country);
-        bundle = ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
-        messages = ResourceBundle.getBundle("whiteboxgis.i18n.messages", currentLocale);
+        //currentLocale = new Locale(language, country);
+        WhiteboxInternationalizationTools.setLocale(language, country);
+        bundle = WhiteboxInternationalizationTools.getGuiLabelsBundle(); //ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
+        messages = WhiteboxInternationalizationTools.getMessagesBundle(); //ResourceBundle.getBundle("whiteboxgis.i18n.messages", currentLocale);
     }
 
     public boolean isCheckForUpdates() {
@@ -5410,6 +5413,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             openMaps.get(activeMap).addMapImage(selectedFile);
             refreshMap(false);
         }
+    }
+    
+    public void logException(String message, Exception e) {
+        logger.log(Level.SEVERE, message, e);
     }
 
     @Override

@@ -325,4 +325,9 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     public String getLogDirectory() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public void logException(String message, Exception e) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
