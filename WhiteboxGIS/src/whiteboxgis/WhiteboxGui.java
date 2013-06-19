@@ -807,8 +807,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 } else {
                     dialog.setPreferredSize(new Dimension(500, 500));
                 }
+                if (panel.getName() != null) {
+                    dialog.setTitle(panel.getName());
+                }
                 dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 dialog.pack();
+                dialog.setLocationRelativeTo(null);
                 dialog.setVisible(true);
             }
         } catch (Exception e) {
