@@ -31,7 +31,7 @@ import java.util.ResourceBundle;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class PluginHost implements WhiteboxPluginHost, Communicator {
+public class PluginHost implements WhiteboxPluginHost {
 
     private ArrayList<PluginInfo> plugInfo = null;
     private static PluginService pluginService = null;
@@ -251,6 +251,11 @@ public class PluginHost implements WhiteboxPluginHost, Communicator {
 
     @Override
     public void setLanguageCountryCode(String code) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void logException(String message, Exception e) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

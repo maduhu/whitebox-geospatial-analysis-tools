@@ -18,34 +18,34 @@
 package whitebox.interfaces;
 
 import java.util.List;
-import java.util.ResourceBundle;
+//import java.util.ResourceBundle;
 import java.awt.Font;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public interface WhiteboxPluginHost {
+public interface WhiteboxPluginHost extends Communicator {
     /**
      * Used to tell the Whitebox GUI to toggle the edit vector tool if the
      * active layer is a vector.
      */
     public void editVector();
     
-    public String getWorkingDirectory();
-    
-    public void setWorkingDirectory(String workingDirectory);
-    
-    public String getApplicationDirectory();
-    
-    public void setApplicationDirectory(String applicationDirectory);
-    
-    public String getResourcesDirectory();
-    
-    public String getLogDirectory();
-    
-    public ResourceBundle getGuiLabelsBundle();
-    
-    public ResourceBundle getMessageBundle();
+//    public String getWorkingDirectory();
+//    
+//    public void setWorkingDirectory(String workingDirectory);
+//    
+//    public String getApplicationDirectory();
+//    
+//    public void setApplicationDirectory(String applicationDirectory);
+//    
+//    public String getResourcesDirectory();
+//    
+//    public String getLogDirectory();
+//    
+//    public ResourceBundle getGuiLabelsBundle();
+//    
+//    public ResourceBundle getMessageBundle();
     
     public String getLanguageCountryCode();
 
@@ -69,22 +69,22 @@ public interface WhiteboxPluginHost {
      */
     public void returnData(Object ret);
 
-    /**
-     * Used to run a plugin through the Host app.
-     * @param pluginName String containing the descriptive name of the plugin.
-     * @param args String array containing the parameters to feed to the plugin.
-     */
-    public void runPlugin(String pluginName, String[] args);
+//    /**
+//     * Used to run a plugin through the Host app.
+//     * @param pluginName String containing the descriptive name of the plugin.
+//     * @param args String array containing the parameters to feed to the plugin.
+//     */
+//    public void runPlugin(String pluginName, String[] args);
     
     public void pluginComplete();
 
-    /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
-     * @param feedback String containing the text to display.
-     */
-    public int showFeedback(String message);
-    
-    public int showFeedback(String message, int optionType, int messageType);
+//    /**
+//     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+//     * @param feedback String containing the text to display.
+//     */
+//    public int showFeedback(String message);
+//    
+//    public int showFeedback(String message, int optionType, int messageType);
 
     /**
      * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.

@@ -38,12 +38,9 @@ public abstract class SupportedLanguageChooser {
         
         final boolean supressWarning = suppressResartWarning;
         
-//        String[] languages = { "Chinese (China)", "Dutch (Netherlands)", "English (Canada)", "English (UK)", 
-//            "English (US)", "Greek (Greece)", "Persian (Iran)" };
-//        String[] codes = { "zh_CN", "nl_NL", "en_CA", "en_GB", "en_US", "el_GR", "fa_IR" };
         String[] languages = { "Català (Spain)", "Deutsch (Germany)", "Elliniká (Greece)", 
             "English (Canada)", "English (UK)", "English (US)", "Español (Spain)", "Persian (Iran)", "Polski (Poland)" };
-        String[] codes = { "ca_ES", "de_DE", "el_GR", "en_CA", "en_GB", "en_US", "fa_IR", "pl_PL" };
+        String[] codes = { "ca_ES", "de_DE", "el_GR", "en_CA", "en_GB", "en_US", "es_ES", "fa_IR", "pl_PL" };
         
         int selectedIndex = 0;
         String hostLanguageCode = myHost.getLanguageCountryCode();

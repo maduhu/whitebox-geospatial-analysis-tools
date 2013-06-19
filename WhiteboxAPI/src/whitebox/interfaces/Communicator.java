@@ -43,6 +43,8 @@ public interface Communicator {
     
     public ResourceBundle getMessageBundle();
     
+    public void logException(String message, Exception e);
+    
     /**
      * Used to run a plugin through the Host app.
      * @param pluginName String containing the descriptive name of the plugin.

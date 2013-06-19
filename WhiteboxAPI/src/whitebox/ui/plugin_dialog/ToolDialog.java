@@ -584,4 +584,9 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     public ResourceBundle getMessageBundle() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public void logException(String message, Exception e) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
