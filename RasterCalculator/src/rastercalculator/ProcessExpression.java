@@ -34,11 +34,11 @@ import whitebox.interfaces.ThreadListener;
  */
 public class ProcessExpression implements WhiteboxPluginHost, Runnable {
 
-    private Map<String, String> images = new HashMap<String, String>();
+    private Map<String, String> images = new HashMap<>();
     private String outputFileName;
     private int numberOfImages = 0;
     private int eqDepth = 0;
-    private ArrayList<String> listOfTemporaryFiles = new ArrayList<String>();
+    private ArrayList<String> listOfTemporaryFiles = new ArrayList<>();
     private String imageKey;
     //private boolean cancelOp = false;
     private String workingDirectory = "";
@@ -236,6 +236,11 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
 
     @Override
     public void setLanguageCountryCode(String code) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void logException(String message, Exception e) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
