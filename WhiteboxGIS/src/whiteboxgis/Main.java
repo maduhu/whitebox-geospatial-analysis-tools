@@ -23,6 +23,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import java.util.List;
+import java.util.logging.*;
 
 /**
  *
@@ -30,6 +31,7 @@ import java.util.List;
  */
 public class Main {
 
+    private static final Logger logger = Logger.getLogger(Main.class.getPackage().getName());
     private String[] args;
     private String applicationDirectory;
     private String pathSep;
@@ -77,9 +79,41 @@ public class Main {
             System.out.println(e.getMessage());
         }
     }
+    boolean logDirectoryFound = false;
 
     private void launchProgram() {
         try {
+
+            pathSep = File.separator;
+            applicationDirectory = java.net.URLDecoder.decode(getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
+            if (applicationDirectory.endsWith(".exe") || applicationDirectory.endsWith(".jar")) {
+                applicationDirectory = new File(applicationDirectory).getParent();
+            } else {
+                // Add the path to the class files
+                applicationDirectory += getClass().getName().replace('.', File.separatorChar);
+
+                // Step one level up as we are only interested in the
+                // directory containing the class files
+                applicationDirectory = new File(applicationDirectory).getParent();
+            }
+            if (!applicationDirectory.endsWith(pathSep)) {
+                applicationDirectory += pathSep;
+            }
+            findFile(new File(applicationDirectory), "logs");
+            if (retFile != null && !retFile.isEmpty()) {
+                String logDirectory = retFile + pathSep;
+                // set up the logger
+                int limit = 1000000; // 1 Mb
+                int numLogFiles = 2;
+                FileHandler fh = new FileHandler(logDirectory + "LauncherLog%g_%u.xml", limit, numLogFiles, true);
+                fh.setLevel(Level.ALL);
+                fh.setFormatter(new XMLFormatter());
+                //fh.setFormatter(new SimpleFormatter());
+                logger.addHandler(fh);
+                logDirectoryFound = true;
+            }
+
+
             List inputArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
             boolean isDebug = inputArgs.contains("-Xdebug");
 
@@ -107,6 +141,7 @@ public class Main {
                                 javax.swing.JOptionPane.ERROR_MESSAGE);
                     }
                 }
+
                 System.exit(0);
             } else {
                 WhiteboxGui.main(args);
@@ -119,7 +154,11 @@ public class Main {
         try {
             String xmx = "-Xmx" + heapSize + heapSizeUnit;
             String xms = "-Xms" + heapSize + heapSizeUnit;
-            System.out.println(xmx);
+            //System.out.println(xmx);
+            if (logDirectoryFound) {
+                String str = "HeapSize = " + xmx;
+                logger.log(Level.CONFIG, str);
+            }
             String separator = System.getProperty("file.separator");
             String classpath = System.getProperty("java.class.path");
             String path = System.getProperty("java.home")
@@ -172,7 +211,13 @@ public class Main {
             File[] files = dir.listFiles();
             for (int i = 0; i < files.length; i++) {
                 if (files[i].isDirectory()) {
-                    findFile(files[i], fileName);
+                    if (files[i].getName().equals(fileName)) {
+                        retFile = files[i].toString();
+                        flag = false;
+                        break;
+                    } else {
+                        findFile(files[i], fileName);
+                    }
                 } else if (files[i].getName().equals(fileName)) {
                     retFile = files[i].toString();
                     flag = false;
@@ -181,7 +226,6 @@ public class Main {
             }
         }
     }
-
 //    private static void setLookAndFeel(String lafName) {
 //        try {
 //

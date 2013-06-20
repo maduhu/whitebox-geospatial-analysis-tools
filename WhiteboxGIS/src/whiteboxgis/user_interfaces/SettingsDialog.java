@@ -29,6 +29,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import javax.swing.*;
 import whitebox.interfaces.Communicator;
 import whiteboxgis.WhiteboxGui;
@@ -337,4 +338,12 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
             host.logThrowable(message, t);
         }
     }
+    
+    @Override
+    public void logMessage(Level level, String message) {
+        if (host != null) {
+            host.logMessage(level, message);
+        }
+    }
+    
 }

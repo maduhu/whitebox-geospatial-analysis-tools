@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -747,6 +748,13 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     public void logThrowable(String message, Throwable t) {
         if (host != null) {
             host.logThrowable(message, t);
+        }
+    }
+
+    @Override
+    public void logMessage(Level level, String message) {
+        if (host != null) {
+            host.logMessage(level, message);
         }
     }
 }

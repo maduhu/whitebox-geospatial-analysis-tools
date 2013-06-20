@@ -5424,6 +5424,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public void logThrowable(String message, Throwable t) {
         logger.log(Level.SEVERE, message, t);
     }
+    
+    @Override
+    public void logMessage(Level level, String message) {
+        logger.log(level, message);
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
