@@ -547,8 +547,11 @@ public class GeoTiff {
         int size = 0;
         int compressionType = findTag(Tag.Compression).value[0];
         int[] bitsPerSample = findTag(Tag.BitsPerSample).value;
-        int sampleFormat = findTag(Tag.SampleFormat).value[0];
+        int sampleFormat = 1; //findTag(Tag.SampleFormat).value[0];
 
+        if (findTag(Tag.SampleFormat) != null) {
+            sampleFormat = findTag(Tag.SampleFormat).value[0];
+        }
         if (findTag(Tag.TileOffsets) != null) {
             return null; // can't handle this type of tiff.
         }

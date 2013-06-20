@@ -23,6 +23,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.io.*;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 import whitebox.interfaces.DialogComponent;
 import whitebox.interfaces.Communicator;
 import javax.swing.event.HyperlinkListener;
@@ -587,6 +588,6 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
 
     @Override
     public void logException(String message, Exception e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        host.logException(message, e);
     }
 }

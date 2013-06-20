@@ -20,6 +20,8 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import whitebox.interfaces.Communicator;
+
 /**
  * The abstract base class serving the WhiteboxRaster and WhiteboxRasterInfo 
  * subclasses.
@@ -29,9 +31,9 @@ public abstract class WhiteboxRasterBase {
     // ***********************************
     // Property getter and setter methods.
     // ***********************************
-
     protected String headerFile;
     protected String shortHeaderName = null;
+    protected Communicator communicator = null;
     /**
      * Gets the header file (*.dep) name for this Whitebox raster grid.
      * Notice that the header file name is set during object creation.
@@ -359,7 +361,7 @@ public abstract class WhiteboxRasterBase {
      * e.g. <b><i>earthtones.pal</b></i> or <b><i>spectrum.pal</b></i>.
      */
     public void setPreferredPalette(String PreferredPalette) {
-        PreferredPalette.replace(".plt", ".pal");
+        PreferredPalette = PreferredPalette.replace(".plt", ".pal");
         if (PreferredPalette.lastIndexOf(File.separator) > -1) {
             String[] str = PreferredPalette.split(File.separator);
             PreferredPalette = str[str.length - 1];
@@ -449,7 +451,11 @@ public abstract class WhiteboxRasterBase {
         }
     }
     
-    protected ArrayList<String> metadata = new ArrayList<String>();
+    public void setCommunicator(Communicator communicator) {
+        this.communicator = communicator;
+    }
+    
+    protected ArrayList<String> metadata = new ArrayList<>();
     /**
      * Adds a metadata entry to the header file.
      * @param value String containing the metadata entry.
@@ -554,9 +560,9 @@ public abstract class WhiteboxRasterBase {
     //********************************************
     // Available methods.
     // *******************************************
-
+    
     // checks to see if the data contains decimal values.
-    private void checkContainsFractionalData() {
+    protected void checkContainsFractionalData() {
         if (dataType == DataType.INTEGER || dataType == DataType.BYTE) {
             containsFractionalDataChecked = true;
             containsFractionalData = false;

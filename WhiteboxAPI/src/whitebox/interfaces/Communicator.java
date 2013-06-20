@@ -18,6 +18,7 @@
 package whitebox.interfaces;
 
 import java.util.ResourceBundle;
+import java.util.logging.*;
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
