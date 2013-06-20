@@ -204,6 +204,10 @@ public class FlowPointerD8 implements WhiteboxPlugin {
             output.setDataScale(WhiteboxRaster.DataScale.CATEGORICAL);
             output.setZUnits("dimensionless");
             
+            if (myHost != null) {
+                DEM.setCommunicator(myHost);
+                output.setCommunicator(myHost);
+            }
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     z = DEM.getValue(row, col);
