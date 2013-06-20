@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.io.File;
 import java.util.Date;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.ThreadListener;
@@ -246,6 +247,11 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
 
     @Override
     public void logThrowable(String message, Throwable t) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void logMessage(Level level, String message) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
