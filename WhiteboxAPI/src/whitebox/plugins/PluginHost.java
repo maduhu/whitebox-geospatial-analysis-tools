@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 
 /**
  *
@@ -261,5 +262,11 @@ public class PluginHost implements WhiteboxPluginHost {
     @Override
     public void logThrowable(String message, Throwable t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    
+    @Override
+    public void logMessage(Level level, String message) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
