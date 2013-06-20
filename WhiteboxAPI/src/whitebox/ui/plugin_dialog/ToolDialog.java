@@ -588,6 +588,15 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
 
     @Override
     public void logException(String message, Exception e) {
-        host.logException(message, e);
+        if (host != null) {
+            host.logException(message, e);
+        }
+    }
+    
+    @Override
+    public void logThrowable(String message, Throwable t) {
+        if (host != null) {
+            host.logThrowable(message, t);
+        }
     }
 }

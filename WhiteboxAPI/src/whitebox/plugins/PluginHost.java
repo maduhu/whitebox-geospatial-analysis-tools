@@ -257,4 +257,9 @@ public class PluginHost implements WhiteboxPluginHost {
     public void logException(String message, Exception e) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public void logThrowable(String message, Throwable t) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

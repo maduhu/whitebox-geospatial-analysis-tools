@@ -481,86 +481,85 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
      * cell.
      */
     public double getValue(int row, int column) {
-        try {
+        //try {
+        if (column >= 0 && column < numberColumns && row >= 0 && row < numberRows) {
+
+            if (blockEndingCell < 0) {
+                readDataBlock();
+            }
+
+            // what is the cell number?
+            long cellNum = (long) (row) * numberColumns + column;
+
+            // check to see if it is within the current block
+            if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
+                if (saveChanges && isDirty) {
+                    writeDataBlock();
+                }
+                numReads++;
+                // Figure out a new blockstartingcell
+                if (previousRow < row) { // reading downward
+                    if (currentReadDirection == -1) {
+                        currentReadDirection = 0;
+                    }
+                    if (currentReadDirection != 0) {
+                        currentReadDirection = 0;
+                        numSwitchReadDirections++;
+                        switchRatio = (double) numSwitchReadDirections / numReads;
+                    }
+                    blockStartingCell = (long) (cellNum - halfBlockSize * switchRatio); //10 * numberColumns);
+                } else { // reading upward
+                    if (currentReadDirection == -1) {
+                        currentReadDirection = 1;
+                    }
+                    if (currentReadDirection != 1) {
+                        currentReadDirection = 1;
+                        numSwitchReadDirections++;
+                        switchRatio = (double) numSwitchReadDirections / numReads;
+                    }
+                    blockStartingCell = (long) (cellNum - (blockSize - (switchRatio * halfBlockSize))); //+ (blockSize / 2) * ((double)upReadDirection / downReadDirection)); // + 10 * numberColumns - blockSize);
+                }
+                previousRow = row;
+                //blockStartingCell = (int)(cellNum - blockSize / 2);
+                if (blockStartingCell < 0) {
+                    blockStartingCell = 0;
+                }
+
+                readDataBlock();
+            }
+
+            return grid[(int) (cellNum - blockStartingCell)];
+        } else {
+            if (!isReflectedAtEdges) {
+                return noDataValue;
+            }
+
+            // if you get to this point, it is reflected at the edges
+            if (row < 0) {
+                row = -row - 1;
+            }
+            if (row >= numberRows) {
+                row = numberRows - (row - numberRows) - 1;
+            }
+            if (column < 0) {
+                column = -column - 1;
+            }
+            if (column >= numberColumns) {
+                column = numberColumns - (column - numberColumns) - 1;
+            }
             if (column >= 0 && column < numberColumns && row >= 0 && row < numberRows) {
-
-                if (blockEndingCell < 0) {
-                    readDataBlock();
-                }
-
-
-                // what is the cell number?
-                long cellNum = (long) (row) * numberColumns + column;
-
-                // check to see if it is within the current block
-                if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
-                    if (saveChanges && isDirty) {
-                        writeDataBlock();
-                    }
-                    numReads++;
-                    // Figure out a new blockstartingcell
-                    if (previousRow < row) { // reading downward
-                        if (currentReadDirection == -1) {
-                            currentReadDirection = 0;
-                        }
-                        if (currentReadDirection != 0) {
-                            currentReadDirection = 0;
-                            numSwitchReadDirections++;
-                            switchRatio = (double) numSwitchReadDirections / numReads;
-                        }
-                        blockStartingCell = (long) (cellNum - halfBlockSize * switchRatio); //10 * numberColumns);
-                    } else { // reading upward
-                        if (currentReadDirection == -1) {
-                            currentReadDirection = 1;
-                        }
-                        if (currentReadDirection != 1) {
-                            currentReadDirection = 1;
-                            numSwitchReadDirections++;
-                            switchRatio = (double) numSwitchReadDirections / numReads;
-                        }
-                        blockStartingCell = (long) (cellNum - (blockSize - (switchRatio * halfBlockSize))); //+ (blockSize / 2) * ((double)upReadDirection / downReadDirection)); // + 10 * numberColumns - blockSize);
-                    }
-                    previousRow = row;
-                    //blockStartingCell = (int)(cellNum - blockSize / 2);
-                    if (blockStartingCell < 0) {
-                        blockStartingCell = 0;
-                    }
-
-                    readDataBlock();
-                }
-
-                return grid[(int) (cellNum - blockStartingCell)];
+                return getValue(row, column);
             } else {
-                if (!isReflectedAtEdges) {
-                    return noDataValue;
-                }
-
-                // if you get to this point, it is reflected at the edges
-                if (row < 0) {
-                    row = -row - 1;
-                }
-                if (row >= numberRows) {
-                    row = numberRows - (row - numberRows) - 1;
-                }
-                if (column < 0) {
-                    column = -column - 1;
-                }
-                if (column >= numberColumns) {
-                    column = numberColumns - (column - numberColumns) - 1;
-                }
-                if (column >= 0 && column < numberColumns && row >= 0 && row < numberRows) {
-                    return getValue(row, column);
-                } else {
-                    // it was too off grid to be reflected.
-                    return noDataValue;
-                }
+                // it was too off grid to be reflected.
+                return noDataValue;
             }
-        } catch (Exception e) {
-            if (communicator != null) {
-                communicator.logException("WhiteboxRaster error", e);
-            }
-            return noDataValue;
         }
+//        } catch (Exception e) {
+//            if (communicator != null) {
+//                communicator.logException("WhiteboxRaster error", e);
+//            }
+//            return noDataValue;
+//        }
     }
 
     /**
@@ -571,54 +570,54 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
      * @param value The value to place in the grid cell.
      */
     public void setValue(int row, int column, double value) {
-        try {
-            if (saveChanges && column >= 0 && column < this.numberColumns
-                    && row >= 0 && row < this.numberRows) {
-                // what is the cell number?
-                long cellNum = (long) (row) * numberColumns + column;
+//        try {
+        if (saveChanges && column >= 0 && column < this.numberColumns
+                && row >= 0 && row < this.numberRows) {
+            // what is the cell number?
+            long cellNum = (long) (row) * numberColumns + column;
 
-                if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
-                    if (isDirty) {
-                        writeDataBlock();
-                    }
-                    numReads++;
-                    // Figure out a new blockstartingcell
-                    if (previousRow < row) {
-                        if (currentReadDirection == -1) {
-                            currentReadDirection = 0;
-                        }
-                        if (currentReadDirection != 0) {
-                            currentReadDirection = 0;
-                            numSwitchReadDirections++;
-                            switchRatio = (double) numSwitchReadDirections / numReads;
-                        }
-                        blockStartingCell = (long) (cellNum - halfBlockSize * switchRatio);
-                    } else {
-                        if (currentReadDirection == -1) {
-                            currentReadDirection = 1;
-                        }
-                        if (currentReadDirection != 1) {
-                            currentReadDirection = 1;
-                            numSwitchReadDirections++;
-                            switchRatio = (double) numSwitchReadDirections / numReads;
-                        }
-                        blockStartingCell = (long) (cellNum - (blockSize - (switchRatio * halfBlockSize)));
-                    }
-                    previousRow = row;
-                    if (blockStartingCell < 0) {
-                        blockStartingCell = 0;
-                    }
-                    readDataBlock();
+            if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
+                if (isDirty) {
+                    writeDataBlock();
                 }
+                numReads++;
+                // Figure out a new blockstartingcell
+                if (previousRow < row) {
+                    if (currentReadDirection == -1) {
+                        currentReadDirection = 0;
+                    }
+                    if (currentReadDirection != 0) {
+                        currentReadDirection = 0;
+                        numSwitchReadDirections++;
+                        switchRatio = (double) numSwitchReadDirections / numReads;
+                    }
+                    blockStartingCell = (long) (cellNum - halfBlockSize * switchRatio);
+                } else {
+                    if (currentReadDirection == -1) {
+                        currentReadDirection = 1;
+                    }
+                    if (currentReadDirection != 1) {
+                        currentReadDirection = 1;
+                        numSwitchReadDirections++;
+                        switchRatio = (double) numSwitchReadDirections / numReads;
+                    }
+                    blockStartingCell = (long) (cellNum - (blockSize - (switchRatio * halfBlockSize)));
+                }
+                previousRow = row;
+                if (blockStartingCell < 0) {
+                    blockStartingCell = 0;
+                }
+                readDataBlock();
+            }
 
-                grid[(int) (cellNum - blockStartingCell)] = value;
-                isDirty = true;
-            }
-        } catch (Exception e) {
-            if (communicator != null) {
-                communicator.logException("WhiteboxRaster error", e);
-            }
+            grid[(int) (cellNum - blockStartingCell)] = value;
+            isDirty = true;
         }
+//        } catch (Exception e) {
+//            if (communicator != null) {
+//                communicator.logException("WhiteboxRaster error", e);
+//            }
+//        }
     }
 
     /**
@@ -907,92 +906,95 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
     }
 
     private void readDataBlock() {
+        RandomAccessFile rIn = null;
+        FileChannel inChannel = null;
+        ByteBuffer buf = null;
         try {
-            RandomAccessFile rIn = null;
-            FileChannel inChannel = null;
-            ByteBuffer buf = null;
-            try {
 
-                // See if the data file exists.
-                File file = new File(dataFile);
-                if (!file.exists()) {
-                    createNewDataFile();
-                }
-
-                // What is the ending cell?
-                long endCell = (long) (blockStartingCell) + blockSize;
-                if (endCell > ((long) (numberRows) * numberColumns - 1)) {
-                    endCell = (long) (numberRows) * numberColumns - 1;
-                }
-
-                blockEndingCell = endCell;
-
-                int readLengthInCells = (int) (blockEndingCell - blockStartingCell + 1);
-                buf = ByteBuffer.allocate((int) (readLengthInCells * cellSizeInBytes));
-
-                rIn = new RandomAccessFile(dataFile, "r");
-
-                inChannel = rIn.getChannel();
-
-                inChannel.position(blockStartingCell * cellSizeInBytes);
-                inChannel.read(buf);
-
-                // Check the byte order.
-                buf.order(byteOrder);
-
-                grid = new double[readLengthInCells];
-
-                if (dataType == DataType.DOUBLE) {
-                    buf.rewind();
-                    DoubleBuffer db = buf.asDoubleBuffer();
-                    db.get(grid);
-                } else if (dataType == DataType.FLOAT) {
-                    buf.rewind();
-                    FloatBuffer fb = buf.asFloatBuffer();
-                    float[] fa = new float[readLengthInCells];
-                    fb.get(fa);
-                    for (int j = 0; j < readLengthInCells; j++) {
-                        grid[j] = fa[j];
-                    }
-                } else if (dataType == DataType.INTEGER) {
-                    buf.rewind();
-                    ShortBuffer ib = buf.asShortBuffer();
-                    short[] ia = new short[readLengthInCells];
-                    ib.get(ia);
-                    for (int j = 0; j < readLengthInCells; j++) {
-                        grid[j] = ia[j];
-                    }
-                } else if (dataType == DataType.BYTE) {
-                    buf.rewind();
-                    for (int j = 0; j < readLengthInCells; j++) {
-                        grid[j] = whitebox.utilities.Unsigned.getUnsignedByte(buf, j);
-                    }
-                }
-
-            } catch (Exception e) {
-                System.err.println(e.toString());
-            } catch (Throwable t) {
-                System.err.println(t.getMessage());
-            } finally {
-                if (rIn != null) {
-                    try {
-                        rIn.close();
-                    } catch (Exception e) {
-                    }
-                }
-                if (inChannel != null) {
-                    try {
-                        inChannel.close();
-                    } catch (Exception e) {
-                    }
-                }
-                numberOfDataFileReads++;
+            // See if the data file exists.
+            File file = new File(dataFile);
+            if (!file.exists()) {
+                createNewDataFile();
             }
+
+            // What is the ending cell?
+            long endCell = (long) (blockStartingCell) + blockSize;
+            if (endCell > ((long) (numberRows) * numberColumns - 1)) {
+                endCell = (long) (numberRows) * numberColumns - 1;
+            }
+
+            blockEndingCell = endCell;
+
+            int readLengthInCells = (int) (blockEndingCell - blockStartingCell + 1);
+            buf = ByteBuffer.allocate((int) (readLengthInCells * cellSizeInBytes));
+
+            rIn = new RandomAccessFile(dataFile, "r");
+
+            inChannel = rIn.getChannel();
+
+            inChannel.position(blockStartingCell * cellSizeInBytes);
+            inChannel.read(buf);
+
+            // Check the byte order.
+            buf.order(byteOrder);
+
+            grid = new double[readLengthInCells];
+
+            if (dataType == DataType.DOUBLE) {
+                buf.rewind();
+                DoubleBuffer db = buf.asDoubleBuffer();
+                db.get(grid);
+            } else if (dataType == DataType.FLOAT) {
+                buf.rewind();
+                FloatBuffer fb = buf.asFloatBuffer();
+                float[] fa = new float[readLengthInCells];
+                fb.get(fa);
+                for (int j = 0; j < readLengthInCells; j++) {
+                    grid[j] = fa[j];
+                }
+            } else if (dataType == DataType.INTEGER) {
+                buf.rewind();
+                ShortBuffer ib = buf.asShortBuffer();
+                short[] ia = new short[readLengthInCells];
+                ib.get(ia);
+                for (int j = 0; j < readLengthInCells; j++) {
+                    grid[j] = ia[j];
+                }
+            } else if (dataType == DataType.BYTE) {
+                buf.rewind();
+                for (int j = 0; j < readLengthInCells; j++) {
+                    grid[j] = whitebox.utilities.Unsigned.getUnsignedByte(buf, j);
+                }
+            }
+
         } catch (Exception e) {
             if (communicator != null) {
                 communicator.logException("WhiteboxRaster error", e);
+            } else {
+                System.out.println(e.toString());
             }
+        } catch (Throwable t) {
+            if (communicator != null) {
+                communicator.logThrowable("WhiteboxRaster error", t);
+            } else {
+                System.err.println(t.getMessage());
+            }
+        } finally {
+            if (rIn != null) {
+                try {
+                    rIn.close();
+                } catch (Exception e) {
+                }
+            }
+            if (inChannel != null) {
+                try {
+                    inChannel.close();
+                } catch (Exception e) {
+                }
+            }
+            numberOfDataFileReads++;
         }
+
     }
 
     /**

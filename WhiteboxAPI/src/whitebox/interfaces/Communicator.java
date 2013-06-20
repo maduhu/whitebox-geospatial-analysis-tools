@@ -46,6 +46,8 @@ public interface Communicator {
     
     public void logException(String message, Exception e);
     
+    public void logThrowable(String message, Throwable t);
+    
     /**
      * Used to run a plugin through the Host app.
      * @param pluginName String containing the descriptive name of the plugin.
