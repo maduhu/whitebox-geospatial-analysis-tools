@@ -330,4 +330,11 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
             host.logException(message, e);
         }
     }
+    
+    @Override
+    public void logThrowable(String message, Throwable t) {
+        if (host != null) {
+            host.logThrowable(message, t);
+        }
+    }
 }
