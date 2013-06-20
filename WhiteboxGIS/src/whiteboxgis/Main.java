@@ -106,7 +106,7 @@ public class Main {
                 int limit = 1000000; // 1 Mb
                 int numLogFiles = 2;
                 FileHandler fh = new FileHandler(logDirectory + "LauncherLog%g_%u.xml", limit, numLogFiles, true);
-                fh.setLevel(Level.ALL);
+                logger.setLevel(Level.ALL);
                 fh.setFormatter(new XMLFormatter());
                 //fh.setFormatter(new SimpleFormatter());
                 logger.addHandler(fh);
@@ -133,6 +133,11 @@ public class Main {
                     heapSize = (int) (amountOfMemory / 1073741824 / 1.5);
                 }
 
+                if (logDirectoryFound) {
+                    String str = "sun.arch.data.model = " + System.getProperty("sun.arch.data.model");
+                    logger.log(Level.CONFIG, str);
+                }
+
                 if (!startSecondJVM(heapSize, heapSizeUnit)) {
                     if (!GraphicsEnvironment.isHeadless()) {
                         JOptionPane.showMessageDialog(null, "There was a problem "
@@ -147,6 +152,9 @@ public class Main {
                 WhiteboxGui.main(args);
             }
         } catch (Exception e) {
+            if (logDirectoryFound) {
+                logger.log(Level.SEVERE, "Error in Main.launchProgram", e);
+            }
         }
     }
 
@@ -199,7 +207,9 @@ public class Main {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            if (logDirectoryFound) {
+                logger.log(Level.SEVERE, "Error in Main.launchProgram", e);
+            }
             return false;
         }
     }
