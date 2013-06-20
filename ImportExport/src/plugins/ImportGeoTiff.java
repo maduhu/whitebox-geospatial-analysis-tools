@@ -300,9 +300,11 @@ public class ImportGeoTiff implements WhiteboxPlugin {
 
 
         } catch (IOException e) {
-            showFeedback(e.getMessage());
+            myHost.logException("Error in ImportGeoTiff.run", e);
+            showFeedback(e.toString());
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.logException("Error in ImportGeoTiff.run", e);
+            showFeedback(e.toString());
         } finally {
             if (out != null || bw != null) {
                 out.flush();
