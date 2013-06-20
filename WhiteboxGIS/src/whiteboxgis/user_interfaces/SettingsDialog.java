@@ -25,8 +25,6 @@ import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -328,6 +326,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
 
     @Override
     public void logException(String message, Exception e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (host != null) {
+            host.logException(message, e);
+        }
     }
 }

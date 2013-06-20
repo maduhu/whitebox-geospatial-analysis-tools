@@ -138,7 +138,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         try {
             int limit = 1000000; // 1 Mb
             int numLogFiles = 3;
-            FileHandler fh = new FileHandler(logDirectory + "Help%g_%u.log", limit, numLogFiles, true);
+            FileHandler fh = new FileHandler(logDirectory + "HelpLog%g_%u.xml", limit, numLogFiles, true);
             fh.setFormatter(new XMLFormatter());
             //fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);

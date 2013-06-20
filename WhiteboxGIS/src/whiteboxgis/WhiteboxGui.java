@@ -304,7 +304,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             // set up the logger
             int limit = 1000000; // 1 Mb
             int numLogFiles = 3;
-            FileHandler fh = new FileHandler(logDirectory + "WhiteboxGui%g_%u.log", limit, numLogFiles, true);
+            FileHandler fh = new FileHandler(logDirectory + "WhiteboxLog%g_%u.xml", limit, numLogFiles, true);
             fh.setFormatter(new XMLFormatter());
             //fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);
@@ -2402,7 +2402,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             layersPanel.setBackground(Color.white);
             updateLayersTab();
             tabs.insertTab(bundle.getString("Layers"), null, layersPanel, "", 1);
-            featuresPanel = new FeatureSelectionPanel();
+            featuresPanel = new FeatureSelectionPanel(bundle);
             tabs.insertTab(bundle.getString("Features"), null, featuresPanel, "", 2);
 
             return tabs;
@@ -5415,6 +5415,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
     
+    @Override
     public void logException(String message, Exception e) {
         logger.log(Level.SEVERE, message, e);
     }

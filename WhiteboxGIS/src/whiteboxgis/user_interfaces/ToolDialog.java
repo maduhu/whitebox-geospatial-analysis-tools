@@ -742,4 +742,5 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             host.logException(message, e);
         }
     }
+
 }

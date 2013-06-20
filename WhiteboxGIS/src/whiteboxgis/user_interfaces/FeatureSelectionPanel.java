@@ -33,10 +33,12 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import java.util.ResourceBundle;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
+
 
 /**
  * This class is used to report the attributes of a selected feature from a
@@ -51,8 +53,10 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
     private int selectedFeature = -1;
     private VectorLayerInfo vli = null;
     private DBFField[] fields;
+    private ResourceBundle bundle;
     
-    public FeatureSelectionPanel() {
+    public FeatureSelectionPanel(ResourceBundle bundle) {
+        this.bundle = bundle;
         createGui();
     }
 
@@ -71,7 +75,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
         if (this.shape != null) {
             return this.shape.getFileName();
         } else {
-            return "not specified";
+            return bundle.getString("NotSpecified");
         }
     }
 
@@ -105,7 +109,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
 
             Box headerBox = Box.createHorizontalBox();
             //headerBox.add(Box.createHorizontalStrut(10));
-            JLabel label = new JLabel("Selected Feature Attributes:");
+            JLabel label = new JLabel(bundle.getString("SelectedFeatureAttributes") + ":");
             Font newLabelFont=new Font(label.getFont().getName(),Font.BOLD,label.getFont().getSize());
             label.setFont(newLabelFont);
             headerBox.add(label);
@@ -155,7 +159,8 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             int numRows = shape.getAttributeTable().getFieldCount() + 1;
             //String[] ch = shape.attributeTable.getAttributeTableFieldNames();
             fields = attributeTable.getAllFields();
-            String[] columnHeaders = {"Attribute", "Value"};
+            String[] columnHeaders = {bundle.getString("Attribute"), 
+                bundle.getString("Value")};
             Object[][] data = new Object[numRows][numColumns];
             data[0][0] = "REC #";
             if (selectedFeature >= 0) {
