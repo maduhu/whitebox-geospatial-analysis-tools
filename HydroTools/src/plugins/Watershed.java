@@ -300,7 +300,7 @@ public class Watershed implements WhiteboxPlugin {
                 }
 
                 outlet = new WhiteboxRaster(outletHeader.replace(".shp", ".dep"), "rw",
-                    inputHeader, WhiteboxRaster.DataType.FLOAT, -999);
+                    inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
                 outlet.isTemporaryFile = true;
                 
                 int numOutlets = outletXs.size();
