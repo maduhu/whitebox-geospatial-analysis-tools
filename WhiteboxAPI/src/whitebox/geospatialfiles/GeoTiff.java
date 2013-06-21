@@ -668,7 +668,64 @@ public class GeoTiff {
             }
             return data;
         } else {
-            return null;
+            // how many rows per strip?
+            int rowsPerStrip = findTag(Tag.RowsPerStrip).value[0];
+            // which strip will contain row?
+            int stripNum = (int) row / rowsPerStrip;
+
+            int stripOffset = findTag(Tag.StripOffsets).value[stripNum];
+            //int stripSize = findTag(Tag.StripByteCounts).value[0];
+            
+            int totalBitsPerSample = 0;
+            for (int a = 0; a < bitsPerSample.length; a++) {
+                totalBitsPerSample += bitsPerSample[a];
+            }
+            offset = stripOffset + (row % rowsPerStrip * nCols * (totalBitsPerSample / 8));
+            size = nCols * (totalBitsPerSample / 8); //stripSize;
+
+
+            try {
+                channel.position(offset);
+                ByteBuffer buffer = ByteBuffer.allocate(size);
+                buffer.order(byteOrder);
+
+                if (compressionType == 1) {
+
+                    channel.read(buffer);
+                    buffer.flip();
+                    
+                    if (totalBitsPerSample == 24 && bitsPerSample.length == 3) {
+                        int r, g, b;
+                        for (int i = 0; i < nCols; i++) {
+                            r = (0x000000FF & ((int)buffer.get()));
+                            g = (0x000000FF & ((int)buffer.get()));
+                            b = (0x000000FF & ((int)buffer.get()));
+                            data[i] = (double) ((255 << 24) | (b << 16) | (g << 8) | r);
+                        }
+                    } else if (totalBitsPerSample == 32 && bitsPerSample.length == 4) {
+                        int r, g, b, a;
+                        for (int i = 0; i < nCols; i++) {
+                            r = (0x000000FF & ((int)buffer.get()));
+                            g = (0x000000FF & ((int)buffer.get()));
+                            b = (0x000000FF & ((int)buffer.get()));
+                            a = (0x000000FF & ((int)buffer.get()));
+                            data[i] = (double) ((a << 24) | (b << 16) | (g << 8) | r);
+                        }
+                    } else {
+                        return null;
+                    }
+
+                } else if (compressionType == 32773) {
+                    return null;
+                } else {
+                    return null;
+                }
+
+            } catch (IOException e) {
+                // do nothing
+            }
+            return data;
+//            return null;
         }
     }
 

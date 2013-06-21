@@ -39,6 +39,8 @@ public class PluginHost implements WhiteboxPluginHost {
     public String pluginsDirectory = null;
     private String helpDirectory = null;
     private String applicationDirectory = null;
+    private String resourcesDirectory = null;
+    private String workingDirectory = null;
     
     public PluginHost() {
         loadPlugins();
@@ -61,6 +63,14 @@ public class PluginHost implements WhiteboxPluginHost {
                 applicationDirectory = new File(applicationDirectory).getParent();
             }
 
+            resourcesDirectory = applicationDirectory + pathSep + "resources" + pathSep;
+            findFile(new File(new File(new File(applicationDirectory).getParent()).getParent()), "toolbox.xml");
+            if (retFile != null && !retFile.isEmpty()) {
+                resourcesDirectory = new File(retFile).getParent() + pathSep;
+            }
+            
+            workingDirectory = resourcesDirectory + "samples" + pathSep;
+    
             String seedDirectory = applicationDirectory;
             findPluginsDirectory(new File(seedDirectory));
             if (pluginsDirectory == null) {
@@ -164,7 +174,8 @@ public class PluginHost implements WhiteboxPluginHost {
 
     @Override
     public int showFeedback(String message) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        System.err.println(message);
+        return 0;
     }
 
     @Override
@@ -190,27 +201,27 @@ public class PluginHost implements WhiteboxPluginHost {
 
     @Override
     public String getWorkingDirectory() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return workingDirectory;
     }
 
     @Override
     public void setWorkingDirectory(String workingDirectory) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this.workingDirectory = workingDirectory;
     }
 
     @Override
     public String getApplicationDirectory() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return applicationDirectory;
     }
 
     @Override
     public void setApplicationDirectory(String applicationDirectory) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this.applicationDirectory = applicationDirectory;
     }
 
     @Override
     public String getResourcesDirectory() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return resourcesDirectory;
     }
 
     @Override
@@ -268,5 +279,29 @@ public class PluginHost implements WhiteboxPluginHost {
     @Override
     public void logMessage(Level level, String message) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    private String retFile;
+    private boolean flag = true;
+
+    private void findFile(File dir, String fileName) {
+        if (flag) {
+            File[] files = dir.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isDirectory()) {
+                    if (files[i].getName().equals(fileName)) {
+                        retFile = files[i].toString();
+                        flag = false;
+                        break;
+                    } else {
+                        findFile(files[i], fileName);
+                    }
+                } else if (files[i].getName().equals(fileName)) {
+                    retFile = files[i].toString();
+                    flag = false;
+                    break;
+                }
+            }
+        }
     }
 }
