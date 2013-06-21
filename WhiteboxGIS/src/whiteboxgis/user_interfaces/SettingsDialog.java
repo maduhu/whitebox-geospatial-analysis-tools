@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import javax.swing.*;
+import java.text.DecimalFormat;
 import whitebox.interfaces.Communicator;
 import whiteboxgis.WhiteboxGui;
 
@@ -54,8 +55,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     private ResourceBundle messages;
     private String language;
     private String country;
-    
-    
+
     public SettingsDialog(Frame owner, boolean modal) {
         super(owner, modal);
         pathSep = File.separator;
@@ -151,8 +151,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         numRecentItems.addPropertyChangeListener("value", this);
         mainBox.add(numRecentItems);
 
-        
-        ComboBoxProperty languageChooser = 
+
+        ComboBoxProperty languageChooser =
                 SupportedLanguageChooser.getLanguageChooser(host, false);
         languageChooser.setName("languageChooser");
         languageChooser.setLeftMargin(leftMargin);
@@ -160,7 +160,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         languageChooser.setBackColour(backColour);
         languageChooser.setPreferredWidth(preferredWidth);
         languageChooser.revalidate();
-        
+
         mainBox.add(languageChooser);
 
 
@@ -174,8 +174,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         checkForUpdates.revalidate();
         checkForUpdates.addPropertyChangeListener("value", this);
         mainBox.add(checkForUpdates);
-        
-        
+
+
         BooleanProperty receiveAnnouncements = new BooleanProperty(bundle.getString("ReceiveAnnouncements"),
                 host.isReceiveAnnouncements());
         receiveAnnouncements.setName("receiveAnnouncements");
@@ -186,7 +186,43 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         receiveAnnouncements.revalidate();
         receiveAnnouncements.addPropertyChangeListener("value", this);
         mainBox.add(receiveAnnouncements);
+
+        mainBox.add(Box.createVerticalStrut(4));
         
+        DecimalFormat df = new DecimalFormat("###,##0.0");
+        
+        Box heapBox = Box.createHorizontalBox();
+        heapBox.add(Box.createHorizontalStrut(10));
+        String str = "Maximum heap size: " + df.format(Runtime.getRuntime().maxMemory() / 1073741824.0) + "GB";
+        heapBox.add(new JLabel(str));
+        heapBox.add(Box.createHorizontalStrut(30));
+        str = "Available memory: " + df.format(Runtime.getRuntime().freeMemory() / 1073741824.0) + "GB";
+        heapBox.add(new JLabel(str));
+        heapBox.add(Box.createHorizontalGlue());
+        mainBox.add(heapBox);
+
+        mainBox.add(Box.createVerticalStrut(4));
+        
+        Box bitBox = Box.createHorizontalBox();
+        bitBox.add(Box.createHorizontalStrut(10));
+        str = "Running on ";
+        if (System.getProperty("sun.arch.data.model").contains("32")) {
+            str += "32-bit Java";
+        } else {
+            str += "64-bit Java";
+        }
+        JLabel bitLabel = new JLabel(str);
+        bitBox.add(bitLabel);
+        bitBox.add(Box.createHorizontalGlue());
+        
+        Box bitVBox = Box.createVerticalBox();
+        bitVBox.setBackground(backColour);
+        bitVBox.setOpaque(true);
+        bitVBox.add(Box.createVerticalStrut(4));
+        bitVBox.add(bitBox);
+        bitVBox.add(Box.createVerticalStrut(4));
+        mainBox.add(bitVBox);
+
         JScrollPane scroll = new JScrollPane(mainBox);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -196,14 +232,8 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
 
         pack();
 
-        // Centre the dialog on the screen.
-        // Get the size of the screen
-        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        int screenHeight = dim.height;
-        int screenWidth = dim.width;
-        int myWidth = 900; //this.getWidth();
-        int myHeight = 400; //this.getHeight();
-        setLocation((int) (screenWidth / 2.0 - myWidth / 2.0), (int) (screenHeight / 2.0 - myHeight / 2.0));
+        setLocationRelativeTo(null);
+        
     }
 
     private void okPressed() {
@@ -280,34 +310,34 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         }
         String componentName = "";
         if (source instanceof JComponent) {
-            JComponent component = (JComponent)source;
+            JComponent component = (JComponent) source;
             componentName = component.getName();
         }
         switch (componentName) {
             case "printResolution":
                 host.setPrintResolution(Integer.parseInt((String) evt.getNewValue()));
                 break;
-                
+
             case "autoHideAlignToolbar":
                 host.setHideAlignToolbar((Boolean) evt.getNewValue());
                 break;
-                
+
             case "fontProperty":
                 host.setDefaultFont((Font) evt.getNewValue());
                 break;
-                
+
             case "numRecentItems":
                 host.setNumberOfRecentItemsToStore(Integer.parseInt((String) evt.getNewValue()));
                 break;
-                
+
             case "checkForUpdates":
                 host.setCheckForUpdates((Boolean) evt.getNewValue());
                 break;
-                
+
             case "receiveAnnouncements":
                 host.setReceiveAnnouncements((Boolean) evt.getNewValue());
                 break;
-        }   
+        }
     }
 
     @Override
@@ -331,19 +361,18 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
             host.logException(message, e);
         }
     }
-    
+
     @Override
     public void logThrowable(String message, Throwable t) {
         if (host != null) {
             host.logThrowable(message, t);
         }
     }
-    
+
     @Override
     public void logMessage(Level level, String message) {
         if (host != null) {
             host.logMessage(level, message);
         }
     }
-    
 }

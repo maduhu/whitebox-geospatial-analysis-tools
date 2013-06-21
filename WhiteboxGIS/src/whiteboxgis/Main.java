@@ -208,7 +208,7 @@ public class Main {
             return true;
         } catch (Exception e) {
             if (logDirectoryFound) {
-                logger.log(Level.SEVERE, "Error in Main.launchProgram", e);
+                logger.log(Level.SEVERE, "Error in Main.startSecondJVM", e);
             }
             return false;
         }
