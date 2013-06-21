@@ -196,6 +196,7 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
 
         returnData(new CoordinateTransformDialog());
 
+        
     }
 
     class CoordinateTransformDialog extends JPanel {
@@ -204,7 +205,11 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
         private Ellipsoid ellipsoid = Ellipsoid.WGS_84;
         private JDialog myDialog;
         private boolean myDialogFound = false;
+        DialogFile dfIn;
+        DialogFile dfOut;
 
+        double a, b, f, bigE, esq, ePrimeSq, e1;
+        
         public CoordinateTransformDialog() {
             initUi();
         }
@@ -218,7 +223,7 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             } else {
                 bundle = myHost.getGuiLabelsBundle();
             }
-            
+
             Box mainBox = Box.createVerticalBox();
 
 
@@ -232,7 +237,7 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             args[5] = "Raster Files (*.dep), DEP";
             args[6] = "false";
             Communicator communicator = (Communicator) myHost;
-            DialogFile dfIn = new DialogFile(communicator);
+            dfIn = new DialogFile(communicator);
             dfIn.setArgs(args);
 
             dfIn.setTextFieldActionListener(new ActionListener() {
@@ -254,7 +259,7 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             args[4] = "true";
             args[5] = "Raster Files (*.dep), DEP";
             args[6] = "false";
-            DialogFile dfOut = new DialogFile(communicator);
+            dfOut = new DialogFile(communicator);
             dfOut.setArgs(args);
 
             dfOut.setTextFieldActionListener(new ActionListener() {
@@ -276,6 +281,7 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             }
 
 
+            // ellipsoid
             ComboBoxProperty ellipsoidChooser = new ComboBoxProperty(
                     bundle.getString("Ellipsoid") + ":", ellipsoids, 0);
             ellipsoidChooser.setName("ellipsoidChooser");
@@ -299,13 +305,86 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             ellipsoidChooser.setBackColour(this.getBackground());
             mainBox.add(ellipsoidChooser);
 
+            // interpolation method
+            String[] interpolationMethods = {"Nearest Neighbour", "Bilinear"};
+            ComboBoxProperty interpolationChooser = new ComboBoxProperty(
+                    "Interpolation:", interpolationMethods, 0);
+            interpolationChooser.setName("interpolationChooser");
+            ItemListener il2 = new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+                    if (e.getStateChange() == ItemEvent.SELECTED) {
+                        Object item = e.getItem();
+                        String code;
+                        switch (item.toString().toLowerCase()) {
+                            case "chinese (china)":
+                                code = "zh_CN";
+                                break;
+
+                        }
+
+                    }
+                }
+            };
+            interpolationChooser.setParentListener(il2);
+            interpolationChooser.setBackColour(this.getBackground());
+            mainBox.add(interpolationChooser);
+
+            JRadioButton ll2utmButton = new JRadioButton("Lat/Long to UTM");
+            //LL2UTMButton.setMnemonic(KeyEvent.VK_R);
+            ll2utmButton.setActionCommand("ll2utm");
+            ll2utmButton.setSelected(true);
+
+            JRadioButton utm2llButton = new JRadioButton("UTM to Lat/Long");
+            //utm2llButton.setMnemonic(KeyEvent.VK_P);
+            utm2llButton.setActionCommand("utm2ll");
+
+            //Group the radio buttons.
+            ButtonGroup group = new ButtonGroup();
+            group.add(ll2utmButton);
+            group.add(utm2llButton);
+            
+            //Register a listener for the radio buttons.
+            //ll2utmButton.addActionListener(this);
+            //utm2llButton.addActionListener(this);
+    
+            Box box1 = Box.createHorizontalBox();
+            box1.add(ll2utmButton);
+            box1.add(utm2llButton);
+            mainBox.add(box1);
+
+            
+            // N or S
+            JRadioButton northButton = new JRadioButton("North");
+            //LL2UTMButton.setMnemonic(KeyEvent.VK_R);
+            northButton.setActionCommand("north");
+            northButton.setSelected(true);
+
+            JRadioButton southButton = new JRadioButton("South");
+            //utm2llButton.setMnemonic(KeyEvent.VK_P);
+            southButton.setActionCommand("south");
+
+            //Group the radio buttons.
+            ButtonGroup group2 = new ButtonGroup();
+            group2.add(northButton);
+            group2.add(southButton);
+            
+            //Register a listener for the radio buttons.
+            //ll2utmButton.addActionListener(this);
+            //utm2llButton.addActionListener(this);
+    
+            Box box2 = Box.createHorizontalBox();
+            box2.add(northButton);
+            box2.add(southButton);
+            mainBox.add(box2);
+
             Box btnBox = Box.createHorizontalBox();
             btnBox.add(Box.createHorizontalGlue());
             JButton ok = new JButton(bundle.getString("OK"));
             ok.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    //setVisible(false);
+                    run();
                 }
             });
             btnBox.add(ok);
@@ -339,15 +418,99 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
                 System.out.println(e.toString());
             }
         }
+        
+        private void run() {
+            // get the file names
+            String inputFile = dfIn.getValue();
+            String outputFile = dfOut.getValue();
+            
+            // get the grid resolution
+            
+            
+            // calculate ellipsoid parameters; a = major axis, b = minor axis
+            a = ellipsoid.majorAxis();
+            b = ellipsoid.minorAxis();
+            f = (a - b) / a;
+            bigE = Math.sqrt((a * a - b * b) / (a * a));
+            esq = (a * a - b * b) / (a * a);
+            ePrimeSq = bigE * bigE / (1 - bigE * bigE);
+            e1 = (1 - Math.sqrt(1 - esq)) / (1 + Math.sqrt(1 - esq));
+
+//            Image.HeaderFileName = InputFile
+//            Image.WriteChangesToFile = False
+//            totalCol = Image.NumberColumns
+//            totalRow = Image.NumberRows
+//            GridRes = Image.GridResolution
+//
+//            If File.Exists(OutputFile) Then File.Delete(OutputFile)
+//            If File.Exists(Replace(OutputFile, ".dep", ".tas")) Then File.Delete(Replace(OutputFile, ".dep", ".tas"))
+//
+//
+//            minEasting = Double.MaxValue
+//            maxEasting = Double.MinValue
+//            minNorthing = Double.MaxValue
+//            maxNorthing = Double.MinValue
+//
+//            east = Image.East
+//            west = Image.West
+//            south = Image.South
+//            north = Image.North
+
+            
+            showFeedback(inputFile);
+            amIActive = false;
+        }
+        
+        double  bigA;
+    double  c;
+    double  bigT;
+    double  bigN;
+    double Mterm4;
+    double  MTerm3;
+    double  Mterm2;
+    double  MTerm1;
+    private void ll2UTM(double phi, double lambda) {
+        try {
+            /*from Snyder (1987)
+            phi and lambda should be in radians
+            note: phi = latitude, lambda = longitude
+            */
+            
+            MTerm1 = (1 - (esq / 4) - (3 * bigE * bigE * bigE * bigE / 64) - (5 * 
+                    bigE * bigE * bigE * bigE * bigE * bigE / 256)) * phi;
+            Mterm2 = ((3 * esq / 8) + (3 * bigE * bigE * bigE * bigE / 32) + 45 * (
+                    bigE * bigE * bigE * bigE * bigE * bigE / 1024)) * Math.sin(2 * phi);
+            MTerm3 = ((15 * bigE  bigE * bigE * bigE / 256) + (45 * 
+                     bigE * bigE * bigE * bigE * bigE * bigE / 1024)) * Math.sin(4 * phi);
+            Mterm4 = (35 * bigE ^ 6 / 3072) * Math.Sin(6 * phi);
+//            bigM = a * (MTerm1 - Mterm2 + MTerm3 - Mterm4);
+//            If phi <> pi / 2 OrElse phi = -pi / 2 Then
+//                bigN = a / (1 - esq * (Math.Sin(phi)) ^ 2) ^ 0.5
+//                bigT = (Math.Tan(phi)) ^ 2
+//                c = ePrimeSq * (Math.Cos(phi)) ^ 2
+//                bigA = (lambda - lambdaNot) * Math.Cos(phi)
+//                easting = FE + 0.9996 * bigN * (bigA + (1 - bigT + c) * bigA ^ 3 / 6 + (5 - 18 * bigT + bigT ^ 2 + 72 * c - 58 * ePrimeSq) * bigA ^ 5 / 120)
+//                northing = FN + 0.9996 * (bigM - 0 + bigN * Math.Tan(phi) * (bigA ^ 2 / 2 + (5 - bigT + 9 * c + 4 * c ^ 2) * bigA ^ 4 / 24 + (61 - 58 * bigT + bigT ^ 2 + 600 * c - 330 * ePrimeSq) * bigA ^ 6 / 720))
+//            Else
+//                easting = FE
+//                northing = FN + 0.9996 * bigM
+//            End If
+                    } catch (Exception e) {
+                    showFeedback(e.toString());
+                    }
     }
-    
+
+        
+        
+    }
+
     public static void main(String[] args) {
         CoordinateSystemTransformation cst = new CoordinateSystemTransformation();
         cst.testLaunch();
-        
-        
+
+
     }
-    
+
     private void testLaunch() {
         JFrame frame = new JFrame();
         frame.add(new CoordinateTransformDialog());
