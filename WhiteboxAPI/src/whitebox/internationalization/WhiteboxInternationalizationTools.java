@@ -63,11 +63,11 @@ public final class WhiteboxInternationalizationTools {
         // this is used to automatically replace the default text in bundles with the
         // translated text provided within spreadsheets.
         
-        String inputFile = "/Users/johnlindsay/Documents/chinese translations.txt";
-        String bundleFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_zh_TW.properties";
-        String outputFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_zh_TW2.properties";
-        //String bundleFile = "/Users/johnlindsay/Documents/messages_zh_TW.properties";
-        //String outputFile = "/Users/johnlindsay/Documents/messages_zh_TW2.properties";
+        String inputFile = "/Users/johnlindsay/Documents/italian translation.txt";
+        //String bundleFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_it_IT.properties";
+        //String outputFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_it_IT2.properties";
+        String bundleFile = "/Users/johnlindsay/Documents/messages_it_IT.properties";
+        String outputFile = "/Users/johnlindsay/Documents/messages_it_IT2.properties";
         
         int numLinesInOutput = 0;
         DataInputStream in = null;
@@ -120,20 +120,20 @@ public final class WhiteboxInternationalizationTools {
 
             //Read File Line By Line
             delimiter = "\t";
-            String key, english, simplified, traditional;
+            String key, english, translated;
 
             while ((line = br.readLine()) != null) {
                 str = line.split(delimiter);
-                if (str.length == 4) {
+                if (str.length == 3) {
                     key = str[0];
                     english = str[1];
-                    simplified = str[2];
-                    traditional = str[3];
+                    translated = str[2];
+                    //traditional = str[3];
 
                     for (int a = 0; a < numLinesInOutput; a++) {
                         if (outputText[a][0] != null) {
                             if (outputText[a][0].trim().equals(key.trim())) {
-                                outputText[a][1] = traditional;
+                                outputText[a][1] = translated;
                             }
                         }
                     }
@@ -164,6 +164,7 @@ public final class WhiteboxInternationalizationTools {
             }
 
 
+            System.out.println("Complete!");
 
         } catch (java.io.IOException e) {
             System.err.println("Error: " + e.getMessage());

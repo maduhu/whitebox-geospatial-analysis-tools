@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package plugins;
+package whitebox.georeference;
 
 /**
  *
@@ -50,24 +50,60 @@ public enum Ellipsoid {
     WGS_84 ("WGS 84", 6378137, 6356752.314);
     
     private final String name;
-    private final double major;
-    private final double minor;
+    private final double a;
+    private final double b;
+    private final double flat;
+    private final double inverseFlat;
+    private final double firstEccent;
+    private final double firstEccentSqr;
+    private final double secondEccent;
+    private final double secondEccentSqr;
     
     Ellipsoid(String name, double major, double minor) {
         this.name = name;
-        this.major = major;
-        this.minor = minor;
+        this.a = major;
+        this.b = minor;
+        this.flat = (a - b) / a;
+        this.inverseFlat = 1 / this.flat;
+        this.firstEccent = Math.sqrt(1 - (b / a) * (b / a)); //Math.sqrt(1 - (a / b) * (a / b));
+        this.firstEccentSqr = 1 - (b / a) * (b / a);
+        this.secondEccent = Math.sqrt((a * a - b * b) / (b * b));
+        this.secondEccentSqr = (a * a - b * b) / (b * b);
     }
     
-    String ellipsoidName() {
+    public String ellipsoidName() {
         return name;
     }
     
-    double majorAxis() {
-        return major;
+    public double majorAxis() {
+        return a;
     }
     
-    double minorAxis() {
-        return minor;
+    public double minorAxis() {
+        return b;
+    }
+    
+    public double flattening() {
+        return flat;
+    }
+    
+    public double inverseFlattening() {
+        return inverseFlat;
+    }
+    
+    public double firstEccentricity() {
+        return firstEccent;
+    }
+    
+    public double firstEccentricitySquared() {
+        return firstEccentSqr;
+    }
+    
+    public double secondEccentricity() {
+        return secondEccent;
+    }
+    
+    public double secondEccentricitySquared() {
+        return secondEccentSqr;
     }
 }
