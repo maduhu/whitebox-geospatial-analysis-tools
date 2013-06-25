@@ -25,6 +25,7 @@ import java.util.Date;
 public class PluginInfo implements Comparable<PluginInfo> {
     private String name = null;
     private String descriptiveName = null;
+    private String description;
     private int numTimesUsed = 0;
     private Date lastUsed = new Date(Long.MIN_VALUE);
     private byte sortMode = 0;
@@ -38,9 +39,10 @@ public class PluginInfo implements Comparable<PluginInfo> {
         this.sortMode = sortMode;
     }
     
-    public PluginInfo(String name, String descriptiveName, byte sortMode) {
+    public PluginInfo(String name, String descriptiveName, String description, byte sortMode) {
         this.name = name;
         this.descriptiveName = descriptiveName;
+        this.description = description;
         this.sortMode = sortMode;
     }
     
@@ -54,6 +56,14 @@ public class PluginInfo implements Comparable<PluginInfo> {
     
     public void setDescriptiveName(String descriptiveName) {
         this.descriptiveName = descriptiveName;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
     
     public int getNumTimesUsed() {

@@ -102,13 +102,14 @@ public class StandardPluginService implements PluginService
     
     @Override
     public ArrayList getPluginList() {
-        ArrayList<PluginInfo> plugInfo = new ArrayList<PluginInfo>();
+        ArrayList<PluginInfo> plugInfo = new ArrayList<>();
         
         Iterator<WhiteboxPlugin> iterator = getPlugins();
         while(iterator.hasNext())
         {
             WhiteboxPlugin plugin = iterator.next();
-            plugInfo.add(new PluginInfo(plugin.getName(), plugin.getDescriptiveName(), 
+            plugInfo.add(new PluginInfo(plugin.getName(), 
+                    plugin.getDescriptiveName(), plugin.getToolDescription(),
                     PluginInfo.SORT_MODE_USAGE));
         }
         

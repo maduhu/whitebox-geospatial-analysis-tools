@@ -380,6 +380,27 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             checkVersionIsUpToDate();
 
+
+
+
+//            File file = new File(resourcesDirectory + "pluginNames.txt");
+//            FileWriter fw = null;
+//            BufferedWriter bw = null;
+//            PrintWriter out = null;
+//            try {
+//                fw = new FileWriter(file, false);
+//                bw = new BufferedWriter(fw);
+//                out = new PrintWriter(bw, true);
+//                String str;
+//                for (PluginInfo plug : plugInfo) {
+//                    str = plug.getName() + "\t" + plug.getDescriptiveName();
+//                    out.println(str);
+//                    str = plug.getName() + "Description" + "\t" + plug.getDescription();
+//                    out.println(str);
+//                }
+//            } catch (Exception e) {
+//            }
+
         } catch (IOException | SecurityException e) {
             logger.log(Level.SEVERE, "WhiteboxGui.constructor", e);
             //System.out.println(e.getMessage());
@@ -2825,7 +2846,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             qlTabs.insertTab(bundle.getString("All"), null, allToolsPanel, "", 0); // + plugInfo.size() + " tools", null, scroller1, "", 2);
             qlTabs.insertTab(bundle.getString("Most_Used"), null, scroller3, "", 1);
             qlTabs.insertTab(bundle.getString("Recent"), null, scroller2, "", 2);
-            
+
             //qlTabs.setPreferredSize(new Dimension(200, splitterToolboxLoc));
 
             qlTabs.setSelectedIndex(qlTabsIndex);
@@ -5414,17 +5435,17 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             refreshMap(false);
         }
     }
-    
+
     @Override
     public void logException(String message, Exception e) {
         logger.log(Level.SEVERE, message, e);
     }
-    
+
     @Override
     public void logThrowable(String message, Throwable t) {
         logger.log(Level.SEVERE, message, t);
     }
-    
+
     @Override
     public void logMessage(Level level, String message) {
         logger.log(level, message);
