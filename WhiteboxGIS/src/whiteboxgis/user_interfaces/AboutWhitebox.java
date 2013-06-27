@@ -27,7 +27,6 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import whitebox.interfaces.WhiteboxPluginHost;
-import whiteboxgis.WhiteboxGui;
 
 
 /**
@@ -99,6 +98,7 @@ public class AboutWhitebox extends JDialog implements ActionListener {
         strBuilder.append("Carlo Alberto Brunori (cab)\n");
         strBuilder.append("Agustin Diez Castillo\n");
         strBuilder.append("Sergi Gumà\n");
+        strBuilder.append("Annie C. Laviolette\n");
         strBuilder.append("George Miliaresis\n");
         strBuilder.append("Hannes Reuter\n");
         strBuilder.append("Hu Xuemei\n");
@@ -106,12 +106,13 @@ public class AboutWhitebox extends JDialog implements ActionListener {
         strBuilder.append("Ehsan Roshani\n");
         strBuilder.append("Rafal Wawer\n");
         strBuilder.append("秦承志 (QIN Cheng-Zhi)\n");
-        
         contributors.setText(strBuilder.toString());
         contributors.setLineWrap(true);
         contributors.setWrapStyleWord(true);
         contributors.setCaretPosition(0);
         contributors.setEditable(false);
+//        contributors.setMaximumSize(new Dimension(9000, 100));
+//        scroll.setMaximumSize(new Dimension(9000, 100));
         mainPane.add(scroll);
         
 //        JPanel textPane = new JPanel();

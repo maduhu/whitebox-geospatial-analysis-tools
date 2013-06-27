@@ -12,7 +12,11 @@ RELEASE NOTES:
 Version 3.0.2
 
 -Fixed a bug with the math tools that would not allow for a constant as the first operand.
--Added support for German
+-Added preliminary support for German, Italian, Chinese (simplified and traditional), 
+ Catalan, Spanish, French, and Polish.
+-Added ability to import RGB GeoTiffs (I know you wanted this!) and fixed a number 
+ of bugs with this tool. There's still no support for compressed GeoTiffs.
+-Added raster/vector conversion from geographic coordinates to UTM and vice versa.
 -Added BalanceContrastEnhancement and DirectDecorrelationStretch tools.
 
 Version 3.0.1
