@@ -63,11 +63,11 @@ public final class WhiteboxInternationalizationTools {
         // this is used to automatically replace the default text in bundles with the
         // translated text provided within spreadsheets.
         
-        String inputFile = "/Users/johnlindsay/Documents/italian translation.txt";
-        //String bundleFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_it_IT.properties";
-        //String outputFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_it_IT2.properties";
-        String bundleFile = "/Users/johnlindsay/Documents/messages_it_IT.properties";
-        String outputFile = "/Users/johnlindsay/Documents/messages_it_IT2.properties";
+        String inputFile = "/Users/johnlindsay/Documents/french translations.txt";
+        String bundleFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_fr_CA.properties";
+        String outputFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_fr_CA2.properties";
+        //String bundleFile = "/Users/johnlindsay/Documents/messages_fr_CA.properties";
+        //String outputFile = "/Users/johnlindsay/Documents/messages_fr_CA2.properties";
         
         int numLinesInOutput = 0;
         DataInputStream in = null;

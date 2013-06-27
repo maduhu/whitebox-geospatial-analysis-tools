@@ -41,9 +41,9 @@ public abstract class SupportedLanguageChooser {
         String[] languages = { "Català (Spain)", "Chinese (Simplified)", 
             "Chinese (Traditional)", "Deutsch (Germany)", "Elliniká (Greece)", 
             "English (Canada)", "English (UK)", "English (US)", "Español (Spain)", 
-            "Italiano (Italy)", "Persian (Iran)", "Polski (Poland)" };
+            "French (Canada)", "Italiano (Italy)", "Persian (Iran)", "Polski (Poland)" };
         String[] codes = { "ca_ES", "zh_CN", "zh_TW", "de_DE", "el_GR", "en_CA", 
-            "en_GB", "en_US", "es_ES", "it_IT", "fa_IR", "pl_PL" };
+            "en_GB", "en_US", "es_ES", "fr_CA", "it_IT", "fa_IR", "pl_PL" };
         
         int selectedIndex = 0;
         String hostLanguageCode = myHost.getLanguageCountryCode();
@@ -101,6 +101,9 @@ public abstract class SupportedLanguageChooser {
                             break;
                         case ("italiano (italy)"):
                             code = "it_IT";
+                            break;
+                        case ("french (canada)"):
+                            code = "fr_CA";
                             break;
                         default:
                             code = "en_CA";

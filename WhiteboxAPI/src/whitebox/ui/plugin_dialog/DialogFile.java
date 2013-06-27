@@ -24,6 +24,8 @@ import java.io.File;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import whitebox.interfaces.Communicator;
 import whitebox.interfaces.DialogComponent;
 import whitebox.structures.ExtensionFileFilter;
@@ -124,6 +126,30 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
                 }
             };
             text.addMouseListener(ml);
+            
+            text.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    update();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    update();
+                }
+
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    update();
+                }
+
+                public void update() {
+                    String oldValue = value;
+                    value = text.getText();
+                    firePropertyChange("value", oldValue, value);
+                }
+            });
+            
             this.add(box1);
             this.add(box2);
             //if (System.getProperty("os.name").contains("Mac")) {
@@ -147,7 +173,7 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
         boolean flag = false;
         for (int i = 0; i < filters.size(); i++) {
             for (int j = 0; j < filters.get(i).getExtensions().length; j++) {
-                if (value.contains("." + filters.get(i).getExtensions()[j])) {
+                if (value.toLowerCase().contains("." + filters.get(i).getExtensions()[j])) {
                     flag = true;
                 }
             }

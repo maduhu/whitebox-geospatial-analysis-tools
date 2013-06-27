@@ -41,6 +41,9 @@ public class UTM2LL {
     private final double drad = Math.PI / 180;
     private double latitude;
     private double longitude;
+    private boolean isNorthern = true;
+    private String utmZone;
+    private double utmz;
     
     // constructors
     public UTM2LL() {
@@ -48,8 +51,16 @@ public class UTM2LL {
     }
     
     
-    public UTM2LL(Ellipsoid ellipsoid) {
+    public UTM2LL(Ellipsoid ellipsoid, String utmZone) {
         this.ellipsoid = ellipsoid;
+        this.utmZone = utmZone;
+        if (utmZone.toLowerCase().contains("n")) {
+            isNorthern = true;
+            utmz = Double.parseDouble(utmZone.toLowerCase().replace("n", ""));
+        } else {
+            isNorthern = false;
+            utmz = Double.parseDouble(utmZone.toLowerCase().replace("s", ""));
+        }
     }
 
     // Properties
@@ -69,11 +80,26 @@ public class UTM2LL {
         return longitude;
     }
 
+    public String getUtmZone() {
+        return utmZone;
+    }
+
+    public void setUtmZone(String utmZone) {
+        this.utmZone = utmZone;
+        if (utmZone.toLowerCase().contains("n")) {
+            isNorthern = true;
+            utmz = Double.parseDouble(utmZone.toLowerCase().replace("n", ""));
+        } else {
+            isNorthern = false;
+            utmz = Double.parseDouble(utmZone.toLowerCase().replace("s", ""));
+        }
+    }
+
     // Methods
-    public void convertUTMCoordinates(double x, double y, String utmZone) {
+    public void convertUTMCoordinates(double x, double y) {
         double M, a, b, f, e, e0, esq, e0sq, zcm, e1, M0, mu, 
-                phi1, C1, T1, N1, R1, D, phi, utmz;
-        boolean isNorthern = true;
+                phi1, C1, T1, N1, R1, D, phi;
+        
         double k0 = 0.9996;
         double k = 1;//local scale
         
@@ -94,14 +120,6 @@ public class UTM2LL {
 	if (y > 10000000) {
             //Northing may not exceed 10,000,000. Results may be unreliable. Use with caution
             return;
-        }
-	//utmz = parseFloat(document.getElementById("UTMzBox1").value);
-        if (utmZone.toLowerCase().contains("n")) {
-            isNorthern = true;
-            utmz = Double.parseDouble(utmZone.toLowerCase().replace("n", ""));
-        } else {
-            isNorthern = false;
-            utmz = Double.parseDouble(utmZone.toLowerCase().replace("s", ""));
         }
 	
 	zcm = 3 + 6*(utmz-1) - 180;//Central meridian of zone
@@ -134,18 +152,20 @@ public class UTM2LL {
     }
     
     public static void main(String[] args) {
-        UTM2LL utm2ll = new UTM2LL(Ellipsoid.WGS_84);
+        UTM2LL utm2ll = new UTM2LL(Ellipsoid.WGS_84, "18N");
 
         double easting = 627103.0885902103;
         double northing = 4484335.479356929;
         String utmZone = "18N";
-        utm2ll.convertUTMCoordinates(easting, northing, utmZone);
+        utm2ll.setUtmZone(utmZone);
+        utm2ll.convertUTMCoordinates(easting, northing);
         System.out.println("Latitude: " + utm2ll.latitude + "\tLongitude: " + utm2ll.longitude);
 
         easting = 560560.5471820442;
         northing = 4822000.781513004;
         utmZone = "17N";
-        utm2ll.convertUTMCoordinates(easting, northing, utmZone);
+        utm2ll.setUtmZone(utmZone);
+        utm2ll.convertUTMCoordinates(easting, northing);
         System.out.println("Latitude: " + utm2ll.latitude + "\tLongitude: " + utm2ll.longitude);
 
     }

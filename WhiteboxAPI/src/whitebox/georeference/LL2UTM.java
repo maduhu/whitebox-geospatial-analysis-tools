@@ -39,9 +39,9 @@ public class LL2UTM {
     private double easting;
     private double northing;
     private int zone = -1;
-    private String hemisphere;
+    private String hemisphere = "N";
     boolean updateZone = true;
-    
+
     // Constructors
     public LL2UTM() {
         // no-args constructor
@@ -66,21 +66,39 @@ public class LL2UTM {
         zone = -1;
         hemisphere = "none";
     }
-    
+
     public double getEasting() {
         return easting;
     }
-    
+
     public double getNorthing() {
         return northing;
     }
-    
+
+    public void setZone(int zone) {
+        if (zone < 1 || zone > 60) { return; }
+        if (!updateZone) { return; }
+        this.zone = zone;
+    }
+
     public int getZone() {
         return zone;
     }
-    
+
     public String getHemisphere() {
         return hemisphere;
+    }
+    
+    /**
+     * Sets the hemisphere
+     * @param hemisphere either "S" or "N"
+     */
+    public void setHemisphere(String hemisphere) {
+        if (hemisphere.toLowerCase().contains("n")) {
+            this.hemisphere = "N";
+        } else if (hemisphere.toLowerCase().contains("s")) {
+            this.hemisphere = "S";
+        }
     }
 
     public boolean isZoneLocked() {
@@ -90,13 +108,13 @@ public class LL2UTM {
     public void lockZone() {
         this.updateZone = false;
     }
-    
+
     public void unlockZone() {
         this.updateZone = true;
     }
-    
+
     // Methods
-    public void convertLatLongDecDegrees(double latitude, double longitude) {
+    public void convertGeographicCoordinates(double latitude, double longitude) {
 
         if (latitude < -90 || latitude > 90) {
             handleError();
@@ -106,14 +124,9 @@ public class LL2UTM {
             handleError();
             return;
         }
-        
-        hemisphere = "N";
-        if (latitude < 0) {
-            hemisphere = "S";
-        }
 
-        double a, b, f, e, k0, x, y, T, M, C, N, A, M0, phi, lng, utmz, e0, esq, e0sq, zcm;
-                
+        double a, b, e, k0, x, y, T, M, C, N, A, M0, phi, lng, utmz, e0, esq, e0sq, zcm;
+
         //double latz, yg, ym, ys, ydd, xdd, xs, xm;
         //Convert Latitude and Longitude to UTM
         k0 = 0.9996; //scale on central meridian
@@ -124,7 +137,12 @@ public class LL2UTM {
         phi = latitude * drad;//Convert latitude to radians
         lng = longitude * drad;//Convert longitude to radians
         if (zone < 0 || updateZone) {
-            zone = (int)(1 + Math.floor((longitude + 180) / 6.0));//calculate utm zone
+            zone = (int) (1 + Math.floor((longitude + 180) / 6.0));//calculate utm zone
+            // the hemisphere should also be unchanged when it is locked
+            hemisphere = "N";
+            if (latitude < 0) {
+                hemisphere = "S";
+            }
         }
 //        latz = 0;//Latitude zone: A-B S of -80, C-W -80 to +72, X 72-84, Y,Z N of 84
 //        if (latitude > -80 && latitude < 72) {
@@ -158,13 +176,13 @@ public class LL2UTM {
         x = x + 500000;//Easting standard 
         y = k0 * (M - M0 + N * Math.tan(phi) * (A * A * (1 / 2.0 + A * A * ((5 - T + 9 * C + 4 * C * C) / 24.0 + A * A * (61 - 58 * T + T * T + 600 * C - 330 * e0sq) / 720.0))));//Northing from equator
 //        yg = y + 10000000;//yg = y global, from S. Pole
-        if (y < 0) {
+        if (hemisphere.equals("S")) { // if (y < 0) {
             y = 10000000 + y;
         }
-        
+
         easting = x;
         northing = y;
-        
+
     }
 
     public static void main(String[] args) {
@@ -178,7 +196,7 @@ public class LL2UTM {
 
         lat = 43.5485;
         lon = -80.2503;
-        ll2utm.convertLatLongDecDegrees(lat, lon);
+        ll2utm.convertGeographicCoordinates(lat, lon);
         System.out.println("Easting: " + ll2utm.easting + "\tNorthing: " + ll2utm.northing
                 + "\tzone " + ll2utm.zone + ll2utm.hemisphere);
 

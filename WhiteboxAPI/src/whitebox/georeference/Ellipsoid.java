@@ -106,4 +106,13 @@ public enum Ellipsoid {
     public double secondEccentricitySquared() {
         return secondEccentSqr;
     }
+    
+    static public Ellipsoid getEllipsoidByName(String name) {
+        for (Ellipsoid ellipse : Ellipsoid.values()) {
+            if (ellipse.ellipsoidName().toLowerCase().replace(" ", "").equals(name.toLowerCase().replace(" ", ""))) {
+                return ellipse;
+            }   
+        }
+        return null;
+    }
 }
