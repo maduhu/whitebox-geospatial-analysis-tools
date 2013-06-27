@@ -222,7 +222,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 }
                 WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, gt.getNorth(), gt.getSouth(), gt.getEast(),
                         gt.getWest(), nRows, nCols, myDataScale,
-                        WhiteboxRasterBase.DataType.FLOAT, 0, gt.getNoData());
+                        WhiteboxRasterBase.DataType.FLOAT, gt.getNoData(), gt.getNoData());
                 
                 wbr.setByteOrder(byteOrder.toString());
 
@@ -241,7 +241,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                     updateProgress(progress);
                 }
                 
-                wbr.flush();
+                //wbr.flush();
                 wbr.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
                 wbr.addMetadataEntry("Created on " + new Date());
@@ -249,7 +249,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 for (int a = 0; a < metaData.length; a++) {
                     wbr.addMetadataEntry(metaData[a]);
                 }
-                wbr.writeHeaderFile();
+                //wbr.writeHeaderFile();
                 wbr.close();
 
                 gt.close();
