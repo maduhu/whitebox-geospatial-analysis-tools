@@ -479,8 +479,6 @@ public class MosaicWithFeathering implements WhiteboxPlugin {
                         baseCol = baseRaster.getColumnFromXCoordinate(x);
                         baseRow = baseRaster.getRowFromYCoordinate(y);
 
-//                        neighbour = new double[numNeighbours][2];
-
                         // what are the exact col and row of the image?
                         srcRow = (baseNorth - y) / baseNSRange * (baseRows - 0.5);
                         srcCol = (x - baseWest) / baseEWRange * (baseCols - 0.5);
