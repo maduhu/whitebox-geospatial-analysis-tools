@@ -9,15 +9,22 @@ remote sensing software package for advanced analysis and visualization of geosp
 
 RELEASE NOTES:
 
+Version 3.0.3
+
+-Added FindParallelFlow tool.
+
+
 Version 3.0.2
 
 -Fixed a bug with the math tools that would not allow for a constant as the first operand.
--Added preliminary support for German, Italian, Chinese (simplified and traditional), 
- Catalan, Spanish, French, and Polish.
+-Added preliminary support for Catalan, Chinese (simplified and traditional), French, 
+ German, Italian, Polish, and Spanish. Thank you to the numerous volunteer translators 
+ (see 'About') that made this possible.
 -Added ability to import RGB GeoTiffs (I know you wanted this!) and fixed a number 
  of bugs with this tool. There's still no support for compressed GeoTiffs.
 -Added raster/vector conversion from geographic coordinates to UTM and vice versa.
 -Added BalanceContrastEnhancement and DirectDecorrelationStretch tools.
+
 
 Version 3.0.1
 
@@ -27,6 +34,7 @@ Version 3.0.1
 -Added a feature for announcements.
 -Added basic error logging capabilities.
 -Added trend surface analysis tools.
+
 
 Version 3.0
 
