@@ -98,10 +98,10 @@ public class AboutWhitebox extends JDialog implements ActionListener {
         strBuilder.append("Carlo Alberto Brunori (cab)\n");
         strBuilder.append("Agustin Diez Castillo\n");
         strBuilder.append("Sergi Gumà\n");
+        strBuilder.append("Hu Xuemei\n");
         strBuilder.append("Annie C. Laviolette\n");
         strBuilder.append("George Miliaresis\n");
         strBuilder.append("Hannes Reuter\n");
-        strBuilder.append("Hu Xuemei\n");
         strBuilder.append("Raf Roset\n");
         strBuilder.append("Ehsan Roshani\n");
         strBuilder.append("Rafal Wawer\n");
