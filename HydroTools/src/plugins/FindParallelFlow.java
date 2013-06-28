@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,56 +23,73 @@ import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class NumInflowingNeighbours implements WhiteboxPlugin {
-    
+public class FindParallelFlow implements WhiteboxPlugin {
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
-        return "NumInflowingNeighbours";
+        return "FindParallelFlow";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "Number of Inflowing Neighbours";
+        return "Find Parallel Flow";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "Calculates the number of inflowing neighbours to each grid cell.";
+        return "Finds areas of parallel flow in D8 flow direction rasters.";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "HydroTools" };
-    	return ret;
+        String[] ret = {"HydroTools"};
+        return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -82,8 +99,11 @@ public class NumInflowingNeighbours implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -91,24 +111,29 @@ public class NumInflowingNeighbours implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
-
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -117,34 +142,39 @@ public class NumInflowingNeighbours implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -154,28 +184,33 @@ public class NumInflowingNeighbours implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
+
         String inputHeader = null;
+        String streamsHeader = "";
         String outputHeader = null;
         int row, col, x, y;
-        float progress = 0;
-        double numDownslopeNeighbours;
-        double z, z2;
+        int progress = 0;
+        double myPointer, neighbourPointer;
         int i;
         int[] dX = new int[]{1, 1, 1, 0, -1, -1, -1, 0};
         int[] dY = new int[]{-1, 0, 1, 1, 1, 0, -1, -1};
         double[] inflowingVals = new double[]{16, 32, 64, 128, 1, 2, 4, 8};
-        String pntrType = null;
+        double[] outflowingVals = new double[]{1, 2, 4, 8, 16, 32, 64, 128};
+        boolean streamsSpecified = false;
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
+
         inputHeader = args[0];
-        outputHeader = args[1];
-        pntrType = args[2].toLowerCase();
-        
+        if (!args[1].toLowerCase().equals("not specified")) {
+            streamsHeader = args[1];
+            streamsSpecified = true;
+        }
+        outputHeader = args[2];
+
+
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -187,63 +222,35 @@ public class NumInflowingNeighbours implements WhiteboxPlugin {
             int rows = pntr.getNumberRows();
             int cols = pntr.getNumberColumns();
             double noData = pntr.getNoDataValue();
-                    
-            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", 
-                    inputHeader, WhiteboxRaster.DataType.INTEGER, noData);
-            output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
-            output.setPreferredPalette("spectrum_black_background.pal");
-            
-            
-            if ((pntrType.equals("d8") || (pntrType.equals("rho8")))) {
-                // calculate the number of inflowing neighbours to each grid cell 
-                for (row = 0; row < rows; row++) {
-                    for (col = 0; col < cols; col++) {
-                        if (pntr.getValue(row, col) != noData) {
-                            z = 0;
-                            for (i = 0; i < 8; i++) {
-                                if (pntr.getValue(row + dY[i], col + dX[i])
-                                        == inflowingVals[i]) { z++; }
-                            }
-                            output.setValue(row, col, z);
-                        } else {
-                            output.setValue(row, col, noData);
-                        }
-                    }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
-                    }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress((int) progress);
-                }
-            } else if (pntrType.equals("dinf")) {
-                double flowDir;
-                double[] startFD = new double[]{180, 225, 270, 315, 0, 45, 90, 135};
-                double[] endFD = new double[]{270, 315, 360, 45, 90, 135, 180, 225};
-                int c;
 
+            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
+                    inputHeader, WhiteboxRaster.DataType.INTEGER, noData);
+            output.setDataScale(WhiteboxRaster.DataScale.BOOLEAN);
+            output.setPreferredPalette("spectrum_black_background.pal");
+
+            boolean isParallel;
+            if (!streamsSpecified) {
                 for (row = 0; row < rows; row++) {
                     for (col = 0; col < cols; col++) {
-                        flowDir = pntr.getValue(row, col);
-                        if (flowDir != noData) {
-                            c = 0;
+                        myPointer = pntr.getValue(row, col);
+                        if (myPointer != noData) {
+                            isParallel = false;
                             for (i = 0; i < 8; i++) {
-                                flowDir = pntr.getValue(row + dY[i], col + dX[i]);
-                                if (flowDir != noData) {
-                                    if (i != 3) {
-                                        if (flowDir > startFD[i]
-                                                && flowDir < endFD[i]) {
-                                            c++;
-                                        }
-                                    } else {
-                                        if (flowDir > startFD[i]
-                                                || flowDir < endFD[i]) {
-                                            c++;
-                                        }
+                                // don't examine the downslope neighbour
+                                if (myPointer != outflowingVals[i]) {
+                                    neighbourPointer = pntr.getValue(row + dY[i], col + dX[i]);
+                                    if (neighbourPointer == myPointer
+                                            && neighbourPointer != inflowingVals[i]) {
+                                        isParallel = true;
+                                        break;
                                     }
                                 }
                             }
-                            output.setValue(row, col, c);
+                            if (isParallel) {
+                                output.setValue(row, col, 1);
+                            } else {
+                                output.setValue(row, col, 0);
+                            }
                         } else {
                             output.setValue(row, col, noData);
                         }
@@ -252,15 +259,61 @@ public class NumInflowingNeighbours implements WhiteboxPlugin {
                         cancelOperation();
                         return;
                     }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress((int) progress);
+                    progress = (int) (100f * row / (rows - 1));
+                    updateProgress(progress);
                 }
+            } else {
+                WhiteboxRaster streams = new WhiteboxRaster(streamsHeader, "r");
+                if (streams.getNumberRows() != rows || streams.getNumberColumns() != cols) {
+                    showFeedback("The flow pointer and streams file must have the same number "
+                            + "\nof rows and columns.");
+                    return;
+                }
+                double streamsNoData = streams.getNoDataValue();
+                double streamVal, neighbourStreamVal;
+                for (row = 0; row < rows; row++) {
+                    for (col = 0; col < cols; col++) {
+                        myPointer = pntr.getValue(row, col);
+                        streamVal = streams.getValue(row, col);
+                        if (myPointer != noData && streamVal != streamsNoData && streamVal > 0) {
+                            isParallel = false;
+                            for (i = 0; i < 8; i++) {
+                                // don't examine the downslope neighbour
+                                if (myPointer != outflowingVals[i]) {
+                                    neighbourPointer = pntr.getValue(row + dY[i], col + dX[i]);
+                                    neighbourStreamVal = streams.getValue(row + dY[i], col + dX[i]);
+                                    if (neighbourPointer == myPointer
+                                            && neighbourPointer != inflowingVals[i]
+                                            && neighbourStreamVal > 0) {
+                                        isParallel = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (isParallel) {
+                                output.setValue(row, col, 1);
+                            } else {
+                                output.setValue(row, col, 0);
+                            }
+                        } else {
+                            output.setValue(row, col, noData);
+                        }
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (int) (100f * row / (rows - 1));
+                    updateProgress(progress);
+                }
+
+                streams.close();
             }
-            
+
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
-            
+
             pntr.close();
             output.close();
 
