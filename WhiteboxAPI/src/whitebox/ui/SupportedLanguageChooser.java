@@ -38,12 +38,13 @@ public abstract class SupportedLanguageChooser {
         
         final boolean supressWarning = suppressResartWarning;
         
-        String[] languages = { "Català (Spain)", "Chinese (Simplified)", 
-            "Chinese (Traditional)", "Deutsch (Germany)", "Elliniká (Greece)", 
+        String[] languages = { "Català (Spain)", "Deutsch (Germany)", "Elliniká (Greece)", 
             "English (Canada)", "English (UK)", "English (US)", "Español (Spain)", 
-            "French (Canada)", "Italiano (Italy)", "Persian (Iran)", "Polski (Poland)" };
-        String[] codes = { "ca_ES", "zh_CN", "zh_TW", "de_DE", "el_GR", "en_CA", 
-            "en_GB", "en_US", "es_ES", "fr_CA", "it_IT", "fa_IR", "pl_PL" };
+            "Français (Canada)", "Italiano (Italy)", "Persian (Iran)", "Polski (Poland)",
+            "简体字 (simplified)", "正體字 (traditional)"};
+        String[] codes = { "ca_ES", "de_DE", "el_GR", "en_CA", 
+            "en_GB", "en_US", "es_ES", "fr_CA", "it_IT", "fa_IR", "pl_PL", 
+            "zh_CN", "zh_TW" };
         
         int selectedIndex = 0;
         String hostLanguageCode = myHost.getLanguageCountryCode();
@@ -63,15 +64,12 @@ public abstract class SupportedLanguageChooser {
                     Object item = e.getItem();
                     String code;
                     switch (item.toString().toLowerCase()) {
-                        case "chinese (simplified)":
+                        case "简体字 (simplified)":
                             code = "zh_CN";
                             break;
-                        case "chinese (traditional)":
+                        case "正體字 (traditional)":
                             code = "zh_TW";
                             break;
-//                        case "dutch (netherlands)":
-//                            code = "fa_IR";
-//                            break;
                         case "english (canada)":
                             code = "en_CA";
                             break;
@@ -102,7 +100,7 @@ public abstract class SupportedLanguageChooser {
                         case ("italiano (italy)"):
                             code = "it_IT";
                             break;
-                        case ("french (canada)"):
+                        case ("français (canada)"):
                             code = "fr_CA";
                             break;
                         default:
