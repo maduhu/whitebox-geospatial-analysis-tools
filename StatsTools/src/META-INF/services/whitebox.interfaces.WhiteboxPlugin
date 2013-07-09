@@ -7,6 +7,7 @@ plugins.ExtractStatistics
 plugins.FuzzyMembership
 plugins.Histogram
 plugins.HistogramMatching
+plugins.ImageAutocorrelation
 plugins.ImageAverage
 plugins.ImageCorrelation
 plugins.ImageRegression
@@ -20,5 +21,6 @@ plugins.TurningBands
 plugins.TrendSurface
 plugins.TrendSurfaceVectorPoints
 plugins.TwoImageHistogramMatching
+plugins.RandomField
 plugins.RandomSample
 plugins.ZScores
