@@ -24,6 +24,8 @@ import whitebox.interfaces.WhiteboxPlugin;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.ArrayList;
+import java.util.ResourceBundle;
+import whitebox.internationalization.WhiteboxInternationalizationTools;
 
 public class StandardPluginService implements PluginService {
 
@@ -32,8 +34,10 @@ public class StandardPluginService implements PluginService {
     private int numberOfPlugins = 0;
     public final static int SIMPLE_NAME = 0;
     public final static int DESCRIPTIVE_NAME = 1;
+    private ResourceBundle pluginsBundle;
 
     private StandardPluginService() {
+        pluginsBundle = WhiteboxInternationalizationTools.getPluginsBundle();
         //load all the classes in the classpath that have implemented the interface
         serviceLoader = ServiceLoader.load(WhiteboxPlugin.class);
     }
@@ -95,11 +99,18 @@ public class StandardPluginService implements PluginService {
     @Override
     public ArrayList getPluginList() {
         ArrayList<PluginInfo> plugInfo = new ArrayList<>();
-
+        String plugName;
+        String plugDescriptiveName;
         Iterator<WhiteboxPlugin> iterator = getPlugins();
         while (iterator.hasNext()) {
             WhiteboxPlugin plugin = iterator.next();
-            plugInfo.add(new PluginInfo(plugin.getName(), plugin.getDescriptiveName(),
+            plugName = plugin.getName();
+            if (pluginsBundle.containsKey(plugName)) {
+                plugDescriptiveName = pluginsBundle.getString(plugName);
+            } else {
+                plugDescriptiveName = plugin.getDescriptiveName();
+            }
+            plugInfo.add(new PluginInfo(plugin.getName(), plugDescriptiveName,
                     plugin.getToolDescription(), PluginInfo.SORT_MODE_USAGE));
         }
 

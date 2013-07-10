@@ -53,6 +53,11 @@ public final class WhiteboxInternationalizationTools {
 
     }
 
+    public static ResourceBundle getPluginsBundle() {
+        return ResourceBundle.getBundle("whitebox.internationalization.plugins", currentLocale);
+
+    }
+    
     public static void main(String[] args) {
         WhiteboxInternationalizationTools wit = new WhiteboxInternationalizationTools();
         wit.updateBundle();
