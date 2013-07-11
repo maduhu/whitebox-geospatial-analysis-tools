@@ -12,6 +12,10 @@ RELEASE NOTES:
 Version 3.0.3
 
 -Added FindParallelFlow tool.
+-Added RandomField tool.
+-Added ImageAutocorrelation tool.
+-Added mass flux tools (MassFluxD8 and MassFluxDinf).
+-Added Downslope index (Hjerdt et al. 2004) tool.
 
 
 Version 3.0.2

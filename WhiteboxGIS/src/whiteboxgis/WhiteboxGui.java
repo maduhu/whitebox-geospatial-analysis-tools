@@ -184,7 +184,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private int announcementNumber = 0;
 //    private Locale currentLocale;
     private ResourceBundle bundle;
-//    private ResourceBundle pluginToolsText;
+    private ResourceBundle pluginBundle;
     private ResourceBundle messages;
     private String language = "en";
     private String country = "CA";
@@ -309,7 +309,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             //fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);
 
-            this.loadPlugins();
+            //this.loadPlugins();
             this.getApplicationProperties();
 
             // i18n
@@ -317,7 +317,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             WhiteboxInternationalizationTools.setLocale(language, country);
             bundle = WhiteboxInternationalizationTools.getGuiLabelsBundle(); //ResourceBundle.getBundle("whiteboxgis.i18n.GuiLabelsBundle", currentLocale);
             messages = WhiteboxInternationalizationTools.getMessagesBundle(); //ResourceBundle.getBundle("whiteboxgis.i18n.messages", currentLocale);
-            //pluginToolsText = ResourceBundle.getBundle("whiteboxgis.i18n.pluginToolsText", currentLocale);
+            pluginBundle = WhiteboxInternationalizationTools.getPluginsBundle();
+            this.loadPlugins();
 
             boolean newInstall = checkForNewInstallation();
 
@@ -383,6 +384,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
 
 
+            /* The following code is only used to create a plugins.properties listing 
+             * for internationalization.
+             */
 //            File file = new File(resourcesDirectory + "pluginNames.txt");
 //            FileWriter fw = null;
 //            BufferedWriter bw = null;
@@ -393,9 +397,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //                out = new PrintWriter(bw, true);
 //                String str;
 //                for (PluginInfo plug : plugInfo) {
-//                    str = plug.getName() + "\t" + plug.getDescriptiveName();
+//                    str = plug.getName() + " = " + plug.getDescriptiveName();
 //                    out.println(str);
-//                    str = plug.getName() + "Description" + "\t" + plug.getDescription();
+//                    str = plug.getName() + "Description" + " = " + plug.getDescription();
 //                    out.println(str);
 //                }
 //            } catch (Exception e) {
@@ -845,7 +849,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     @Override
     public void launchDialog(String pluginName) {
-
         for (int i = 0; i < plugInfo.size(); i++) {
             if (plugInfo.get(i).getDescriptiveName().equals(pluginName)) {
                 plugInfo.get(i).setLastUsedToNow();
@@ -898,7 +901,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             // use the xml-based dialog provided in the Dialog folder.
             String helpFile = helpDirectory + plug.getName() + ".html";
-            ToolDialog dlg = new ToolDialog(this, false, plug.getName(), plug.getDescriptiveName(), helpFile);
+            String descriptiveName;
+            if (pluginBundle.containsKey(plug.getName())) {
+                descriptiveName = pluginBundle.getString(plug.getName());
+            } else {
+                descriptiveName = plug.getDescriptiveName();
+            }   
+            ToolDialog dlg = new ToolDialog(this, false, plug.getName(), descriptiveName, helpFile);
             dlg.setSize(800, 400);
             dlg.setVisible(true);
         }
@@ -1107,19 +1116,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 String plugName;
                 DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
                 Date lastUsed = null;
-                for (int i = 0; i < plugInfo.size(); i++) {
-                    plugName = plugInfo.get(i).getName();
-                    for (int j = 0; j < pluginNames.length; j++) {
-                        if (pluginNames[j].equals(plugName)) {
-                            try {
-                                lastUsed = df.parse(pluginLastUse[j]);
-                            } catch (ParseException e) {
-                            }
-                            plugInfo.get(i).setLastUsed(lastUsed);
-                            plugInfo.get(i).setNumTimesUsed(Integer.parseInt(pluginUsage[j]));
-                        }
-                    }
-                }
+//                for (int i = 0; i < plugInfo.size(); i++) {
+//                    plugName = plugInfo.get(i).getName();
+//                    for (int j = 0; j < pluginNames.length; j++) {
+//                        if (pluginNames[j].equals(plugName)) {
+//                            try {
+//                                lastUsed = df.parse(pluginLastUse[j]);
+//                            } catch (ParseException e) {
+//                            }
+//                            plugInfo.get(i).setLastUsed(lastUsed);
+//                            plugInfo.get(i).setNumTimesUsed(Integer.parseInt(pluginUsage[j]));
+//                        }
+//                    }
+//                }
 
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "WhiteboxGui.getApplicationProperties", e);
@@ -1248,8 +1257,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void showToolDescription(String pluginName) {
-        WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.DESCRIPTIVE_NAME);
-        status.setMessage(plug.getToolDescription());
+        for (PluginInfo pi : plugInfo) {
+            if (pi.getDescriptiveName().equals(pluginName)) {
+                status.setMessage(pi.getDescription());
+                break;
+            }
+        }
+//        WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.DESCRIPTIVE_NAME);
+//        status.setMessage(plug.getToolDescription());
     }
 
     private void createGui() {
@@ -3025,13 +3040,20 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private ArrayList<String> findToolsInToolbox(String toolbox) {
         Iterator<WhiteboxPlugin> iterator = pluginService.getPlugins();
         ArrayList<String> plugs = new ArrayList<>();
-
+        String plugName;
+        String plugDescriptiveName;
         while (iterator.hasNext()) {
             WhiteboxPlugin plugin = iterator.next();
             String[] tbox = plugin.getToolbox();
             for (int i = 0; i < tbox.length; i++) {
                 if (tbox[i].equals(toolbox)) {
-                    plugs.add(plugin.getDescriptiveName());
+                    plugName = plugin.getName();
+                    if (pluginBundle.containsKey(plugName)) {
+                        plugDescriptiveName = pluginBundle.getString(plugName);
+                    } else {
+                        plugDescriptiveName = plugin.getDescriptiveName();
+                    }
+                    plugs.add(plugDescriptiveName); //plugin.getDescriptiveName());
                 }
             }
 
