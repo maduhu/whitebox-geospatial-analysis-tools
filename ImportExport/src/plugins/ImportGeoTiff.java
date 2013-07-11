@@ -194,7 +194,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
         numImages = imageFiles.length;
 
         try {
-
+            String returnedHeader = "";
             for (i = 0; i < numImages; i++) {
                 //int progress = (int) (100f * i / (numImages - 1));
                 updateProgress("Loop " + (i + 1) + " of " + numImages + ":", 0);
@@ -208,6 +208,9 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 int dot = imageFiles[i].lastIndexOf(".");
                 String tiffExtension = imageFiles[i].substring(dot + 1); // either .tif or .tiff
                 whiteboxHeaderFile = imageFiles[i].replace(tiffExtension, "dep");
+                if (i == 0) {
+                    returnedHeader = whiteboxHeaderFile;
+                }
                 whiteboxDataFile = imageFiles[i].replace(tiffExtension, "tas");
 
                 // see if they exist, and if so, delete them.
@@ -257,6 +260,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
             }
 
             showFeedback("Operation complete");
+            if (!returnedHeader.isEmpty()) { returnData(returnedHeader); }
             
         } catch (IOException e) {
             myHost.logException("Error in ImportGeoTiff.run", e);
