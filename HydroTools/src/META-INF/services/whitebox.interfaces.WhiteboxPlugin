@@ -17,6 +17,8 @@ plugins.FlowPointerFD8
 plugins.FlowPointerRho8
 plugins.Hillslopes
 plugins.JensonSnapPourPoints
+plugins.MassFluxD8
+plugins.MassFluxDinf
 plugins.NumInflowingNeighbours
 plugins.SnapPourPoints
 plugins.StrahlerOrderBasins

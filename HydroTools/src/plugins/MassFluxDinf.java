@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,13 @@ import whitebox.interfaces.WhiteboxPluginHost;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class FlowAccumDinf implements WhiteboxPlugin {
+public class MassFluxDinf implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
     WhiteboxRaster pointer;
+    WhiteboxRaster efficiency;
+    WhiteboxRaster absorption;
     WhiteboxRaster output;
     WhiteboxRaster tmpGrid;
     double noData = -32768;
@@ -38,13 +40,14 @@ public class FlowAccumDinf implements WhiteboxPlugin {
     double gridRes = 1;
     double[] startFD = new double[]{180, 225, 270, 315, 0, 45, 90, 135};
     double[] endFD = new double[]{270, 315, 360, 45, 90, 135, 180, 225};
+    double efficiencyMultiplier;
     /**
      * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
-        return "FlowAccumDinf";
+        return "MassFluxDinf";
     }
     /**
      * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
@@ -52,7 +55,7 @@ public class FlowAccumDinf implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "D-infinity Flow Accumulation";
+    	return "D-infinity Mass Flux";
     }
     /**
      * Used to retrieve a short description of what the plugin tool does.
@@ -60,8 +63,7 @@ public class FlowAccumDinf implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Performs an D-infinity flow accumulation operation on a "
-                + "specified digital elevation model (DEM).";
+    	return "Performs a D-infinity mass flux calculation";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
@@ -69,7 +71,7 @@ public class FlowAccumDinf implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "FlowAccum" };
+    	String[] ret = { "MassFlux" };
     	return ret;
     }
     /**
@@ -165,8 +167,7 @@ public class FlowAccumDinf implements WhiteboxPlugin {
     public void run() {
         amIActive = true;
         
-        String inputHeader = null;
-        String outputHeader = null;
+        String pointerHeader, loadingHeader, efficiencyHeader, absorptionHeader, outputHeader;
         int row, col, x, y;
         float progress = 0;
         double slope;
@@ -174,57 +175,79 @@ public class FlowAccumDinf implements WhiteboxPlugin {
         int i, c;
         double numInNeighbours;
         boolean flag = false;
-        boolean logTransform = false;
-        String outputType = null;
         double flowDir;
-        
+        efficiencyMultiplier = 1d;
         
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
         
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                outputType = args[i].toLowerCase();
-            } else if (i == 3) {
-                logTransform = Boolean.parseBoolean(args[i]);
-            }
-        }
+        pointerHeader = args[0];
+        loadingHeader = args[1];
+        efficiencyHeader = args[2];
+        absorptionHeader = args[3];
+        outputHeader = args[4];
+        
 
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader == null) || (outputHeader == null)) {
+        if (pointerHeader.isEmpty() || outputHeader.isEmpty() || loadingHeader.isEmpty() ||
+                efficiencyHeader.isEmpty() || absorptionHeader.isEmpty()) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
 
         try {
-            pointer = new WhiteboxRaster(inputHeader, "r");
+            pointer = new WhiteboxRaster(pointerHeader, "r");
             int rows = pointer.getNumberRows();
             int cols = pointer.getNumberColumns();
             noData = pointer.getNoDataValue();
             gridRes = pointer.getCellSizeX();
                     
+            WhiteboxRaster loading = new WhiteboxRaster(loadingHeader, "r");
+            if (loading.getNumberRows() != rows || loading.getNumberColumns() != cols) {
+                showFeedback("Each of the input images must have the same dimensions.");
+                return;
+            }
+            double noDataLoading = loading.getNoDataValue();
+            
+            efficiency = new WhiteboxRaster(efficiencyHeader, "r");
+            if (efficiency.getNumberRows() != rows || efficiency.getNumberColumns() != cols) {
+                showFeedback("Each of the input images must have the same dimensions.");
+                return;
+            }
+            double noDataEfficiency = efficiency.getNoDataValue();
+            if (efficiency.getMaximumValue() > 1) {
+                efficiencyMultiplier = 0.01;
+            }
+                    
+            absorption = new WhiteboxRaster(absorptionHeader, "r");
+            if (absorption.getNumberRows() != rows || absorption.getNumberColumns() != cols) {
+                showFeedback("Each of the input images must have the same dimensions.");
+                return;
+            }
+            double noDataAbsorption = absorption.getNoDataValue();
+            
+            double outputNoData = -32768.0;
             output = new WhiteboxRaster(outputHeader, "rw", 
-                    inputHeader, WhiteboxRaster.DataType.FLOAT, 1);
+                    pointerHeader, WhiteboxRaster.DataType.FLOAT, 0);
             output.setPreferredPalette("blueyellow.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
             output.setZUnits("dimensionless");
             
             tmpGrid = new WhiteboxRaster(outputHeader.replace(".dep", 
-                    "_temp.dep"), "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
+                    "_temp.dep"), "rw", pointerHeader, WhiteboxRaster.DataType.FLOAT, outputNoData);
             tmpGrid.isTemporaryFile = true;
             
             // Calculate the number of inflowing neighbours to each cell.
-            updateProgress("Loop 1 of 3:", 0);
+            updateProgress("Loop 1 of 2:", 0);
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     flowDir = pointer.getValue(row, col);
-                    if (flowDir != noData) {
+                    if (flowDir != noData && 
+                            loading.getValue(row, col) != noDataLoading && 
+                            efficiency.getValue(row, col) != noDataEfficiency && 
+                            absorption.getValue(row, col) != noDataAbsorption) {
                         i = 0;
                         for (c = 0; c < 8; c++) {
                             x = col + dX[c];
@@ -239,8 +262,9 @@ public class FlowAccumDinf implements WhiteboxPlugin {
                             }
                         }
                         tmpGrid.setValue(row, col, i);
+                        output.setValue(row, col, loading.getValue(row, col));
                     } else {
-                        output.setValue(row, col, noData);
+                        output.setValue(row, col, outputNoData);
                     }
                 }
                 if (cancelOp) {
@@ -248,10 +272,12 @@ public class FlowAccumDinf implements WhiteboxPlugin {
                     return;
                 }
                 progress = (float) (100f * row / (rows - 1));
-                updateProgress("Loop 1 of 3:", (int) progress);
+                updateProgress("Loop 1 of 2:", (int) progress);
             }
 
-            updateProgress("Loop 2 of 3:", 0);
+            loading.close();
+            
+            updateProgress("Loop 2 of 2:", 0);
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     if (tmpGrid.getValue(row, col) == 0) { //there are no 
@@ -265,69 +291,17 @@ public class FlowAccumDinf implements WhiteboxPlugin {
                     return;
                 }
                 progress = (float) (100f * row / (rows - 1));
-                updateProgress("Loop 2 of 3:", (int) progress);
+                updateProgress("Loop 2 of 2:", (int) progress);
             }
             
-            updateProgress("Loop 3 of 3:", 0);
-            if (outputType.equals("specific catchment area (sca)")) {
-                for (row = 0; row < rows; row++) {
-                    for (col = 0; col < cols; col++) {
-                        z = pointer.getValue(row, col);
-                        if (z != noData) {
-                            output.setValue(row, col,
-                                    output.getValue(row, col) * gridRes);
-                        }
-                    }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
-                    }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress("Loop 3 of 3:", (int) progress);
-                }
-            } else if (outputType.equals("total catchment area")) {
-                double gridCellArea = gridRes * gridRes;
-                for (row = 0; row < rows; row++) {
-                    for (col = 0; col < cols; col++) {
-                        z = output.getValue(row, col);
-                        if (z != noData) {
-                            output.setValue(row, col,
-                                    output.getValue(row, col) * gridCellArea);
-                        }
-                    }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
-                    }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress("Loop 3 of 3:", (int) progress);
-                }
-
-            }
-            
-            if (logTransform) {
-                for (row = 0; row < rows; row++) {
-                    for (col = 0; col < cols; col++) {
-                        z = output.getValue(row, col);
-                        if (z != noData) {
-                            output.setValue(row, col,
-                                    Math.log(output.getValue(row, col)));
-                        }
-                    }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
-                    }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress("Loop 3 of 3:", (int) progress);
-                }
-            }
             
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
             
             pointer.close();
+            efficiency.close();
+            absorption.close();
             tmpGrid.close();
             output.close();
 
@@ -345,7 +319,9 @@ public class FlowAccumDinf implements WhiteboxPlugin {
     }
     
     private void DinfAccum(int row, int col) {
-        double flowAccumVal = output.getValue(row, col);
+        double eff = efficiency.getValue(row, col) * efficiencyMultiplier;
+        double absorp = absorption.getValue(row, col);
+        double flowAccumVal = (output.getValue(row, col) - absorp) * eff;
         double flowDir = pointer.getValue(row, col);
         double proportion1 = 0;
         double proportion2 = 0;
