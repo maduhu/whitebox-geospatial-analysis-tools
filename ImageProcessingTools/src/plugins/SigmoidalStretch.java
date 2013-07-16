@@ -25,7 +25,7 @@ import whitebox.interfaces.WhiteboxPlugin;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author johnlindsay
  */
-public class GaussianStretch implements WhiteboxPlugin {
+public class SigmoidalStretch implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -35,7 +35,7 @@ public class GaussianStretch implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "GaussianStretch";
+        return "SigmoidalStretch";
     }
     /**
      * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
@@ -43,7 +43,7 @@ public class GaussianStretch implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Gaussian Contrast Stretch";
+    	return "Sigmoidal Contrast Stretch";
     }
     /**
      * Used to retrieve a short description of what the plugin tool does.
@@ -51,7 +51,7 @@ public class GaussianStretch implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Performs a Gausian contrast stretch on an input image.";
+    	return "Performs a sigmoidal contrast stretch on an input image.";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
@@ -155,24 +155,21 @@ public class GaussianStretch implements WhiteboxPlugin {
     public void run() {
         amIActive = true;
         
-        String inputHeader = null;
-        String outputHeader = null;
-        double cutoffsInSD = 3;
-        int numOutputBins = 1024;
-        
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
         
-        inputHeader = args[0];
-        outputHeader = args[1];
-        cutoffsInSD = Double.parseDouble(args[2]);
-        numOutputBins = Integer.parseInt(args[3]);
+        String inputHeader = args[0];
+        String outputHeader = args[1];
+        double cutoff = Double.parseDouble(args[2]);
+        if (cutoff < 0) { cutoff = 0; }
+        if (cutoff > 0.95) { cutoff = 0.95; }
+        double gain = Double.parseDouble(args[3]);
         
 
         // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader == null) || (outputHeader == null)) {
+        if (inputHeader.isEmpty() || outputHeader.isEmpty()) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
@@ -180,160 +177,48 @@ public class GaussianStretch implements WhiteboxPlugin {
         try {
             int row, col;
             double z;
-            float progress = 0;
-            int numCells = 0;
-            int i = 0;
+            int progress = 0;
             
-            WhiteboxRaster inputFile = new WhiteboxRaster(inputHeader, "r");
+            WhiteboxRaster input = new WhiteboxRaster(inputHeader, "r");
             
-            int rows = inputFile.getNumberRows();
-            int cols = inputFile.getNumberColumns();
+            int rows = input.getNumberRows();
+            int cols = input.getNumberColumns();
             
-            double noData = inputFile.getNoDataValue();
+            double noData = input.getNoDataValue();
 
-            WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.INTEGER, noData);
-            outputFile.setPreferredPalette(inputFile.getPreferredPalette());
+            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
+            output.setPreferredPalette(input.getPreferredPalette());
 
-            int numBins = 50000;
-            double minValue = inputFile.getMinimumValue();
-            double maxValue = inputFile.getMaximumValue();
-            double binSize = (maxValue - minValue) / numBins;
-            long[] histogram = new long[numBins];
-            int binNum;
-            int numBinsLessOne = numBins - 1;
+            double minValue = input.getMinimumValue();
+            double maxValue = input.getMaximumValue();
+            double range = maxValue - minValue;
             double[] data;
             
-            updateProgress("Loop 1 of 3: ", 0);
+            double a = 1/(1+Math.exp(gain * cutoff));
+            double b = 1/(1+Math.exp(gain*(cutoff-1))) - 1/(1+Math.exp(gain*cutoff));
+            
             for (row = 0; row < rows; row++) {
-                data = inputFile.getRowValues(row);
+                data = input.getRowValues(row);
                 for (col = 0; col < cols; col++) {
                     z = data[col];
                     if (z != noData) {
-                        numCells++;
-                        binNum = (int)((z - minValue) / binSize);
-                        if (binNum > numBinsLessOne) { binNum = numBinsLessOne; }
-                        histogram[binNum]++;
+                        z = (z - minValue) / range;
+                        z = (1/(1+Math.exp(gain*(cutoff-z))) - a ) / b;
+                        output.setValue(row, col, z);
                     }
 
                 }
                 if (cancelOp) { cancelOperation(); return; }
-                progress = (float) (100f * row / (rows - 1));    
-                updateProgress("Loop 1 of 3: ", (int)progress);
+                progress = (int) (100f * row / (rows - 1));    
+                updateProgress(progress);
             }
             
-            updateProgress("Loop 2 of 3: ", 0);
-            
-            double[] cdf = new double[numBins];
-            cdf[0] = histogram[0]; 
-            for (i = 1; i < numBins; i++) {
-                cdf[i] = cdf[i - 1] + histogram[i];
-            }
-            histogram = null;
-            for (i = 0; i < numBins; i++) {
-                cdf[i] = cdf[i] / numCells;
-            }
- 
-            
-            // create the reference distribution
-            double[] referenceCDF = new double[numOutputBins];
-            double rootOf2Pi = Math.sqrt(2 * Math.PI);
-            double exponent;
-            double x;
-            for (i = 0; i < numOutputBins; i++) {
-                x = (double)i / (numOutputBins - 1) * 2 * cutoffsInSD - cutoffsInSD;
-                exponent = -x * x / 2;
-                referenceCDF[i] = Math.pow(Math.E, exponent) / rootOf2Pi;
-            }
-            
-            // convert the reference histogram to a cdf.
-            for (i = 1; i < numOutputBins; i++) {
-                referenceCDF[i] += referenceCDF[i - 1];
-            }
-            double totalFrequency = referenceCDF[numOutputBins - 1];
-            for (i = 0; i < numOutputBins; i++) {
-                referenceCDF[i] = referenceCDF[i] / totalFrequency;
-            }
-            
-
-            int[] startingVals = new int[11];
-            double pVal = 0;
-            for (i = 0; i < numOutputBins; i++) {
-                pVal = referenceCDF[i];
-                if (pVal < 0.1) {
-                    startingVals[1] = i;
-                }
-                if (pVal < 0.2) {
-                    startingVals[2] = i;
-                }
-                if (pVal < 0.3) {
-                    startingVals[3] = i;
-                }
-                if (pVal < 0.4) {
-                    startingVals[4] = i;
-                }
-                if (pVal < 0.5) {
-                    startingVals[5] = i;
-                }
-                if (pVal < 0.6) {
-                    startingVals[6] = i;
-                }
-                if (pVal < 0.7) {
-                    startingVals[7] = i;
-                }
-                if (pVal < 0.8) {
-                    startingVals[8] = i;
-                }
-                if (pVal < 0.9) {
-                    startingVals[9] = i;
-                }
-                if (pVal <= 1) {
-                    startingVals[10] = i;
-                }
-            }
-                
-            updateProgress("Loop 3 of 3: ", 0);
-            int j = 0;
-            double xVal = 0;
-            double x1, x2, p1, p2;
-            for (row = 0; row < rows; row++) {
-                data = inputFile.getRowValues(row);
-                for (col = 0; col < cols; col++) {
-                    z = data[col]; 
-                    if (z != noData) {
-                        binNum = (int)((z - minValue) / binSize);
-                        if (binNum > numBinsLessOne) { binNum = numBinsLessOne; }
-                        pVal = cdf[binNum];
-                        j = (int)(Math.floor(pVal * 10));
-                        for (i = startingVals[j]; i < numOutputBins; i++) {
-                            if (referenceCDF[i] > pVal) {
-                                if (i > 0) {
-                                    xVal = i - 1;
-                                } else {
-                                    xVal = i;
-                                }
-                                break;
-                                
-                            } else if (referenceCDF[i] == pVal) {
-                                xVal = i;
-                            }
-                        }
-                        
-                        outputFile.setValue(row, col, xVal);
-                    }
-
-                }
-                
-                if (cancelOp) { cancelOperation(); return; }
-                progress = (float) (100f * row / (rows - 1));
-                updateProgress("Loop 3 of 3: ", (int)progress);
-            }
-            
-            outputFile.addMetadataEntry("Created by the "
+            output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
-            outputFile.addMetadataEntry("Created on " + new Date());
+            output.addMetadataEntry("Created on " + new Date());
 
-            inputFile.close();
-            outputFile.close();
+            input.close();
+            output.close();
 
             // returning a header file string displays the image.
             returnData(outputHeader);

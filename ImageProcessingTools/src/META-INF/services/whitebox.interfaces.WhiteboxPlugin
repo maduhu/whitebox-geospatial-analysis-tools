@@ -31,6 +31,7 @@ plugins.FilterTotal
 plugins.FlipImage
 plugins.GaussianStretch
 plugins.HistogramEqualization
+plugins.IHStoRGB
 plugins.ImageRectification
 plugins.InversePrincipalComponentAnalysis
 plugins.kMeansClassification
@@ -46,5 +47,7 @@ plugins.PercentageContrastStretch
 plugins.PrincipalComponentAnalysis
 plugins.RemoveSpurs
 plugins.Resample
+plugins.RGBtoIHS
+plugins.SigmoidalStretch
 plugins.SplitColourComposite
 plugins.WriteFunctionMemoryInsertion
