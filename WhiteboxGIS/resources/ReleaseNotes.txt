@@ -16,6 +16,10 @@ Version 3.0.3
 -Added ImageAutocorrelation tool.
 -Added mass flux tools (MassFluxD8 and MassFluxDinf).
 -Added Downslope index (Hjerdt et al. 2004) tool.
+-Added RGB to IHS and IHS to RGB transforms.
+-Added sigmoidal contrast stretching.
+-SetNoData tool has been modified to take multiple input raster files.
+-Added ClipRasterToPolygon tool.
 
 
 Version 3.0.2

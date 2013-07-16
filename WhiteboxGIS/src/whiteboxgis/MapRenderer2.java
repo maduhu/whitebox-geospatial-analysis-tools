@@ -348,7 +348,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     public void removeSelectedMapElements() {
         try {
             // remove any selected map elements
-            ArrayList<Integer> listOfSelectedElements = new ArrayList<Integer>();
+            ArrayList<Integer> listOfSelectedElements = new ArrayList<>();
             for (CartographicElement ce : map.getCartographicElementList()) {
                 if (ce.isSelected()) {
                     listOfSelectedElements.add(ce.getElementNumber());
