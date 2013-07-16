@@ -1,6 +1,7 @@
 plugins.Area
 plugins.Buffer
 plugins.Centroid
+plugins.ClipRasterToPolygon
 plugins.Clump
 plugins.CompactnessRatio
 plugins.CostAccumulation
