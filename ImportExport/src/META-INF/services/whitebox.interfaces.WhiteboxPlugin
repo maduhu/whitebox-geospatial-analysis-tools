@@ -3,6 +3,7 @@ plugins.ExportArcGrid
 plugins.ExportGRASSAsciiGrid
 plugins.ExportIDRISIRaster
 plugins.ExportSurferAsciiGrid
+plugins.ExportWellKnownText
 plugins.ImportArcAsciiGrid
 plugins.ImportArcGrid
 plugins.ImportGeoTiff
