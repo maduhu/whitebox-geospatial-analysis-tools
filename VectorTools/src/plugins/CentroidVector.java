@@ -17,11 +17,8 @@
 package plugins;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import java.io.File;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-//import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
-//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
