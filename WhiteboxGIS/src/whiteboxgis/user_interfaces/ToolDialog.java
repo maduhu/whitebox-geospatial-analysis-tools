@@ -249,8 +249,8 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         int myWidth = 800; //this.getWidth();
         int myHeight = 400; //this.getHeight();
         setLocation((int) (screenWidth / 2.0 - myWidth / 2.0), (int) (screenHeight / 2.0 - myHeight / 2.0));
-        //setSize(screenWidth / 2, screenHeight / 2);
-        //setLocation(screenWidth / 4, screenHeight / 4);
+    
+//        setLocationRelativeTo(null);
     }
     private JPopupMenu helpPopup;
 

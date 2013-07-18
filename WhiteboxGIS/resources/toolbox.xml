@@ -48,6 +48,8 @@
 	<toolbox name="ImageTransformations" label="Image Transformations"></toolbox>
 
 	<toolbox name="MathematicalMorphology" label="Mathematical Morphology"></toolbox>
+        
+        <toolbox name="Photogrammetry" label="Photogrammetry"></toolbox>
 
         <toolbox name="VegetationIndices" label="Vegetation Indices"></toolbox>
     </toolbox>

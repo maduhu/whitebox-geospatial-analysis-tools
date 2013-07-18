@@ -1401,9 +1401,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 + "line-height: normal;\n"
                 + "margin-left: 10px;\n"
                 + "margin-right: 10px;\n"
+                + "}\n"
+                + "ul\n"
+                + "{\n"
+                + "list-style-type: square;\n"
+                + "list-style-position: inside;\n"
+                + "font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;\n"
+                + "font-size: 10pt;\n"
+                + "margin-left: 10px;\n"
+                + "margin-bottom: 0;\n"
+                + "margin-top: 5px;\n"
                 + "}"
                 + "\n"
-                + "</style>");
+                + "</style>\n");
         sb.append("  </head>\n");
         sb.append("  <body><h1><b>Whitebox Announcements #").append(announcementNumber).append("</b></h1>\n");
         for (WhiteboxAnnouncement wba : announcements) {
@@ -1415,7 +1425,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (!wba.getDate().isEmpty()) {
                 sb.append("<br>Date: ").append(wba.getDate());
             }
-            sb.append("    <p>\n");
+            sb.append("    </p>\n");
         }
         sb.append("  </body>\n");
         sb.append("</html>\n");
@@ -1442,6 +1452,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             }
         });
+        pane.setCaretPosition(0);
         JScrollPane scroll = new JScrollPane(pane);
         JDialog dialog = new JDialog(this, "");
         Container contentPane = dialog.getContentPane();
