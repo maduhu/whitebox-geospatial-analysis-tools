@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,34 +16,27 @@
  */
 package plugins;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
-import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
-import whitebox.geospatialfiles.shapefile.MultiPoint;
-import whitebox.geospatialfiles.shapefile.MultiPointM;
-import whitebox.geospatialfiles.shapefile.MultiPointZ;
-import whitebox.geospatialfiles.shapefile.PointM;
-import whitebox.geospatialfiles.shapefile.PointZ;
-import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
-import whitebox.geospatialfiles.shapefile.ShapeType;
-import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINT;
-import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINTM;
-import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINTZ;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POINT;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POINTM;
-import static whitebox.geospatialfiles.shapefile.ShapeType.POINTZ;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.utilities.FileUtilities;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class Watershed implements WhiteboxPlugin {
+public class Isobasin implements WhiteboxPlugin {
 
+    private WhiteboxRaster contArea;
+    private WhiteboxRaster pointer;
+    private final int[] dX = new int[]{1, 1, 1, 0, -1, -1, -1, 0};
+    private final int[] dY = new int[]{-1, 0, 1, 1, 1, 0, -1, -1};
+    private final double[] inflowingVals = new double[]{16, 32, 64, 128, 1, 2, 4, 8};
     private WhiteboxPluginHost myHost = null;
     private String[] args;
     // Constants
@@ -57,7 +50,7 @@ public class Watershed implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "Watershed";
+        return "Isobasin";
     }
 
     /**
@@ -68,7 +61,7 @@ public class Watershed implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Watershed";
+        return "Isobasin";
     }
 
     /**
@@ -78,7 +71,7 @@ public class Watershed implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-        return "Identifies the watershed, or drainage basin, draining to a set of target cells.";
+        return "Divides a landscape up into nearly equal sized drainage basins (i.e. watersheds).";
     }
 
     /**
@@ -203,146 +196,126 @@ public class Watershed implements WhiteboxPlugin {
     public void run() {
         amIActive = true;
 
-        String inputHeader = null;
-        String outputHeader = null;
-        String outletHeader = null;
         int row, col, x, y;
         float progress = 0;
         double z;
-        int i, c;
-        int[] dX = new int[]{1, 1, 1, 0, -1, -1, -1, 0};
-        int[] dY = new int[]{-1, 0, 1, 1, 1, 0, -1, -1};
+        int i, b, c, ICLCA;
         boolean flag = false;
         double flowDir = 0;
         double outletID = 0;
+        double SCAValue;
+        double maxSCA, d1, d2;
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
 
-        inputHeader = args[0];
-        outletHeader = args[1];
-        outputHeader = args[2];
+        String pointerHeader = args[0];
+        String caHeader = args[1]; // contributin area
+        String outputHeader = args[2];
+        double SCAThreshold = Double.parseDouble(args[3]);
 
         // check to see that the inputHeader and outputHeader are not null.
-        if (inputHeader.isEmpty() || outputHeader.isEmpty() || outletHeader.isEmpty()) {
+        if (pointerHeader.isEmpty() || caHeader.isEmpty() || outputHeader.isEmpty()) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
 
         try {
-            WhiteboxRaster outlet;
-            WhiteboxRaster pntr = new WhiteboxRaster(inputHeader, "r");
-            int rows = pntr.getNumberRows();
-            int cols = pntr.getNumberColumns();
-            double noData = pntr.getNoDataValue();
 
-            if (outletHeader.toLowerCase().endsWith(".shp")) {
-                // Find all of the viewing stations.
-                ArrayList<Double> outletXs = new ArrayList<>();
-                ArrayList<Double> outletYs = new ArrayList<>();
+            pointer = new WhiteboxRaster(pointerHeader, "r");
+            int rows = pointer.getNumberRows();
+            int cols = pointer.getNumberColumns();
+            double noData = pointer.getNoDataValue();
 
-                ShapeFile input = new ShapeFile(outletHeader);
-                if (input.getShapeType().getBaseType() != ShapeType.POINT) {
-                    showFeedback("The input viewing station vector should be \n"
-                            + "of a Point or MultiPoint ShapeType.");
-                    return;
-                }
-                
-                for (ShapeFileRecord record : input.records) {
-                    double[][] vertices;
-                    ShapeType shapeType = record.getShapeType();
-                    switch (shapeType) {
-                    case POINT:
-                        whitebox.geospatialfiles.shapefile.Point recPoint =
-                            (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
-                        vertices = recPoint.getPoints();
-                        outletXs.add(vertices[0][0]);
-                        outletYs.add(vertices[0][1]);
-                        break;
-                    case POINTZ:
-                        PointZ recPointZ = (PointZ) (record.getGeometry());
-                        vertices = recPointZ.getPoints();
-                        outletXs.add(vertices[0][0]);
-                        outletYs.add(vertices[0][1]);
-                        break;
-                    case POINTM:
-                        PointM recPointM = (PointM) (record.getGeometry());
-                        vertices = recPointM.getPoints();
-                        outletXs.add(vertices[0][0]);
-                        outletYs.add(vertices[0][1]);
-                        break;
-                    case MULTIPOINT:
-                        MultiPoint recMultiPoint = (MultiPoint) (record.getGeometry());
-                        vertices = recMultiPoint.getPoints();
-                        for (int j = 0; j < vertices.length; j++) {
-                            outletXs.add(vertices[j][0]);
-                            outletYs.add(vertices[j][1]);
-                        }
-                        break;
-                    case MULTIPOINTZ:
-                        MultiPointZ recMultiPointZ = (MultiPointZ) (record.getGeometry());
-                        vertices = recMultiPointZ.getPoints();
-                        for (int j = 0; j < vertices.length; j++) {
-                            outletXs.add(vertices[j][0]);
-                            outletYs.add(vertices[j][1]);
-                        }
-                        break;
-                     case MULTIPOINTM:
-                        MultiPointM recMultiPointM = (MultiPointM) (record.getGeometry());
-                        vertices = recMultiPointM.getPoints();
-                        for (int j = 0; j < vertices.length; j++) {
-                            outletXs.add(vertices[j][0]);
-                            outletYs.add(vertices[j][1]);
-                        }
-                        break;
-                    }
-                }
-
-                outlet = new WhiteboxRaster(outletHeader.replace(".shp", ".dep"), "rw",
-                    inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
-                outlet.isTemporaryFile = true;
-                
-                int numOutlets = outletXs.size();
-                double outletX, outletY;
-                int outletCol, outletRow;
-                int outletNum = 1;
-                for (int a = 0; a < numOutlets; a++) {
-                    outletX = outletXs.get(a);
-                    outletY = outletYs.get(a);
-                    
-                    outletRow = outlet.getRowFromYCoordinate(outletY);
-                    outletCol = outlet.getColumnFromXCoordinate(outletX);
-                    
-                    outlet.setValue(outletRow, outletCol, outletNum);
-                    outletNum++;
-                }
-                
-                
-                
-            } else if (outletHeader.toLowerCase().endsWith(".dep")) {
-                outlet = new WhiteboxRaster(outletHeader, "r");
-
-                if (outlet.getNumberRows() != rows || outlet.getNumberColumns() != cols) {
-                    showFeedback("The input images must be of the same dimensions.");
-                    return;
-                }
-            } else {
-                showFeedback("Unrecognized input outlets file type.");
-                return;
-            }
+            // create a temporary copy of the contributing area image
+            String tempFile = caHeader.replace(".dep", "_temp.dep");
+            FileUtilities.copyFile(new File(caHeader), new File(tempFile));
+            FileUtilities.copyFile(new File(caHeader.replace(".dep", ".tas")),
+                    new File(tempFile.replace(".dep", ".tas")));
+            contArea = new WhiteboxRaster(tempFile, "rw");
+            contArea.isTemporaryFile = true;
 
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
-                    inputHeader, WhiteboxRaster.DataType.FLOAT, -999);
+                    caHeader, WhiteboxRaster.DataType.FLOAT, -999);
             output.setDataScale(WhiteboxRasterBase.DataScale.CATEGORICAL);
             output.setPreferredPalette("categorical1.pal");
             
+            outletID = 1;
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
-                    z = outlet.getValue(row, col);
-                    if (z != 0 && z != noData) {
-                        output.setValue(row, col, z);
+                    if (pointer.getValue(row, col) != noData) {
+
+                        // see if it is the start of a flowpath
+                        flag = false;
+                        for (i = 0; i < 8; i++) {
+                            if (pointer.getValue(col + dX[i], row + dY[i]) == inflowingVals[i]) {
+                                flag = true;
+                            }
+                        }
+                        if (!flag) { //there are no inflowing grid cells and this is the start of a flowpath
+                            //proceed down the flowpath
+                            flag = false;
+                            x = col;
+                            y = row;
+                            do {
+
+                                // find it's downslope neighbour
+                                flowDir = pointer.getValue(y, x);
+                                if (flowDir > 0) {
+                                    // move x and y accordingly
+                                    i = (int) (Math.log(flowDir) / LnOf2);
+                                    x += dX[i];
+                                    y += dY[i];
+                                } else {
+                                    flag = true;
+                                }
+
+                                SCAValue = contArea.getValue(y, x);
+                                if (SCAValue >= SCAThreshold) {
+                                    //find the inflowing cell with the largest contributing area (ICLCA)
+                                    maxSCA = -99999;
+                                    ICLCA = 8;
+                                    for (i = 0; i < 8; i++) {
+                                        b = x + dX[i];
+                                        c = y + dY[i];
+                                        if (pointer.getValue(c, b) == inflowingVals[i]) {
+                                            z = contArea.getValue(c, b);
+                                            if (z > maxSCA) {
+                                                maxSCA = z;
+                                                ICLCA = i;
+                                            }
+                                        }
+                                    }
+                                    b = x + dX[ICLCA];
+                                    c = y + dY[ICLCA];
+
+                                    if (contArea.getValue(c, b) > SCAThreshold) {
+                                        // We will need to solve the flow-path containing the ICLCA first
+                                        flag = true;
+                                    } else {
+                                        // see which is closer to the CAthreshold, the ICLCA or CAImage(c,d)
+                                        d1 = Math.abs(contArea.getValue(c, b) - SCAThreshold);
+                                        d2 = Math.abs(contArea.getValue(y, x) - SCAThreshold);
+                                        if (d1 < d2) {
+                                            // the ICLCA is closer, drop a seed point there.
+                                            output.setValue(c, b, outletID);
+                                            decrementFlowpath(c, b, contArea.getValue(c, b));
+                                        } else {
+                                            // the current cell is closer, drop a seed point here.
+                                            output.setValue(y, x, outletID);
+                                            decrementFlowpath(y, x, contArea.getValue(y, x));
+                                        }
+                                        outletID++;
+                                    }
+
+
+                                }
+                            } while (!flag);
+                        }
+                    } else {
+                        output.setValue(row, col, noData);
                     }
                 }
                 if (cancelOp) {
@@ -355,13 +328,13 @@ public class Watershed implements WhiteboxPlugin {
 
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
-                    if (output.getValue(row, col) == -999 && pntr.getValue(row, col) != noData) {
+                    if (output.getValue(row, col) == -999 && pointer.getValue(row, col) != noData) {
                         flag = false;
                         x = col;
                         y = row;
                         do {
                             // find it's downslope neighbour
-                            flowDir = pntr.getValue(y, x);
+                            flowDir = pointer.getValue(y, x);
                             if (flowDir > 0) {
                                 //move x and y accordingly
                                 c = (int) (Math.log(flowDir) / LnOf2);
@@ -385,7 +358,7 @@ public class Watershed implements WhiteboxPlugin {
                         output.setValue(y, x, outletID);
                         do {
                             // find it's downslope neighbour
-                            flowDir = pntr.getValue(y, x);
+                            flowDir = pointer.getValue(y, x);
                             if (flowDir > 0) {
                                 c = (int) (Math.log(flowDir) / LnOf2);
                                 x += dX[c];
@@ -399,7 +372,7 @@ public class Watershed implements WhiteboxPlugin {
                             }
                             output.setValue(y, x, outletID);
                         } while (!flag);
-                    } else if (pntr.getValue(row, col) == noData) {
+                    } else if (pointer.getValue(row, col) == noData) {
                         output.setValue(row, col, noData);
                     }
                 }
@@ -411,13 +384,12 @@ public class Watershed implements WhiteboxPlugin {
                 updateProgress("Loop 2 of 2:", (int) progress);
             }
 
-
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
 
-            pntr.close();
-            outlet.close();
+            pointer.close();
+            contArea.close();
             output.close();
 
             // returning a header file string displays the image.
@@ -431,5 +403,30 @@ public class Watershed implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+
+    private void decrementFlowpath(int row, int col, double decrementValue) {
+        int x, y, i;
+        double flowDir, z;
+        boolean flag = false;
+
+        x = col;
+        y = row;
+        do {
+            z = contArea.getValue(y, x);
+            contArea.setValue(y, x, z - decrementValue);
+            // find it's downslope neighbour
+            flowDir = pointer.getValue(y, x);
+            if (flowDir > 0) {
+                // move x and y accordingly
+                i = (int) (Math.log(flowDir) / LnOf2);
+                x += dX[i];
+                y += dY[i];
+            } else {
+//                z = contArea.getValue(y, x);
+//                contArea.setValue(y, x, z - decrementValue);
+                flag = true;
+            }
+        } while (!flag);
     }
 }

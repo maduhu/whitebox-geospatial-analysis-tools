@@ -16,6 +16,7 @@ plugins.FlowPointerDinf
 plugins.FlowPointerFD8
 plugins.FlowPointerRho8
 plugins.Hillslopes
+plugins.Isobasin
 plugins.JensonSnapPourPoints
 plugins.MassFluxD8
 plugins.MassFluxDinf
