@@ -3,7 +3,19 @@
     <VersionName>"3.0 'Iguazu'"</VersionName>
     <VersionNumber>"3.0.2"</VersionNumber>
     <DownloadLocation>"http://code.google.com/p/whitebox-geospatial-analysis-tools/downloads/list"</DownloadLocation>
-    <Announcements number="4">
+    <Announcements number="5">
+        <Announcement>
+            <Date>2013-06-27</Date>
+            <Language>en</Language>
+            <Title>&#39;How To&#39; Tutorials</Title>
+            <Message>
+                I'm working on a series of &#39;<i>How To</i>&#39; tutorials, which will be available 
+                under the Tutorials tab of the Whitebox Help. For example, &#39;How to create a new 
+                tool&#39;, &#39;How to digitize new vectors&#39;, and &#39;How to get data into Whitebox&#39;. 
+                If you have any requests for other <i>How To's</i> please contact John Lindsay 
+                (jlindsay@uoguelph.ca).
+            </Message>
+        </Announcement>
         <Announcement>
             <Date>2013-06-27</Date>
             <Language>en</Language>

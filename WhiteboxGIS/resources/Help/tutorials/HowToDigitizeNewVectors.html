@@ -23,27 +23,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </head>
     <body>
         <h1>How to digitize new vectors</h1>
+        <h2><br>By John Lindsay, Ph.D. (Last modified, July 2013)</h2>
         <p>On-screen digitizing is useful for specifying points of interest for 
-        watershed delineation, viewshed analysis, and many other common GIS 
-        operations. Whitebox's on-screen digitizing has been purposely designed 
-        to be very simple and straightforward. In Whitebox, on-screen digitizing 
-        is accomplished using the following work flow:</p>
+            watershed delineation, viewshed analysis, creating ground control points 
+            (GCPs) for image rectification and many other common GIS operations. 
+            Whitebox's on-screen digitizing has been purposely designed 
+            to be very simple and straightforward. In Whitebox, on-screen digitizing 
+            is accomplished using the following work flow:</p>
         <ol>
             <li>Display a base file, i.e. a raster or vector file, so that the 
                 active map area contains a valid geographic extent.</li>
 
-            <li>Open the <a href="CreateNewShapefile.html"><b><i>Create New Shapefile</i></b></a> 
+            <li>Open the <a href="../CreateNewShapefile.html"><b><i>Create New Shapefile</i></b></a> 
                 tool from the <i>Tools</i> tab. Give your newly created empty shapefile a logical 
-                name and specify its shape type (e.g. point, polyline, polygon, etc.).</li>
+                name and specify its shape type (e.g. point, polyline, polygon, etc.). Note, 
+                a separate shapefile is required for each shape type, i.e. a shapefile can only 
+                contain features of a single shape type. This is a limitation of the 
+                shapefile format. If you wish to digitize multiple shape types, e.g. 
+                points and polylines, then multiple shapefiles should be created as this 
+                stage.</li>
 
-            <li>Once the new shapefile is created, it will be automatically added to 
-                the list of displayed layers, as viewed under the <i>Layers</i> tab. The 
+            <li>Once the new shapefile has been created, it will be automatically added to 
+                the list of displayed layers under the <i>Layers</i> tab. The 
                 vector does not currently contain any features so nothing will be displayed 
-                on screen. Make sure that the layer has been selected as the active layer.</li>
+                in the map area for it. Make sure that the layer has been selected as the 
+                active layer.</li>
 
             <li>If you wish to add entries to the shapefile's attribute table, this can 
-                be achieved by the <i>View Attribute Table</i> button from the toolbar 
-                and <i>Add New Field</i> from the <i>Edit Fields</i> menu.</li>
+                be accomplished by selecting the <i>View Attribute Table</i> button from the 
+                toolbar and <i>Add New Field</i> from the <i>Edit Fields</i> menu.</li>
 
             <li>The new shapefile should have automatically been selected for editing. If 
                 this is not the case, select the <i>Edit Vector</i> button from the 

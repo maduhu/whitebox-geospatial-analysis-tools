@@ -1,4 +1,4 @@
-<Dialog Name="ClipRasterToPolygon" HelpFile="ClipRasterToPolygon.html">
+<Dialog Name="ErasePolygonFromRaster" HelpFile="ErasePolygonFromRaster.html">
 	<DialogComponent type="DialogMultiFile">
 		<Name>inputFiles</Name>
 		<Description>Enter the name of the input files here</Description>
@@ -15,12 +15,5 @@
 		<IsVisible>True</IsVisible>
 		<MakeOptional>False</MakeOptional>
 		<ShowButton>True</ShowButton>
-	</DialogComponent>
-        <DialogComponent type="DialogCheckBox">
-		<Name>maintainInputDimensions</Name>
-		<Description>Maintain the input raster dimensions?</Description>
-		<LabelText>Maintain input raster dimensions?</LabelText>
-		<InitialState>False</InitialState>
-		<IsVisible>True</IsVisible>
 	</DialogComponent>
 </Dialog>
