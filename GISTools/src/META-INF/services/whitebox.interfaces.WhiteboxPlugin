@@ -11,6 +11,7 @@ plugins.EdgeProportion
 plugins.EuclideanDistance
 plugins.EuclideanAllocation
 plugins.ElongationRatio
+plugins.ErasePolygonFromRaster
 plugins.FindPatchOrClassEdgeCells
 plugins.FractalDimension
 plugins.HoleProportion

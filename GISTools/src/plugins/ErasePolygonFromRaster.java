@@ -42,7 +42,7 @@ import whitebox.structures.RowPriorityGridCell;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ClipRasterToPolygon implements WhiteboxPlugin {
+public class ErasePolygonFromRaster implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -55,7 +55,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "ClipRasterToPolygon";
+        return "ErasePolygonFromRaster";
     }
 
     /**
@@ -66,7 +66,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Clip Raster To Polygon";
+        return "Erase Polygon From Raster";
     }
 
     /**
@@ -76,7 +76,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-        return "Clips a raster to the extent of a vector polygon";
+        return "Erases (cuts out) a vector polygon from a raster";
     }
 
     /**
@@ -203,7 +203,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
 
         String outputHeader = "";
         int row, col;
-        double rowYCoord, value;
+        double rowYCoord, value, z;
         int progress = 0;
         double cellSizeX, cellSizeY;
         int rows, topRow, bottomRow;
@@ -223,7 +223,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
         boolean foundIntersection;
         ArrayList<Integer> edgeList = new ArrayList<>();
         DecimalFormat df = new DecimalFormat("###,###,###,###");
-        
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
@@ -233,7 +233,6 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
         String[] inputFiles = inputFilesString.split(";");
         int numFiles = inputFiles.length;
         String clipFile = args[1];
-        boolean maintainInputDimensions = Boolean.parseBoolean(args[2]);
 
         // check to see that the inputHeader and outputHeader are not null.
         if (inputFilesString.isEmpty() || numFiles < 1) {
@@ -249,6 +248,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
             PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<>(flushSize);
 
             ShapeFile clip = new ShapeFile(clipFile);
+//            int numRecs = clip.getNumberOfRecords();
 
             BoundingBox clipBox = new BoundingBox();
             clipBox.setMaxX(clip.getxMax());
@@ -278,36 +278,33 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                 // initialize the shapefile input
 
                 WhiteboxRaster input = new WhiteboxRaster(inputFiles[k], "r");
-                outputHeader = inputFiles[k].replace(".dep", "_clipped.dep");
+                outputHeader = inputFiles[k].replace(".dep", "_erased.dep");
                 double noData = input.getNoDataValue();
                 DataType dataType = input.getDataType();
 
                 // initialize the output raster
-                WhiteboxRaster output;
-                if (!maintainInputDimensions) {
-                    cellSizeX = input.getCellSizeX();
-                    cellSizeY = input.getCellSizeY();
-                    north = clip.getyMax() + cellSizeY / 2.0;
-                    if (input.getNorth() < north) { north = input.getNorth(); }
-                    south = clip.getyMin() - cellSizeY / 2.0;
-                    if (input.getSouth() > south) { south = input.getSouth(); }
-                    east = clip.getxMax() + cellSizeX / 2.0;
-                    if (input.getEast() < east) { east = input.getEast(); }
-                    west = clip.getxMin() - cellSizeX / 2.0;
-                    if (input.getWest() > west) { west = input.getWest(); }
-                    rows = (int) (Math.ceil((north - south) / cellSizeY));
-                    cols = (int) (Math.ceil((east - west) / cellSizeX));
+                WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
+                        inputFiles[k], dataType, noData);
 
-                    // update west and south
-                    east = west + cols * cellSizeX;
-                    south = north - rows * cellSizeY;
-
-                    output = new WhiteboxRaster(outputHeader, north, south, east, west,
-                            rows, cols, input.getDataScale(),
-                            dataType, noData, noData);
-                } else {
-                    output = new WhiteboxRaster(outputHeader, "rw",
-                            inputFiles[k], dataType, noData);
+                // fill the output file with the input file data
+                rows = input.getNumberRows();
+                cols = input.getNumberColumns();
+                double[] data;
+                for (row = 0; row < rows; row++) {
+                    data = input.getRowValues(row);
+                    for (col = 0; col < cols; col++) {
+                        // The output grid cells are already populated with noData 
+                        // so there isn't any point in adding it again.
+                        if (data[col] != noData) {
+                            output.setValue(row, col, data[col]);
+                        }
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (int) (100f * row / (rows - 1));
+                    updateProgress(progress);
                 }
 
                 pq.clear();
@@ -376,16 +373,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                                         stCol = Math.min(edgeList.get(0), edgeList.get(1));
                                         endCol = Math.max(edgeList.get(0), edgeList.get(1));
                                         for (col = stCol; col <= endCol; col++) {
-                                            if (maintainInputDimensions) {
-                                                value = input.getValue(row, col);
-                                            } else {
-                                                inputX = output.getXCoordinateFromColumn(col);
-                                                inputCol = input.getColumnFromXCoordinate(inputX);
-                                                inputY = output.getYCoordinateFromRow(row);
-                                                inputRow = input.getRowFromYCoordinate(inputY);
-                                                value = input.getValue(inputRow, inputCol);
-                                            }
-                                            pq.add(new RowPriorityGridCell(row, col, value));
+                                            pq.add(new RowPriorityGridCell(row, col, noData));
                                         }
                                     } else {
                                         //sort the edges.
@@ -399,16 +387,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                                             endCol = edgeArray[i + 1];
                                             if (fillFlag) {
                                                 for (col = stCol; col <= endCol; col++) {
-                                                    if (maintainInputDimensions) {
-                                                        value = input.getValue(row, col);
-                                                    } else {
-                                                        inputX = output.getXCoordinateFromColumn(col);
-                                                        inputCol = input.getColumnFromXCoordinate(inputX);
-                                                        inputY = output.getYCoordinateFromRow(row);
-                                                        inputRow = input.getRowFromYCoordinate(inputY);
-                                                        value = input.getValue(inputRow, inputCol);
-                                                    }
-                                                    pq.add(new RowPriorityGridCell(row, col, value));
+                                                    pq.add(new RowPriorityGridCell(row, col, noData));
                                                 }
                                             }
                                             fillFlag = !fillFlag;
@@ -425,7 +404,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                         do {
                             cell = pq.poll();
                             output.setValue(cell.row, cell.col, cell.z);
-                            
+
                             j++;
                             if (j % 1000 == 0) {
                                 if (cancelOp) {
@@ -453,7 +432,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                 do {
                     cell = pq.poll();
                     output.setValue(cell.row, cell.col, cell.z);
-                    
+
                     j++;
                     if (j % 1000 == 0) {
                         if (cancelOp) {
