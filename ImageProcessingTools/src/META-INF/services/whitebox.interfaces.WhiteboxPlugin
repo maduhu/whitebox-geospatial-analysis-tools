@@ -36,6 +36,7 @@ plugins.ImageRectification
 plugins.InversePrincipalComponentAnalysis
 plugins.kMeansClassification
 plugins.LineThinning
+plugins.LocatePrincipalPoint
 plugins.MinMaxContrastStretch
 plugins.ModifiedKMeans
 plugins.Mosaic
