@@ -22,6 +22,9 @@ Version 3.0.3
 -Added ClipRasterToPolygon and ErasePolygonFromRaster tools.
 -Added on-screen digitizing tutorial.
 -Added Isobasin tool.
+-Added ExportWellKnownText tool.
+-Added LocatePrincipalPoint tool.
+-Modified minimum bounding box tool to work with vector points.
 -Translated plugin tool names and descriptions to German.
 
 

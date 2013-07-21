@@ -1415,7 +1415,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 + "\n"
                 + "</style>\n");
         sb.append("  </head>\n");
-        sb.append("  <body><h1><b>Whitebox Announcements #").append(announcementNumber).append("</b></h1>\n");
+        sb.append("  <body><h1><b>Whitebox Announcements").append("</b></h1>\n");
         for (WhiteboxAnnouncement wba : announcements) {
             sb.append("    <p>");
             if (!wba.getTitle().isEmpty()) {
