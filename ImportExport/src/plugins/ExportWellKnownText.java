@@ -244,6 +244,9 @@ public class ExportWellKnownText implements WhiteboxPlugin {
                 out = new PrintWriter(bw, true);
 
                 progress = 0;
+                int n = 0;
+                int onePercentOfRecs = shapefile.getNumberOfRecords() / 100;
+                
                 for (ShapeFileRecord record : shapefile.records) {
                     if (record.getShapeType() != ShapeType.NULLSHAPE) {
                         JTSGeometries = record.getGeometry().getJTSGeometries();
@@ -257,8 +260,12 @@ public class ExportWellKnownText implements WhiteboxPlugin {
                         cancelOperation();
                         return;
                     }
-                    progress++;
-                    updateProgress("Exporting shapefile data:", progress);
+                    n++;
+                    if (n == onePercentOfRecs) {
+                        n = 0;
+                        progress++;
+                        updateProgress("Exporting shapefile data:", progress);
+                    }
                 }
 
                 showFeedback("Operation complete!");
