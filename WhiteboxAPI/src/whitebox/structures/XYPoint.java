@@ -25,6 +25,10 @@ public class XYPoint implements Comparable<XYPoint> {
     public double x;
     public double y;
     
+    public XYPoint() {
+        
+    }
+    
     public XYPoint(double X, double Y) {
         x = X;
         y = Y;
