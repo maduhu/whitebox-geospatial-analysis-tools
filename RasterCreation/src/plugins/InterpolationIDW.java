@@ -261,7 +261,7 @@ public class InterpolationIDW implements WhiteboxPlugin {
             
             if (numPoints < numPointsToUse) { numPointsToUse = numPoints; }
             
-            KdTree<Double> pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(numPoints));
+            KdTree<Double> pointsTree = new KdTree.SqrEuclid<>(2, new Integer(numPoints));
             
             nlines = 0;
             for (i = 0; i < numPointFiles; i++) {
