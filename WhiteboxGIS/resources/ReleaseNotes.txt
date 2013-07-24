@@ -24,7 +24,7 @@ Version 3.0.3
 -Added Isobasin tool.
 -Added ExportWellKnownText tool.
 -Added LocatePrincipalPoint tool.
--Modified minimum bounding box tool to work with vector points.
+-Modified minimum bounding box tool to work with points.
 -Translated plugin tool names and descriptions to German.
 
 
