@@ -1218,6 +1218,11 @@ public class ShapeFile {
         }
     }
 
+    /**
+     * Used to retrieve a particular record.
+     * @param recordNumber The zero-based record number.
+     * @return A ShapeFileRecord corresponding with the record number.
+     */
     public ShapeFileRecord getRecord(int recordNumber) {
         return records.get(recordNumber);
     }

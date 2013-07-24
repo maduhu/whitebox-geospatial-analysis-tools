@@ -723,6 +723,16 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             isDirty = true;
         }
     }
+    
+    private boolean forceAllDataInMemory = false;
+    public void setForceAllDataInMemory(boolean value) {
+        forceAllDataInMemory = value;
+        setBlockData();
+    }
+    
+    public boolean isForceAllDataInMemory() {
+        return forceAllDataInMemory;
+    }
 
     private void setBlockData() {
         try {
@@ -731,7 +741,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             //System.gc();
             long availableMemory = Runtime.getRuntime().freeMemory();
             long gridMemoryRequirements = (long) numberRows * (long) numberColumns * 8L;
-            if ((availableMemory / 3) > gridMemoryRequirements) {
+            if ((availableMemory / 3) > gridMemoryRequirements || forceAllDataInMemory) {
                 // store the entire grid in memory.
                 blockSize = numberRows * numberColumns;
                 bufferSize = gridMemoryRequirements;
