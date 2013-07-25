@@ -17,6 +17,7 @@
 package plugins;
 
 import static java.lang.Math.*;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import whitebox.geospatialfiles.WhiteboxRaster;
@@ -36,8 +37,12 @@ public class LocateConjugatePrincipalPoint {
     // This method is only used during testing.
 
     public static void main(String[] args) {
-        args = new String[2];
-
+        LocateConjugatePrincipalPoint lcpp = new LocateConjugatePrincipalPoint();
+        lcpp.run();
+    }
+    
+    private void run() {
+        
         long startTime = System.nanoTime();
         boolean conductFineSearch = false;
         int a, b, i, j, row, col, n, x, y;
@@ -49,6 +54,8 @@ public class LocateConjugatePrincipalPoint {
         int polyOrder = 2;
         int[][] xOffset;
         int[][] yOffset;
+        XYAndDirection[][] offsets;
+
         int[] annulusX;
         int[] annulusY;
         double dist;
@@ -61,22 +68,23 @@ public class LocateConjugatePrincipalPoint {
         boolean[] coarsereferenceRings;
         double z;
         double M = 0, Q = 0;
-        
+        double w1 = 0, w2 = 0;
+
         KdTree<Double> controlPointTree = new KdTree.SqrEuclid<>(2, new Integer(2000));
 
         try {
 
-            String referenceFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-82_Blue.dep";
+            String referenceFile = "/Users/jlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-82_Blue.dep";
             //String ppFile1 = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-82 principal point.shp";
-            String ppFile1 = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/test point3.shp";
+            String ppFile1 = "/Users/jlindsay/Documents/Teaching/GEOG2420/airphotos/test point3.shp";
 
-            String transformedFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-83_Blue.dep";
+            String transformedFile = "/Users/jlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-83_Blue.dep";
             //String outputFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/pp mapped.shp";
             //String outputFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/test point2 mapped.shp";
-            String outputFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp2.shp";
+            String outputFile = "/Users/jlindsay/Documents/Teaching/GEOG2420/airphotos/tmp2.shp";
 
-            String referenceTiePoints = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/82 tie points.shp";
-            String transformedTiePoints = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/83 tie points.shp";
+            String referenceTiePoints = "/Users/jlindsay/Documents/Teaching/GEOG2420/airphotos/82 tie points.shp";
+            String transformedTiePoints = "/Users/jlindsay/Documents/Teaching/GEOG2420/airphotos/83 tie points.shp";
 
 
             DBFField[] fields = new DBFField[2];
@@ -150,6 +158,112 @@ public class LocateConjugatePrincipalPoint {
                 return;
             }
 
+
+            // calculate the offsets
+
+            int[] numCellsInAnnulus = new int[maxNeighbourhoodSize + 1];
+            x = maxNeighbourhoodSize + 1;
+            y = maxNeighbourhoodSize + 1;
+            
+            for (row = 0; row <= maxNeighbourhoodSize * 2 + 1; row++) {
+                a = row - y;
+                for (col = 0; col <= maxNeighbourhoodSize * 2 + 1; col++) {
+                    b = col - x;
+                    dist = sqrt(a * a + b * b);
+                    i = (int)(round(dist));
+                    if (i <= maxNeighbourhoodSize) {
+                        numCellsInAnnulus[i]++;
+                    }
+                    
+                }
+            }
+
+            offsets = new XYAndDirection[maxNeighbourhoodSize + 1][];
+            for (i = 1; i <= maxNeighbourhoodSize; i++) {
+                offsets[i] = new XYAndDirection[numCellsInAnnulus[i]];
+                for (j = 0; j < numCellsInAnnulus[i]; j++) {
+                    offsets[i][j] = new XYAndDirection();
+                }
+            }
+            
+            int[] currentNumInAnnulus = new int[maxNeighbourhoodSize + 1];
+            for (row = 0; row <= maxNeighbourhoodSize * 2 + 1; row++) {
+                a = row - y;
+                for (col = 0; col <= maxNeighbourhoodSize * 2 + 1; col++) {
+                    b = col - x;
+                    dist = sqrt(a * a + b * b);
+                    i = (int)(round(dist));
+                    if (i <= maxNeighbourhoodSize && i > 0) {
+                        offsets[i][currentNumInAnnulus[i]].x = b;
+                        offsets[i][currentNumInAnnulus[i]].y = a;
+                        if (b > 0) {
+                            offsets[i][currentNumInAnnulus[i]].direction = tan(a / b);
+                        } else {
+                            offsets[i][currentNumInAnnulus[i]].direction = tan(a / b);
+                        }
+                        currentNumInAnnulus[i]++;
+                    }
+                    
+                }
+            }
+            
+            for (i = 1; i <= maxNeighbourhoodSize; i++) {
+                Arrays.sort(offsets[i]);
+            }
+            
+            
+            x = 1000;
+            y = 1000;
+            for (i = 1; i <= maxNeighbourhoodSize; i++) {
+                for (a = 0; a < offsets[i].length - 1; a++) {
+                    col = x + (int)offsets[i][a].x;
+                    row = y + (int)offsets[i][a].y;
+                    double x2 = transformedImage.getXCoordinateFromColumn(col);
+                    double y2 = transformedImage.getYCoordinateFromRow(row);
+                    whitebox.geospatialfiles.shapefile.Point PP = new whitebox.geospatialfiles.shapefile.Point(x2, y2);
+                    Object[] rowData = new Object[2];
+                    rowData[0] = new Double(a);
+                    rowData[1] = new Double(offsets[i][a].direction);
+                    output.addRecord(PP, rowData);
+                }
+            }
+            
+            output.write();
+            
+
+            xOffset = new int[maxNeighbourhoodSize + 1][];
+            yOffset = new int[maxNeighbourhoodSize + 1][];
+            for (i = 1; i <= maxNeighbourhoodSize; i++) {
+                // count the number of cells in the convolution annulus
+                n = 0;
+                annulusColumns.clear();
+                annulusRows.clear();
+                for (row = maxNeighbourhoodSize - i - 1; row <= maxNeighbourhoodSize + i + 1; row++) {
+                    a = row - maxNeighbourhoodSize;
+                    for (col = maxNeighbourhoodSize - i - 1; col <= maxNeighbourhoodSize + i + 1; col++) {
+                        b = col - maxNeighbourhoodSize;
+                        dist = Math.sqrt(a * a + b * b);
+                        if (Math.abs(dist - i) < 0.5) {
+                            annulusRows.add(a);
+                            annulusColumns.add(b);
+                            n++;
+                        }
+                    }
+                }
+                annulusX = new int[n];
+                annulusY = new int[n];
+
+                for (a = 0; a < n; a++) {
+                    annulusX[a] = annulusColumns.get(a);
+                    annulusY[a] = annulusRows.get(a);
+                }
+
+                xOffset[i] = annulusX;
+                yOffset[i] = annulusY;
+
+            }
+
+
 //            double[] refX = new double[numTiePoints];
 //            double[] refY = new double[numTiePoints];
 //            double[] transX = new double[numTiePoints];
@@ -174,37 +288,6 @@ public class LocateConjugatePrincipalPoint {
                 referenceRadius = refNeighbourhoodStart;
                 boolean flag = true;
                 do {
-                    xOffset = new int[referenceRadius + 1][];
-                    yOffset = new int[referenceRadius + 1][];
-                    for (i = 1; i <= referenceRadius; i++) {
-                        // count the number of cells in the convolution annulus
-                        n = 0;
-                        annulusColumns.clear();
-                        annulusRows.clear();
-                        for (row = referenceRadius - i - 1; row <= referenceRadius + i + 1; row++) {
-                            a = row - referenceRadius;
-                            for (col = referenceRadius - i - 1; col <= referenceRadius + i + 1; col++) {
-                                b = col - referenceRadius;
-                                dist = Math.sqrt(a * a + b * b);
-                                if (Math.abs(dist - i) < 0.5) {
-                                    annulusRows.add(a);
-                                    annulusColumns.add(b);
-                                    n++;
-                                }
-                            }
-                        }
-                        annulusX = new int[n];
-                        annulusY = new int[n];
-
-                        for (a = 0; a < n; a++) {
-                            annulusX[a] = annulusColumns.get(a);
-                            annulusY[a] = annulusRows.get(a);
-                        }
-
-                        xOffset[i] = annulusX;
-                        yOffset[i] = annulusY;
-
-                    }
 
                     referenceMeans = new double[referenceRadius + 1];
                     referenceVariances = new double[referenceRadius + 1];
@@ -282,14 +365,8 @@ public class LocateConjugatePrincipalPoint {
                         }
                     }
 
-
-//            System.out.println(referenceRadiusN);
-
-//                    for (i = 1; i <= referenceRadius; i++) {
-//                        if (coarsereferenceRings[i]) {
-//                            System.out.println(i + "\t" + referenceMeans[i] + "\t" + referenceVariances[i]);
-//                        }
-//                    }
+                    w1 = (double) newData1.length / (newData1.length + newData2.length);
+                    w2 = (double) newData2.length / (newData1.length + newData2.length);
 
                     if (newData1.length > 8 && newData2.length > 8 && referenceRadiusN > 12) {
                         // there must be enough information on both the means data 
@@ -302,285 +379,273 @@ public class LocateConjugatePrincipalPoint {
                         }
                     }
                 } while (flag);
-                
+
                 if (referenceRadius < maxNeighbourhoodSize) {
 
-                System.out.println("\n" + referenceRadius + "\t" + referenceRadiusN);
+                    System.out.println("\n" + referenceRadius + "\t" + referenceRadiusN);
 
-//            for (i = 0; i < newData1.length; i++) {
-//                System.out.println(newData1[i][0] + "\t" + newData1[i][1]);
-//            }
-//
-//            System.out.println("\n");
-//
-//            for (i = 0; i < newData2.length; i++) {
-//                System.out.println(newData2[i][0] + "\t" + newData2[i][1]);
-//            }
+                    double referenceMean = 0;
+                    double referenceVariance = 0;
+                    double referenceMeanDetailed = 0;
+                    double referenceVarianceDetailed = 0;
 
-
-
-                double referenceMean = 0;
-                double referenceVariance = 0;
-                double referenceMeanDetailed = 0;
-                double referenceVarianceDetailed = 0;
-
-                for (a = 1; a < referenceRadius + 1; a++) {
-                    referenceMeanDetailed += referenceMeans[a];
-                    referenceVarianceDetailed += referenceVariances[a];
-                    if (coarsereferenceRings[a]) {
-                        referenceMean += referenceMeans[a];
-                        referenceVariance += referenceVariances[a];
+                    for (a = 1; a < referenceRadius + 1; a++) {
+                        referenceMeanDetailed += referenceMeans[a];
+                        referenceVarianceDetailed += referenceVariances[a];
+                        if (coarsereferenceRings[a]) {
+                            referenceMean += referenceMeans[a];
+                            referenceVariance += referenceVariances[a];
+                        }
                     }
-                }
 
-                referenceMean = referenceMean / referenceRadiusN;
-                referenceVariance = referenceVariance / referenceRadiusN;
-                referenceMeanDetailed = referenceMeanDetailed / referenceRadius;
-                referenceVarianceDetailed = referenceVarianceDetailed / referenceRadius;
-
-
-                double[] referenceMeanDeviates = new double[referenceRadius + 1];
-                double[] referenceVarianceDeviates = new double[referenceRadius + 1];
-                double[] referenceMeanDeviatesDetailed = new double[referenceRadius + 1];
-                double[] referenceVarianceDeviatesDetailed = new double[referenceRadius + 1];
-                double sqrDev1 = 0;
-                double sqrDev2 = 0;
-                double sqrDev1Detailed = 0;
-                double sqrDev2Detailed = 0;
-                for (a = 1; a < referenceRadius + 1; a++) {
-                    referenceMeanDeviatesDetailed[a] = referenceMeans[a] - referenceMeanDetailed;
-                    referenceVarianceDeviatesDetailed[a] = referenceVariances[a] - referenceVarianceDetailed;
-                    sqrDev1Detailed += (referenceMeans[a] - referenceMeanDetailed) * (referenceMeans[a] - referenceMean);
-                    sqrDev2Detailed += (referenceVariances[a] - referenceVarianceDetailed) * (referenceVariances[a] - referenceVariance);
-
-                    referenceMeanDeviates[a] = referenceMeans[a] - referenceMean;
-                    referenceVarianceDeviates[a] = referenceVariances[a] - referenceVariance;
+                    referenceMean = referenceMean / referenceRadiusN;
+                    referenceVariance = referenceVariance / referenceRadiusN;
+                    referenceMeanDetailed = referenceMeanDetailed / referenceRadius;
+                    referenceVarianceDetailed = referenceVarianceDetailed / referenceRadius;
 
 
-                    if (coarsereferenceRings[a]) {
+                    double[] referenceMeanDeviates = new double[referenceRadius + 1];
+                    double[] referenceVarianceDeviates = new double[referenceRadius + 1];
+                    double[] referenceMeanDeviatesDetailed = new double[referenceRadius + 1];
+                    double[] referenceVarianceDeviatesDetailed = new double[referenceRadius + 1];
+                    double sqrDev1 = 0;
+                    double sqrDev2 = 0;
+                    double sqrDev1Detailed = 0;
+                    double sqrDev2Detailed = 0;
+                    for (a = 1; a < referenceRadius + 1; a++) {
+                        referenceMeanDeviatesDetailed[a] = referenceMeans[a] - referenceMeanDetailed;
+                        referenceVarianceDeviatesDetailed[a] = referenceVariances[a] - referenceVarianceDetailed;
+                        sqrDev1Detailed += (referenceMeans[a] - referenceMeanDetailed) * (referenceMeans[a] - referenceMean);
+                        sqrDev2Detailed += (referenceVariances[a] - referenceVarianceDetailed) * (referenceVariances[a] - referenceVariance);
+
+                        referenceMeanDeviates[a] = referenceMeans[a] - referenceMean;
+                        referenceVarianceDeviates[a] = referenceVariances[a] - referenceVariance;
+
+
+                        if (coarsereferenceRings[a]) {
 //                    referenceMeanDeviates[a] = referenceMeans[a] - referenceMean;
 //                    referenceVarianceDeviates[a] = referenceVariances[a] - referenceVariance;
-                        sqrDev1 += (referenceMeans[a] - referenceMean) * (referenceMeans[a] - referenceMean);
-                        sqrDev2 += (referenceVariances[a] - referenceVariance) * (referenceVariances[a] - referenceVariance);
+                            sqrDev1 += (referenceMeans[a] - referenceMean) * (referenceMeans[a] - referenceMean);
+                            sqrDev2 += (referenceVariances[a] - referenceVariance) * (referenceVariances[a] - referenceVariance);
+                        }
                     }
-                }
 
 //                referenceImage.close();
 
 
 
-                double maxCorrelations = 0;
-                double maxCorrelation1 = 0;
-                double maxCorrelation2 = 0;
-                int maxCorrelationRow = -1, maxCorrelationCol = -1;
+                    double maxCorrelations = 0;
+                    double maxCorrelation1 = 0;
+                    double maxCorrelation2 = 0;
+                    int maxCorrelationRow = -1, maxCorrelationCol = -1;
 
-                int n1 = 0;
-                int n2 = 0;
+                    int n1 = 0;
+                    int n2 = 0;
 
-                int oldProgress = -1;
-                int progress;
-                int searchWindowSize = 30;
-                for (int row2 = transRow - searchWindowSize; row2 <= transRow + searchWindowSize; row2++) { //5400; row2 < 6450; row2++) {
-                    for (int col2 = transCol - searchWindowSize; col2 <= transCol + searchWindowSize; col2++) { //1500; col2 < 2500; col2++) {
-                        n1++;
-                        // find the means and variances of each annulus
-                        double[] means = new double[referenceRadius + 1];
-                        double[] variances = new double[referenceRadius + 1];
-                        for (i = 1; i <= referenceRadius; i++) {
-                            if (coarsereferenceRings[i]) {
-                                double total = 0;
-                                n = 0;
-                                for (a = 0; a < xOffset[i].length - 1; a++) {
-                                    row = row2 + yOffset[i][a];
-                                    col = col2 + xOffset[i][a];
-                                    z = transformedImage.getValue(row, col);
-                                    if (z != noData2) {
-                                        total += z;
-                                        n++;
-                                        if (a > 0) {
-                                            M = M + (z - M) / (a + 1);
-                                            Q = Q + (a * (z - M) * (z - M)) / (a + 1);
-                                        } else {
-                                            M = z;
-                                            Q = 0;
-                                        }
-                                    }
-                                }
-                                means[i] = total / n;
-                                variances[i] = sqrt(Q / (n - 1));
-                            }
-                        }
-
-                        double sampleMean = 0;
-                        double sampleVariance = 0;
-                        for (a = 1; a < referenceRadius + 1; a++) {
-                            if (coarsereferenceRings[a]) {
-                                sampleMean += means[a];
-                                sampleVariance += variances[a];
-                            }
-                        }
-                        sampleMean = sampleMean / referenceRadiusN;
-                        sampleVariance = sampleVariance / referenceRadiusN;
-
-
-                        double sampleSqrdDev1 = 0;
-                        double sampleSqrdDev2 = 0;
-
-                        // correlate the reference and sample means and variances
-                        double cov1 = 0;
-                        double cov2 = 0;
-                        for (a = 1; a < referenceRadius + 1; a++) {
-                            if (coarsereferenceRings[a]) {
-                                cov1 += (means[a] - sampleMean) * referenceMeanDeviates[a];
-                                cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviates[a];
-                                sampleSqrdDev1 += (means[a] - sampleMean) * (means[a] - sampleMean);
-                                sampleSqrdDev2 += (variances[a] - sampleVariance) * (variances[a] - sampleVariance);
-                            }
-                        }
-
-
-                        double r1 = cov1 / (Math.sqrt(sqrDev1 * sampleSqrdDev1));
-                        double r2 = cov2 / (Math.sqrt(sqrDev2 * sampleSqrdDev2));
-
-                        if (!conductFineSearch) {
-                            if (r1 + r2 > maxCorrelations) {
-                                maxCorrelations = r1 + r2;
-                                maxCorrelation1 = r1;
-                                maxCorrelation2 = r2;
-                                maxCorrelationCol = col2;
-                                maxCorrelationRow = row2;
-                            }
-                        } else {
-                            if (r1 > 0.9 && r2 > 0.9) { // + r2 > 1.95) { // conduct a detailed correlation
-                                n2++;
-
-
-                                for (i = 1; i <= referenceRadius; i++) {
-                                    if (!coarsereferenceRings[i]) {
-                                        double total = 0;
-                                        n = 0;
-                                        for (a = 0; a < xOffset[i].length - 1; a++) {
-                                            row = row2 + yOffset[i][a];
-                                            col = col2 + xOffset[i][a];
-                                            z = transformedImage.getValue(row, col);
-                                            if (z != noData2) {
-                                                total += z;
-                                                n++;
-                                                if (a > 0) {
-                                                    M = M + (z - M) / (a + 1);
-                                                    Q = Q + (a * (z - M) * (z - M)) / (a + 1);
-                                                } else {
-                                                    M = z;
-                                                    Q = 0;
-                                                }
+                    int oldProgress = -1;
+                    int progress;
+                    int searchWindowSize = 30;
+                    for (int row2 = transRow - searchWindowSize; row2 <= transRow + searchWindowSize; row2++) { //5400; row2 < 6450; row2++) {
+                        for (int col2 = transCol - searchWindowSize; col2 <= transCol + searchWindowSize; col2++) { //1500; col2 < 2500; col2++) {
+                            n1++;
+                            // find the means and variances of each annulus
+                            double[] means = new double[referenceRadius + 1];
+                            double[] variances = new double[referenceRadius + 1];
+                            for (i = 1; i <= referenceRadius; i++) {
+                                if (coarsereferenceRings[i]) {
+                                    double total = 0;
+                                    n = 0;
+                                    for (a = 0; a < xOffset[i].length - 1; a++) {
+                                        row = row2 + yOffset[i][a];
+                                        col = col2 + xOffset[i][a];
+                                        z = transformedImage.getValue(row, col);
+                                        if (z != noData2) {
+                                            total += z;
+                                            n++;
+                                            if (a > 0) {
+                                                M = M + (z - M) / (a + 1);
+                                                Q = Q + (a * (z - M) * (z - M)) / (a + 1);
+                                            } else {
+                                                M = z;
+                                                Q = 0;
                                             }
                                         }
-                                        means[i] = total / n;
-                                        variances[i] = sqrt(Q / (n - 1));
                                     }
+                                    means[i] = total / n;
+                                    variances[i] = sqrt(Q / (n - 1));
                                 }
+                            }
 
-                                sampleMean = 0;
-                                sampleVariance = 0;
-                                for (a = 1; a < referenceRadius + 1; a++) {
+                            double sampleMean = 0;
+                            double sampleVariance = 0;
+                            for (a = 1; a < referenceRadius + 1; a++) {
+                                if (coarsereferenceRings[a]) {
                                     sampleMean += means[a];
                                     sampleVariance += variances[a];
-
                                 }
-                                sampleMean = sampleMean / referenceRadius;
-                                sampleVariance = sampleVariance / referenceRadius;
+                            }
+                            sampleMean = sampleMean / referenceRadiusN;
+                            sampleVariance = sampleVariance / referenceRadiusN;
 
-                                // correlate the reference and sample means and variances
-                                cov1 = 0;
-                                cov2 = 0;
-                                sampleSqrdDev1 = 0;
-                                sampleSqrdDev2 = 0;
-                                for (a = 1; a < referenceRadius + 1; a++) {
-                                    cov1 += (means[a] - sampleMean) * referenceMeanDeviatesDetailed[a];
-                                    cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviatesDetailed[a];
+
+                            double sampleSqrdDev1 = 0;
+                            double sampleSqrdDev2 = 0;
+
+                            // correlate the reference and sample means and variances
+                            double cov1 = 0;
+                            double cov2 = 0;
+                            for (a = 1; a < referenceRadius + 1; a++) {
+                                if (coarsereferenceRings[a]) {
+                                    cov1 += (means[a] - sampleMean) * referenceMeanDeviates[a];
+                                    cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviates[a];
                                     sampleSqrdDev1 += (means[a] - sampleMean) * (means[a] - sampleMean);
                                     sampleSqrdDev2 += (variances[a] - sampleVariance) * (variances[a] - sampleVariance);
-
                                 }
-
-                                r1 = cov1 / (Math.sqrt(sqrDev1Detailed * sampleSqrdDev1));
-                                r2 = cov2 / (Math.sqrt(sqrDev2Detailed * sampleSqrdDev2));
+                            }
 
 
-                                if (r1 + r2 > maxCorrelations) {
-                                    maxCorrelations = r1 + r2;
+                            double r1 = cov1 / (Math.sqrt(sqrDev1 * sampleSqrdDev1));
+                            double r2 = cov2 / (Math.sqrt(sqrDev2 * sampleSqrdDev2));
+
+                            if (!conductFineSearch) {
+                                if (r1 * w1 + r2 * w2 > maxCorrelations) { //r1 + r2 > maxCorrelations) {
+                                    maxCorrelations = r1 * w1 + r2 * w2; //r1 + r2;
                                     maxCorrelation1 = r1;
                                     maxCorrelation2 = r2;
                                     maxCorrelationCol = col2;
                                     maxCorrelationRow = row2;
                                 }
+                            } else {
+                                if (r1 > 0.9 && r2 > 0.9) { // + r2 > 1.95) { // conduct a detailed correlation
+                                    n2++;
 
+
+                                    for (i = 1; i <= referenceRadius; i++) {
+                                        if (!coarsereferenceRings[i]) {
+                                            double total = 0;
+                                            n = 0;
+                                            for (a = 0; a < xOffset[i].length - 1; a++) {
+                                                row = row2 + yOffset[i][a];
+                                                col = col2 + xOffset[i][a];
+                                                z = transformedImage.getValue(row, col);
+                                                if (z != noData2) {
+                                                    total += z;
+                                                    n++;
+                                                    if (a > 0) {
+                                                        M = M + (z - M) / (a + 1);
+                                                        Q = Q + (a * (z - M) * (z - M)) / (a + 1);
+                                                    } else {
+                                                        M = z;
+                                                        Q = 0;
+                                                    }
+                                                }
+                                            }
+                                            means[i] = total / n;
+                                            variances[i] = sqrt(Q / (n - 1));
+                                        }
+                                    }
+
+                                    sampleMean = 0;
+                                    sampleVariance = 0;
+                                    for (a = 1; a < referenceRadius + 1; a++) {
+                                        sampleMean += means[a];
+                                        sampleVariance += variances[a];
+
+                                    }
+                                    sampleMean = sampleMean / referenceRadius;
+                                    sampleVariance = sampleVariance / referenceRadius;
+
+                                    // correlate the reference and sample means and variances
+                                    cov1 = 0;
+                                    cov2 = 0;
+                                    sampleSqrdDev1 = 0;
+                                    sampleSqrdDev2 = 0;
+                                    for (a = 1; a < referenceRadius + 1; a++) {
+                                        cov1 += (means[a] - sampleMean) * referenceMeanDeviatesDetailed[a];
+                                        cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviatesDetailed[a];
+                                        sampleSqrdDev1 += (means[a] - sampleMean) * (means[a] - sampleMean);
+                                        sampleSqrdDev2 += (variances[a] - sampleVariance) * (variances[a] - sampleVariance);
+
+                                    }
+
+                                    r1 = cov1 / (Math.sqrt(sqrDev1Detailed * sampleSqrdDev1));
+                                    r2 = cov2 / (Math.sqrt(sqrDev2Detailed * sampleSqrdDev2));
+
+
+                                    if (r1 + r2 > maxCorrelations) {
+                                        maxCorrelations = r1 + r2;
+                                        maxCorrelation1 = r1;
+                                        maxCorrelation2 = r2;
+                                        maxCorrelationCol = col2;
+                                        maxCorrelationRow = row2;
+                                    }
+
+                                }
                             }
                         }
-                    }
 //                    progress = (int) ((100.0 * row2) / rows2);
 //                    if (progress > oldProgress) {
 //                        System.out.println(progress + "% " + maxCorrelations);
 //                        oldProgress = progress;
 //                    }
+                    }
+
+                    if (maxCorrelationCol >= 0 && maxCorrelationRow >= 0) {
+
+                        double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
+                        double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
+                        whitebox.geospatialfiles.shapefile.Point PP = new whitebox.geospatialfiles.shapefile.Point(x2, y2);
+                        Object[] rowData = new Object[2];
+                        rowData[0] = new Double(maxCorrelation1);
+                        rowData[1] = new Double(maxCorrelation2);
+                        output.addRecord(PP, rowData);
+
+
+                        PP = new whitebox.geospatialfiles.shapefile.Point(refPoint[0][0], refPoint[0][1]);
+                        rowData = new Object[2];
+                        rowData[0] = new Double(maxCorrelation1);
+                        rowData[1] = new Double(maxCorrelation2);
+                        output2.addRecord(PP, rowData);
+
+
+                        System.out.println("row: " + maxCorrelationRow + " , col: " + maxCorrelationCol + " , r: " + maxCorrelations);
+
+                        long endTimeLoop = System.nanoTime();
+
+                        double duration = (endTimeLoop - startTimeLoop) / 1000000000.0; // in seconds
+
+                        str = new StringBuilder();
+                        str.append("Duration: ");
+                        if (duration > 86400) {
+                            str.append((int) (Math.floor(duration / 86400))).append(" days, ");
+                            duration = duration / 86400;
+                        }
+                        if (duration > 3600) {
+                            str.append((int) (Math.floor(duration / 3600))).append(" hours, ");
+                            duration = duration / 3600;
+                        }
+                        if (duration > 60) {
+                            str.append((int) (Math.floor(duration / 60))).append(" minutes, ");
+                            duration = duration / 60;
+                        }
+                        str.append(duration).append(" seconds");
+
+                        System.out.println(str.toString());
+
+                        if (conductFineSearch) {
+                            System.out.println(n1 + " cells coarsely scanned with " + n2 + " (" + (100.0 * n2 / n1) + "%) cells finely scanned");
+                        }
+
+                        if (maxCorrelations > 0.95) { // > 1.9) {
+                            tiePointsRef.add(new XYPoint(refPoint[0][0], refPoint[0][1]));
+                            tiePointsTransform.add(new XYPoint(x2, y2));
+                        }
+
+                    } else {
+                        System.out.println("No suitable match could be located.");
+                    }
+
                 }
-
-                if (maxCorrelationCol >= 0 && maxCorrelationRow >= 0) {
-
-                    double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
-                    double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
-                    whitebox.geospatialfiles.shapefile.Point PP = new whitebox.geospatialfiles.shapefile.Point(x2, y2);
-                    Object[] rowData = new Object[2];
-                    rowData[0] = new Double(maxCorrelation1);
-                    rowData[1] = new Double(maxCorrelation2);
-                    output.addRecord(PP, rowData);
-
-
-                    PP = new whitebox.geospatialfiles.shapefile.Point(refPoint[0][0], refPoint[0][1]);
-                    rowData = new Object[2];
-                    rowData[0] = new Double(maxCorrelation1);
-                    rowData[1] = new Double(maxCorrelation2);
-                    output2.addRecord(PP, rowData);
-
-                    
-                    System.out.println("row: " + maxCorrelationRow + " , col: " + maxCorrelationCol + " , r: " + maxCorrelations);
-
-                    long endTimeLoop = System.nanoTime();
-
-                    double duration = (endTimeLoop - startTimeLoop) / 1000000000.0; // in seconds
-
-                    str = new StringBuilder();
-                    str.append("Duration: ");
-                    if (duration > 86400) {
-                        str.append((int) (Math.floor(duration / 86400))).append(" days, ");
-                        duration = duration / 86400;
-                    }
-                    if (duration > 3600) {
-                        str.append((int) (Math.floor(duration / 3600))).append(" hours, ");
-                        duration = duration / 3600;
-                    }
-                    if (duration > 60) {
-                        str.append((int) (Math.floor(duration / 60))).append(" minutes, ");
-                        duration = duration / 60;
-                    }
-                    str.append(duration).append(" seconds");
-
-                    System.out.println(str.toString());
-
-                    if (conductFineSearch) {
-                        System.out.println(n1 + " cells coarsely scanned with " + n2 + " (" + (100.0 * n2 / n1) + "%) cells finely scanned");
-                    }
-
-                    if (maxCorrelations > 1.9) {
-                        tiePointsRef.add(new XYPoint(refPoint[0][0], refPoint[0][1]));
-                        tiePointsTransform.add(new XYPoint(x2, y2));
-                    }
-
-                } else {
-                    System.out.println("No suitable match could be located.");
-                }
-
-            }
             }
 
             numTiePoints = tiePointsRef.size();
@@ -589,7 +654,7 @@ public class LocateConjugatePrincipalPoint {
 //                PolynomialLeastSquares2DFitting pls = new PolynomialLeastSquares2DFitting(tiePointsRef,
 //                        tiePointsTransform, 1);
                 List<KdTree.Entry<Double>> results;
-                
+
                 int newPolyOrder = polyOrder;
                 if (newPolyOrder == 4 && tiePointsRef.size() < 15) {
                     newPolyOrder--;
@@ -600,11 +665,11 @@ public class LocateConjugatePrincipalPoint {
                 if (newPolyOrder == 2 && tiePointsRef.size() < 6) {
                     newPolyOrder--;
                 }
-                
+
                 numTiePoints = 0;
                 for (XYPoint tie : tiePointsRef) {
                     double[] entry = {tie.x, tie.y};
-                    controlPointTree.addPoint(entry, (double)numTiePoints);
+                    controlPointTree.addPoint(entry, (double) numTiePoints);
                     numTiePoints++;
                 }
 
@@ -626,34 +691,34 @@ public class LocateConjugatePrincipalPoint {
 
                         double refXCoord = referenceImage.getXCoordinateFromColumn(c);
                         double refYCoord = referenceImage.getYCoordinateFromRow(r);
-                        
+
                         double[] entry = {refXCoord, refYCoord};
                         int numNearestNeighbours = 12;
                         if (numTiePoints < 12) {
                             numNearestNeighbours = numTiePoints;
                         }
                         results = controlPointTree.nearestNeighbor(entry, numNearestNeighbours, true);
-                        
+
                         j = results.size();
                         double[] X1 = new double[j];
                         double[] Y1 = new double[j];
                         double[] X2 = new double[j];
                         double[] Y2 = new double[j];
-                        
+
                         for (int k = 0; k < j; k++) {
                             double val = results.get(k).value;
-                            X1[k] = tiePointsRef.get((int)val).x;
-                            Y1[k] = tiePointsRef.get((int)val).y;
-                            X2[k] = tiePointsTransform.get((int)val).x;
-                            Y2[k] = tiePointsTransform.get((int)val).y;
-                            
+                            X1[k] = tiePointsRef.get((int) val).x;
+                            Y1[k] = tiePointsRef.get((int) val).y;
+                            X2[k] = tiePointsTransform.get((int) val).x;
+                            Y2[k] = tiePointsTransform.get((int) val).y;
+
                         }
-                        
+
                         // calculate the scaling factor
-                        
-                        
+
+
                         pls = new PolynomialLeastSquares2DFitting(X1, Y1, X2, Y2, 1);
-                        
+
                         XYPoint transCoords = pls.getForwardCoordinates(
                                 refXCoord, refYCoord);
 
@@ -671,37 +736,6 @@ public class LocateConjugatePrincipalPoint {
                             referenceRadius = refNeighbourhoodStart;
                             boolean flag = true;
                             do {
-                                xOffset = new int[referenceRadius + 1][];
-                                yOffset = new int[referenceRadius + 1][];
-                                for (i = 1; i <= referenceRadius; i++) {
-                                    // count the number of cells in the convolution annulus
-                                    n = 0;
-                                    annulusColumns.clear();
-                                    annulusRows.clear();
-                                    for (row = referenceRadius - i - 1; row <= referenceRadius + i + 1; row++) {
-                                        a = row - referenceRadius;
-                                        for (col = referenceRadius - i - 1; col <= referenceRadius + i + 1; col++) {
-                                            b = col - referenceRadius;
-                                            dist = Math.sqrt(a * a + b * b);
-                                            if (Math.abs(dist - i) < 0.5) {
-                                                annulusRows.add(a);
-                                                annulusColumns.add(b);
-                                                n++;
-                                            }
-                                        }
-                                    }
-                                    annulusX = new int[n];
-                                    annulusY = new int[n];
-
-                                    for (a = 0; a < n; a++) {
-                                        annulusX[a] = annulusColumns.get(a);
-                                        annulusY[a] = annulusRows.get(a);
-                                    }
-
-                                    xOffset[i] = annulusX;
-                                    yOffset[i] = annulusY;
-
-                                }
 
                                 referenceMeans = new double[referenceRadius + 1];
                                 referenceVariances = new double[referenceRadius + 1];
@@ -777,6 +811,10 @@ public class LocateConjugatePrincipalPoint {
                                     }
                                 }
 
+                                if (newData1.length > 0 || newData2.length > 0) {
+                                    w1 = (double) newData1.length / (newData1.length + newData2.length);
+                                    w2 = (double) newData2.length / (newData1.length + newData2.length);
+                                }
                                 if (newData1.length > 8 && newData2.length > 8 && referenceRadiusN > 12) {
                                     // there must be enough information on both the means data 
                                     // and the variance data.
@@ -790,251 +828,251 @@ public class LocateConjugatePrincipalPoint {
                             } while (flag);
 
                             if (referenceRadius < maxNeighbourhoodSize) {
-                                
-                            
-                            double referenceMean = 0;
-                            double referenceVariance = 0;
-                            double referenceMeanDetailed = 0;
-                            double referenceVarianceDetailed = 0;
 
-                            for (a = 1; a < referenceRadius + 1; a++) {
-                                referenceMeanDetailed += referenceMeans[a];
-                                referenceVarianceDetailed += referenceVariances[a];
-                                if (coarsereferenceRings[a]) {
-                                    referenceMean += referenceMeans[a];
-                                    referenceVariance += referenceVariances[a];
+
+                                double referenceMean = 0;
+                                double referenceVariance = 0;
+                                double referenceMeanDetailed = 0;
+                                double referenceVarianceDetailed = 0;
+
+                                for (a = 1; a < referenceRadius + 1; a++) {
+                                    referenceMeanDetailed += referenceMeans[a];
+                                    referenceVarianceDetailed += referenceVariances[a];
+                                    if (coarsereferenceRings[a]) {
+                                        referenceMean += referenceMeans[a];
+                                        referenceVariance += referenceVariances[a];
+                                    }
                                 }
-                            }
 
-                            referenceMean = referenceMean / referenceRadiusN;
-                            referenceVariance = referenceVariance / referenceRadiusN;
-                            referenceMeanDetailed = referenceMeanDetailed / referenceRadius;
-                            referenceVarianceDetailed = referenceVarianceDetailed / referenceRadius;
-
-
-                            double[] referenceMeanDeviates = new double[referenceRadius + 1];
-                            double[] referenceVarianceDeviates = new double[referenceRadius + 1];
-                            double[] referenceMeanDeviatesDetailed = new double[referenceRadius + 1];
-                            double[] referenceVarianceDeviatesDetailed = new double[referenceRadius + 1];
-                            double sqrDev1 = 0;
-                            double sqrDev2 = 0;
-                            double sqrDev1Detailed = 0;
-                            double sqrDev2Detailed = 0;
-                            for (a = 1; a < referenceRadius + 1; a++) {
-                                referenceMeanDeviatesDetailed[a] = referenceMeans[a] - referenceMeanDetailed;
-                                referenceVarianceDeviatesDetailed[a] = referenceVariances[a] - referenceVarianceDetailed;
-                                sqrDev1Detailed += (referenceMeans[a] - referenceMeanDetailed) * (referenceMeans[a] - referenceMean);
-                                sqrDev2Detailed += (referenceVariances[a] - referenceVarianceDetailed) * (referenceVariances[a] - referenceVariance);
-
-                                referenceMeanDeviates[a] = referenceMeans[a] - referenceMean;
-                                referenceVarianceDeviates[a] = referenceVariances[a] - referenceVariance;
+                                referenceMean = referenceMean / referenceRadiusN;
+                                referenceVariance = referenceVariance / referenceRadiusN;
+                                referenceMeanDetailed = referenceMeanDetailed / referenceRadius;
+                                referenceVarianceDetailed = referenceVarianceDetailed / referenceRadius;
 
 
-                                if (coarsereferenceRings[a]) {
+                                double[] referenceMeanDeviates = new double[referenceRadius + 1];
+                                double[] referenceVarianceDeviates = new double[referenceRadius + 1];
+                                double[] referenceMeanDeviatesDetailed = new double[referenceRadius + 1];
+                                double[] referenceVarianceDeviatesDetailed = new double[referenceRadius + 1];
+                                double sqrDev1 = 0;
+                                double sqrDev2 = 0;
+                                double sqrDev1Detailed = 0;
+                                double sqrDev2Detailed = 0;
+                                for (a = 1; a < referenceRadius + 1; a++) {
+                                    referenceMeanDeviatesDetailed[a] = referenceMeans[a] - referenceMeanDetailed;
+                                    referenceVarianceDeviatesDetailed[a] = referenceVariances[a] - referenceVarianceDetailed;
+                                    sqrDev1Detailed += (referenceMeans[a] - referenceMeanDetailed) * (referenceMeans[a] - referenceMean);
+                                    sqrDev2Detailed += (referenceVariances[a] - referenceVarianceDetailed) * (referenceVariances[a] - referenceVariance);
+
+                                    referenceMeanDeviates[a] = referenceMeans[a] - referenceMean;
+                                    referenceVarianceDeviates[a] = referenceVariances[a] - referenceVariance;
+
+
+                                    if (coarsereferenceRings[a]) {
 //                    referenceMeanDeviates[a] = referenceMeans[a] - referenceMean;
 //                    referenceVarianceDeviates[a] = referenceVariances[a] - referenceVariance;
-                                    sqrDev1 += (referenceMeans[a] - referenceMean) * (referenceMeans[a] - referenceMean);
-                                    sqrDev2 += (referenceVariances[a] - referenceVariance) * (referenceVariances[a] - referenceVariance);
+                                        sqrDev1 += (referenceMeans[a] - referenceMean) * (referenceMeans[a] - referenceMean);
+                                        sqrDev2 += (referenceVariances[a] - referenceVariance) * (referenceVariances[a] - referenceVariance);
+                                    }
                                 }
-                            }
 
 //                referenceImage.close();
 
 
 
-                            double maxCorrelations = 0;
-                            double maxCorrelation1 = 0;
-                            double maxCorrelation2 = 0;
-                            int maxCorrelationRow = -1, maxCorrelationCol = -1;
+                                double maxCorrelations = 0;
+                                double maxCorrelation1 = 0;
+                                double maxCorrelation2 = 0;
+                                int maxCorrelationRow = -1, maxCorrelationCol = -1;
 
-                            int n1 = 0;
-                            int n2 = 0;
+                                int n1 = 0;
+                                int n2 = 0;
 
-                            int searchWindowSize = 30; //(int) rmse * 5;
+                                int searchWindowSize = 30; //(int) rmse * 5;
 //                            if (searchWindowSize < 5) {
 //                                searchWindowSize = 5;
 //                            }
-                            for (int row2 = transRow - searchWindowSize; row2 <= transRow + searchWindowSize; row2++) { //5400; row2 < 6450; row2++) {
-                                for (int col2 = transCol - searchWindowSize; col2 <= transCol + searchWindowSize; col2++) { //1500; col2 < 2500; col2++) {
-                                    n1++;
-                                    // find the means and variances of each annulus
-                                    double[] means = new double[referenceRadius + 1];
-                                    double[] variances = new double[referenceRadius + 1];
-                                    for (i = 1; i <= referenceRadius; i++) {
-                                        if (coarsereferenceRings[i]) {
-                                            double total = 0;
-                                            n = 0;
-                                            for (a = 0; a < xOffset[i].length - 1; a++) {
-                                                row = row2 + yOffset[i][a];
-                                                col = col2 + xOffset[i][a];
-                                                z = transformedImage.getValue(row, col);
-                                                if (z != noData2) {
-                                                    total += z;
-                                                    n++;
-                                                    if (a > 0) {
-                                                        M = M + (z - M) / (a + 1);
-                                                        Q = Q + (a * (z - M) * (z - M)) / (a + 1);
-                                                    } else {
-                                                        M = z;
-                                                        Q = 0;
-                                                    }
-                                                }
-                                            }
-                                            means[i] = total / n;
-                                            variances[i] = sqrt(Q / (n - 1));
-                                        }
-                                    }
-
-                                    double sampleMean = 0;
-                                    double sampleVariance = 0;
-                                    for (a = 1; a < referenceRadius + 1; a++) {
-                                        if (coarsereferenceRings[a]) {
-                                            sampleMean += means[a];
-                                            sampleVariance += variances[a];
-                                        }
-                                    }
-                                    sampleMean = sampleMean / referenceRadiusN;
-                                    sampleVariance = sampleVariance / referenceRadiusN;
-
-
-                                    double sampleSqrdDev1 = 0;
-                                    double sampleSqrdDev2 = 0;
-
-                                    // correlate the reference and sample means and variances
-                                    double cov1 = 0;
-                                    double cov2 = 0;
-                                    for (a = 1; a < referenceRadius + 1; a++) {
-                                        if (coarsereferenceRings[a]) {
-                                            cov1 += (means[a] - sampleMean) * referenceMeanDeviates[a];
-                                            cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviates[a];
-                                            sampleSqrdDev1 += (means[a] - sampleMean) * (means[a] - sampleMean);
-                                            sampleSqrdDev2 += (variances[a] - sampleVariance) * (variances[a] - sampleVariance);
-                                        }
-                                    }
-
-
-                                    double r1 = cov1 / (Math.sqrt(sqrDev1 * sampleSqrdDev1));
-                                    double r2 = cov2 / (Math.sqrt(sqrDev2 * sampleSqrdDev2));
-
-                                    if (!conductFineSearch) {
-                                        if (r1 + r2 > maxCorrelations) {
-                                            maxCorrelations = r1 + r2;
-                                            maxCorrelation1 = r1;
-                                            maxCorrelation2 = r2;
-                                            maxCorrelationCol = col2;
-                                            maxCorrelationRow = row2;
-                                        }
-                                    } else {
-                                        if (r1 > 0.9 && r2 > 0.9) { // + r2 > 1.95) { // conduct a detailed correlation
-                                            n2++;
-
-                                            for (i = 1; i <= referenceRadius; i++) {
-                                                if (!coarsereferenceRings[i]) {
-                                                    double total = 0;
-                                                    n = 0;
-                                                    for (a = 0; a < xOffset[i].length - 1; a++) {
-                                                        row = row2 + yOffset[i][a];
-                                                        col = col2 + xOffset[i][a];
-                                                        z = transformedImage.getValue(row, col);
-                                                        if (z != noData2) {
-                                                            total += z;
-                                                            n++;
-                                                            if (a > 0) {
-                                                                M = M + (z - M) / (a + 1);
-                                                                Q = Q + (a * (z - M) * (z - M)) / (a + 1);
-                                                            } else {
-                                                                M = z;
-                                                                Q = 0;
-                                                            }
+                                for (int row2 = transRow - searchWindowSize; row2 <= transRow + searchWindowSize; row2++) { //5400; row2 < 6450; row2++) {
+                                    for (int col2 = transCol - searchWindowSize; col2 <= transCol + searchWindowSize; col2++) { //1500; col2 < 2500; col2++) {
+                                        n1++;
+                                        // find the means and variances of each annulus
+                                        double[] means = new double[referenceRadius + 1];
+                                        double[] variances = new double[referenceRadius + 1];
+                                        for (i = 1; i <= referenceRadius; i++) {
+                                            if (coarsereferenceRings[i]) {
+                                                double total = 0;
+                                                n = 0;
+                                                for (a = 0; a < xOffset[i].length - 1; a++) {
+                                                    row = row2 + yOffset[i][a];
+                                                    col = col2 + xOffset[i][a];
+                                                    z = transformedImage.getValue(row, col);
+                                                    if (z != noData2) {
+                                                        total += z;
+                                                        n++;
+                                                        if (a > 0) {
+                                                            M = M + (z - M) / (a + 1);
+                                                            Q = Q + (a * (z - M) * (z - M)) / (a + 1);
+                                                        } else {
+                                                            M = z;
+                                                            Q = 0;
                                                         }
                                                     }
-                                                    means[i] = total / n;
-                                                    variances[i] = sqrt(Q / (n - 1));
                                                 }
+                                                means[i] = total / n;
+                                                variances[i] = sqrt(Q / (n - 1));
                                             }
+                                        }
 
-                                            sampleMean = 0;
-                                            sampleVariance = 0;
-                                            for (a = 1; a < referenceRadius + 1; a++) {
+                                        double sampleMean = 0;
+                                        double sampleVariance = 0;
+                                        for (a = 1; a < referenceRadius + 1; a++) {
+                                            if (coarsereferenceRings[a]) {
                                                 sampleMean += means[a];
                                                 sampleVariance += variances[a];
-
                                             }
-                                            sampleMean = sampleMean / referenceRadius;
-                                            sampleVariance = sampleVariance / referenceRadius;
+                                        }
+                                        sampleMean = sampleMean / referenceRadiusN;
+                                        sampleVariance = sampleVariance / referenceRadiusN;
 
-                                            // correlate the reference and sample means and variances
-                                            cov1 = 0;
-                                            cov2 = 0;
-                                            sampleSqrdDev1 = 0;
-                                            sampleSqrdDev2 = 0;
-                                            for (a = 1; a < referenceRadius + 1; a++) {
-                                                cov1 += (means[a] - sampleMean) * referenceMeanDeviatesDetailed[a];
-                                                cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviatesDetailed[a];
+
+                                        double sampleSqrdDev1 = 0;
+                                        double sampleSqrdDev2 = 0;
+
+                                        // correlate the reference and sample means and variances
+                                        double cov1 = 0;
+                                        double cov2 = 0;
+                                        for (a = 1; a < referenceRadius + 1; a++) {
+                                            if (coarsereferenceRings[a]) {
+                                                cov1 += (means[a] - sampleMean) * referenceMeanDeviates[a];
+                                                cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviates[a];
                                                 sampleSqrdDev1 += (means[a] - sampleMean) * (means[a] - sampleMean);
                                                 sampleSqrdDev2 += (variances[a] - sampleVariance) * (variances[a] - sampleVariance);
-
                                             }
-
-                                            r1 = cov1 / (Math.sqrt(sqrDev1Detailed * sampleSqrdDev1));
-                                            r2 = cov2 / (Math.sqrt(sqrDev2Detailed * sampleSqrdDev2));
+                                        }
 
 
-                                            if (r1 + r2 > maxCorrelations) {
-                                                maxCorrelations = r1 + r2;
+                                        double r1 = cov1 / (Math.sqrt(sqrDev1 * sampleSqrdDev1));
+                                        double r2 = cov2 / (Math.sqrt(sqrDev2 * sampleSqrdDev2));
+
+                                        if (!conductFineSearch) {
+                                            if (r1 * w1 + r2 * w2 > maxCorrelations) { //r1 + r2 > maxCorrelations) {
+                                                maxCorrelations = r1 * w1 + r2 * w2; //r1 + r2;
                                                 maxCorrelation1 = r1;
                                                 maxCorrelation2 = r2;
                                                 maxCorrelationCol = col2;
                                                 maxCorrelationRow = row2;
                                             }
+                                        } else {
+                                            if (r1 > 0.9 && r2 > 0.9) { // + r2 > 1.95) { // conduct a detailed correlation
+                                                n2++;
 
+                                                for (i = 1; i <= referenceRadius; i++) {
+                                                    if (!coarsereferenceRings[i]) {
+                                                        double total = 0;
+                                                        n = 0;
+                                                        for (a = 0; a < xOffset[i].length - 1; a++) {
+                                                            row = row2 + yOffset[i][a];
+                                                            col = col2 + xOffset[i][a];
+                                                            z = transformedImage.getValue(row, col);
+                                                            if (z != noData2) {
+                                                                total += z;
+                                                                n++;
+                                                                if (a > 0) {
+                                                                    M = M + (z - M) / (a + 1);
+                                                                    Q = Q + (a * (z - M) * (z - M)) / (a + 1);
+                                                                } else {
+                                                                    M = z;
+                                                                    Q = 0;
+                                                                }
+                                                            }
+                                                        }
+                                                        means[i] = total / n;
+                                                        variances[i] = sqrt(Q / (n - 1));
+                                                    }
+                                                }
+
+                                                sampleMean = 0;
+                                                sampleVariance = 0;
+                                                for (a = 1; a < referenceRadius + 1; a++) {
+                                                    sampleMean += means[a];
+                                                    sampleVariance += variances[a];
+
+                                                }
+                                                sampleMean = sampleMean / referenceRadius;
+                                                sampleVariance = sampleVariance / referenceRadius;
+
+                                                // correlate the reference and sample means and variances
+                                                cov1 = 0;
+                                                cov2 = 0;
+                                                sampleSqrdDev1 = 0;
+                                                sampleSqrdDev2 = 0;
+                                                for (a = 1; a < referenceRadius + 1; a++) {
+                                                    cov1 += (means[a] - sampleMean) * referenceMeanDeviatesDetailed[a];
+                                                    cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviatesDetailed[a];
+                                                    sampleSqrdDev1 += (means[a] - sampleMean) * (means[a] - sampleMean);
+                                                    sampleSqrdDev2 += (variances[a] - sampleVariance) * (variances[a] - sampleVariance);
+
+                                                }
+
+                                                r1 = cov1 / (Math.sqrt(sqrDev1Detailed * sampleSqrdDev1));
+                                                r2 = cov2 / (Math.sqrt(sqrDev2Detailed * sampleSqrdDev2));
+
+
+                                                if (r1 + r2 > maxCorrelations) {
+                                                    maxCorrelations = r1 + r2;
+                                                    maxCorrelation1 = r1;
+                                                    maxCorrelation2 = r2;
+                                                    maxCorrelationCol = col2;
+                                                    maxCorrelationRow = row2;
+                                                }
+
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            if (maxCorrelations > 1.9) {
-                                double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
-                                double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
-                                whitebox.geospatialfiles.shapefile.Point PP = new whitebox.geospatialfiles.shapefile.Point(x2, y2);
-                                Object[] rowData = new Object[2];
-                                rowData[0] = new Double(maxCorrelation1);
-                                rowData[1] = new Double(maxCorrelation2);
-                                output.addRecord(PP, rowData);
+                                if (maxCorrelations > 0.95) { //> 1.9) {
+                                    double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
+                                    double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
+                                    whitebox.geospatialfiles.shapefile.Point PP = new whitebox.geospatialfiles.shapefile.Point(x2, y2);
+                                    Object[] rowData = new Object[2];
+                                    rowData[0] = new Double(maxCorrelation1);
+                                    rowData[1] = new Double(maxCorrelation2);
+                                    output.addRecord(PP, rowData);
 
 
-                                PP = new whitebox.geospatialfiles.shapefile.Point(refXCoord, refYCoord);
-                                rowData = new Object[2];
-                                rowData[0] = new Double(maxCorrelation1);
-                                rowData[1] = new Double(maxCorrelation2);
-                                output2.addRecord(PP, rowData);
-                            }
+                                    PP = new whitebox.geospatialfiles.shapefile.Point(refXCoord, refYCoord);
+                                    rowData = new Object[2];
+                                    rowData[0] = new Double(maxCorrelation1);
+                                    rowData[1] = new Double(maxCorrelation2);
+                                    output2.addRecord(PP, rowData);
+                                }
 
-                            if (maxCorrelation1 > 0.95 && maxCorrelation2 > 0.95) {
-                                double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
-                                double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
-                                tiePointsRef.add(new XYPoint(refXCoord, refYCoord));
-                                tiePointsTransform.add(new XYPoint(x2, y2));
-                                entry = new double[]{refXCoord, refYCoord};
-                                controlPointTree.addPoint(entry, (double)numTiePoints);
-                                numTiePoints++;
-                                newPolyOrder = polyOrder;
-                                if (newPolyOrder == 4 && tiePointsRef.size() < 15) {
-                                    newPolyOrder--;
-                                }
-                                if (newPolyOrder == 3 && tiePointsRef.size() < 10) {
-                                    newPolyOrder--;
-                                }
-                                if (newPolyOrder == 2 && tiePointsRef.size() < 6) {
-                                    newPolyOrder--;
-                                }
+                                if (maxCorrelation1 > 0.95 && maxCorrelation2 > 0.95) {
+                                    double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
+                                    double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
+                                    tiePointsRef.add(new XYPoint(refXCoord, refYCoord));
+                                    tiePointsTransform.add(new XYPoint(x2, y2));
+                                    entry = new double[]{refXCoord, refYCoord};
+                                    controlPointTree.addPoint(entry, (double) numTiePoints);
+                                    numTiePoints++;
+                                    newPolyOrder = polyOrder;
+                                    if (newPolyOrder == 4 && tiePointsRef.size() < 15) {
+                                        newPolyOrder--;
+                                    }
+                                    if (newPolyOrder == 3 && tiePointsRef.size() < 10) {
+                                        newPolyOrder--;
+                                    }
+                                    if (newPolyOrder == 2 && tiePointsRef.size() < 6) {
+                                        newPolyOrder--;
+                                    }
 //                                if (pls.getPolyOrder() != newPolyOrder) {
 //                                    pls.setPolyOrder(newPolyOrder);
 //                                }
 //                                pls.addData(tiePointsRef, tiePointsTransform);
 //                                rmse = pls.getOverallRMSE();
-                                System.out.println("Num. tie points: " + tiePointsRef.size()); // + " , RMSE: " + rmse);
+                                    System.out.println("Num. tie points: " + tiePointsRef.size()); // + " , RMSE: " + rmse);
+                                }
                             }
-                        }
                         }
                     }
                     progress = (int) ((100.0 * r) / rows1);
@@ -1054,35 +1092,34 @@ public class LocateConjugatePrincipalPoint {
 
 
                 int numLocatedPoints = tiePointsRef.size();
-                double w1, w2;
-                        
+
                 oldProgress = -1;
-                for (int r = 0; r < rows1; r += 100) {
-                    for (int c = 0; c < cols1; c += 100) {
+                for (int r = 0; r < rows1; r += 250) {
+                    for (int c = 0; c < cols1; c += 250) {
 
                         double refXCoord = referenceImage.getXCoordinateFromColumn(c);
                         double refYCoord = referenceImage.getYCoordinateFromRow(r);
-                        
+
                         double[] entry = {refXCoord, refYCoord};
                         results = controlPointTree.nearestNeighbor(entry, 15, true);
-                        
+
                         j = results.size();
                         double[] X1 = new double[j];
                         double[] Y1 = new double[j];
                         double[] X2 = new double[j];
                         double[] Y2 = new double[j];
-                        
+
                         for (int k = 0; k < j; k++) {
                             double val = results.get(k).value;
-                            X1[k] = tiePointsRef.get((int)val).x;
-                            Y1[k] = tiePointsRef.get((int)val).y;
-                            X2[k] = tiePointsTransform.get((int)val).x;
-                            Y2[k] = tiePointsTransform.get((int)val).y;
-                            
+                            X1[k] = tiePointsRef.get((int) val).x;
+                            Y1[k] = tiePointsRef.get((int) val).y;
+                            X2[k] = tiePointsTransform.get((int) val).x;
+                            Y2[k] = tiePointsTransform.get((int) val).y;
+
                         }
-                        
+
                         pls = new PolynomialLeastSquares2DFitting(X1, Y1, X2, Y2, 1);
-                        
+
                         XYPoint transCoords = pls.getForwardCoordinates(
                                 refXCoord, refYCoord);
 
@@ -1100,37 +1137,6 @@ public class LocateConjugatePrincipalPoint {
                             referenceRadius = refNeighbourhoodStart;
                             boolean flag = true;
                             do {
-                                xOffset = new int[referenceRadius + 1][];
-                                yOffset = new int[referenceRadius + 1][];
-                                for (i = 1; i <= referenceRadius; i++) {
-                                    // count the number of cells in the convolution annulus
-                                    n = 0;
-                                    annulusColumns.clear();
-                                    annulusRows.clear();
-                                    for (row = referenceRadius - i - 1; row <= referenceRadius + i + 1; row++) {
-                                        a = row - referenceRadius;
-                                        for (col = referenceRadius - i - 1; col <= referenceRadius + i + 1; col++) {
-                                            b = col - referenceRadius;
-                                            dist = Math.sqrt(a * a + b * b);
-                                            if (Math.abs(dist - i) < 0.5) {
-                                                annulusRows.add(a);
-                                                annulusColumns.add(b);
-                                                n++;
-                                            }
-                                        }
-                                    }
-                                    annulusX = new int[n];
-                                    annulusY = new int[n];
-
-                                    for (a = 0; a < n; a++) {
-                                        annulusX[a] = annulusColumns.get(a);
-                                        annulusY[a] = annulusRows.get(a);
-                                    }
-
-                                    xOffset[i] = annulusX;
-                                    yOffset[i] = annulusY;
-
-                                }
 
                                 referenceMeans = new double[referenceRadius + 1];
                                 referenceVariances = new double[referenceRadius + 1];
@@ -1206,9 +1212,11 @@ public class LocateConjugatePrincipalPoint {
                                     }
                                 }
 
-                                w1 = newData1.length / (newData1.length + newData2.length);
-                                w2 = newData2.length / (newData1.length + newData2.length);
-                                
+                                if (newData1.length > 0 || newData2.length > 0) {
+                                    w1 = (double) newData1.length / (newData1.length + newData2.length);
+                                    w2 = (double) newData2.length / (newData1.length + newData2.length);
+                                }
+
                                 if (newData1.length > 8 && newData2.length > 8 && referenceRadiusN > 12) {
                                     // there must be enough information on both the means data 
                                     // and the variance data.
@@ -1222,231 +1230,231 @@ public class LocateConjugatePrincipalPoint {
                             } while (flag);
 
                             if (referenceRadius < maxNeighbourhoodSize) {
-                                
-                            
-                            double referenceMean = 0;
-                            double referenceVariance = 0;
-                            double referenceMeanDetailed = 0;
-                            double referenceVarianceDetailed = 0;
 
-                            for (a = 1; a < referenceRadius + 1; a++) {
-                                referenceMeanDetailed += referenceMeans[a];
-                                referenceVarianceDetailed += referenceVariances[a];
-                                if (coarsereferenceRings[a]) {
-                                    referenceMean += referenceMeans[a];
-                                    referenceVariance += referenceVariances[a];
+
+                                double referenceMean = 0;
+                                double referenceVariance = 0;
+                                double referenceMeanDetailed = 0;
+                                double referenceVarianceDetailed = 0;
+
+                                for (a = 1; a < referenceRadius + 1; a++) {
+                                    referenceMeanDetailed += referenceMeans[a];
+                                    referenceVarianceDetailed += referenceVariances[a];
+                                    if (coarsereferenceRings[a]) {
+                                        referenceMean += referenceMeans[a];
+                                        referenceVariance += referenceVariances[a];
+                                    }
                                 }
-                            }
 
-                            referenceMean = referenceMean / referenceRadiusN;
-                            referenceVariance = referenceVariance / referenceRadiusN;
-                            referenceMeanDetailed = referenceMeanDetailed / referenceRadius;
-                            referenceVarianceDetailed = referenceVarianceDetailed / referenceRadius;
-
-
-                            double[] referenceMeanDeviates = new double[referenceRadius + 1];
-                            double[] referenceVarianceDeviates = new double[referenceRadius + 1];
-                            double[] referenceMeanDeviatesDetailed = new double[referenceRadius + 1];
-                            double[] referenceVarianceDeviatesDetailed = new double[referenceRadius + 1];
-                            double sqrDev1 = 0;
-                            double sqrDev2 = 0;
-                            double sqrDev1Detailed = 0;
-                            double sqrDev2Detailed = 0;
-                            for (a = 1; a < referenceRadius + 1; a++) {
-                                referenceMeanDeviatesDetailed[a] = referenceMeans[a] - referenceMeanDetailed;
-                                referenceVarianceDeviatesDetailed[a] = referenceVariances[a] - referenceVarianceDetailed;
-                                sqrDev1Detailed += (referenceMeans[a] - referenceMeanDetailed) * (referenceMeans[a] - referenceMean);
-                                sqrDev2Detailed += (referenceVariances[a] - referenceVarianceDetailed) * (referenceVariances[a] - referenceVariance);
-
-                                referenceMeanDeviates[a] = referenceMeans[a] - referenceMean;
-                                referenceVarianceDeviates[a] = referenceVariances[a] - referenceVariance;
+                                referenceMean = referenceMean / referenceRadiusN;
+                                referenceVariance = referenceVariance / referenceRadiusN;
+                                referenceMeanDetailed = referenceMeanDetailed / referenceRadius;
+                                referenceVarianceDetailed = referenceVarianceDetailed / referenceRadius;
 
 
-                                if (coarsereferenceRings[a]) {
+                                double[] referenceMeanDeviates = new double[referenceRadius + 1];
+                                double[] referenceVarianceDeviates = new double[referenceRadius + 1];
+                                double[] referenceMeanDeviatesDetailed = new double[referenceRadius + 1];
+                                double[] referenceVarianceDeviatesDetailed = new double[referenceRadius + 1];
+                                double sqrDev1 = 0;
+                                double sqrDev2 = 0;
+                                double sqrDev1Detailed = 0;
+                                double sqrDev2Detailed = 0;
+                                for (a = 1; a < referenceRadius + 1; a++) {
+                                    referenceMeanDeviatesDetailed[a] = referenceMeans[a] - referenceMeanDetailed;
+                                    referenceVarianceDeviatesDetailed[a] = referenceVariances[a] - referenceVarianceDetailed;
+                                    sqrDev1Detailed += (referenceMeans[a] - referenceMeanDetailed) * (referenceMeans[a] - referenceMean);
+                                    sqrDev2Detailed += (referenceVariances[a] - referenceVarianceDetailed) * (referenceVariances[a] - referenceVariance);
+
+                                    referenceMeanDeviates[a] = referenceMeans[a] - referenceMean;
+                                    referenceVarianceDeviates[a] = referenceVariances[a] - referenceVariance;
+
+
+                                    if (coarsereferenceRings[a]) {
 //                    referenceMeanDeviates[a] = referenceMeans[a] - referenceMean;
 //                    referenceVarianceDeviates[a] = referenceVariances[a] - referenceVariance;
-                                    sqrDev1 += (referenceMeans[a] - referenceMean) * (referenceMeans[a] - referenceMean);
-                                    sqrDev2 += (referenceVariances[a] - referenceVariance) * (referenceVariances[a] - referenceVariance);
+                                        sqrDev1 += (referenceMeans[a] - referenceMean) * (referenceMeans[a] - referenceMean);
+                                        sqrDev2 += (referenceVariances[a] - referenceVariance) * (referenceVariances[a] - referenceVariance);
+                                    }
                                 }
-                            }
 
 //                referenceImage.close();
 
 
 
-                            double maxCorrelations = 0;
-                            double maxCorrelation1 = 0;
-                            double maxCorrelation2 = 0;
-                            int maxCorrelationRow = -1, maxCorrelationCol = -1;
+                                double maxCorrelations = 0;
+                                double maxCorrelation1 = 0;
+                                double maxCorrelation2 = 0;
+                                int maxCorrelationRow = -1, maxCorrelationCol = -1;
 
-                            int n1 = 0;
-                            int n2 = 0;
+                                int n1 = 0;
+                                int n2 = 0;
 
-                            int searchWindowSize = 8;
-                            for (int row2 = transRow - searchWindowSize; row2 <= transRow + searchWindowSize; row2++) { //5400; row2 < 6450; row2++) {
-                                for (int col2 = transCol - searchWindowSize; col2 <= transCol + searchWindowSize; col2++) { //1500; col2 < 2500; col2++) {
-                                    n1++;
-                                    // find the means and variances of each annulus
-                                    double[] means = new double[referenceRadius + 1];
-                                    double[] variances = new double[referenceRadius + 1];
-                                    for (i = 1; i <= referenceRadius; i++) {
-                                        if (coarsereferenceRings[i]) {
-                                            double total = 0;
-                                            n = 0;
-                                            for (a = 0; a < xOffset[i].length - 1; a++) {
-                                                row = row2 + yOffset[i][a];
-                                                col = col2 + xOffset[i][a];
-                                                z = transformedImage.getValue(row, col);
-                                                if (z != noData2) {
-                                                    total += z;
-                                                    n++;
-                                                    if (a > 0) {
-                                                        M = M + (z - M) / (a + 1);
-                                                        Q = Q + (a * (z - M) * (z - M)) / (a + 1);
-                                                    } else {
-                                                        M = z;
-                                                        Q = 0;
-                                                    }
-                                                }
-                                            }
-                                            means[i] = total / n;
-                                            variances[i] = sqrt(Q / (n - 1));
-                                        }
-                                    }
-
-                                    double sampleMean = 0;
-                                    double sampleVariance = 0;
-                                    for (a = 1; a < referenceRadius + 1; a++) {
-                                        if (coarsereferenceRings[a]) {
-                                            sampleMean += means[a];
-                                            sampleVariance += variances[a];
-                                        }
-                                    }
-                                    sampleMean = sampleMean / referenceRadiusN;
-                                    sampleVariance = sampleVariance / referenceRadiusN;
-
-
-                                    double sampleSqrdDev1 = 0;
-                                    double sampleSqrdDev2 = 0;
-
-                                    // correlate the reference and sample means and variances
-                                    double cov1 = 0;
-                                    double cov2 = 0;
-                                    for (a = 1; a < referenceRadius + 1; a++) {
-                                        if (coarsereferenceRings[a]) {
-                                            cov1 += (means[a] - sampleMean) * referenceMeanDeviates[a];
-                                            cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviates[a];
-                                            sampleSqrdDev1 += (means[a] - sampleMean) * (means[a] - sampleMean);
-                                            sampleSqrdDev2 += (variances[a] - sampleVariance) * (variances[a] - sampleVariance);
-                                        }
-                                    }
-
-
-                                    double r1 = cov1 / (Math.sqrt(sqrDev1 * sampleSqrdDev1));
-                                    double r2 = cov2 / (Math.sqrt(sqrDev2 * sampleSqrdDev2));
-
-                                    if (!conductFineSearch) {
-                                        if (r1 + r2 > maxCorrelations) {
-                                            maxCorrelations = r1 + r2;
-                                            maxCorrelation1 = r1;
-                                            maxCorrelation2 = r2;
-                                            maxCorrelationCol = col2;
-                                            maxCorrelationRow = row2;
-                                        }
-                                    } else {
-                                        if (r1 > 0.9 && r2 > 0.9) { // + r2 > 1.95) { // conduct a detailed correlation
-                                            n2++;
-
-                                            for (i = 1; i <= referenceRadius; i++) {
-                                                if (!coarsereferenceRings[i]) {
-                                                    double total = 0;
-                                                    n = 0;
-                                                    for (a = 0; a < xOffset[i].length - 1; a++) {
-                                                        row = row2 + yOffset[i][a];
-                                                        col = col2 + xOffset[i][a];
-                                                        z = transformedImage.getValue(row, col);
-                                                        if (z != noData2) {
-                                                            total += z;
-                                                            n++;
-                                                            if (a > 0) {
-                                                                M = M + (z - M) / (a + 1);
-                                                                Q = Q + (a * (z - M) * (z - M)) / (a + 1);
-                                                            } else {
-                                                                M = z;
-                                                                Q = 0;
-                                                            }
+                                int searchWindowSize = 8;
+                                for (int row2 = transRow - searchWindowSize; row2 <= transRow + searchWindowSize; row2++) { //5400; row2 < 6450; row2++) {
+                                    for (int col2 = transCol - searchWindowSize; col2 <= transCol + searchWindowSize; col2++) { //1500; col2 < 2500; col2++) {
+                                        n1++;
+                                        // find the means and variances of each annulus
+                                        double[] means = new double[referenceRadius + 1];
+                                        double[] variances = new double[referenceRadius + 1];
+                                        for (i = 1; i <= referenceRadius; i++) {
+                                            if (coarsereferenceRings[i]) {
+                                                double total = 0;
+                                                n = 0;
+                                                for (a = 0; a < xOffset[i].length - 1; a++) {
+                                                    row = row2 + yOffset[i][a];
+                                                    col = col2 + xOffset[i][a];
+                                                    z = transformedImage.getValue(row, col);
+                                                    if (z != noData2) {
+                                                        total += z;
+                                                        n++;
+                                                        if (a > 0) {
+                                                            M = M + (z - M) / (a + 1);
+                                                            Q = Q + (a * (z - M) * (z - M)) / (a + 1);
+                                                        } else {
+                                                            M = z;
+                                                            Q = 0;
                                                         }
                                                     }
-                                                    means[i] = total / n;
-                                                    variances[i] = sqrt(Q / (n - 1));
                                                 }
+                                                means[i] = total / n;
+                                                variances[i] = sqrt(Q / (n - 1));
                                             }
+                                        }
 
-                                            sampleMean = 0;
-                                            sampleVariance = 0;
-                                            for (a = 1; a < referenceRadius + 1; a++) {
+                                        double sampleMean = 0;
+                                        double sampleVariance = 0;
+                                        for (a = 1; a < referenceRadius + 1; a++) {
+                                            if (coarsereferenceRings[a]) {
                                                 sampleMean += means[a];
                                                 sampleVariance += variances[a];
-
                                             }
-                                            sampleMean = sampleMean / referenceRadius;
-                                            sampleVariance = sampleVariance / referenceRadius;
+                                        }
+                                        sampleMean = sampleMean / referenceRadiusN;
+                                        sampleVariance = sampleVariance / referenceRadiusN;
 
-                                            // correlate the reference and sample means and variances
-                                            cov1 = 0;
-                                            cov2 = 0;
-                                            sampleSqrdDev1 = 0;
-                                            sampleSqrdDev2 = 0;
-                                            for (a = 1; a < referenceRadius + 1; a++) {
-                                                cov1 += (means[a] - sampleMean) * referenceMeanDeviatesDetailed[a];
-                                                cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviatesDetailed[a];
+
+                                        double sampleSqrdDev1 = 0;
+                                        double sampleSqrdDev2 = 0;
+
+                                        // correlate the reference and sample means and variances
+                                        double cov1 = 0;
+                                        double cov2 = 0;
+                                        for (a = 1; a < referenceRadius + 1; a++) {
+                                            if (coarsereferenceRings[a]) {
+                                                cov1 += (means[a] - sampleMean) * referenceMeanDeviates[a];
+                                                cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviates[a];
                                                 sampleSqrdDev1 += (means[a] - sampleMean) * (means[a] - sampleMean);
                                                 sampleSqrdDev2 += (variances[a] - sampleVariance) * (variances[a] - sampleVariance);
-
                                             }
-
-                                            r1 = cov1 / (Math.sqrt(sqrDev1Detailed * sampleSqrdDev1));
-                                            r2 = cov2 / (Math.sqrt(sqrDev2Detailed * sampleSqrdDev2));
+                                        }
 
 
-                                            if (r1 + r2 > maxCorrelations) {
-                                                maxCorrelations = r1 + r2;
+                                        double r1 = cov1 / (Math.sqrt(sqrDev1 * sampleSqrdDev1));
+                                        double r2 = cov2 / (Math.sqrt(sqrDev2 * sampleSqrdDev2));
+
+                                        if (!conductFineSearch) {
+                                            if (w1 * r1 + w2 * r2 > maxCorrelations) { //r1 + r2 > maxCorrelations) {
+                                                maxCorrelations = r1 * w1 + r2 * w2; //r1 + r2;
                                                 maxCorrelation1 = r1;
                                                 maxCorrelation2 = r2;
                                                 maxCorrelationCol = col2;
                                                 maxCorrelationRow = row2;
                                             }
+                                        } else {
+                                            if (r1 > 0.9 && r2 > 0.9) { // + r2 > 1.95) { // conduct a detailed correlation
+                                                n2++;
 
+                                                for (i = 1; i <= referenceRadius; i++) {
+                                                    if (!coarsereferenceRings[i]) {
+                                                        double total = 0;
+                                                        n = 0;
+                                                        for (a = 0; a < xOffset[i].length - 1; a++) {
+                                                            row = row2 + yOffset[i][a];
+                                                            col = col2 + xOffset[i][a];
+                                                            z = transformedImage.getValue(row, col);
+                                                            if (z != noData2) {
+                                                                total += z;
+                                                                n++;
+                                                                if (a > 0) {
+                                                                    M = M + (z - M) / (a + 1);
+                                                                    Q = Q + (a * (z - M) * (z - M)) / (a + 1);
+                                                                } else {
+                                                                    M = z;
+                                                                    Q = 0;
+                                                                }
+                                                            }
+                                                        }
+                                                        means[i] = total / n;
+                                                        variances[i] = sqrt(Q / (n - 1));
+                                                    }
+                                                }
+
+                                                sampleMean = 0;
+                                                sampleVariance = 0;
+                                                for (a = 1; a < referenceRadius + 1; a++) {
+                                                    sampleMean += means[a];
+                                                    sampleVariance += variances[a];
+
+                                                }
+                                                sampleMean = sampleMean / referenceRadius;
+                                                sampleVariance = sampleVariance / referenceRadius;
+
+                                                // correlate the reference and sample means and variances
+                                                cov1 = 0;
+                                                cov2 = 0;
+                                                sampleSqrdDev1 = 0;
+                                                sampleSqrdDev2 = 0;
+                                                for (a = 1; a < referenceRadius + 1; a++) {
+                                                    cov1 += (means[a] - sampleMean) * referenceMeanDeviatesDetailed[a];
+                                                    cov2 += (variances[a] - sampleVariance) * referenceVarianceDeviatesDetailed[a];
+                                                    sampleSqrdDev1 += (means[a] - sampleMean) * (means[a] - sampleMean);
+                                                    sampleSqrdDev2 += (variances[a] - sampleVariance) * (variances[a] - sampleVariance);
+
+                                                }
+
+                                                r1 = cov1 / (Math.sqrt(sqrDev1Detailed * sampleSqrdDev1));
+                                                r2 = cov2 / (Math.sqrt(sqrDev2Detailed * sampleSqrdDev2));
+
+
+                                                if (r1 + r2 > maxCorrelations) {
+                                                    maxCorrelations = r1 + r2;
+                                                    maxCorrelation1 = r1;
+                                                    maxCorrelation2 = r2;
+                                                    maxCorrelationCol = col2;
+                                                    maxCorrelationRow = row2;
+                                                }
+
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            if (maxCorrelations > 1.9) {
-                                double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
-                                double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
-                                whitebox.geospatialfiles.shapefile.Point PP = new whitebox.geospatialfiles.shapefile.Point(x2, y2);
-                                Object[] rowData = new Object[2];
-                                rowData[0] = new Double(maxCorrelation1);
-                                rowData[1] = new Double(maxCorrelation2);
-                                output.addRecord(PP, rowData);
+                                if (maxCorrelations > 0.95) { //1.9) {
+                                    double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
+                                    double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
+                                    whitebox.geospatialfiles.shapefile.Point PP = new whitebox.geospatialfiles.shapefile.Point(x2, y2);
+                                    Object[] rowData = new Object[2];
+                                    rowData[0] = new Double(maxCorrelation1);
+                                    rowData[1] = new Double(maxCorrelation2);
+                                    output.addRecord(PP, rowData);
 
 
-                                PP = new whitebox.geospatialfiles.shapefile.Point(refXCoord, refYCoord);
-                                rowData = new Object[2];
-                                rowData[0] = new Double(maxCorrelation1);
-                                rowData[1] = new Double(maxCorrelation2);
-                                output2.addRecord(PP, rowData);
+                                    PP = new whitebox.geospatialfiles.shapefile.Point(refXCoord, refYCoord);
+                                    rowData = new Object[2];
+                                    rowData[0] = new Double(maxCorrelation1);
+                                    rowData[1] = new Double(maxCorrelation2);
+                                    output2.addRecord(PP, rowData);
 
-                                numLocatedPoints++;
-                                
-                                
-                                tiePointsRef.add(new XYPoint(refXCoord, refYCoord));
-                                tiePointsTransform.add(new XYPoint(x2, y2));
-                                entry = new double[]{refXCoord, refYCoord};
-                                controlPointTree.addPoint(entry, (double)numTiePoints);
-                                numTiePoints++;
-                            }
-                            
+                                    numLocatedPoints++;
+
+
+                                    tiePointsRef.add(new XYPoint(refXCoord, refYCoord));
+                                    tiePointsTransform.add(new XYPoint(x2, y2));
+                                    entry = new double[]{refXCoord, refYCoord};
+                                    controlPointTree.addPoint(entry, (double) numTiePoints);
+                                    numTiePoints++;
+                                }
+
 //                            if (maxCorrelation1 > 0.95 && maxCorrelation2 > 0.95) {
 //                                double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
 //                                double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
@@ -1457,7 +1465,7 @@ public class LocateConjugatePrincipalPoint {
 //                                numTiePoints++;
 //                            }
 
-                        }
+                            }
                         }
                     }
                     progress = (int) ((100.0 * r) / rows1);
@@ -1558,6 +1566,40 @@ public class LocateConjugatePrincipalPoint {
                 {points[endIndex][0], points[endIndex][1]}
             };
             return ret;
+        }
+    }
+
+    class XYAndDirection implements Comparable<XYAndDirection> {
+
+        private double x = Double.NEGATIVE_INFINITY;
+        private double y = Double.NEGATIVE_INFINITY;
+        private double direction = Double.NEGATIVE_INFINITY;
+
+        @Override
+        public int compareTo(XYAndDirection o) {
+            final int BEFORE = -1;
+            final int EQUAL = 0;
+            final int AFTER = 1;
+
+            if (this.direction < o.direction) {
+                return BEFORE;
+            } else if (this.direction > o.direction) {
+                return AFTER;
+            }
+
+            if (this.x < o.x) {
+                return BEFORE;
+            } else if (this.x > o.x) {
+                return AFTER;
+            }
+
+            if (this.y < o.y) {
+                return BEFORE;
+            } else if (this.y > o.y) {
+                return AFTER;
+            }
+
+            return EQUAL;
         }
     }
 }
