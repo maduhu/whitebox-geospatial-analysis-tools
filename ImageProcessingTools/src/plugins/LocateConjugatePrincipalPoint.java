@@ -18,6 +18,7 @@ package plugins;
 
 import static java.lang.Math.*;
 import java.util.ArrayList;
+import java.util.List;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
@@ -25,6 +26,7 @@ import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.structures.XYPoint;
 import whitebox.stats.PolynomialLeastSquares2DFitting;
+import whitebox.structures.KdTree;
 
 /**
  *
@@ -42,6 +44,7 @@ public class LocateConjugatePrincipalPoint {
         int referenceRadius;
         int refNeighbourhoodStart = 40;
         int refNeighbourhoodStep = 20;
+        int maxNeighbourhoodSize = 200;
         epsilon = 1.2;
         int polyOrder = 2;
         int[][] xOffset;
@@ -58,6 +61,8 @@ public class LocateConjugatePrincipalPoint {
         boolean[] coarsereferenceRings;
         double z;
         double M = 0, Q = 0;
+        
+        KdTree<Double> controlPointTree = new KdTree.SqrEuclid<>(2, new Integer(2000));
 
         try {
 
@@ -68,7 +73,7 @@ public class LocateConjugatePrincipalPoint {
             String transformedFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-83_Blue.dep";
             //String outputFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/pp mapped.shp";
             //String outputFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/test point2 mapped.shp";
-            String outputFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp7.shp";
+            String outputFile = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp2.shp";
 
             String referenceTiePoints = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/82 tie points.shp";
             String transformedTiePoints = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/83 tie points.shp";
@@ -115,8 +120,8 @@ public class LocateConjugatePrincipalPoint {
             WhiteboxRaster transformedImage = new WhiteboxRaster(transformedFile, "r");
             transformedImage.setForceAllDataInMemory(true);
 
-            int rows2 = transformedImage.getNumberRows();
-            int cols2 = transformedImage.getNumberColumns();
+//            int rows2 = transformedImage.getNumberRows();
+//            int cols2 = transformedImage.getNumberColumns();
             double noData2 = transformedImage.getNoDataValue();
 
             ShapeFile pp1 = new ShapeFile(ppFile1);
@@ -145,10 +150,10 @@ public class LocateConjugatePrincipalPoint {
                 return;
             }
 
-            double[] refX = new double[numTiePoints];
-            double[] refY = new double[numTiePoints];
-            double[] transX = new double[numTiePoints];
-            double[] transY = new double[numTiePoints];
+//            double[] refX = new double[numTiePoints];
+//            double[] refY = new double[numTiePoints];
+//            double[] transX = new double[numTiePoints];
+//            double[] transY = new double[numTiePoints];
 
             ArrayList<XYPoint> tiePointsRef = new ArrayList<>();
             ArrayList<XYPoint> tiePointsTransform = new ArrayList<>();
@@ -292,8 +297,13 @@ public class LocateConjugatePrincipalPoint {
                         flag = false;
                     } else {
                         referenceRadius += refNeighbourhoodStep;
+                        if (referenceRadius > maxNeighbourhoodSize) {
+                            flag = false;
+                        }
                     }
                 } while (flag);
+                
+                if (referenceRadius < maxNeighbourhoodSize) {
 
                 System.out.println("\n" + referenceRadius + "\t" + referenceRadiusN);
 
@@ -571,12 +581,15 @@ public class LocateConjugatePrincipalPoint {
                 }
 
             }
+            }
 
             numTiePoints = tiePointsRef.size();
 
             if (numTiePoints > 2) {
 //                PolynomialLeastSquares2DFitting pls = new PolynomialLeastSquares2DFitting(tiePointsRef,
 //                        tiePointsTransform, 1);
+                List<KdTree.Entry<Double>> results;
+                
                 int newPolyOrder = polyOrder;
                 if (newPolyOrder == 4 && tiePointsRef.size() < 15) {
                     newPolyOrder--;
@@ -586,6 +599,13 @@ public class LocateConjugatePrincipalPoint {
                 }
                 if (newPolyOrder == 2 && tiePointsRef.size() < 6) {
                     newPolyOrder--;
+                }
+                
+                numTiePoints = 0;
+                for (XYPoint tie : tiePointsRef) {
+                    double[] entry = {tie.x, tie.y};
+                    controlPointTree.addPoint(entry, (double)numTiePoints);
+                    numTiePoints++;
                 }
 
                 PolynomialLeastSquares2DFitting pls = new PolynomialLeastSquares2DFitting(
@@ -606,6 +626,34 @@ public class LocateConjugatePrincipalPoint {
 
                         double refXCoord = referenceImage.getXCoordinateFromColumn(c);
                         double refYCoord = referenceImage.getYCoordinateFromRow(r);
+                        
+                        double[] entry = {refXCoord, refYCoord};
+                        int numNearestNeighbours = 12;
+                        if (numTiePoints < 12) {
+                            numNearestNeighbours = numTiePoints;
+                        }
+                        results = controlPointTree.nearestNeighbor(entry, numNearestNeighbours, true);
+                        
+                        j = results.size();
+                        double[] X1 = new double[j];
+                        double[] Y1 = new double[j];
+                        double[] X2 = new double[j];
+                        double[] Y2 = new double[j];
+                        
+                        for (int k = 0; k < j; k++) {
+                            double val = results.get(k).value;
+                            X1[k] = tiePointsRef.get((int)val).x;
+                            Y1[k] = tiePointsRef.get((int)val).y;
+                            X2[k] = tiePointsTransform.get((int)val).x;
+                            Y2[k] = tiePointsTransform.get((int)val).y;
+                            
+                        }
+                        
+                        // calculate the scaling factor
+                        
+                        
+                        pls = new PolynomialLeastSquares2DFitting(X1, Y1, X2, Y2, 1);
+                        
                         XYPoint transCoords = pls.getForwardCoordinates(
                                 refXCoord, refYCoord);
 
@@ -735,9 +783,15 @@ public class LocateConjugatePrincipalPoint {
                                     flag = false;
                                 } else {
                                     referenceRadius += refNeighbourhoodStep;
+                                    if (referenceRadius > maxNeighbourhoodSize) {
+                                        flag = false;
+                                    }
                                 }
                             } while (flag);
 
+                            if (referenceRadius < maxNeighbourhoodSize) {
+                                
+                            
                             double referenceMean = 0;
                             double referenceVariance = 0;
                             double referenceMeanDetailed = 0;
@@ -796,10 +850,10 @@ public class LocateConjugatePrincipalPoint {
                             int n1 = 0;
                             int n2 = 0;
 
-                            int searchWindowSize = (int) rmse * 10;
-                            if (searchWindowSize < 5) {
-                                searchWindowSize = 5;
-                            }
+                            int searchWindowSize = 30; //(int) rmse * 5;
+//                            if (searchWindowSize < 5) {
+//                                searchWindowSize = 5;
+//                            }
                             for (int row2 = transRow - searchWindowSize; row2 <= transRow + searchWindowSize; row2++) { //5400; row2 < 6450; row2++) {
                                 for (int col2 = transCol - searchWindowSize; col2 <= transCol + searchWindowSize; col2++) { //1500; col2 < 2500; col2++) {
                                     n1++;
@@ -960,6 +1014,9 @@ public class LocateConjugatePrincipalPoint {
                                 double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
                                 tiePointsRef.add(new XYPoint(refXCoord, refYCoord));
                                 tiePointsTransform.add(new XYPoint(x2, y2));
+                                entry = new double[]{refXCoord, refYCoord};
+                                controlPointTree.addPoint(entry, (double)numTiePoints);
+                                numTiePoints++;
                                 newPolyOrder = polyOrder;
                                 if (newPolyOrder == 4 && tiePointsRef.size() < 15) {
                                     newPolyOrder--;
@@ -970,13 +1027,14 @@ public class LocateConjugatePrincipalPoint {
                                 if (newPolyOrder == 2 && tiePointsRef.size() < 6) {
                                     newPolyOrder--;
                                 }
-                                if (pls.getPolyOrder() != newPolyOrder) {
-                                    pls.setPolyOrder(newPolyOrder);
-                                }
-                                pls.addData(tiePointsRef, tiePointsTransform);
-                                rmse = pls.getOverallRMSE();
-                                System.out.println("Num. tie points: " + tiePointsRef.size() + " , RMSE: " + rmse);
+//                                if (pls.getPolyOrder() != newPolyOrder) {
+//                                    pls.setPolyOrder(newPolyOrder);
+//                                }
+//                                pls.addData(tiePointsRef, tiePointsTransform);
+//                                rmse = pls.getOverallRMSE();
+                                System.out.println("Num. tie points: " + tiePointsRef.size()); // + " , RMSE: " + rmse);
                             }
+                        }
                         }
                     }
                     progress = (int) ((100.0 * r) / rows1);
@@ -996,13 +1054,35 @@ public class LocateConjugatePrincipalPoint {
 
 
                 int numLocatedPoints = tiePointsRef.size();
-
+                double w1, w2;
+                        
                 oldProgress = -1;
-                for (int r = 0; r < rows1; r += 250) {
-                    for (int c = 0; c < cols1; c += 250) {
+                for (int r = 0; r < rows1; r += 100) {
+                    for (int c = 0; c < cols1; c += 100) {
 
                         double refXCoord = referenceImage.getXCoordinateFromColumn(c);
                         double refYCoord = referenceImage.getYCoordinateFromRow(r);
+                        
+                        double[] entry = {refXCoord, refYCoord};
+                        results = controlPointTree.nearestNeighbor(entry, 15, true);
+                        
+                        j = results.size();
+                        double[] X1 = new double[j];
+                        double[] Y1 = new double[j];
+                        double[] X2 = new double[j];
+                        double[] Y2 = new double[j];
+                        
+                        for (int k = 0; k < j; k++) {
+                            double val = results.get(k).value;
+                            X1[k] = tiePointsRef.get((int)val).x;
+                            Y1[k] = tiePointsRef.get((int)val).y;
+                            X2[k] = tiePointsTransform.get((int)val).x;
+                            Y2[k] = tiePointsTransform.get((int)val).y;
+                            
+                        }
+                        
+                        pls = new PolynomialLeastSquares2DFitting(X1, Y1, X2, Y2, 1);
+                        
                         XYPoint transCoords = pls.getForwardCoordinates(
                                 refXCoord, refYCoord);
 
@@ -1126,15 +1206,24 @@ public class LocateConjugatePrincipalPoint {
                                     }
                                 }
 
+                                w1 = newData1.length / (newData1.length + newData2.length);
+                                w2 = newData2.length / (newData1.length + newData2.length);
+                                
                                 if (newData1.length > 8 && newData2.length > 8 && referenceRadiusN > 12) {
                                     // there must be enough information on both the means data 
                                     // and the variance data.
                                     flag = false;
                                 } else {
                                     referenceRadius += refNeighbourhoodStep;
+                                    if (referenceRadius > maxNeighbourhoodSize) {
+                                        flag = false;
+                                    }
                                 }
                             } while (flag);
 
+                            if (referenceRadius < maxNeighbourhoodSize) {
+                                
+                            
                             double referenceMean = 0;
                             double referenceVariance = 0;
                             double referenceMeanDetailed = 0;
@@ -1349,8 +1438,26 @@ public class LocateConjugatePrincipalPoint {
                                 output2.addRecord(PP, rowData);
 
                                 numLocatedPoints++;
+                                
+                                
+                                tiePointsRef.add(new XYPoint(refXCoord, refYCoord));
+                                tiePointsTransform.add(new XYPoint(x2, y2));
+                                entry = new double[]{refXCoord, refYCoord};
+                                controlPointTree.addPoint(entry, (double)numTiePoints);
+                                numTiePoints++;
                             }
+                            
+//                            if (maxCorrelation1 > 0.95 && maxCorrelation2 > 0.95) {
+//                                double x2 = transformedImage.getXCoordinateFromColumn(maxCorrelationCol);
+//                                double y2 = transformedImage.getYCoordinateFromRow(maxCorrelationRow);
+//                                tiePointsRef.add(new XYPoint(refXCoord, refYCoord));
+//                                tiePointsTransform.add(new XYPoint(x2, y2));
+//                                entry = new double[]{refXCoord, refYCoord};
+//                                controlPointTree.addPoint(entry, (double)numTiePoints);
+//                                numTiePoints++;
+//                            }
 
+                        }
                         }
                     }
                     progress = (int) ((100.0 * r) / rows1);
