@@ -361,7 +361,7 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
                             output.addRecord(recPolyM);
                         } else {
                             // reconstruct the polygon without holes.
-                            ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                            ArrayList<ShapefilePoint> pnts = new ArrayList<>();
                             int numParts = recPolyM.getNumParts() - recPolyM.getNumberOfHoles();
                             int[] outParts = new int[numParts];
                             int[] inParts = recPolyM.getParts();

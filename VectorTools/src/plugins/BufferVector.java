@@ -220,7 +220,7 @@ public class BufferVector implements WhiteboxPlugin {
         outputFile = args[1];
         bufferSize = Double.parseDouble(args[2]);
         
-        if (bufferSize <= 0) {
+        if (bufferSize < 0) {
             showFeedback("The buffer size has not been set properly.");
             return;
         }

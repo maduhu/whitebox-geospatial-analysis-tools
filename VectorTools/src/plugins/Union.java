@@ -231,7 +231,7 @@ public class Union implements WhiteboxPlugin {
         
         shapefiles = inputFilesString.split(";");
         numFiles = shapefiles.length;
-        if (numFiles < 2) {
+        if (numFiles < 1) {
             showFeedback("At least two input vector files must be specified.");
             return;
         }
@@ -240,7 +240,7 @@ public class Union implements WhiteboxPlugin {
             
             com.vividsolutions.jts.geom.Geometry[] recJTSGeometries = null;
             ArrayList<com.vividsolutions.jts.geom.Geometry> inputGeometryList =
-                    new ArrayList<com.vividsolutions.jts.geom.Geometry>();
+                    new ArrayList<>();
             com.vividsolutions.jts.geom.Geometry outputGeometry = null;
                 
             
@@ -287,20 +287,6 @@ public class Union implements WhiteboxPlugin {
                         updateProgress("Loop " + (k + 1) + " of " + numFiles + ": Reading data:", progress);
                     }
                 }
-//                if (k == 0) {
-//                    g1 = factory.buildGeometry(inputGeometryList);
-//                    inputGeometryList.clear();
-//                } else {
-//                    g2 = factory.buildGeometry(inputGeometryList);
-//                    updateProgress("Performing operation (progress will not be updated):", -1);
-//                    try {
-//                        outputGeometry = g1.union(g2);
-//                    } catch (Exception ex) {
-//                        outputGeometry = com.vividsolutions.jts.operation.overlay.snap.SnapOverlayOp.union(g1, g2);
-//                    }
-//                    g1 = (com.vividsolutions.jts.geom.Geometry)outputGeometry.clone();
-//                    inputGeometryList.clear();
-//                }
             }
             
             try {
@@ -313,7 +299,6 @@ public class Union implements WhiteboxPlugin {
             }
             
             ShapeFile output = null;
-//            DBFWriter writer = null;
             
             if (outputGeometry instanceof GeometryCollection) {
                 // set up the output files of the shapefile and the dbf
@@ -338,7 +323,7 @@ public class Union implements WhiteboxPlugin {
                     com.vividsolutions.jts.geom.Geometry gN = outputGeometry.getGeometryN(a);
                     if (gN instanceof LineString) {
                         LineString ls = (LineString) gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = {0};
 
@@ -358,7 +343,7 @@ public class Union implements WhiteboxPlugin {
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYLINE) {
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon)gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
@@ -398,7 +383,7 @@ public class Union implements WhiteboxPlugin {
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYGON) {
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon)gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
