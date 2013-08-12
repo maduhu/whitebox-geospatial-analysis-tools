@@ -382,7 +382,7 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
                     double minY = Double.POSITIVE_INFINITY;
                     double maxY = Double.NEGATIVE_INFINITY;
 
-                    KdTree<Double> pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(numPoints));
+                    KdTree<Double> pointsTree = new KdTree.SqrEuclid<>(2, new Integer(numPoints));
 
 
                     // read the points in
