@@ -1,3 +1,4 @@
+plugins.Aggregate
 plugins.AssignRowOrColNumber
 plugins.CreatePlane
 plugins.InterpolationIDW

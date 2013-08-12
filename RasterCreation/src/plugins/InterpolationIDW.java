@@ -18,11 +18,14 @@ package plugins;
 
 import java.util.Date;
 import java.util.List;
+import whitebox.geospatialfiles.ShapeFile;
+import whitebox.geospatialfiles.shapefile.*;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.structures.KdTree;
 import java.io.*;
+import whitebox.structures.XYPoint;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -33,7 +36,7 @@ public class InterpolationIDW implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
-    
+
     /**
      * Used to retrieve the plugin tool's name. This is a short, unique name
      * containing no spaces.
@@ -218,20 +221,26 @@ public class InterpolationIDW implements WhiteboxPlugin {
         List<KdTree.Entry<Double>> results;
         double sumWeights;
         double noData = -32768;
-        
+
         // get the arguments
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
         inputFilesString = args[0];
-        firstLineHeader = Boolean.parseBoolean(args[1]);
-        outputHeader = args[2];
-        resolution = Double.parseDouble(args[3]);
-        weight = Double.parseDouble(args[4]);
-        numPointsToUse = Integer.parseInt(args[5]);
+        String attributeName = args[1];
+        firstLineHeader = Boolean.parseBoolean(args[2]);
+        outputHeader = args[3];
+        resolution = Double.parseDouble(args[4]);
+        weight = Double.parseDouble(args[5]);
+//        numPointsToUse = Integer.parseInt(args[6]);
         if (!args[6].equalsIgnoreCase("not specified")) {
             maxDist = Double.parseDouble(args[6]);
+        }
+
+        if (maxDist == Double.POSITIVE_INFINITY) {
+            showFeedback("Unspecified maximum distance.");
+            return;
         }
         
         // check to see that the inputHeader and outputHeader are not null.
@@ -243,108 +252,243 @@ public class InterpolationIDW implements WhiteboxPlugin {
         try {
             pointFiles = inputFilesString.split(";");
             int numPointFiles = pointFiles.length;
-            
+
             if (maxDist < Double.POSITIVE_INFINITY) {
                 maxDist = maxDist * maxDist;
             }
-            
+
             updateProgress("Counting the number of points:", 0);
             numPoints = 0;
             for (i = 0; i < numPointFiles; i++) {
-                nlines = countLinesInFile(pointFiles[i]);
-                if (firstLineHeader) {
-                    numPoints += nlines - 1;
+                if (pointFiles[i].endsWith(".shp")) {
+                    ShapeFile inputShape = new ShapeFile(pointFiles[i]);
+                    for (int r = 0; r < inputShape.getNumberOfRecords(); r++) {
+                        double[][] points = inputShape.getRecord(r).getGeometry().getPoints();
+                        numPoints += points.length;
+                    }
                 } else {
-                    numPoints += nlines;
+                    nlines = countLinesInFile(pointFiles[i]);
+                    if (firstLineHeader) {
+                        numPoints += nlines - 1;
+                    } else {
+                        numPoints += nlines;
+                    }
                 }
             }
-            
-            if (numPoints < numPointsToUse) { numPointsToUse = numPoints; }
-            
+
+            if (numPoints < numPointsToUse) {
+                numPointsToUse = numPoints;
+            }
+
             KdTree<Double> pointsTree = new KdTree.SqrEuclid<>(2, new Integer(numPoints));
-            
+
             nlines = 0;
             for (i = 0; i < numPointFiles; i++) {
-                DataInputStream in = null;
-                BufferedReader br = null;
-                try {
-                    // Open the file that is the first command line parameter
-                    FileInputStream fstream = new FileInputStream(pointFiles[i]);
-                    // Get the object of DataInputStream
-                    in = new DataInputStream(fstream);
-
-                    br = new BufferedReader(new InputStreamReader(in));
-
-                    String line;
-                    String[] str;
-                    lineNum = 1;
-                    //Read File Line By Line
-                    while ((line = br.readLine()) != null) {
-                        str = line.split(delimiter);
-                        if (str.length <= 1) {
-                            delimiter = "\t";
-                            str = line.split(delimiter);
-                            if (str.length <= 1) {
-                                delimiter = " ";
-                                str = line.split(delimiter);
-                                if (str.length <= 1) {
-                                    delimiter = ",";
-                                    str = line.split(delimiter);
+                if (pointFiles[i].endsWith(".shp")) {
+                    double[][] vertices;
+                    ShapeFile inputShape = new ShapeFile(pointFiles[i]);
+                    ShapeType shapeType = inputShape.getShapeType();
+                    String[] attributeFieldNames = inputShape.getAttributeTableFields();
+                    int fieldNum = -1;
+                    for (int q = 0; q < attributeFieldNames.length; q++) {
+                        String str = attributeFieldNames[q];
+                        if (str.toLowerCase().trim().equals(attributeName.toLowerCase().trim())) {
+                            fieldNum = q;
+                            break;
+                        }
+                    }
+                    boolean useZ = false;
+                    boolean useM = false;
+                    if (fieldNum < 0) {
+                        if (attributeName.toLowerCase().trim().equals("z") &&
+                                shapeType.getDimension() == ShapeTypeDimension.Z) {
+                            useZ = true;
+                        } else if (attributeName.toLowerCase().trim().equals("m") &&
+                                shapeType.getDimension() == ShapeTypeDimension.M) {
+                            useM = true;
+                        }
+                    }
+                    for (ShapeFileRecord record : inputShape.records) {
+                        int recNumber = record.getRecordNumber();
+                        double[] zArray = null;
+                        double[] mArray = null;
+                        switch (shapeType) {
+                            case POINT:
+                                whitebox.geospatialfiles.shapefile.Point recPoint =
+                                    (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
+                                vertices = recPoint.getPoints();
+                                break;
+                            case POINTZ:
+                                PointZ recPointZ = (PointZ)record.getGeometry();
+                                vertices = recPointZ.getPoints();
+                                zArray = new double[]{recPointZ.getZ()};
+                                break;
+                            case POINTM:
+                                PointM recPointM = (PointM)record.getGeometry();
+                                vertices = recPointM.getPoints();
+                                mArray = new double[]{recPointM.getM()};
+                                break;
+                            case MULTIPOINT:
+                                MultiPoint recMultiPoint = (MultiPoint)record.getGeometry();
+                                vertices = recMultiPoint.getPoints();
+                                break;
+                            case MULTIPOINTZ:
+                                MultiPointZ recMultiPointZ = (MultiPointZ)record.getGeometry();
+                                vertices = recMultiPointZ.getPoints();
+                                zArray = recMultiPointZ.getzArray();
+                                break;
+                            case MULTIPOINTM:
+                                MultiPointM recMultiPointM = (MultiPointM)record.getGeometry();
+                                vertices = recMultiPointM.getPoints();
+                                mArray = recMultiPointM.getmArray();
+                                break;
+                            default:
+                                showFeedback("Invalid shape type for interpolation.");
+                                return;
+                        }
+                        if (!useZ && !useM) {
+                            Object[] rowData = inputShape.getAttributeTable().getRecord(recNumber - 1);
+                            z = (double)rowData[fieldNum];
+                            for (int p = 0; p < vertices.length; p++) {
+                                x = vertices[p][0];
+                                y = vertices[p][1];
+                                double[] entry = {y, x};
+                                pointsTree.addPoint(entry, z);
+                                if (x < minX) {
+                                    minX = x;
+                                }
+                                if (x > maxX) {
+                                    maxX = x;
+                                }
+                                if (y < minY) {
+                                    minY = y;
+                                }
+                                if (y > maxY) {
+                                    maxY = y;
+                                }
+                            }
+                        } else if (useZ && zArray != null) {
+                            for (int p = 0; p < vertices.length; p++) {
+                                x = vertices[p][0];
+                                y = vertices[p][1];
+                                double[] entry = {y, x};
+                                pointsTree.addPoint(entry, zArray[p]);
+                                if (x < minX) {
+                                    minX = x;
+                                }
+                                if (x > maxX) {
+                                    maxX = x;
+                                }
+                                if (y < minY) {
+                                    minY = y;
+                                }
+                                if (y > maxY) {
+                                    maxY = y;
+                                }
+                            }
+                        } else if (useM && mArray != null) {
+                            for (int p = 0; p < vertices.length; p++) {
+                                x = vertices[p][0];
+                                y = vertices[p][1];
+                                double[] entry = {y, x};
+                                pointsTree.addPoint(entry, mArray[p]);
+                                if (x < minX) {
+                                    minX = x;
+                                }
+                                if (x > maxX) {
+                                    maxX = x;
+                                }
+                                if (y < minY) {
+                                    minY = y;
+                                }
+                                if (y > maxY) {
+                                    maxY = y;
                                 }
                             }
                         }
-                        if ((lineNum > 1 || !firstLineHeader) && (str.length >= 3)) {
-                            x = Double.parseDouble(str[0]);
-                            y = Double.parseDouble(str[1]);
-                            z = Double.parseDouble(str[2]);
-                            double[] entry = {y, x};
-                            pointsTree.addPoint(entry, z);
-                            if (x < minX) {
-                                minX = x;
-                            }
-                            if (x > maxX) {
-                                maxX = x;
-                            }
-                            if (y < minY) {
-                                minY = y;
-                            }
-                            if (y > maxY) {
-                                maxY = y;
-                            }
-                        }
-                        lineNum++;
-                        nlines++;
-                        progress = (int) (100d * nlines / numPoints);
-                        updateProgress("Reading point data:", progress);
                     }
-                    //Close the input stream
-                    in.close();
-                    br.close();
-
-                } catch (java.io.IOException e) {
-                    System.err.println("Error: " + e.getMessage());
-                } finally {
+                } else {
+                    DataInputStream in = null;
+                    BufferedReader br = null;
                     try {
-                        if (in != null || br != null) {
-                            in.close();
-                            br.close();
-                        }
-                    } catch (java.io.IOException ex) {
-                    }
+                        // Open the file that is the first command line parameter
+                        FileInputStream fstream = new FileInputStream(pointFiles[i]);
+                        // Get the object of DataInputStream
+                        in = new DataInputStream(fstream);
 
+                        br = new BufferedReader(new InputStreamReader(in));
+
+                        String line;
+                        String[] str;
+                        lineNum = 1;
+                        //Read File Line By Line
+                        while ((line = br.readLine()) != null) {
+                            str = line.split(delimiter);
+                            if (str.length <= 1) {
+                                delimiter = "\t";
+                                str = line.split(delimiter);
+                                if (str.length <= 1) {
+                                    delimiter = " ";
+                                    str = line.split(delimiter);
+                                    if (str.length <= 1) {
+                                        delimiter = ",";
+                                        str = line.split(delimiter);
+                                    }
+                                }
+                            }
+                            if ((lineNum > 1 || !firstLineHeader) && (str.length >= 3)) {
+                                x = Double.parseDouble(str[0]);
+                                y = Double.parseDouble(str[1]);
+                                z = Double.parseDouble(str[2]);
+                                double[] entry = {y, x};
+                                pointsTree.addPoint(entry, z);
+                                if (x < minX) {
+                                    minX = x;
+                                }
+                                if (x > maxX) {
+                                    maxX = x;
+                                }
+                                if (y < minY) {
+                                    minY = y;
+                                }
+                                if (y > maxY) {
+                                    maxY = y;
+                                }
+                            }
+                            lineNum++;
+                            nlines++;
+                            progress = (int) (100d * nlines / numPoints);
+                            updateProgress("Reading point data:", progress);
+                        }
+                        //Close the input stream
+                        in.close();
+                        br.close();
+
+                    } catch (java.io.IOException e) {
+                        System.err.println("Error: " + e.getMessage());
+                    } finally {
+                        try {
+                            if (in != null || br != null) {
+                                in.close();
+                                br.close();
+                            }
+                        } catch (java.io.IOException ex) {
+                        }
+
+                    }
                 }
             }
-            
+
             // What are north, south, east, and west and how many rows and 
             // columns should there be?
-            
+
             west = minX - 0.5 * resolution;
             north = maxY + 0.5 * resolution;
-            nrows = (int)(Math.ceil((north - minY) / resolution));
-            ncols = (int)(Math.ceil((maxX - west) / resolution));
+            nrows = (int) (Math.ceil((north - minY) / resolution));
+            ncols = (int) (Math.ceil((maxX - west) / resolution));
             south = north - nrows * resolution;
             east = west + ncols * resolution;
-            
+
             // create the whitebox header file.
             fw = new FileWriter(outputHeader, false);
             bw = new BufferedWriter(fw);
@@ -386,9 +530,9 @@ public class InterpolationIDW implements WhiteboxPlugin {
                 str1 = "Byte Order:\t" + "BIG_ENDIAN";
             }
             out.println(str1);
-            
+
             out.close();
-            
+
             // Create the whitebox raster object.
             WhiteboxRaster image = new WhiteboxRaster(outputHeader, "rw");
 
@@ -400,7 +544,7 @@ public class InterpolationIDW implements WhiteboxPlugin {
                     easting = (col * resolution) + (west + halfResolution);
                     northing = (north - halfResolution) - (row * resolution);
                     double[] entry = {northing, easting};
-                    results = pointsTree.nearestNeighbor(entry, numPointsToUse, true);
+                    results = pointsTree.neighborsWithinRange(entry, maxDist);
                     sumWeights = 0;
                     for (i = 0; i < results.size(); i++) {
                         if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
@@ -454,7 +598,7 @@ public class InterpolationIDW implements WhiteboxPlugin {
             myHost.pluginComplete();
         }
     }
-    
+
     public int countLinesInFile(String filename) throws IOException {
         InputStream is = new BufferedInputStream(new FileInputStream(filename));
         try {
@@ -473,5 +617,4 @@ public class InterpolationIDW implements WhiteboxPlugin {
             is.close();
         }
     }
-    
 }
