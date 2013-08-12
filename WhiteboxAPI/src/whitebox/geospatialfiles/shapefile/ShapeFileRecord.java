@@ -54,7 +54,7 @@ public class ShapeFileRecord {
         this.pointType = false;
         switch (shapeType) {
             case POINT:
-                this.data = new Point(rawData);
+                this.data = new whitebox.geospatialfiles.shapefile.Point(rawData);
                 this.pointType = true;
                 break;
             case MULTIPOINT:

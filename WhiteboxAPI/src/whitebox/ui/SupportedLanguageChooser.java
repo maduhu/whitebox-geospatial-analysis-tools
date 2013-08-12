@@ -41,9 +41,9 @@ public abstract class SupportedLanguageChooser {
         String[] languages = { "Català (Spain)", "Deutsch (Germany)", "Elliniká (Greece)", 
             "English (Canada)", "English (UK)", "English (US)", "Español (Spain)", 
             "Français (Canada)", "Italiano (Italy)", "Persian (Iran)", "Polski (Poland)",
-            "简体字 (simplified)", "正體字 (traditional)"};
+            "Russian (Russia)", "简体字 (simplified)", "正體字 (traditional)"};
         String[] codes = { "ca_ES", "de_DE", "el_GR", "en_CA", 
-            "en_GB", "en_US", "es_ES", "fr_CA", "it_IT", "fa_IR", "pl_PL", 
+            "en_GB", "en_US", "es_ES", "fr_CA", "it_IT", "fa_IR", "pl_PL", "ru_RU",
             "zh_CN", "zh_TW" };
         
         int selectedIndex = 0;
@@ -102,6 +102,9 @@ public abstract class SupportedLanguageChooser {
                             break;
                         case ("français (canada)"):
                             code = "fr_CA";
+                            break;
+                        case ("russian (russia)"):
+                            code = "ru_RU";
                             break;
                         default:
                             code = "en_CA";

@@ -56,5 +56,14 @@ public interface Communicator {
      * @param args String array containing the parameters to feed to the plugin.
      */
     public void runPlugin(String pluginName, String[] args);
-
+    
+    /**
+     * Used to run a plugin through the Host app.
+     * @param pluginName String containing the descriptive name of the plugin.
+     * @param args String array containing the parameters to feed to the plugin.
+     * @param runOnDedicatedThread  boolean value; set to true if the tool should 
+     *        be run on a dedicated thread and false if it should be run on the 
+     *        same thread as the calling Communicator.
+     */
+    public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread);
 }

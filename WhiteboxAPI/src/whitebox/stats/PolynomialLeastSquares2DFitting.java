@@ -37,6 +37,7 @@ public class PolynomialLeastSquares2DFitting {
     private double[] xCoords2;
     private double[] yCoords2;
     private double[] residualsXY;
+    private double[] residualsOrientation;
     //private boolean[] useGCP;
     private double xMin1;
     private double yMin1;
@@ -114,7 +115,11 @@ public class PolynomialLeastSquares2DFitting {
     public double[] getResidualsXY() {
         return residualsXY;
     }
-
+    
+    public double[] getResidualsOrientation() {
+        return residualsOrientation;
+    }
+    
     public double getOverallRMSE() {
         return overallRMSE;
     }
@@ -261,6 +266,7 @@ public class PolynomialLeastSquares2DFitting {
 
             double[] residualsY = new double[n];
             residualsXY = new double[n];
+            residualsOrientation = new double[n];
             double SSresidY = 0;
             for (i = 0; i < n; i++) {
                 double yHat = 0.0;
@@ -271,6 +277,7 @@ public class PolynomialLeastSquares2DFitting {
                 SSresidY += residualsY[i] * residualsY[i];
                 residualsXY[i] = Math.sqrt(residualsX[i] * residualsX[i]
                         + residualsY[i] * residualsY[i]);
+                residualsOrientation[i] = Math.atan2(residualsY[i], residualsX[i]);
             }
 
 
@@ -333,11 +340,16 @@ public class PolynomialLeastSquares2DFitting {
                 backRegressCoeffY[a] = solution.getEntry(a);
             }
         } catch (Exception e) {
+            e.printStackTrace();
 //            showFeedback("Error in ImageRectificationDialog.calculateEquations: "
 //                    + e.getMessage());
         }
     }
 
+    public XYPoint getForwardCoordinates(XYPoint point) {
+        return getForwardCoordinates(point.x, point.y);
+    }
+    
     public XYPoint getForwardCoordinates(double x, double y) {
         XYPoint ret;
         int j, k, m;
@@ -359,6 +371,10 @@ public class PolynomialLeastSquares2DFitting {
         return ret;
     }
 
+    public XYPoint getBackwardCoordinates(XYPoint point) {
+        return getBackwardCoordinates(point.x, point.y);
+    }
+    
     public XYPoint getBackwardCoordinates(double x, double y) {
         XYPoint ret;
         int j, k, m;

@@ -161,7 +161,12 @@ public class PluginHost implements WhiteboxPluginHost {
     public void returnData(Object ret) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
+    
+    @Override
+    public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     @Override
     public void runPlugin(String pluginName, String[] args) {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -304,4 +309,5 @@ public class PluginHost implements WhiteboxPluginHost {
             }
         }
     }
+
 }

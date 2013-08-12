@@ -52,6 +52,10 @@ public enum ShapeType {
         }
     }
     
+    /**
+     * 
+     * @return ShapeType dimension of either XY, Z, M, or UNKNOWN
+     */
     public ShapeTypeDimension getDimension() {
         switch (this) {
             case POINT:

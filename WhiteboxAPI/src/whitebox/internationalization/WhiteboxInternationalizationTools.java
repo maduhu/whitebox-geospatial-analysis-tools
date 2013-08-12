@@ -74,9 +74,9 @@ public final class WhiteboxInternationalizationTools {
         //String bundleFile = "/Users/johnlindsay/Documents/messages_fr_CA.properties";
         //String outputFile = "/Users/johnlindsay/Documents/messages_fr_CA2.properties";
         
-        String inputFile = "/Users/johnlindsay/Documents/german plugin translations.txt";
-        String bundleFile = "/Users/johnlindsay/Documents/plugins_de_DE.properties";
-        String outputFile = "/Users/johnlindsay/Documents/plugins_de_DE2.properties";
+        String inputFile = "/Users/johnlindsay/Documents/russian plugin translations.txt";
+        String bundleFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_ru_RU.properties";
+        String outputFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_ru_RU2.properties";
         
         
         int numLinesInOutput = 0;
