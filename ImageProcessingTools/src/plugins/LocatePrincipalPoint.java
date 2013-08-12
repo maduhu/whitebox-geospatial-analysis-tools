@@ -293,13 +293,6 @@ public class LocatePrincipalPoint implements WhiteboxPlugin {
             int numMarks = fiducialMarks.size();
 
             if (numMarks == 8) {
-//                BoundingBox bb = new BoundingBox();
-//                for (XYPoint pt : fiducialMarks) {
-//                    if (pt.x > bb.getMaxX()) { bb.setMaxX(pt.x); }
-//                    if (pt.x < bb.getMinX()) { bb.setMinX(pt.x); }
-//                    if (pt.y > bb.getMaxY()) { bb.setMaxY(pt.y); }
-//                    if (pt.y > bb.getMinY()) { bb.setMinY(pt.y); }
-//                }
 
                 double psi = 0;
                 double x, y;

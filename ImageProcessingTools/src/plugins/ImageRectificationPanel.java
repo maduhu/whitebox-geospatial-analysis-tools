@@ -180,8 +180,8 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
 
         JPanel buttonPane = new JPanel();
         buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
-        JButton btnOK = createButton(bundle.getString("OK"), bundle.getString("OK"));
-        JButton btnExit = createButton(bundle.getString("Close"), bundle.getString("Close"));
+        JButton btnOK = createButton(bundle.getString("OK"), bundle.getString("OK"), "ok");
+        JButton btnExit = createButton(bundle.getString("Close"), bundle.getString("Close"), "close");
         //JButton btnRefresh = createButton("Cancel", "Cancel");
 
         buttonPane.add(Box.createHorizontalStrut(10));
@@ -329,10 +329,10 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
         this.validate();
     }
 
-    private JButton createButton(String buttonLabel, String toolTip) {
+    private JButton createButton(String buttonLabel, String toolTip, String actionCommand) {
         JButton btn = new JButton(buttonLabel);
         btn.addActionListener(this);
-        btn.setActionCommand(buttonLabel);
+        btn.setActionCommand(actionCommand);
         btn.setToolTipText(toolTip);
         return btn;
     }
@@ -759,7 +759,7 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
     public void actionPerformed(ActionEvent e) {
         String ac = e.getActionCommand().toLowerCase();
         switch (ac) {
-            case "exit":
+            case "close":
                 JDialog d = (JDialog) SwingUtilities.getAncestorOfClass(JDialog.class, this);
                 d.dispose();
                 cancelOp = true;
