@@ -366,7 +366,7 @@ public class PaletteManager extends JFrame implements ActionListener, MouseMotio
         fc.setFileHidingEnabled(true);
 
         // set the filter.
-        ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
+        ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
         String filterDescription = "Palette Files (*.pal)";
         String[] extensions = {"PAL"};
         ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);

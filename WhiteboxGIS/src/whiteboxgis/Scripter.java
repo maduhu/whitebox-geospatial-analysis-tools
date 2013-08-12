@@ -45,12 +45,11 @@ import static whiteboxgis.Scripter.ScriptingLanguage.JAVASCRIPT;
 import static whiteboxgis.Scripter.ScriptingLanguage.PYTHON;
 
 //import whitebox.utilities.Console;
-
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class Scripter extends JFrame implements ActionListener {
+public class Scripter extends JDialog implements ActionListener {
 
     private String pathSep;
     private String graphicsDirectory;
@@ -73,32 +72,32 @@ public class Scripter extends JFrame implements ActionListener {
     private JCheckBoxMenuItem javascript = new JCheckBoxMenuItem("Javascript");
     private ResourceBundle bundle;
     private JButton generateDataButton;
-    
     public static final String PROP_SCRIPTING_LANGUAGE = "languageChanged";
     public static final String PROP_GENERATE_DATA = "generateData";
-    
+
     public enum ScriptingLanguage {
+
         PYTHON("Python", "#"), GROOVY("Groovy", "//"), JAVASCRIPT("Javascript", "//");
-        
         private String displayName;
         private String commentMarker;
-        
+
         private ScriptingLanguage(String displayName, String commentMarker) {
             this.displayName = displayName;
             this.commentMarker = commentMarker;
         }
-        
+
         public String getCommentMarker() {
             return this.commentMarker;
         }
-        
+
         @Override
         public String toString() {
             return this.displayName;
         }
     }
-    
+
     public Scripter(Frame owner, boolean modal) {
+        super(owner, modal);
         try {
             this.pathSep = File.separator;
             String applicationDirectory = java.net.URLDecoder.decode(getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
@@ -114,18 +113,18 @@ public class Scripter extends JFrame implements ActionListener {
             }
             findGraphicsDirectory(new File(applicationDirectory));
             findScriptDirectory(new File(applicationDirectory));
-            
+
             if (owner != null && owner instanceof Communicator) {
                 host = (Communicator) owner;
                 bundle = host.getGuiLabelsBundle();
             }
-            
+
             initUI();
         } catch (Exception e) {
             handleError(e.getMessage());
         }
     }
-    
+
     private void findScriptDirectory(File dir) {
         File[] files = dir.listFiles();
         for (int x = 0; x < files.length; x++) {
@@ -139,7 +138,7 @@ public class Scripter extends JFrame implements ActionListener {
             }
         }
     }
-    
+
     private void findGraphicsDirectory(File dir) {
         File[] files = dir.listFiles();
         for (int x = 0; x < files.length; x++) {
@@ -153,12 +152,21 @@ public class Scripter extends JFrame implements ActionListener {
             }
         }
     }
-    
+
     private void initUI() {
         try {
 
             if (System.getProperty("os.name").contains("Mac")) {
                 this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+                System.setProperty("apple.laf.useScreenMenuBar", "true");
+                //System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
+                System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
+                //System.setProperty("Xdock:name", "Whitebox");
+                System.setProperty("apple.awt.fileDialogForDirectories", "true");
+
+                System.setProperty("apple.awt.textantialiasing", "true");
+
+                System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
             }
 
             if (System.getProperty("mrj.version") != null) {
@@ -167,7 +175,7 @@ public class Scripter extends JFrame implements ActionListener {
             }
 
             errOut = new PrintWriter(new Scripter.TextAreaWriter(textArea));
-            
+
             initScriptEngine();
 
             this.setTitle("Whitebox Scripter");
@@ -211,41 +219,41 @@ public class Scripter extends JFrame implements ActionListener {
 
     private JToolBar createToolbar() {
         JToolBar toolbar = new JToolBar();
-        
+
         JButton openBtn = makeToolBarButton("open.png", "open", bundle.getString("OpenFile"), "Open");
         toolbar.add(openBtn);
-        
+
         JButton saveBtn = makeToolBarButton("SaveMap.png", "save", bundle.getString("SaveFile"), "Save");
         toolbar.add(saveBtn);
-        
-        JButton printBtn = makeToolBarButton("print.png", "print", 
+
+        JButton printBtn = makeToolBarButton("print.png", "print",
                 bundle.getString("Print"), "Print");
         toolbar.add(printBtn);
-        
+
         toolbar.addSeparator();
-        
+
         JButton executeBtn = makeToolBarButton("Execute.png", "execute",
                 bundle.getString("ExecuteCode"), "Execute");
         toolbar.add(executeBtn);
-        
-        JButton toggleComment = makeToolBarButton("Comment.png", "Comment", 
+
+        JButton toggleComment = makeToolBarButton("Comment.png", "Comment",
                 bundle.getString("ToggleComments"), "Comment");
         toolbar.add(toggleComment);
-        
+
         toolbar.addSeparator();
-        
-        JButton clearConsole = makeToolBarButton("ClearConsole.png", "clearConsole", 
+
+        JButton clearConsole = makeToolBarButton("ClearConsole.png", "clearConsole",
                 bundle.getString("ClearConsole"), bundle.getString("ClearConsole"));
         toolbar.add(clearConsole);
-        
+
         toolbar.addSeparator();
-        
-        generateDataButton = makeToolBarButton("GenerateData.png", "generateData", 
+
+        generateDataButton = makeToolBarButton("GenerateData.png", "generateData",
                 bundle.getString("GenerateColumnData"), "Generate Data");
         toolbar.add(generateDataButton);
-        
+
         showGenerateDataButton(false);
-        
+
         return toolbar;
 
     }
@@ -279,15 +287,15 @@ public class Scripter extends JFrame implements ActionListener {
             close.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             close.addActionListener(this);
             fileMenu.add(close);
-            
+
             fileMenu.addSeparator();
-            
+
             JMenuItem exit = new JMenuItem(bundle.getString("Exit"));
             exit.setActionCommand("exit");
             exit.addActionListener(this);
             exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             fileMenu.add(exit);
-            
+
             menubar.add(fileMenu);
 
             JMenu languageMenu = new JMenu(bundle.getString("Language"));
@@ -314,16 +322,16 @@ public class Scripter extends JFrame implements ActionListener {
             execute.addActionListener(this);
             execute.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             sourceMenu.add(execute);
-            
+
             sourceMenu.addSeparator();
             JMenuItem toggleComments = new JMenuItem(bundle.getString("ToggleComments"));
             toggleComments.setActionCommand("toggleComments");
             toggleComments.addActionListener(this);
             toggleComments.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             sourceMenu.add(toggleComments);
-            
+
             menubar.add(sourceMenu);
-            
+
 
             this.setJMenuBar(menubar);
 
@@ -331,7 +339,7 @@ public class Scripter extends JFrame implements ActionListener {
             handleError(e.getMessage());
         }
     }
-    
+
     private JButton makeToolBarButton(String imageName, String actionCommand, String toolTipText, String altText) {
         //Look for the image.
         String imgLocation = graphicsDirectory + imageName;
@@ -348,17 +356,17 @@ public class Scripter extends JFrame implements ActionListener {
         }
         button.setOpaque(false);
         button.setBorderPainted(false);
-        
+
         try {
             button.setIcon(image);
         } catch (Exception e) {
             button.setText(altText);
             handleError(e.getMessage());
         }
-        
+
         return button;
     }
-    
+
     private void handleError(String msg) {
         errOut.append(msg + "\n");
     }
@@ -372,10 +380,10 @@ public class Scripter extends JFrame implements ActionListener {
             PrintWriter out = new PrintWriter(new Scripter.TextAreaWriter(textArea));
             //StreamReader in = new StreamReader(new TextAreaReader(textArea));
             engine.getContext().setWriter(out);
-            
+
             //engine.put("WhiteboxHost", host);
             engine.put("PluginHost", (WhiteboxPluginHost) host);
-            
+
             // update the statusbar
             ScriptEngineFactory scriptFactory = engine.getFactory();
             statusLabel.setText(bundle.getString("ScriptingLanguage") + ": " + scriptFactory.getLanguageName());
@@ -385,7 +393,7 @@ public class Scripter extends JFrame implements ActionListener {
     }
 
     private void openFile() {
-        
+
         JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setMultiSelectionEnabled(false);
@@ -398,13 +406,13 @@ public class Scripter extends JFrame implements ActionListener {
         fc.addChoosableFileFilter(ft);
         ft = new FileNameExtensionFilter("Python " + bundle.getString("Files"), "py");
         fc.addChoosableFileFilter(ft);
-        
+
         int result = fc.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
             sourceFile = file.toString();
             //String fileDirectory = file.getParentFile() + pathSep;
-            
+
             if (sourceFile.toLowerCase().contains(".py")) {
                 language = Scripter.ScriptingLanguage.PYTHON;
             } else if (sourceFile.toLowerCase().contains(".groovy")) {
@@ -442,7 +450,7 @@ public class Scripter extends JFrame implements ActionListener {
             editor.setCaretPosition(0);
         }
     }
-    
+
     private void save() {
         if (sourceFile == null) {
             String extension = "";
@@ -455,9 +463,9 @@ public class Scripter extends JFrame implements ActionListener {
                     break;
                 case JAVASCRIPT:
                     extension = ".js";
-                    break; 
+                    break;
             }
-            
+
             JFileChooser fc = new JFileChooser();
             fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
             fc.setMultiSelectionEnabled(false);
@@ -471,7 +479,7 @@ public class Scripter extends JFrame implements ActionListener {
             ft = new FileNameExtensionFilter("Python " + bundle.getString("Files"), "py");
             fc.addChoosableFileFilter(ft);
             //fc.setFileFilter(ft);
-        
+
             fc.setCurrentDirectory(new File(scriptsDirectory));
             int result = fc.showSaveDialog(this);
             File file = null;
@@ -508,7 +516,7 @@ public class Scripter extends JFrame implements ActionListener {
                 } else if (sourceFile.toLowerCase().contains(".js")) {
                     language = Scripter.ScriptingLanguage.JAVASCRIPT;
                 }
-                
+
             } else {
                 return;
             }
@@ -538,12 +546,12 @@ public class Scripter extends JFrame implements ActionListener {
             }
         }
     }
-    
+
     private void saveAs() {
         sourceFile = null;
         save();
     }
-    
+
     private void print() {
         try {
             editor.print();
@@ -560,7 +568,7 @@ public class Scripter extends JFrame implements ActionListener {
             errOut.append(e.getMessage() + "\n");
         }
     }
-    
+
     private void comment() {
         String lineCommentStart = language.getCommentMarker();
 
@@ -618,15 +626,15 @@ public class Scripter extends JFrame implements ActionListener {
             this.firePropertyChange("generateData", false, true);
         }
     }
-    
+
     public void setLanguage(Scripter.ScriptingLanguage lang) {
-        
-        
+
+
         Scripter.ScriptingLanguage oldLang = this.language;
         if (lang == null) {
             return;
         }
-        
+
         switch (lang) {
             case PYTHON:
                 groovy.setState(false);
@@ -641,46 +649,47 @@ public class Scripter extends JFrame implements ActionListener {
                 python.setState(false);
                 break;
         }
-        
+
         language = lang;
-        
+
         editor.setContentType("text/" + language);
         initScriptEngine();
-        
+
         this.firePropertyChange(PROP_SCRIPTING_LANGUAGE, oldLang, lang);
     }
-    
+
     public void showGenerateDataButton(boolean show) {
         generateDataButton.setVisible(show);
     }
-    
+
     /**
      * Creates a CompiledScript object using the provided text and the currently
      * selected ScriptEngine.
+     *
      * @param script
-     * @return 
+     * @return
      */
     public CompiledScript compileScript() {
         try {
-             
+
             CompiledScript compiled = ((Compilable) engine).compile(this.editor.getText());
-            
+
             return compiled;
         } catch (ScriptException e) {
             System.out.println(e);
         }
-        
+
         return null;
     }
-    
+
     public Bindings createBindingsObject() {
         return engine.createBindings();
     }
-    
+
     public void setEditorText(String text) {
         this.editor.setText(text);
     }
-    
+
     public Scripter.ScriptingLanguage getLanguage() {
         return this.language;
     }

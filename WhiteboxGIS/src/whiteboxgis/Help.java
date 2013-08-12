@@ -16,6 +16,7 @@
  */
 package whiteboxgis;
 
+import whiteboxgis.user_interfaces.ViewCodeDialog;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Frame;

@@ -43,8 +43,9 @@ public class Main {
         try {
 //            //setLookAndFeel("Nimbus");
 //            setLookAndFeel("systemLAF");
-//
+////
 //            if (System.getProperty("os.name").contains("Mac")) {
+//                UIManager.put("apple.awt.brushMetalLook", Boolean.TRUE);
 //                System.setProperty("apple.laf.useScreenMenuBar", "true");
 //                System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
 //                System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
@@ -84,6 +85,20 @@ public class Main {
     private void launchProgram() {
         try {
 
+//            if (System.getProperty("os.name").contains("Mac")) {
+//                    System.setProperty("apple.awt.brushMetalLook", "true");
+//                    System.setProperty("apple.laf.useScreenMenuBar", "true");
+//                    System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
+//                    System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
+//                    System.setProperty("Xdock:name", "Whitebox");
+//                    System.setProperty("apple.awt.fileDialogForDirectories", "true");
+//
+//                    System.setProperty("apple.awt.textantialiasing", "true");
+//
+//                    System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
+//                }
+
+            
             pathSep = File.separator;
             applicationDirectory = java.net.URLDecoder.decode(getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
             if (applicationDirectory.endsWith(".exe") || applicationDirectory.endsWith(".jar")) {
@@ -149,6 +164,7 @@ public class Main {
 
                 System.exit(0);
             } else {
+
                 WhiteboxGui.main(args);
             }
         } catch (Exception e) {

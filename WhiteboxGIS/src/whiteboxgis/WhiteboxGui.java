@@ -16,6 +16,7 @@
  */
 package whiteboxgis;
 
+import whiteboxgis.user_interfaces.ViewCodeDialog;
 import whiteboxgis.user_interfaces.PaletteManager;
 import whiteboxgis.user_interfaces.AttributesFileViewer;
 import whiteboxgis.user_interfaces.AboutWhitebox;
@@ -193,13 +194,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     public static void main(String[] args) {
         try {
+            
             //setLookAndFeel("Nimbus");
             setLookAndFeel("systemLAF");
             if (System.getProperty("os.name").contains("Mac")) {
+                System.setProperty("apple.awt.brushMetalLook", "true");
                 System.setProperty("apple.laf.useScreenMenuBar", "true");
-                //System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
+                System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
                 System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
-                //System.setProperty("Xdock:name", "Whitebox");
+                System.setProperty("Xdock:name", "Whitebox");
                 System.setProperty("apple.awt.fileDialogForDirectories", "true");
 
                 System.setProperty("apple.awt.textantialiasing", "true");
@@ -274,6 +277,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     public WhiteboxGui() {
         super("Whitebox GAT " + versionName);
+        
         try {
             // initialize the pathSep and GraphicsDirectory variables
             pathSep = File.separator;
@@ -756,6 +760,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     @Override
+    public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread) {
+        try {
+            if (!runOnDedicatedThread) {
+                WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.SIMPLE_NAME);
+                plug.setPluginHost(this);
+                plug.setArgs(args);
+                plug.run();
+                
+            } else {
+                runPlugin(pluginName, args);
+            }
+            //pool.submit(plug);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "WhiteboxGui.runPlugin", e);
+            //System.err.println(e.getLocalizedMessage());
+        }
+    }
+
+    @Override
     public void runPlugin(String pluginName, String[] args) {
         try {
             WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.SIMPLE_NAME);
@@ -814,6 +837,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //                    frame.setVisible(true);
 //                } catch (Exception e) {
 //                }
+                } else if (retStr.toLowerCase().startsWith("newmap")) {
+                    String mapName = "NewMap";
+                    if (retStr.contains(":")) {
+                        String[] val = retStr.split(":");
+                        mapName = val[val.length - 1].trim();
+                    }
+                    newMap(mapName);
                 } else {
                     // display the text area, if it's not already.
                     if (splitPane3.getDividerLocation() / splitPane3.getHeight() < 0.75) {
@@ -906,7 +936,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 descriptiveName = pluginBundle.getString(plug.getName());
             } else {
                 descriptiveName = plug.getDescriptiveName();
-            }   
+            }
             ToolDialog dlg = new ToolDialog(this, false, plug.getName(), descriptiveName, helpFile);
             dlg.setSize(800, 400);
             dlg.setVisible(true);
@@ -1269,6 +1299,23 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void createGui() {
         try {
+            if (System.getProperty("os.name").contains("Mac")) {
+
+                try {
+                    Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
+                    Class params[] = new Class[2];
+                    params[0] = Window.class;
+                    params[1] = Boolean.TYPE;
+                    Method method = util.getMethod("setWindowCanFullScreen", params);
+                    method.invoke(util, this, true);
+                } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
+                    logger.log(Level.SEVERE, "WhiteboxGui.createGui", e);
+                }
+
+                //this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+                UIManager.put("apple.awt.brushMetalLook", Boolean.TRUE);
+            }
+            
             // add the menubar and toolbar
             createMenu();
             createPopupMenus();
@@ -1328,21 +1375,22 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             // add the status bar
             this.getContentPane().add(status, java.awt.BorderLayout.SOUTH);
 
-            if (System.getProperty("os.name").contains("Mac")) {
-
-                try {
-                    Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
-                    Class params[] = new Class[2];
-                    params[0] = Window.class;
-                    params[1] = Boolean.TYPE;
-                    Method method = util.getMethod("setWindowCanFullScreen", params);
-                    method.invoke(util, this, true);
-                } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
-                    logger.log(Level.SEVERE, "WhiteboxGui.createGui", e);
-                }
-
-                this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
-            }
+//            if (System.getProperty("os.name").contains("Mac")) {
+//
+//                try {
+//                    Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
+//                    Class params[] = new Class[2];
+//                    params[0] = Window.class;
+//                    params[1] = Boolean.TYPE;
+//                    Method method = util.getMethod("setWindowCanFullScreen", params);
+//                    method.invoke(util, this, true);
+//                } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
+//                    logger.log(Level.SEVERE, "WhiteboxGui.createGui", e);
+//                }
+//
+//                //this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+//                UIManager.put("apple.awt.brushMetalLook", Boolean.TRUE);
+//            }
             this.setMinimumSize(new Dimension(700, 500));
             this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
 
@@ -3485,6 +3533,33 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         selectedMapAndLayer[2] = -1;
     }
 
+    private void newMap(String mapName) {
+        numOpenMaps++;
+        MapInfo mapinfo = new MapInfo(mapName);
+        mapinfo.setMapName(mapName);
+        mapinfo.setWorkingDirectory(workingDirectory);
+        mapinfo.setPageFormat(defaultPageFormat);
+        mapinfo.setDefaultFont(defaultFont);
+        mapinfo.setMargin(defaultMapMargin);
+
+        MapArea ma = new MapArea(bundle.getString("MapArea").replace(" ", "") + "1");
+        ma.setUpperLeftX(-32768);
+        ma.setUpperLeftY(-32768);
+        ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
+        mapinfo.addNewCartographicElement(ma);
+
+        openMaps.add(mapinfo); //new MapInfo(str));
+        activeMap = numOpenMaps - 1;
+        drawingArea.setMapInfo(openMaps.get(activeMap));
+        drawingArea.repaint();
+
+        updateLayersTab();
+
+        selectedMapAndLayer[0] = -1;
+        selectedMapAndLayer[1] = -1;
+        selectedMapAndLayer[2] = -1;
+    }
+
     private void newMap() {
 
         String str = JOptionPane.showInputDialog(messages.getString("NewMapName")
@@ -5281,7 +5356,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         }
         if (ma.getNumLayers() == 0) {
-            showFeedback(messages.getString("NoRasters"));
+            showFeedback(messages.getString("NoRaster"));
             return;
         }
         if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER) {

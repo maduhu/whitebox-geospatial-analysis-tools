@@ -375,4 +375,9 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
             host.logMessage(level, message);
         }
     }
+
+    @Override
+    public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

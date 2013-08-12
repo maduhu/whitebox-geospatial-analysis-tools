@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package whiteboxgis;
 
 import java.awt.event.ActionEvent;
@@ -36,27 +35,37 @@ import javax.swing.event.HyperlinkListener;
  */
 public class HTMLViewer extends JFrame implements HyperlinkListener {
 
-    private ArrayList<String> helpHistory = new ArrayList<String>();
+    private ArrayList<String> helpHistory = new ArrayList<>();
     private int helpHistoryIndex = 0;
     JEditorPane helpPane = new JEditorPane();
-    
+
     public HTMLViewer(String fileOrURL) throws Exception {
 
         if (System.getProperty("os.name").contains("Mac")) {
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+
+            System.setProperty("apple.laf.useScreenMenuBar", "true");
+            //System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Whitebox GAT");
+            System.setProperty("com.apple.mrj.application.growbox.intrudes", "true");
+            //System.setProperty("Xdock:name", "Whitebox");
+            System.setProperty("apple.awt.fileDialogForDirectories", "true");
+
+            System.setProperty("apple.awt.textantialiasing", "true");
+
+            System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
         }
 
-        if (System.getProperty("mrj.version") != null) {
-            System.setProperty("com.apple.macos.useScreenMenuBar", "true");
-            System.setProperty("apple.laf.useScreenMenuBar", "true");
-        }
-        
+//        if (System.getProperty("mrj.version") != null) {
+//            System.setProperty("com.apple.macos.useScreenMenuBar", "true");
+//            System.setProperty("apple.laf.useScreenMenuBar", "true");
+//        }
+
         helpPane.addHyperlinkListener(this);
         helpPane.setContentType("text/html");
-        
+
         JScrollPane helpScroll = new JScrollPane(helpPane);
         this.getContentPane().add(helpScroll);
-        
+
         if (helpHistoryIndex == helpHistory.size() - 1) {
             helpHistory.add(fileOrURL);
             helpHistoryIndex = helpHistory.size() - 1;
@@ -71,11 +80,11 @@ public class HTMLViewer extends JFrame implements HyperlinkListener {
             helpPane.setPage(new URL("file:///" + fileOrURL));
         } catch (IOException e) {
             System.err.println(e.getStackTrace());
-        } 
+        }
 
         // first off, is it a file or string?
 //        if (fileOrURL.toLowerCase().endsWith(".html")) {
-            this.setTitle("HTML Viewer: " + (new File(fileOrURL)).getName());
+        this.setTitle("HTML Viewer: " + (new File(fileOrURL)).getName());
 
 //        // This optional step initializes logging so only warnings
 //        // are printed out.
@@ -89,8 +98,7 @@ public class HTMLViewer extends JFrame implements HyperlinkListener {
 //
 //        }
     }
-    
-    
+
     @Override
     public void hyperlinkUpdate(HyperlinkEvent event) {
         if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -111,5 +119,4 @@ public class HTMLViewer extends JFrame implements HyperlinkListener {
             }
         }
     }
-
 }
