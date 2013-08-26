@@ -36,7 +36,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
  *
  * @author johnlindsay
  */
-public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListener  {
+public class MapAreaPropertyGrid extends JPanel implements PropertyChangeListener {
     
     private MapArea mapArea;
     private int rightMargin = 10;

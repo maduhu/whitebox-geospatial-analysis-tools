@@ -673,6 +673,57 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
     }
 
     /**
+     * Increments the value of a specified cell in the raster grid by one.
+     *
+     * @param row The zero-based row number.
+     * @param column The zero-based column number.
+     */
+    public void incrementValue(int row, int column) {
+        if (saveChanges && column >= 0 && column < this.numberColumns
+                && row >= 0 && row < this.numberRows) {
+            // what is the cell number?
+            long cellNum = (long) (row) * numberColumns + column;
+
+            if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
+                if (isDirty) {
+                    writeDataBlock();
+                }
+                numReads++;
+                // Figure out a new blockstartingcell
+                if (previousRow < row) {
+                    if (currentReadDirection == -1) {
+                        currentReadDirection = 0;
+                    }
+                    if (currentReadDirection != 0) {
+                        currentReadDirection = 0;
+                        numSwitchReadDirections++;
+                        switchRatio = (double) numSwitchReadDirections / numReads;
+                    }
+                    blockStartingCell = (long) (cellNum - halfBlockSize * switchRatio);
+                } else {
+                    if (currentReadDirection == -1) {
+                        currentReadDirection = 1;
+                    }
+                    if (currentReadDirection != 1) {
+                        currentReadDirection = 1;
+                        numSwitchReadDirections++;
+                        switchRatio = (double) numSwitchReadDirections / numReads;
+                    }
+                    blockStartingCell = (long) (cellNum - (blockSize - (switchRatio * halfBlockSize)));
+                }
+                previousRow = row;
+                if (blockStartingCell < 0) {
+                    blockStartingCell = 0;
+                }
+                readDataBlock();
+            }
+
+            grid[(int) (cellNum - blockStartingCell)]++;
+            isDirty = true;
+        }
+    }
+    
+    /**
      * Decrements the value of a specified cell in the raster grid.
      *
      * @param row The zero-based row number.
@@ -720,6 +771,57 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             }
 
             grid[(int) (cellNum - blockStartingCell)] -= value;
+            isDirty = true;
+        }
+    }
+    
+    /**
+     * Decrements the value of a specified cell in the raster grid by one.
+     *
+     * @param row The zero-based row number.
+     * @param column The zero-based column number.
+     */
+    public void decrementValue(int row, int column) {
+        if (saveChanges && column >= 0 && column < this.numberColumns
+                && row >= 0 && row < this.numberRows) {
+            // what is the cell number?
+            long cellNum = (long) (row) * numberColumns + column;
+
+            if ((cellNum > blockEndingCell) || (cellNum < blockStartingCell)) {
+                if (isDirty) {
+                    writeDataBlock();
+                }
+                numReads++;
+                // Figure out a new blockstartingcell
+                if (previousRow < row) {
+                    if (currentReadDirection == -1) {
+                        currentReadDirection = 0;
+                    }
+                    if (currentReadDirection != 0) {
+                        currentReadDirection = 0;
+                        numSwitchReadDirections++;
+                        switchRatio = (double) numSwitchReadDirections / numReads;
+                    }
+                    blockStartingCell = (long) (cellNum - halfBlockSize * switchRatio);
+                } else {
+                    if (currentReadDirection == -1) {
+                        currentReadDirection = 1;
+                    }
+                    if (currentReadDirection != 1) {
+                        currentReadDirection = 1;
+                        numSwitchReadDirections++;
+                        switchRatio = (double) numSwitchReadDirections / numReads;
+                    }
+                    blockStartingCell = (long) (cellNum - (blockSize - (switchRatio * halfBlockSize)));
+                }
+                previousRow = row;
+                if (blockStartingCell < 0) {
+                    blockStartingCell = 0;
+                }
+                readDataBlock();
+            }
+
+            grid[(int) (cellNum - blockStartingCell)]--;
             isDirty = true;
         }
     }

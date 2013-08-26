@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,39 +24,33 @@ import java.util.ArrayList;
 import java.io.*;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import whitebox.interfaces.DialogComponent;
 import whitebox.interfaces.Communicator;
 import javax.swing.event.HyperlinkListener;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import whitebox.utilities.FileUtilities;
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ToolDialog extends JDialog implements Communicator, ActionListener, HyperlinkListener {
+public class ScriptDialog extends JDialog implements Communicator, ActionListener, HyperlinkListener {
 
     private JButton ok = new JButton("OK");
     private JButton close = new JButton("Close");
     private JButton viewCode = new JButton("View Code");
     private JButton back = new JButton();
     private JButton forward = new JButton();
+    private JButton newHelp = new JButton();
+    private JButton modifyHelp = new JButton();
     private JEditorPane helpPane = new JEditorPane();
     private JScrollPane mainScrollPane = null; //new JScrollPane();
     private JPanel mainPanel = new JPanel();
     private String helpFile = "";
-    private String parameterFile = "";
     private String graphicsDirectory = "";
     private String workingDirectory = "";
     private String applicationDirectory = "";
     private String resourcesDirectory = "";
     private String logDirectory = "";
-    private String pluginName = "";
     private String pathSep = "";
     private String sourceFile = "";
     private ArrayList<DialogComponent> components = new ArrayList<>();
@@ -64,65 +58,39 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     private boolean automaticallyClose = true;
     private ArrayList<String> helpHistory = new ArrayList<>();
     private int helpHistoryIndex = 0;
+    private ActionListener buttonActionListener = null;
+    private ResourceBundle bundle;
+    private ResourceBundle messages;
 
-    public ToolDialog(Frame owner, boolean modal, String title) {
-        super(owner, modal);
+    public ScriptDialog(Frame owner, String title, ActionListener buttonActionListener) {
+        super(owner, false);
         pathSep = File.separator;
         host = (Communicator) owner;
         workingDirectory = host.getWorkingDirectory();
         applicationDirectory = host.getApplicationDirectory();
         resourcesDirectory = host.getResourcesDirectory();
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
+        bundle = host.getGuiLabelsBundle();
+        messages = host.getMessageBundle();
+        
         setTitle(title);
+
+        this.buttonActionListener = buttonActionListener;
+
         createGui();
-    }
-
-    public ToolDialog(Frame owner, boolean modal, String pluginName, String title, String helpFile) {
-        super(owner, modal);
-        pathSep = File.separator;
-        host = (Communicator) owner;
-        workingDirectory = host.getWorkingDirectory();
-        this.helpFile = helpFile;
-        this.helpHistory.add(helpFile);
-        this.pluginName = pluginName;
-        applicationDirectory = host.getApplicationDirectory();
-        resourcesDirectory = host.getResourcesDirectory();
-        parameterFile = resourcesDirectory + "plugins"
-                + pathSep + "Dialogs" + pathSep + pluginName + ".xml";
-        // see if the parameterFile exists.
-        if (!(new File(parameterFile).exists())) {
-            host.showFeedback("The tool's parameter file could not be located.");
-        }
-        graphicsDirectory = resourcesDirectory + "Images" + pathSep;
-
-        createGui(title);
-    }
-
-    public ToolDialog(Communicator com, boolean modal, String pluginName, String title, String helpFile) {
-        //super(owner, modal);
-        pathSep = File.separator;
-        host = com;
-        workingDirectory = host.getWorkingDirectory();
-        this.helpFile = helpFile;
-        this.helpHistory.add(helpFile);
-        this.pluginName = pluginName;
-        applicationDirectory = host.getApplicationDirectory();
-        resourcesDirectory = host.getResourcesDirectory();
-        parameterFile = resourcesDirectory + "plugins"
-                + pathSep + "Dialogs" + pathSep + pluginName + ".xml";
-        // see if the parameterFile exists.
-        if (!(new File(parameterFile).exists())) {
-            host.showFeedback("The tool's parameter file could not be located.");
-        }
-        graphicsDirectory = resourcesDirectory + "Images" + pathSep;
-
-        createGui(title);
     }
 
     private void createGui() {
         if (System.getProperty("os.name").contains("Mac")) {
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         }
+        
+        ok = new JButton(bundle.getString("Run"));
+        close = new JButton(bundle.getString("Close"));
+        viewCode = new JButton(bundle.getString("ViewCode"));
+        newHelp = new JButton(bundle.getString("NewHelp"));
+        modifyHelp = new JButton(bundle.getString("ModifyHelp"));
+
         String imgLocation = null;
         ImageIcon image = null;
 
@@ -132,9 +100,6 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
         mainScrollPane = new JScrollPane(mainPanel);
 
-//        drawMainPanel();
-        //mainScrollPane.setMinimumSize(new Dimension(380, 100));
-
         JScrollPane helpScroll = new JScrollPane(helpPane);
 
         Box box2 = Box.createHorizontalBox();
@@ -142,25 +107,43 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         box2.add(ok);
         ok.setActionCommand("ok");
         ok.addActionListener(this);
+        if (buttonActionListener != null) {
+            ok.addActionListener(buttonActionListener);
+        }
         box2.add(Box.createRigidArea(new Dimension(5, 30)));
         box2.add(close);
         close.setActionCommand("close");
         close.addActionListener(this);
+        if (buttonActionListener != null) {
+            close.addActionListener(buttonActionListener);
+        }
+
         box2.add(Box.createHorizontalStrut(5));
 
-//        File sourceFileDir = new File(resourcesDirectory + "plugins" + 
-//                pathSep + "source_files");
-//        findSourceFile(sourceFileDir);
-//        // see if the source file exists.
-//        if (sourceFile.length() > 0) {
-            viewCode.setActionCommand("viewCode");
-            viewCode.addActionListener(this);
-            viewCode.setVisible(false);
-            box2.add(viewCode);
-//        }
+        viewCode.setActionCommand("viewCode");
+        viewCode.addActionListener(this);
+        viewCode.setVisible(false);
+        box2.add(viewCode);
 
         box2.add(Box.createHorizontalGlue());
+        
+        // create the newHelp button
+        newHelp.setActionCommand("newHelp");
+        newHelp.setToolTipText("Create New HelpEntry");
+        newHelp.addActionListener(this);
+        newHelp.setVisible(false);
+        box2.add(newHelp);
+        box2.add(Box.createHorizontalStrut(5));
+        
+        // create the newHelp button
+        modifyHelp.setActionCommand("modifyHelp");
+        modifyHelp.setToolTipText("Modify Help File");
+        modifyHelp.addActionListener(this);
+        modifyHelp.setVisible(false);
+        box2.add(modifyHelp);
+        box2.add(Box.createHorizontalStrut(5));
 
+        
         // create the back button
         imgLocation = graphicsDirectory + "HelpBack.png";
         image = new ImageIcon(imgLocation, "");
@@ -189,126 +172,17 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         box2.add(forward);
         box2.add(Box.createHorizontalStrut(10));
 
-        JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainScrollPane, helpScroll); //mainScrollPane, helpScroll);
+        JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainScrollPane, helpScroll); 
         splitter.setDividerLocation(365);
         splitter.setResizeWeight(0.0);
         splitter.setDividerSize(4);
 
         this.getContentPane().add(splitter, BorderLayout.CENTER);
         this.getContentPane().add(box2, BorderLayout.SOUTH);
-        
+
         pack();
 
         setSize(800, 400);
-        
-        // Centre the dialog on the screen.
-        // Get the size of the screen
-        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        int screenHeight = dim.height;
-        int screenWidth = dim.width;
-        setSize(screenWidth / 2, screenHeight / 2);
-        setLocation(screenWidth / 4, screenHeight / 4);
-    }
-
-    private void createGui(String title) {
-        if (System.getProperty("os.name").contains("Mac")) {
-            this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
-        }
-        String imgLocation = null;
-        ImageIcon image = null;
-
-        helpPane.addHyperlinkListener(this);
-        helpPane.setContentType("text/html");
-        drawMainPanel();
-        //mainScrollPane.setMinimumSize(new Dimension(380, 100));
-
-        JScrollPane helpScroll = new JScrollPane(helpPane);
-
-        Box box2 = Box.createHorizontalBox();
-        box2.add(Box.createHorizontalStrut(10));
-        box2.add(ok);
-        ok.setActionCommand("ok");
-        ok.addActionListener(this);
-        box2.add(Box.createRigidArea(new Dimension(5, 30)));
-        box2.add(close);
-        close.setActionCommand("close");
-        close.addActionListener(this);
-        box2.add(Box.createHorizontalStrut(5));
-
-        File sourceFileDir = new File(resourcesDirectory + "plugins"
-                + pathSep + "source_files"); // + pathSep + pluginName + ".java";
-        findSourceFile(sourceFileDir);
-        // see if the source file exists.
-        if (sourceFile.length() > 0) {
-            viewCode.setActionCommand("viewCode");
-            viewCode.addActionListener(this);
-            box2.add(viewCode);
-        }
-
-        box2.add(Box.createHorizontalGlue());
-
-        // create the back button
-        imgLocation = graphicsDirectory + "HelpBack.png";
-        image = new ImageIcon(imgLocation, "");
-        back.setActionCommand("back");
-        back.setToolTipText("back");
-        back.addActionListener(this);
-        try {
-            back.setIcon(image);
-        } catch (Exception e) {
-            back.setText("<");
-        }
-        box2.add(back);
-        box2.add(Box.createHorizontalStrut(5));
-
-        // create the forward button
-        imgLocation = graphicsDirectory + "HelpForward.png";
-        image = new ImageIcon(imgLocation, "");
-        forward.setActionCommand("forward");
-        forward.setToolTipText("forward");
-        forward.addActionListener(this);
-        try {
-            forward.setIcon(image);
-        } catch (Exception e) {
-            forward.setText(">");
-        }
-        box2.add(forward);
-        box2.add(Box.createHorizontalStrut(10));
-
-        JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainScrollPane, helpScroll); //mainScrollPane, helpScroll);
-        splitter.setDividerLocation(365);
-        splitter.setResizeWeight(0.0);
-        splitter.setDividerSize(4);
-
-        //Box box3 = Box.createHorizontalBox();
-        //box3.add(mainScrollPane);
-        //box3.add(helpScroll);
-        this.getContentPane().add(splitter, BorderLayout.CENTER);
-        //this.getContentPane().add(box3, BorderLayout.CENTER);
-        this.getContentPane().add(box2, BorderLayout.SOUTH);
-
-
-        File hlp = new File(helpFile);
-
-        if (!hlp.exists()) {
-            // use the NoHelp.html file.
-            helpFile = resourcesDirectory + "Help" + pathSep + "other" + pathSep + "NoHelp.html";
-        }
-
-        helpPane.setEditable(false);
-        try {
-            //URL helpURL = getClass().getResource(helpFile);
-            //helpPane.setPage(helpURL);
-            helpPane.setPage("file:" + helpFile);
-        } catch (IOException e) {
-            System.err.println(e.getStackTrace());
-        }
-
-        //mainScrollPane.setSize(750, 750);
-
-        setTitle(title);
-
-        pack();
 
         // Centre the dialog on the screen.
         // Get the size of the screen
@@ -318,7 +192,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         setSize(screenWidth / 2, screenHeight / 2);
         setLocation(screenWidth / 4, screenHeight / 4);
     }
-    
+
     public void addDialogCheckBox(String description, String labelText,
             boolean initialState) {
         String[] args = new String[4];
@@ -332,7 +206,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         components.add(dcb);
         mainPanel.add(dcb);
     }
-    
+
     public void addDialogDataInput(String description, String labelText,
             String initialText, boolean numericalInput, boolean makeOptional) {
         String[] args = new String[6];
@@ -369,7 +243,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         components.add(df);
         mainPanel.add(df);
     }
-    
+
     public void addDialogMultiFile(String description, String labelText,
             String filter) {
         String[] args = new String[4];
@@ -377,13 +251,13 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         args[1] = description;
         args[2] = labelText;
         args[3] = filter;
-        
+
         DialogMultiFile dmf = new DialogMultiFile(host);
         dmf.setArgs(args);
         components.add(dmf);
         mainPanel.add(dmf);
     }
-    
+
     public void addDialogFieldSelector(String description, String labelText,
             boolean allowMultipleSelection) {
         String[] args = new String[4];
@@ -398,7 +272,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         components.add(dfs);
         mainPanel.add(dfs);
     }
-    
+
     public void addDialogComboBox(String description, String labelText,
             String[] listItems, int defaultItem) {
         String[] args = new String[5];
@@ -421,7 +295,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         components.add(dcb);
         mainPanel.add(dcb);
     }
-    
+
     public void addDialogOption(String description, String labelText,
             String button1String, String button2String) {
         String[] args = new String[5];
@@ -435,169 +309,6 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         d.setArgs(args);
         components.add(d);
         mainPanel.add(d);
-    }
-    
-    private void drawMainPanel() {
-        try {
-            //Box box = Box.createVerticalBox();
-            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
-            String[] args;
-
-            File file = new File(parameterFile);
-
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(file);
-            doc.getDocumentElement().normalize();
-            Node topNode = doc.getFirstChild();
-            Element docElement = doc.getDocumentElement();
-
-            NodeList nl = docElement.getElementsByTagName("DialogComponent");
-            String componentType = "";
-            if (nl != null && nl.getLength() > 0) {
-                for (int i = 0; i < nl.getLength(); i++) {
-
-                    Element el = (Element) nl.item(i);
-                    componentType = el.getAttribute("type");
-
-                    if (componentType.equals("DialogFile")) {
-                        args = new String[7];
-                        args[0] = getTextValue(el, "Name");
-                        args[1] = getTextValue(el, "Description");
-                        args[2] = getTextValue(el, "LabelText");
-                        String dialogMode = getTextValue(el, "DialogMode");
-                        if (dialogMode.toLowerCase().contains("open")) {
-                            args[3] = Integer.toString(DialogFile.MODE_OPEN);
-                        } else {
-                            args[3] = Integer.toString(DialogFile.MODE_SAVEAS);
-                        }
-                        args[4] = getTextValue(el, "ShowButton").toLowerCase();
-                        args[5] = getTextValue(el, "Filter");
-                        args[6] = getTextValue(el, "MakeOptional").toLowerCase();
-
-                        DialogFile df = new DialogFile(this);
-                        df.setArgs(args);
-                        components.add(df);
-                        mainPanel.add(df);
-                        //box.add(df);
-                    } else if (componentType.equals("DialogMultiFile")) {
-                        args = new String[4];
-                        args[0] = getTextValue(el, "Name");
-                        args[1] = getTextValue(el, "Description");
-                        args[2] = getTextValue(el, "LabelText");
-                        args[3] = getTextValue(el, "Filter");
-
-                        DialogMultiFile dmf = new DialogMultiFile(this);
-                        dmf.setArgs(args);
-                        components.add(dmf);
-                        mainPanel.add(dmf);
-                        //box.add(dmf);
-                    } else if (componentType.equals("DialogCheckBox")) {
-                        args = new String[4];
-                        args[0] = getTextValue(el, "Name");
-                        args[1] = getTextValue(el, "Description");
-                        args[2] = getTextValue(el, "LabelText");
-                        args[3] = getTextValue(el, "InitialState").toLowerCase();
-
-                        DialogCheckBox dc = new DialogCheckBox();
-                        dc.setArgs(args);
-                        components.add(dc);
-                        mainPanel.add(dc);
-                        //box.add(dc);
-                    } else if (componentType.equals("DialogComboBox")) {
-                        args = new String[5];
-                        args[0] = getTextValue(el, "Name");
-                        args[1] = getTextValue(el, "Description");
-                        args[2] = getTextValue(el, "LabelText");
-                        args[3] = getTextValue(el, "ListItems");
-                        args[4] = getTextValue(el, "DefaultItem");
-
-                        DialogComboBox cb = new DialogComboBox();
-                        cb.setArgs(args);
-                        components.add(cb);
-                        mainPanel.add(cb);
-                        //box.add(cb);
-                    } else if (componentType.equals("DialogDataInput")) {
-                        args = new String[6];
-                        args[0] = getTextValue(el, "Name");
-                        args[1] = getTextValue(el, "Description");
-                        args[2] = getTextValue(el, "LabelText");
-                        args[3] = getTextValue(el, "InitialText");
-                        args[4] = getTextValue(el, "NumericalInputOnly").toLowerCase();
-                        args[5] = getTextValue(el, "MakeOptional").toLowerCase();
-
-                        DialogDataInput di = new DialogDataInput();
-                        di.setArgs(args);
-                        components.add(di);
-                        mainPanel.add(di);
-                        //box.add(di);
-                    } else if (componentType.equals("DialogOption")) {
-                        args = new String[5];
-                        args[0] = getTextValue(el, "Name");
-                        args[1] = getTextValue(el, "Description");
-                        args[2] = getTextValue(el, "LabelText");
-                        args[3] = getTextValue(el, "Button1Label");
-                        args[4] = getTextValue(el, "Button2Label");
-
-                        DialogOption opt = new DialogOption();
-                        opt.setArgs(args);
-                        components.add(opt);
-                        mainPanel.add(opt);
-                        //box.add(opt);
-                    } else if (componentType.equals("DialogReclassGrid")) {
-                        args = new String[2];
-                        args[0] = getTextValue(el, "Name");
-                        args[1] = getTextValue(el, "Description");
-
-                        DialogReclassGrid drg = new DialogReclassGrid(this);
-                        drg.setArgs(args);
-                        components.add(drg);
-                        mainPanel.add(drg);
-                    } else if (componentType.equals("DialogWeightedMultiFile")) {
-                        args = new String[4];
-                        args[0] = getTextValue(el, "Name");
-                        args[1] = getTextValue(el, "Description");
-                        args[2] = getTextValue(el, "ShowCheck");
-                        args[3] = getTextValue(el, "Filter");
-
-                        DialogWeightedMultiFile dwmf = new DialogWeightedMultiFile(this);
-                        dwmf.setArgs(args);
-                        components.add(dwmf);
-                        mainPanel.add(dwmf);
-                    } else if (componentType.equals("Label")) {
-                        args = new String[2];
-                        args[0] = getTextValue(el, "Name");
-                        args[1] = getTextValue(el, "LabelText");
-                        Box box = Box.createHorizontalBox();
-                        JLabel lbl = new JLabel(args[1]);
-                        box.add(Box.createHorizontalStrut(5));
-                        box.add(lbl);
-                        box.add(Box.createHorizontalGlue());
-                        mainPanel.add(box);
-                    }
-                }
-            }
-
-            //box.setBackground(Color.DARK_GRAY);
-            //mainPanel.add(box);
-            mainScrollPane = new JScrollPane(mainPanel);
-        } catch (Exception e) {
-            showFeedback(e.getMessage());
-        }
-    }
-
-    private String getTextValue(Element ele, String tagName) {
-        String textVal = "";
-        try {
-            NodeList nl = ele.getElementsByTagName(tagName);
-            if (nl != null && nl.getLength() > 0) {
-                Element el = (Element) nl.item(0);
-                textVal = el.getFirstChild().getNodeValue();
-            }
-        } catch (Exception e) {
-        } finally {
-            return textVal;
-        }
     }
 
     private String[] collectValues() {
@@ -687,33 +398,40 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     public void setAutomaticallyClose(boolean value) {
         automaticallyClose = value;
     }
-    
+
     public void setSourceFile(String file) {
         sourceFile = file;
         if (new File(sourceFile).exists()) {
             viewCode.setVisible(true);
         }
     }
-    
+
+    String scriptsHelpFile = null;
     public void setHelpFile(String newHelpFile) {
         this.helpFile = newHelpFile;
-        
+
         if (!helpFile.contains(pathSep)) {
             helpFile = resourcesDirectory + "Help" + pathSep + helpFile;
         }
         if (!helpFile.endsWith(".html")) {
             helpFile = this.helpFile + ".html";
         }
-        
+
         File hlp = new File(helpFile);
 
+        scriptsHelpFile = helpFile;
         if (!hlp.exists()) {
             // use the NoHelp.html file.
             helpFile = resourcesDirectory + "Help" + pathSep + "other" + pathSep + "NoHelp.html";
+            newHelp.setVisible(true);
+            modifyHelp.setVisible(false);
+        } else {
+            modifyHelp.setVisible(true);
+            newHelp.setVisible(false);
         }
-        
+
         this.helpHistory.add(helpFile);
-        
+
         helpPane.setEditable(false);
         try {
             //URL helpURL = getClass().getResource(helpFile);
@@ -721,7 +439,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             helpPane.setPage("file:" + helpFile);
         } catch (IOException e) {
             System.err.println(e.getStackTrace());
-        } 
+        }
     }
 
     /**
@@ -755,6 +473,16 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             this.dispose();
         }
     }
+    
+    
+    @Override
+    public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread, boolean suppressReturnedData) {
+        host.runPlugin(pluginName, args, runOnDedicatedThread, suppressReturnedData);
+        if (automaticallyClose) {
+            //this.setVisible(false);
+            this.dispose();
+        }
+    }
 
     private void back() {
         if (helpHistoryIndex == 0) {
@@ -782,18 +510,6 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
 
     }
 
-    private void findSourceFile(File dir) {
-        File[] files = dir.listFiles();
-        for (int x = 0; x < files.length; x++) {
-            if (files[x].isDirectory()) {
-                findSourceFile(files[x]);
-            } else if (files[x].toString().contains(pluginName + ".java")) {
-                sourceFile = files[x].toString();
-                break;
-            }
-        }
-    }
-
     public String[] collectParameters() {
         String[] args = collectValues();
         if (userButtonSelection == 1) {
@@ -814,6 +530,43 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         return userButtonSelection;
     }
 
+    private void newHelp() {
+        String helpDirectory = host.getResourcesDirectory() + "Help" + pathSep;
+        
+        // grab the text within the "NewHelp.txt" file in the helpDirectory;
+        String defaultHelp = helpDirectory + "NewHelp.txt";
+        if (!(new File(defaultHelp)).exists()) {
+            showFeedback(messages.getString("NoHelp"));
+            return;
+        }
+        try {
+            String defaultText = FileUtilities.readFileAsString(defaultHelp);
+            // now place this text into the new file.
+            FileUtilities.fillFileWithString(scriptsHelpFile, defaultText);
+
+            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(scriptsHelpFile), true);
+            vcd.setSize(new Dimension(800, 600));
+            vcd.setVisible(true);
+        } catch (IOException ioe) {
+            showFeedback(messages.getString("HelpNotRead"));
+            return;
+        }
+    }
+
+    private void modifyHelp() {
+        String helpDirectory = host.getResourcesDirectory() + "Help" + pathSep;
+        
+        // grab the text within the "NewHelp.txt" file in the helpDirectory;
+        if (!(new File(scriptsHelpFile)).exists()) {
+            showFeedback(messages.getString("NoHelpDirectory"));
+            return;
+        }
+        ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(scriptsHelpFile), true);
+        vcd.setSize(new Dimension(800, 600));
+        vcd.setVisible(true);
+
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -821,31 +574,21 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         if (actionCommand.equals("close")) {
             userButtonSelection = 2;
             this.setVisible(false);
-            //this.dispose();
         } else if (actionCommand.equals("ok")) {
             userButtonSelection = 1;
             this.setVisible(false);
-//            String[] args = collectValues();
-//            boolean containsNull = false;
-//            for (int i = 0; i < args.length; i++) {
-//                if (args[i] == null) {
-//                    containsNull = true;
-//                    showFeedback("Parameter " + components.get(i).getComponentName() + " has not been specified. The tool will not execute.");
-//                    break;
-//                }
-//            }
-//
-//            if (!containsNull) {
-//                runPlugin(pluginName, args);
-//            }
         } else if (actionCommand.equals("viewCode") && sourceFile != null) {
-            ViewCodeDialog vcd = new ViewCodeDialog((Frame)host, new File(sourceFile), false);
+            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(sourceFile), false);
             vcd.setSize(new Dimension(800, 600));
             vcd.setVisible(true);
         } else if (actionCommand.equals("back")) {
             back();
         } else if (actionCommand.equals("forward")) {
             forward();
+        } else if (actionCommand.equals("newHelp")) {
+            newHelp();
+        } else if (actionCommand.equals("modifyHelp")) {
+            modifyHelp();
         }
     }
 
@@ -913,15 +656,6 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     public void logMessage(Level level, String message) {
         if (host != null) {
             host.logMessage(level, message);
-        }
-    }
-
-    @Override
-    public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread, boolean suppressReturnedData) {
-        host.runPlugin(pluginName, args, runOnDedicatedThread, suppressReturnedData);
-        if (automaticallyClose) {
-            //this.setVisible(false);
-            this.dispose();
         }
     }
 }

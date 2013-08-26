@@ -22,6 +22,7 @@ package whitebox.plugins;
  */
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -60,7 +61,6 @@ public class ClasspathUtils {
         URL urls[] = sysLoader.getURLs();
         for (int i = 0; i < urls.length; i++) {
             if (urls[i].toString().equalsIgnoreCase(u.toString())) {
-                //System.err.println("URL " + u + " is already in the CLASSPATH");
                 return;
             }
         }
@@ -69,8 +69,7 @@ public class ClasspathUtils {
             Method method = sysclass.getDeclaredMethod("addURL", parameters);
             method.setAccessible(true);
             method.invoke(sysLoader, new Object[]{u});
-        } catch (Throwable t) {
-            t.printStackTrace();
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
             throw new IOException("Error, could not add URL to system classloader");
         }
     }

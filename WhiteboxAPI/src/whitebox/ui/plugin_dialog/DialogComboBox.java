@@ -64,18 +64,22 @@ public class DialogComboBox extends JPanel implements ActionListener, DialogComp
         }
     }
     
+    @Override
     public String getValue() {
         return value.trim();
     }
     
+    @Override
     public String getComponentName() {
         return name;
     }
     
+    @Override
     public boolean getOptionalStatus() {
         return false;
     }
     
+    @Override
     public boolean setArgs(String[] args) {
         try {
             // first make sure that there are the right number of args

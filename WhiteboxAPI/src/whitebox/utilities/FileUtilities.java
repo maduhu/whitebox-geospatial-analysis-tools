@@ -49,6 +49,10 @@ public class FileUtilities {
         }
     }
     
+    public static ArrayList<String> findAllFilesWithExtension(String dir, String extension, boolean searchSubDirectories) {
+        return findAllFilesWithExtension(new File(dir), extension, searchSubDirectories);
+    }
+    
     private static ArrayList<String> foundFiles = new ArrayList<>();
     private static boolean recursive;
     public static ArrayList<String> findAllFilesWithExtension(File dir, String extension, boolean searchSubDirectories) {

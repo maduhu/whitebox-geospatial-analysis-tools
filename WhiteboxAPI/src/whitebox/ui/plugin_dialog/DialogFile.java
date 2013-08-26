@@ -61,17 +61,6 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
      * 
      * @param host Communicator
      */
-    public DialogFile() {
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.setMaximumSize(new Dimension(2500, 50));
-        this.setPreferredSize(new Dimension(350, 50));
-        resourcesDirectory = hostDialog.getResourcesDirectory();
-        pathSep = File.separator;
-        graphicsDirectory = resourcesDirectory + "Images" + pathSep;
-        workingDirectory = hostDialog.getWorkingDirectory();
-            
-    }
-    
     public DialogFile(Communicator host) {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.setMaximumSize(new Dimension(2500, 50));

@@ -42,7 +42,7 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
     private int numArgs = 4;
     private String name;
     private String description;
-    private ArrayList<String> value = new ArrayList<String>();
+    private ArrayList<String> value = new ArrayList<>();
     private JLabel label;
     private JButton button = new JButton();
     private JButton delButton = new JButton();
@@ -52,7 +52,7 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
     private String workingDirectory;
     private String resourcesDirectory;
     private String pathSep;
-    private ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
+    private ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
     private Communicator hostDialog = null;
     
     public DialogMultiFile(Communicator host) {
@@ -124,6 +124,7 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
         }
     }
     
+    @Override
     public String getValue() {
         String ret = "";
         for (int a = 0; a < value.size(); a++) {
@@ -132,14 +133,17 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
         return ret;
     }
     
+    @Override
     public String getComponentName() {
         return name;
     }
     
+    @Override
     public boolean getOptionalStatus() {
         return false;
     }
     
+    @Override
     public boolean setArgs(String[] args) {
         try {
             // first make sure that there are the right number of args
@@ -160,6 +164,7 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
         }
     }
     
+    @Override
     public String[] getArgsDescriptors() {
         String[] argsDescriptors = new String[numArgs];
         argsDescriptors[0] = "String name";

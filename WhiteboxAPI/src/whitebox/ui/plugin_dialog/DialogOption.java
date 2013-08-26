@@ -88,18 +88,22 @@ public class DialogOption extends JPanel implements ActionListener, DialogCompon
         }
     }
     
+    @Override
     public String getValue() {
         return value.trim();
     }
     
+    @Override
     public String getComponentName() {
         return name;
     }
     
+    @Override
     public boolean getOptionalStatus() {
         return false;
     }
     
+    @Override
     public boolean setArgs(String[] args) {
         try {
             // first make sure that there are the right number of args
@@ -119,6 +123,7 @@ public class DialogOption extends JPanel implements ActionListener, DialogCompon
         }
     }
     
+    @Override
     public String[] getArgsDescriptors() {
         String[] argsDescriptors = new String[numArgs];
         argsDescriptors[0] = "String name";
@@ -129,6 +134,7 @@ public class DialogOption extends JPanel implements ActionListener, DialogCompon
         return argsDescriptors;
     }
     
+    @Override
     public void actionPerformed(ActionEvent e) {
         value = e.getActionCommand();
     }

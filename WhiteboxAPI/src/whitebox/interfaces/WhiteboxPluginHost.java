@@ -31,22 +31,6 @@ public interface WhiteboxPluginHost extends Communicator {
      */
     public void editVector();
     
-//    public String getWorkingDirectory();
-//    
-//    public void setWorkingDirectory(String workingDirectory);
-//    
-//    public String getApplicationDirectory();
-//    
-//    public void setApplicationDirectory(String applicationDirectory);
-//    
-//    public String getResourcesDirectory();
-//    
-//    public String getLogDirectory();
-//    
-//    public ResourceBundle getGuiLabelsBundle();
-//    
-//    public ResourceBundle getMessageBundle();
-    
     public String getLanguageCountryCode();
 
     public void setLanguageCountryCode(String code);
@@ -114,5 +98,15 @@ public interface WhiteboxPluginHost extends Communicator {
      * @return  default font
      */
     public Font getDefaultFont();
+    
+    /**
+     * Used to communicate a request to cancel an operation
+     */
+    public boolean isRequestForOperationCancelSet();
+    
+    /**
+     * Used to ensure that there is no active cancel operation request
+     */
+    public void resetRequestForOperationCancel();
     
 }

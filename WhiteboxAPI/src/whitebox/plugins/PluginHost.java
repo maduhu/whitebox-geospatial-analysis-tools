@@ -91,7 +91,7 @@ public class PluginHost implements WhiteboxPluginHost {
                 } while (helpDirectory == null && seedDirectory.length() > 0);
             }
             
-            pluginService = PluginServiceFactory.createPluginService(applicationDirectory); //pluginsDirectory);
+            pluginService = PluginServiceFactory.createPluginService(applicationDirectory);
             pluginService.initPlugins();
             plugInfo = pluginService.getPluginList();
             return true;
@@ -308,6 +308,21 @@ public class PluginHost implements WhiteboxPluginHost {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean isRequestForOperationCancelSet() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void resetRequestForOperationCancel() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread, boolean suppressReturnedData) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

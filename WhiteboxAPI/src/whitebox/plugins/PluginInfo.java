@@ -29,6 +29,7 @@ public class PluginInfo implements Comparable<PluginInfo> {
     private int numTimesUsed = 0;
     private Date lastUsed = new Date(Long.MIN_VALUE);
     private byte sortMode = 0;
+    private boolean script = false;
     
     public static final byte SORT_MODE_USAGE = 0;
     public static final byte SORT_MODE_RECENT = 1;
@@ -40,11 +41,12 @@ public class PluginInfo implements Comparable<PluginInfo> {
     }
     
     public PluginInfo(String name, String descriptiveName, 
-            String description, byte sortMode) {
+            String description, byte sortMode, boolean isScript) {
         this.name = name;
         this.descriptiveName = descriptiveName;
         this.description = description;
         this.sortMode = sortMode;
+        this.script = isScript;
     }
     
     public String getName() {
@@ -97,6 +99,14 @@ public class PluginInfo implements Comparable<PluginInfo> {
     
     public void setSortMode(byte sortMode) {
         this.sortMode = sortMode;
+    }
+    
+    public void setScript(boolean isScript) {
+        this.script = isScript;
+    }
+    
+    public boolean isScript() {
+        return this.script;
     }
     
     @Override

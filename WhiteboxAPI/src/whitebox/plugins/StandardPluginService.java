@@ -151,7 +151,7 @@ public class StandardPluginService implements PluginService {
             }
             
             plugInfo.add(new PluginInfo(plugin.getName(), plugDescriptiveName,
-                    plugDescription, PluginInfo.SORT_MODE_USAGE));
+                    plugDescription, PluginInfo.SORT_MODE_USAGE, false));
 //            plugInfo.add(new PluginInfo(plugin.getName(), 
 //                    plugin.getDescriptiveName(), plugin.getToolDescription(),
 //                    PluginInfo.SORT_MODE_USAGE));

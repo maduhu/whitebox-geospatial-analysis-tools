@@ -2,11 +2,25 @@ package whitebox.utilities;
 
 import java.text.DecimalFormatSymbols;
 
+
 /**
  *
  * @author johnlindsay
  */
 public abstract class StringUtilities {
+
+    public static boolean isNumeric(String str) {
+        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+    }
+
+    public static boolean isInteger(String str) {
+        return str.matches("([0-9]*)\\.[0]");
+    }
+
+    public static boolean isBoolean(String str) {
+        return str.toLowerCase().trim().equals("true")
+                || str.toLowerCase().trim().equals("false");
+    }
 
     public static boolean isStringNumeric(String str) {
         try {
