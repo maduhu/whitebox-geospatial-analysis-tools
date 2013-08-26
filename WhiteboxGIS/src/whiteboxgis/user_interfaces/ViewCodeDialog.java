@@ -26,82 +26,113 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import jsyntaxpane.DefaultSyntaxKit;
+//import jsyntaxpane.DefaultSyntaxKit;
 import whitebox.interfaces.Communicator;
 import whitebox.utilities.FileUtilities;
+import org.fife.ui.rtextarea.*;
+import org.fife.ui.rsyntaxtextarea.*;
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ViewCodeDialog extends JFrame implements ActionListener {
+
     private String pathSep;
     private String resourcesDirectory;
     private String sourceFile;
     private String pluginName;
     private Communicator host = null;
-    private JEditorPane editor = new JEditorPane();
-    private JScrollPane scroll = new JScrollPane();
+    //private JEditorPane editor = new JEditorPane();
+    //private JScrollPane scroll = new JScrollPane();
+    private RSyntaxTextArea editor = new RSyntaxTextArea();
+    private RTextScrollPane scroll;
     private boolean editable = false;
     private String fileExtension = "java";
-    
+
     public ViewCodeDialog(Frame owner, String pluginName, String title) {
         host = (Communicator) owner;
         this.pathSep = File.separator;
         this.resourcesDirectory = host.getResourcesDirectory();
         this.pluginName = pluginName;
-        File sourceFileDir = new File(resourcesDirectory + "plugins" + 
-                pathSep + "source_files");
+        File sourceFileDir = new File(resourcesDirectory + "plugins"
+                + pathSep + "source_files");
         findSourceFile(sourceFileDir);
-        
+
         if (!(new File(this.sourceFile).exists())) {
             host.showFeedback("The tool's source file could not be located.");
         }
-        
+
         createGui(title);
     }
-    
+
     public ViewCodeDialog(Frame owner, File fileName, boolean editable) {
         host = (Communicator) owner;
         this.sourceFile = fileName.toString();
-        
+
         if (!(new File(this.sourceFile).exists())) {
             host.showFeedback("The tool's source file could not be located.");
         }
-        
+
         this.editable = editable;
-        
+
         createGui(fileName.getName());
     }
-    
+
     private void createGui(String title) {
         if (System.getProperty("os.name").contains("Mac")) {
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         }
-        
+
         this.setTitle(title);
-        
+
         // find the file extension
         fileExtension = FileUtilities.getFileExtension(sourceFile);
-        
-        scroll = new JScrollPane(editor);
-        this.getContentPane().add(scroll);
+
+        editor.setCodeFoldingEnabled(true);
+        editor.setAntiAliasingEnabled(true);
+        editor.setCloseCurlyBraces(true);
+        editor.setBracketMatchingEnabled(true);
+        editor.setAutoIndentEnabled(true);
+        editor.setMarkOccurrences(true);
+        editor.setCloseMarkupTags(true);
+        scroll = new RTextScrollPane(editor);
+        scroll.setFoldIndicatorEnabled(true);
+
+        //scroll = new JScrollPane(editor);
+//        this.getContentPane().add(scroll);
         Container c = this.getContentPane();
         c.add(scroll);
         c.doLayout();
-        
-        DefaultSyntaxKit.initKit();
-        if (fileExtension.toLowerCase().equals("java")) {
-            editor.setContentType("text/java");
-        } else if (fileExtension.toLowerCase().equals("html")) {
-            editor.setContentType("text/xhtml");
-        } else {
-            // does not support this type of file.
-            host.showFeedback("Unsupported file type.");
-            return;
+        //        DefaultSyntaxKit.initKit();
+        switch (fileExtension.toLowerCase()) {
+            case "java":
+                editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+                //editor.setContentType("text/java");
+                break;
+            case "html":
+                editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
+                //editor.setContentType("text/xhtml");
+                break;
+            case "py":
+                editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
+                break;
+            case "groovy":
+                editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
+                break;
+            case "js":
+                editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
+                break;
+            case "scala":
+                editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SCALA);
+                break;
+            default:
+                // does not support this type of file.
+                host.showFeedback("Unsupported file type.");
+                return;
         }
-        editor.setEditable(true);
-        
+//        editor.setEditable(true);
+
         DataInputStream in = null;
         BufferedReader br = null;
         try {
@@ -113,7 +144,7 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
             br = new BufferedReader(new InputStreamReader(in));
             String line;
             String str = "";
-                
+
             if (this.sourceFile != null) {
                 //Read File Line By Line
                 while ((line = br.readLine()) != null) {
@@ -122,15 +153,14 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
             }
             editor.setText(str);
         } catch (Exception e) {
-            
         }
-        
+
         editor.setEditable(editable);
         editor.setCaretPosition(0);
-        
+
         createMenu();
     }
-    
+
     private void createMenu() {
         try {
             JMenuBar menubar = new JMenuBar();
@@ -146,7 +176,7 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
             JMenuItem save = new JMenuItem("Save");
             FileMenu.add(save);
             save.setActionCommand("save");
-            save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 
+            save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
                     Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             save.addActionListener(this);
             save.setVisible(editable);
@@ -156,22 +186,22 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
             saveAs.setActionCommand("saveAs");
             saveAs.addActionListener(this);
             saveAs.setVisible(editable);
-            
+
             JMenuItem close = new JMenuItem("Quit");
             FileMenu.add(close);
             close.setActionCommand("quit");
-            close.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, 
+            close.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q,
                     Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             close.addActionListener(this);
 
             menubar.add(FileMenu);
-            
+
             this.setJMenuBar(menubar);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
-    
+
     private void findSourceFile(File dir) {
         File[] files = dir.listFiles();
         for (int x = 0; x < files.length; x++) {
@@ -183,9 +213,9 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
             }
         }
     }
-    
+
     private void saveAs() {
-            JFileChooser fc = new JFileChooser();
+        JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setMultiSelectionEnabled(false);
         fc.setAcceptAllFileFilterUsed(true);
@@ -223,7 +253,7 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
         } else {
             return;
         }
-        
+
         file = new File(sourceFile);
         FileWriter fw = null;
         BufferedWriter bw = null;
@@ -248,7 +278,7 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
             }
         }
     }
-    
+
     private void save() {
         if (sourceFile == null) {
             JFileChooser fc = new JFileChooser();
@@ -315,7 +345,7 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
             }
         }
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -323,15 +353,14 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
         if (actionCommand.equals("quit")) {
             this.dispose();
         } else if (actionCommand.equals("save")) {
-            if (editable) { 
-                save(); 
+            if (editable) {
+                save();
             }
         } else if (actionCommand.equals("saveAs")) {
             if (editable) {
                 saveAs();
             }
         } else if (actionCommand.equals("open")) {
-            
         }
     }
 }

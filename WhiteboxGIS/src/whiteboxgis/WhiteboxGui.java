@@ -16,6 +16,7 @@
  */
 package whiteboxgis;
 
+import whiteboxgis.user_interfaces.Scripter;
 import whiteboxgis.user_interfaces.ViewCodeDialog;
 import whiteboxgis.user_interfaces.PaletteManager;
 import whiteboxgis.user_interfaces.AttributesFileViewer;
@@ -35,9 +36,11 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import javax.script.*;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.*;
@@ -52,6 +55,8 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import whiteboxgis.user_interfaces.TreeNodeRenderer;
+import whiteboxgis.user_interfaces.IconTreeNode;
 import javax.swing.tree.TreePath;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -99,7 +104,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private StatusBar status;
     // common variables
     static private String versionName = "3.0 'Iguazu'";
-    static private String versionNumber = "3.0.3";
+    static private String versionNumber = "3.0.4";
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
     private String applicationDirectory;
@@ -194,7 +199,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     public static void main(String[] args) {
         try {
-            
+
             //setLookAndFeel("Nimbus");
             setLookAndFeel("systemLAF");
             if (System.getProperty("os.name").contains("Mac")) {
@@ -277,7 +282,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     public WhiteboxGui() {
         super("Whitebox GAT " + versionName);
-        
+
         try {
             // initialize the pathSep and GraphicsDirectory variables
             pathSep = File.separator;
@@ -746,8 +751,77 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         pluginService = PluginServiceFactory.createPluginService(pluginDirectory);
         pluginService.initPlugins();
         plugInfo = pluginService.getPluginList();
+
+        loadScripts();
     }
-    ArrayList<WhiteboxPlugin> activePlugs = new ArrayList<>();
+
+    private void loadScripts() {
+        ArrayList<String> pythonScripts = FileUtilities.findAllFilesWithExtension(resourcesDirectory, ".py", true);
+        ArrayList<String> groovyScripts = FileUtilities.findAllFilesWithExtension(resourcesDirectory, ".groovy", true);
+        ArrayList<String> jsScripts = FileUtilities.findAllFilesWithExtension(resourcesDirectory, ".js", true);
+        //ArrayList<PluginInfo> scriptPlugins = new ArrayList<>();
+        for (String str : pythonScripts) {
+            try {
+                // Open the file
+                FileInputStream fstream = new FileInputStream(str);
+                BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+                String strLine;
+
+                //Read File Line By Line
+                boolean containsName = false;
+                boolean containsDescriptiveName = false;
+                boolean containsDescription = false;
+                boolean containsToolboxes = false;
+                String name = "";
+                String descriptiveName = "";
+                String description = "";
+                String[] toolboxes = null;
+                while ((strLine = br.readLine()) != null
+                        && (!containsName || !containsDescriptiveName
+                        || !containsDescription || !containsToolboxes)) {
+                    if (strLine.startsWith("name = \"")) {
+                        containsName = true;
+                        // now retreive the name
+                        String[] str2 = strLine.split("=");
+                        name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.startsWith("descriptiveName = \"")) {
+                        containsDescriptiveName = true;
+                        String[] str2 = strLine.split("=");
+                        descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.startsWith("description = \"")) {
+                        containsDescription = true;
+                        String[] str2 = strLine.split("=");
+                        description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.startsWith("toolboxes = [\"")) {
+                        containsToolboxes = true;
+                        String[] str2 = strLine.split("=");
+                        toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                        for (int i = 0; i < toolboxes.length; i++) {
+                            toolboxes[i] = toolboxes[i].trim();
+                        }
+                    }
+                }
+
+                //Close the input stream
+                br.close();
+
+                if (containsName && containsDescriptiveName
+                        && containsDescription && containsToolboxes) {
+                    // it's a plugin!
+                    PluginInfo pi = new PluginInfo(name, descriptiveName,
+                            description, toolboxes, PluginInfo.SORT_MODE_NAMES);
+                    pi.setScript(true);
+                    pi.setScriptFile(str);
+                    plugInfo.add(pi);
+                    //scriptPlugins.add(pi);
+                }
+            } catch (IOException ioe) {
+                System.out.println(ioe.getStackTrace());
+            }
+        }
+    }
+    private ArrayList<WhiteboxPlugin> activePlugs = new ArrayList<>();
 
     @Override
     public List returnPluginList() {
@@ -763,25 +837,54 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread) {
         try {
             if (!runOnDedicatedThread) {
+                requestForOperationCancel = false;
                 WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.SIMPLE_NAME);
+                if (plug == null) {
+                    throw new Exception("Plugin not located.");
+                }
                 plug.setPluginHost(this);
                 plug.setArgs(args);
                 plug.run();
-                
+
             } else {
                 runPlugin(pluginName, args);
             }
-            //pool.submit(plug);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "WhiteboxGui.runPlugin", e);
-            //System.err.println(e.getLocalizedMessage());
         }
     }
+    private boolean suppressReturnedData;
+    @Override
+    public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread,
+            boolean suppressReturnedData) {
+        try {
+            this.suppressReturnedData = suppressReturnedData;
+            if (!runOnDedicatedThread) {
+                requestForOperationCancel = false;
+                WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.SIMPLE_NAME);
+                if (plug == null) {
+                    throw new Exception("Plugin not located.");
+                }
+                plug.setPluginHost(this);
+                plug.setArgs(args);
+                plug.run();
 
+            } else {
+                runPlugin(pluginName, args);
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "WhiteboxGui.runPlugin", e);
+        }
+    }
+    
     @Override
     public void runPlugin(String pluginName, String[] args) {
         try {
+            requestForOperationCancel = false;
             WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.SIMPLE_NAME);
+            if (plug == null) {
+                throw new Exception("Plugin not located.");
+            }
             plug.setPluginHost(this);
             plug.setArgs(args);
             activePlugs.add(plug);
@@ -802,6 +905,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     @Override
     public void returnData(Object ret) {
         try {
+            if (suppressReturnedData) { return; }
             // this is where all of the data returned by plugins is handled.
             if (ret instanceof String) {
                 String retStr = ret.toString();
@@ -874,77 +978,178 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "WhiteboxGui.returnData", e);
+        } finally {
+            suppressReturnedData = false;
         }
     }
 
     @Override
     public void launchDialog(String pluginName) {
+        boolean isScript = false;
+        String scriptFile = null;
         for (int i = 0; i < plugInfo.size(); i++) {
-            if (plugInfo.get(i).getDescriptiveName().equals(pluginName)) {
-                plugInfo.get(i).setLastUsedToNow();
-                plugInfo.get(i).incrementNumTimesUsed();
+            PluginInfo pi = plugInfo.get(i);
+            if (pi.getDescriptiveName().equals(pluginName)) {
+                pi.setLastUsedToNow();
+                pi.incrementNumTimesUsed();
+                if (pi.isScript()) {
+                    isScript = true;
+                    scriptFile = pi.getScriptFile();
+                }
                 break;
             }
         }
 
-        populateToolTabs();
 
-        WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.DESCRIPTIVE_NAME);
+        if (!isScript) {
+            populateToolTabs();
 
-        // does this plugin provide it's own dialog?
-        boolean pluginProvidesDialog = false;
+            WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.DESCRIPTIVE_NAME);
 
-        String parameterFile = resourcesDirectory + "plugins"
-                + pathSep + "Dialogs" + pathSep + plug.getName() + ".xml";
-        File file = new File(parameterFile);
+            // does this plugin provide it's own dialog?
+            boolean pluginProvidesDialog = false;
 
-        try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(file);
-            doc.getDocumentElement().normalize();
-            Node topNode = doc.getFirstChild();
-            Element docElement = doc.getDocumentElement();
+            String parameterFile = resourcesDirectory + "plugins"
+                    + pathSep + "Dialogs" + pathSep + plug.getName() + ".xml";
+            File file = new File(parameterFile);
 
-            NodeList nl = docElement.getElementsByTagName("DialogComponent");
-            String componentType;
-            if (nl != null && nl.getLength() > 0) {
-                for (int i = 0; i < nl.getLength(); i++) {
+            try {
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                DocumentBuilder db = dbf.newDocumentBuilder();
+                Document doc = db.parse(file);
+                doc.getDocumentElement().normalize();
+                Node topNode = doc.getFirstChild();
+                Element docElement = doc.getDocumentElement();
 
-                    Element el = (Element) nl.item(i);
-                    componentType = el.getAttribute("type");
+                NodeList nl = docElement.getElementsByTagName("DialogComponent");
+                String componentType;
+                if (nl != null && nl.getLength() > 0) {
+                    for (int i = 0; i < nl.getLength(); i++) {
 
-                    if (componentType.equals("CustomDialogProvidedByPlugin")) {
-                        pluginProvidesDialog = true;
-                        break;
+                        Element el = (Element) nl.item(i);
+                        componentType = el.getAttribute("type");
+
+                        if (componentType.equals("CustomDialogProvidedByPlugin")) {
+                            pluginProvidesDialog = true;
+                            break;
+                        }
                     }
                 }
+            } catch (ParserConfigurationException | SAXException | IOException e) {
+                logger.log(Level.SEVERE, "WhiteboxGui.launchDialog", e);
+                //System.out.println(e.getMessage());
             }
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            logger.log(Level.SEVERE, "WhiteboxGui.launchDialog", e);
-            //System.out.println(e.getMessage());
+
+            if (pluginProvidesDialog) {
+                String[] args = {""};
+                runPlugin(plug.getName(), args);
+            } else {
+                // use the xml-based dialog provided in the Dialog folder.
+                String helpFile = helpDirectory + plug.getName() + ".html";
+                String descriptiveName;
+                if (pluginBundle.containsKey(plug.getName())) {
+                    descriptiveName = pluginBundle.getString(plug.getName());
+                } else {
+                    descriptiveName = plug.getDescriptiveName();
+                }
+                ToolDialog dlg = new ToolDialog(this, false, plug.getName(), descriptiveName, helpFile);
+                dlg.setSize(800, 400);
+                dlg.setVisible(true);
+            }
+        } else {
+            // what is the scripting language?
+            if (scriptFile == null) {
+                return; // can't find scriptFile
+            }
+
+            String myScriptingLanguage;
+            if (scriptFile.toLowerCase().endsWith(".py")) {
+                myScriptingLanguage = "python";
+            } else if (scriptFile.toLowerCase().endsWith(".groovy")) {
+                myScriptingLanguage = "groovy";
+            } else if (scriptFile.toLowerCase().endsWith(".js")) {
+                myScriptingLanguage = "javascript";
+            } else {
+                showFeedback("Unsupported script type.");
+                return;
+            }
+
+            // has the scripting engine been initialized for the current script language.
+            if (engine == null || !myScriptingLanguage.equals(scriptingLanguage)) {
+                scriptingLanguage = myScriptingLanguage;
+                ScriptEngineManager mgr = new ScriptEngineManager();
+                engine = mgr.getEngineByName(scriptingLanguage);
+            }
+
+            PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
+            engine.getContext().setWriter(out);
+
+            if (scriptingLanguage.equals("python")) {
+                engine.put("__file__", scriptFile);
+            }
+            requestForOperationCancel = false;
+            engine.put("pluginHost", (WhiteboxPluginHost) this);
+
+            //ScriptEngineFactory scriptFactory = engine.getFactory();
+
+            // run the script
+            PrintWriter errOut = new PrintWriter(new TextAreaWriter(textArea));
+            try {
+                // read the contents of the file
+                String scriptContents = new String(Files.readAllBytes(Paths.get(scriptFile)));
+
+                Object result = engine.eval(scriptContents);
+            } catch (IOException | ScriptException e) {
+                errOut.append(e.getMessage() + "\n");
+            }
+        }
+    }
+    private ScriptEngine engine;
+    private String scriptingLanguage = "python";
+
+    public final class TextAreaWriter extends Writer {
+
+        private final JTextArea textArea;
+
+        public TextAreaWriter(final JTextArea textArea) {
+            this.textArea = textArea;
         }
 
-        if (pluginProvidesDialog) {
-            String[] args = {""};
-            runPlugin(plug.getName(), args);
-        } else {
-            // use the xml-based dialog provided in the Dialog folder.
-            String helpFile = helpDirectory + plug.getName() + ".html";
-            String descriptiveName;
-            if (pluginBundle.containsKey(plug.getName())) {
-                descriptiveName = pluginBundle.getString(plug.getName());
-            } else {
-                descriptiveName = plug.getDescriptiveName();
-            }
-            ToolDialog dlg = new ToolDialog(this, false, plug.getName(), descriptiveName, helpFile);
-            dlg.setSize(800, 400);
-            dlg.setVisible(true);
+        @Override
+        public void flush() {
         }
+
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public void write(char[] cbuf, int off, int len) throws IOException {
+            textArea.append(new String(cbuf, off, len));
+        }
+    }
+    private boolean requestForOperationCancel = false;
+
+    /**
+     * Used to communicate a request to cancel an operation
+     */
+    @Override
+    public boolean isRequestForOperationCancelSet() {
+        return requestForOperationCancel;
+    }
+
+    /**
+     * Used to ensure that there is no active cancel operation request
+     */
+    @Override
+    public void resetRequestForOperationCancel() {
+        requestForOperationCancel = false;
     }
 
     @Override
     public void cancelOperation() {
+        requestForOperationCancel = true;
+
         Iterator<WhiteboxPlugin> iterator = activePlugs.iterator();
         while (iterator.hasNext()) {
             WhiteboxPlugin plugin = iterator.next();
@@ -1315,7 +1520,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 //this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
                 UIManager.put("apple.awt.brushMetalLook", Boolean.TRUE);
             }
-            
+
             // add the menubar and toolbar
             createMenu();
             createPopupMenus();
@@ -2852,16 +3057,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             };
             tree.addMouseListener(ml);
 
-            ImageIcon leafIcon = new ImageIcon(graphicsDirectory + "tool.png", "");
-            ImageIcon stemIcon = new ImageIcon(graphicsDirectory + "opentools.png", "");
-            //if (leafIcon != null && stemIcon != null) {
-            DefaultTreeCellRenderer renderer =
-                    new DefaultTreeCellRenderer();
-            renderer.setLeafIcon(leafIcon);
-            renderer.setClosedIcon(stemIcon);
-            renderer.setOpenIcon(stemIcon);
-            tree.setCellRenderer(renderer);
-            //}
+            HashMap icons = new HashMap();
+            icons.put("toolbox", new ImageIcon(graphicsDirectory + "opentools.png", ""));
+            icons.put("tool", new ImageIcon(graphicsDirectory + "tool.png", ""));
+            icons.put("script", new ImageIcon(graphicsDirectory + "ScriptIcon2.png", ""));
+
+//            ImageIcon leafIcon = new ImageIcon(graphicsDirectory + "tool.png", "");
+//            ImageIcon leafIconScript = new ImageIcon(graphicsDirectory + "ScriptIcon2.png", "");
+//            ImageIcon stemIcon = new ImageIcon(graphicsDirectory + "opentools.png", "");
+//            DefaultTreeCellRenderer renderer =
+//                    new DefaultTreeCellRenderer();
+//            renderer.setLeafIcon(leafIcon);
+//            renderer.setClosedIcon(stemIcon);
+//            renderer.setOpenIcon(stemIcon);
+            tree.putClientProperty("JTree.icons", icons);
+            tree.setCellRenderer(new TreeNodeRenderer()); //renderer);
 
             JScrollPane treeView = new JScrollPane(tree);
 
@@ -2945,118 +3155,131 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     };
 
     private void searchForWords() {
-        DefaultListModel model = new DefaultListModel();
-        String searchString = searchText.getText().toLowerCase();
-        String descriptiveName, shortName, description;
+        try {
+            DefaultListModel model = new DefaultListModel();
+            String searchString = searchText.getText().toLowerCase();
+            String descriptiveName, shortName, description;
 
-        if (searchString.equals("") || searchString == null) {
+            if (searchString == null || searchString.equals("")) {
 
-            for (int i = 0; i < plugInfo.size(); i++) {
-                plugInfo.get(i).setSortMode(PluginInfo.SORT_MODE_NAMES);
-            }
-            Collections.sort(plugInfo);
-            for (int i = 0; i < plugInfo.size(); i++) {
-                model.add(i, plugInfo.get(i).getDescriptiveName());
-            }
-
-        } else {
-
-            // find quotations
-            ArrayList<String> quotedStrings = new ArrayList<>();
-            Pattern p = Pattern.compile("\"([^\"]*)\"");
-            Matcher m = p.matcher(searchString);
-            while (m.find()) {
-                quotedStrings.add(m.group(1));
-            }
-
-            // now remove all quotedStrings from the line
-            for (int i = 0; i < quotedStrings.size(); i++) {
-                searchString = searchString.replace(quotedStrings.get(i), "");
-            }
-
-            searchString = searchString.replace("\"", "");
-
-            int count = 0;
-            boolean containsWord;
-
-            searchString = searchString.replace("-", " ");
-            searchString = searchString.replace(" the ", "");
-            searchString = searchString.replace(" a ", "");
-            searchString = searchString.replace(" of ", "");
-            searchString = searchString.replace(" to ", "");
-            searchString = searchString.replace(" and ", "");
-            searchString = searchString.replace(" be ", "");
-            searchString = searchString.replace(" in ", "");
-            searchString = searchString.replace(" it ", "");
-
-            String[] words = searchString.split(" ");
-            for (int i = 0; i < plugInfo.size(); i++) {
-                plugInfo.get(i).setSortMode(PluginInfo.SORT_MODE_NAMES);
-            }
-            Collections.sort(plugInfo);
-            for (int i = 0; i < plugInfo.size(); i++) {
-                descriptiveName = plugInfo.get(i).getDescriptiveName().toLowerCase().replace("-", " ");
-                shortName = plugInfo.get(i).getName().toLowerCase().replace("-", " ");
-                WhiteboxPlugin plug = pluginService.getPlugin(plugInfo.get(i).getDescriptiveName(), StandardPluginService.DESCRIPTIVE_NAME);
-                description = plug.getToolDescription().toLowerCase().replace("-", " ");
-
-                containsWord = false;
-
-                for (String word : words) {
-                    if (descriptiveName.contains(word)) {
-                        containsWord = true;
-                    }
-                    if (shortName.contains(word)) {
-                        containsWord = true;
-                    }
-                    if (description.contains(" " + word + " ")) {
-                        containsWord = true;
-                    }
+                for (int i = 0; i < plugInfo.size(); i++) {
+                    plugInfo.get(i).setSortMode(PluginInfo.SORT_MODE_NAMES);
+                }
+                Collections.sort(plugInfo);
+                for (int i = 0; i < plugInfo.size(); i++) {
+                    model.add(i, plugInfo.get(i).getDescriptiveName());
                 }
 
-                for (String word : quotedStrings) {
-                    if (descriptiveName.contains(word)) {
-                        containsWord = true;
-                    }
-                    if (shortName.contains(word)) {
-                        containsWord = true;
-                    }
-                    if (description.contains(" " + word + " ")) {
-                        containsWord = true;
-                    }
-                }
-                if (containsWord) {
-                    model.add(count, plugInfo.get(i).getDescriptiveName());
-                    count++;
+            } else {
+
+                // find quotations
+                ArrayList<String> quotedStrings = new ArrayList<>();
+                Pattern p = Pattern.compile("\"([^\"]*)\"");
+                Matcher m = p.matcher(searchString);
+                while (m.find()) {
+                    quotedStrings.add(m.group(1));
                 }
 
+                // now remove all quotedStrings from the line
+                for (int i = 0; i < quotedStrings.size(); i++) {
+                    searchString = searchString.replace(quotedStrings.get(i), "");
+                }
+
+                searchString = searchString.replace("\"", "");
+
+                int count = 0;
+                boolean containsWord;
+
+                searchString = searchString.replace("-", " ");
+                searchString = searchString.replace(" the ", "");
+                searchString = searchString.replace(" a ", "");
+                searchString = searchString.replace(" of ", "");
+                searchString = searchString.replace(" to ", "");
+                searchString = searchString.replace(" and ", "");
+                searchString = searchString.replace(" be ", "");
+                searchString = searchString.replace(" in ", "");
+                searchString = searchString.replace(" it ", "");
+
+                String[] words = searchString.split(" ");
+                for (int i = 0; i < plugInfo.size(); i++) {
+                    plugInfo.get(i).setSortMode(PluginInfo.SORT_MODE_NAMES);
+                }
+                Collections.sort(plugInfo);
+                for (int i = 0; i < plugInfo.size(); i++) {
+                    descriptiveName = plugInfo.get(i).getDescriptiveName().toLowerCase().replace("-", " ");
+                    shortName = plugInfo.get(i).getName().toLowerCase().replace("-", " ");
+//                    WhiteboxPlugin plug = pluginService.getPlugin(plugInfo.get(i).getDescriptiveName(), StandardPluginService.DESCRIPTIVE_NAME);
+//                    description = plug.getToolDescription().toLowerCase().replace("-", " ");
+                    description = plugInfo.get(i).getDescription();
+                    containsWord = false;
+
+                    for (String word : words) {
+                        if (descriptiveName.contains(word)) {
+                            containsWord = true;
+                        }
+                        if (shortName.contains(word)) {
+                            containsWord = true;
+                        }
+                        if (description.contains(" " + word + " ")) {
+                            containsWord = true;
+                        }
+                    }
+
+                    for (String word : quotedStrings) {
+                        if (descriptiveName.contains(word)) {
+                            containsWord = true;
+                        }
+                        if (shortName.contains(word)) {
+                            containsWord = true;
+                        }
+                        if (description.contains(" " + word + " ")) {
+                            containsWord = true;
+                        }
+                    }
+                    if (containsWord) {
+                        model.add(count, plugInfo.get(i).getDescriptiveName());
+                        count++;
+                    }
+
+                }
             }
+            allTools.setModel(model);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "WhiteboxGui.searchForWords", e);
         }
-        allTools.setModel(model);
     }
 
     private DefaultMutableTreeNode populateTree(Node n) {
         Element e = (Element) n;
         String label = e.getAttribute("label");
         String toolboxName = e.getAttribute("name");
-        DefaultMutableTreeNode result;
+        //DefaultMutableTreeNode result;
+        IconTreeNode result;
         if (bundle.containsKey(toolboxName)) {
-            result = new DefaultMutableTreeNode(bundle.getString(toolboxName));
+            result = new IconTreeNode(bundle.getString(toolboxName));
+            //result = new DefaultMutableTreeNode(bundle.getString(toolboxName));
         } else {
-            result = new DefaultMutableTreeNode(label);
+            result = new IconTreeNode(label);
+            //result = new DefaultMutableTreeNode(label);
         }
+        result.setIconName("toolbox");
+
         NodeList nodeList = n.getChildNodes();
         for (int i = 0; i < nodeList.getLength(); i++) {
             if (nodeList.item(i).getNodeType() == Node.ELEMENT_NODE) {
                 Element childElement = (Element) nodeList.item(i);
                 label = childElement.getAttribute("label");
                 toolboxName = childElement.getAttribute("name");
-                DefaultMutableTreeNode childTreeNode;
+                //DefaultMutableTreeNode childTreeNode;
+                IconTreeNode childTreeNode;
                 if (bundle.containsKey(toolboxName)) {
-                    childTreeNode = new DefaultMutableTreeNode(bundle.getString(toolboxName));
+                    //childTreeNode = new DefaultMutableTreeNode(bundle.getString(toolboxName));
+                    childTreeNode = new IconTreeNode(bundle.getString(toolboxName));
                 } else {
-                    childTreeNode = new DefaultMutableTreeNode(label);
+                    childTreeNode = new IconTreeNode(label);
+                    //childTreeNode = new DefaultMutableTreeNode(label);
                 }
+                childTreeNode.setIconName("toolbox");
 
                 ArrayList<String> t = findToolsInToolbox(toolboxName);
 
@@ -3072,10 +3295,23 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
                 if (t.size() > 0) {
                     for (int k = 0; k < t.size(); k++) {
-                        childTreeNode.add(new DefaultMutableTreeNode(t.get(k)));
+                        String[] toolDetails = t.get(k).split(";");
+                        IconTreeNode childTreeNode2 = new IconTreeNode(toolDetails[0]);
+                        if (toolDetails[1].equals("false")) {
+                            childTreeNode2.setIconName("tool");
+                        } else {
+                            childTreeNode2.setIconName("script");
+                        }
+//                        IconTreeNode childTreeNode2 = new IconTreeNode(t.get(k));
+//                        childTreeNode2.setIconName("tool");
+                        childTreeNode.add(childTreeNode2);
+                        //childTreeNode.add(new DefaultMutableTreeNode(t.get(k)));
                     }
                 } else if (nodeList.item(i).getFirstChild() == null) {
-                    childTreeNode.add(new DefaultMutableTreeNode("No tools"));
+                    IconTreeNode childTreeNode2 = new IconTreeNode("No tools");
+                    childTreeNode2.setIconName("tool");
+                    childTreeNode.add(childTreeNode2);
+                    //childTreeNode.add(new DefaultMutableTreeNode("No tools"));
                 }
 
                 result.add(childTreeNode);
@@ -3085,10 +3321,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             ArrayList<String> t = findToolsInToolbox(toolboxName);
             if (t.size() > 0) {
                 for (int k = 0; k < t.size(); k++) {
-                    result.add(new DefaultMutableTreeNode(t.get(k)));
+                    String[] toolDetails = t.get(k).split(";");
+                    IconTreeNode childTreeNode2 = new IconTreeNode(toolDetails[0]);
+                    if (toolDetails[1].equals("false")) {
+                        childTreeNode2.setIconName("tool");
+                    } else {
+                        childTreeNode2.setIconName("script");
+                    }
+                    result.add(childTreeNode2);
+                    //result.add(new DefaultMutableTreeNode(t.get(k)));
                 }
             } else {
-                result.add(new DefaultMutableTreeNode("No tools"));
+                IconTreeNode childTreeNode2 = new IconTreeNode("No tools");
+                childTreeNode2.setIconName("tool");
+                result.add(childTreeNode2);
+                //result.add(new DefaultMutableTreeNode("No tools"));
             }
         }
 
@@ -3101,21 +3348,35 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         ArrayList<String> plugs = new ArrayList<>();
         String plugName;
         String plugDescriptiveName;
-        while (iterator.hasNext()) {
-            WhiteboxPlugin plugin = iterator.next();
-            String[] tbox = plugin.getToolbox();
+//        while (iterator.hasNext()) {
+//            WhiteboxPlugin plugin = iterator.next();
+//            String[] tbox = plugin.getToolbox();
+//            for (int i = 0; i < tbox.length; i++) {
+//                if (tbox[i].equals(toolbox)) {
+//                    plugName = plugin.getName();
+//                    if (pluginBundle.containsKey(plugName)) {
+//                        plugDescriptiveName = pluginBundle.getString(plugName);
+//                    } else {
+//                        plugDescriptiveName = plugin.getDescriptiveName();
+//                    }
+//                    plugs.add(plugDescriptiveName);
+//                }
+//            }
+//
+//        }
+        for (PluginInfo pi : plugInfo) {
+            String[] tbox = pi.getToolboxes();
             for (int i = 0; i < tbox.length; i++) {
                 if (tbox[i].equals(toolbox)) {
-                    plugName = plugin.getName();
+                    plugName = pi.getName();
                     if (pluginBundle.containsKey(plugName)) {
                         plugDescriptiveName = pluginBundle.getString(plugName);
                     } else {
-                        plugDescriptiveName = plugin.getDescriptiveName();
+                        plugDescriptiveName = pi.getDescriptiveName();
                     }
-                    plugs.add(plugDescriptiveName); //plugin.getDescriptiveName());
+                    plugs.add(plugDescriptiveName + ";" + Boolean.toString(pi.isScript()));
                 }
             }
-
         }
         Collections.sort(plugs, new SortIgnoreCase());
         return plugs;

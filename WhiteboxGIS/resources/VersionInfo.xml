@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <VersionInfo>
     <VersionName>"3.0 'Iguazu'"</VersionName>
-    <VersionNumber>"3.0.2"</VersionNumber>
+    <VersionNumber>"3.0.3"</VersionNumber>
     <DownloadLocation>"http://code.google.com/p/whitebox-geospatial-analysis-tools/downloads/list"</DownloadLocation>
     <Announcements number="5">
         <Announcement>

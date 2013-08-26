@@ -9,6 +9,15 @@ remote sensing software package for advanced analysis and visualization of geosp
 
 RELEASE NOTES:
 
+Version 3.0.4
+
+-Improved support for scripting, including syntax highlighting and autocompletion.
+-Scripts can now be added as plugin tools, with integration in the tools panel.
+-Added Rename File tool, a python script plugin.
+-Added Sink tool, a python script plugin.
+-The version of jython (python for java) included in the library has been updated
+ to the stand alone version. This has increased the distribution size by 2 Mb.
+
 Version 3.0.3
 
 -Added FindParallelFlow tool.

@@ -92,13 +92,13 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         parameterFile = resourcesDirectory + "plugins"
                 + pathSep + "Dialogs" + pathSep + pluginName + ".xml";
         // see if the parameterFile exists.
+        bundle = host.getGuiLabelsBundle();
+        messages = host.getMessageBundle();
         if (!(new File(parameterFile).exists())) {
             logException("ParameterFileNotLocated", new Exception("ParameterFileNotLocated"));
             host.showFeedback(messages.getString("ParameterFileNotLocated"));
         }
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
-        bundle = host.getGuiLabelsBundle();
-        messages = host.getMessageBundle();
         createGui(title);
     }
 
@@ -771,6 +771,15 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     public void logMessage(Level level, String message) {
         if (host != null) {
             host.logMessage(level, message);
+        }
+    }
+
+    @Override
+    public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread, boolean suppressReturnedData) {
+        host.runPlugin(pluginName, args, runOnDedicatedThread, suppressReturnedData);
+        if (automaticallyClose) {
+            //this.setVisible(false);
+            this.dispose();
         }
     }
 }

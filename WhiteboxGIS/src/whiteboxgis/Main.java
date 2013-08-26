@@ -204,6 +204,8 @@ public class Main {
                 if (!applicationDirectory.endsWith(pathSep)) {
                     applicationDirectory += pathSep;
                 }
+                flag = true;
+                retFile = null;
                 findFile(new File(applicationDirectory), "wbGAT.png");
                 String icon = "wbGAT.png";
                 if (retFile != null) {

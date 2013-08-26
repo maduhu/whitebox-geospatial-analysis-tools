@@ -16,7 +16,6 @@
  */
 package whiteboxgis.user_interfaces;
 
-import whiteboxgis.Scripter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,7 +45,7 @@ import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.geospatialfiles.shapefile.attributes.DBFException;
-import whiteboxgis.Scripter.ScriptingLanguage;
+import whiteboxgis.user_interfaces.Scripter.ScriptingLanguage;
 
 /**
  *
