@@ -287,7 +287,7 @@ public class FilterStandardDeviation implements WhiteboxPlugin {
                         
                         if (n > 2) {
                             average = sum / n;
-                            stdDev = (sumOfTheSquares / n) - (average * average);
+                            stdDev = (sumOfTheSquares - (sum * sum) / n) / n; // eq. from Annabel Ness Evans page 92 //(sumOfTheSquares / n) - (average * average);
                             if (stdDev > 0) {
                                 stdDev = Math.sqrt(stdDev);
                             }
