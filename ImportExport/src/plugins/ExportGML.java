@@ -22,14 +22,14 @@ import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.WKTWriter;
+import com.vividsolutions.jts.io.gml2.*;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ExportWellKnownText implements WhiteboxPlugin {
+public class ExportGML implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -42,7 +42,7 @@ public class ExportWellKnownText implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "ExportWellKnownText";
+        return "ExportGML";
     }
 
     /**
@@ -53,7 +53,7 @@ public class ExportWellKnownText implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Export Well-Known Text (WKT)";
+        return "Export Geography Markup Language (GML)";
     }
 
     /**
@@ -63,7 +63,7 @@ public class ExportWellKnownText implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-        return "Exports a vector to a well known text (WKT) format.";
+        return "Exports a vector to a geography markup language (GML) format.";
     }
 
     /**
@@ -196,7 +196,7 @@ public class ExportWellKnownText implements WhiteboxPlugin {
         OutputStream outStream = null;
         int progress = 0;
         Geometry[] JTSGeometries;
-        WKTWriter wktWriter = new WKTWriter();
+        GMLWriter gmlWriter = new GMLWriter();
         String str1 = null;
         FileWriter fw = null;
         BufferedWriter bw = null;
@@ -234,7 +234,7 @@ public class ExportWellKnownText implements WhiteboxPlugin {
 
 
                 // arc file name.
-                ouptutFile = shapefileName.replace(".shp", ".wkt");
+                ouptutFile = shapefileName.replace(".shp", ".gml");
 
                 // see if it exists, and if so, delete it.
                 (new File(ouptutFile)).delete();
@@ -251,7 +251,7 @@ public class ExportWellKnownText implements WhiteboxPlugin {
                     if (record.getShapeType() != ShapeType.NULLSHAPE) {
                         JTSGeometries = record.getGeometry().getJTSGeometries();
                         for (int a = 0; a < JTSGeometries.length; a++) {
-                            str1 = wktWriter.write(JTSGeometries[a]);
+                            str1 = gmlWriter.write(JTSGeometries[a]);
                             out.println(str1);
                         }
                     }

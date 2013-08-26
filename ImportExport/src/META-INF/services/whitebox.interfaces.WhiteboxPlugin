@@ -1,5 +1,6 @@
 plugins.ExportArcAsciiGrid
 plugins.ExportArcGrid
+plugins.ExportGML
 plugins.ExportGRASSAsciiGrid
 plugins.ExportIDRISIRaster
 plugins.ExportSurferAsciiGrid
