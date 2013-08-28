@@ -120,8 +120,8 @@ class RenameFile(ActionListener):
 			t = Thread(target=lambda: self.execute(args))
 			t.start()
 			
-		#elif event.getActionCommand() == "close":
-		#	print "The user cancelled the operation."
+#		elif event.getActionCommand() == "close":
+#			print "The user cancelled the operation."
 
 			
 RenameFile()

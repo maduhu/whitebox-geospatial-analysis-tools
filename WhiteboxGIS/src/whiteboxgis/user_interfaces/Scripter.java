@@ -16,7 +16,7 @@
  */
 package whiteboxgis.user_interfaces;
 
-import java.awt.event.KeyAdapter;
+//import java.awt.event.KeyAdapter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

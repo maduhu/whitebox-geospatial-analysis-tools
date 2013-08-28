@@ -4,6 +4,7 @@ from threading import Thread
 from whitebox.geospatialfiles import WhiteboxRaster
 from whitebox.ui.plugin_dialog import ScriptDialog
 from java.awt.event import ActionListener
+from java.awt.event import ActionEvent
 
 # The following four variables are required for this 
 # script to be integrated into the tool tree panel. 
@@ -74,6 +75,9 @@ class Sink(ActionListener):
 				if progress > oldprogress:
 					oldprogress = progress
 					pluginHost.updateProgress(progress)
+				if pluginHost.isRequestForOperationCancelSet():
+					pluginHost.showFeedback("Operation cancelled")
+					return
 					
 			tempraster.flush()
 
