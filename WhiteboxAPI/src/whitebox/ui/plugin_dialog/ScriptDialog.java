@@ -274,6 +274,29 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
     }
 
     public void addDialogComboBox(String description, String labelText,
+            ArrayList<String> listItems, int defaultItem) {
+        String[] args = new String[5];
+        args[0] = "combobox";
+        args[1] = description;
+        args[2] = labelText;
+        StringBuilder items = new StringBuilder();
+        for (int a = 0; a < listItems.size(); a++) {
+            if (a > 0) {
+                items.append(",").append(listItems.get(a));
+            } else {
+                items.append(listItems.get(a));
+            }
+        }
+        args[3] = items.toString();
+        args[4] = Integer.toString(defaultItem);
+
+        DialogComboBox dcb = new DialogComboBox();
+        dcb.setArgs(args);
+        components.add(dcb);
+        mainPanel.add(dcb);
+    }
+    
+    public void addDialogComboBox(String description, String labelText,
             String[] listItems, int defaultItem) {
         String[] args = new String[5];
         args[0] = "combobox";

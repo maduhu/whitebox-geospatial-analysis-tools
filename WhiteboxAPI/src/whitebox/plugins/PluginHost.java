@@ -191,12 +191,12 @@ public class PluginHost implements WhiteboxPluginHost {
 
     @Override
     public void updateProgress(String progressLabel, int progress) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        System.out.println(progressLabel + " " + progress + "%");
     }
 
     @Override
     public void updateProgress(int progress) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        System.out.println(progress + "%");
     }
 
     @Override
@@ -312,7 +312,7 @@ public class PluginHost implements WhiteboxPluginHost {
 
     @Override
     public boolean isRequestForOperationCancelSet() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return false;
     }
 
     @Override
