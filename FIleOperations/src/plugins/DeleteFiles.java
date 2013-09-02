@@ -221,7 +221,10 @@ public class DeleteFiles implements WhiteboxPlugin {
                     if (file.exists()) {
                         file.delete();
                     }
-
+                    file = new File(fileName.replace(".dep", ".wstat"));
+                    if (file.exists()) {
+                        file.delete();
+                    }
                 } else if (fileName.toLowerCase().endsWith(".shp")) { // it's a vector file
                     file = new File(fileName.replace(".shp", ".shx"));
                     if (file.exists()) {
