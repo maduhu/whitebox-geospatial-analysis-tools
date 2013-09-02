@@ -487,6 +487,9 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             if (blockEndingCell < 0) {
                 readDataBlock();
             }
+            if (grid == null) {
+                readDataBlock();
+            }
 
             // what is the cell number?
             long cellNum = (long) (row) * numberColumns + column;
@@ -609,7 +612,9 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                 }
                 readDataBlock();
             }
-
+            if (grid == null) {
+                setBlockData();
+            }
             grid[(int) (cellNum - blockStartingCell)] = value;
             isDirty = true;
         }

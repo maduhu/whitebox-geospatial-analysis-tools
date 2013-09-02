@@ -106,8 +106,6 @@ public class Parallel {
 
         } catch (InterruptedException | ExecutionException e) {
         } finally {
-//            System.out.println("TOTAL SUCCESS - " + success);
-//            System.out.println("TOTAL FAILURE - " + failure);
             executor.shutdown();
         }
     }

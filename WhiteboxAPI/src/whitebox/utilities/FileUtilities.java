@@ -74,7 +74,7 @@ public class FileUtilities {
         for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory() && recursive) {
                 findAllFilesWithExtension2(files[i], extension);
-            } else if (files[i].getName().contains(extension)) {
+            } else if (files[i].getName().endsWith(extension)) {
                 foundFiles.add(files[i].toString());
             }
         }
