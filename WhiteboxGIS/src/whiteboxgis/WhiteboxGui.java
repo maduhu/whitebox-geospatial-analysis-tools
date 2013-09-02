@@ -820,7 +820,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 System.out.println(ioe.getStackTrace());
             }
         }
-        
+
         for (String str : jsScripts) {
             try {
                 // Open the file
@@ -841,8 +841,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
                         || !containsDescription || !containsToolboxes)) {
-                    if (strLine.toLowerCase().contains("name = \"") && 
-                            !strLine.toLowerCase().contains("descriptivename")) {
+                    if (strLine.toLowerCase().contains("name = \"")
+                            && !strLine.toLowerCase().contains("descriptivename")) {
                         containsName = true;
                         // now retreive the name
                         String[] str2 = strLine.split("=");
@@ -882,7 +882,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 System.out.println(ioe.getStackTrace());
             }
         }
-        
+
         for (String str : groovyScripts) {
             try {
                 // Open the file
@@ -903,8 +903,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
                         || !containsDescription || !containsToolboxes)) {
-                    if (strLine.toLowerCase().contains("name = \"") && 
-                            !strLine.toLowerCase().contains("descriptivename")) {
+                    if (strLine.toLowerCase().contains("name = \"")
+                            && !strLine.toLowerCase().contains("descriptivename")) {
                         containsName = true;
                         // now retreive the name
                         String[] str2 = strLine.split("=");
@@ -957,33 +957,144 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         return ret;
     }
 
+    public boolean isPluginAScript(String pluginName) {
+        boolean isScript = false;
+        for (int i = 0; i < plugInfo.size(); i++) {
+            PluginInfo pi = plugInfo.get(i);
+            if (pi.getDescriptiveName().equals(pluginName)
+                    || pi.getName().equals(pluginName)) {
+                pi.setLastUsedToNow();
+                pi.incrementNumTimesUsed();
+                if (pi.isScript()) {
+                    isScript = true;
+                }
+                break;
+            }
+        }
+        return isScript;
+    }
+
     @Override
     public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread) {
         try {
-            if (!runOnDedicatedThread) {
-                requestForOperationCancel = false;
-                WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.SIMPLE_NAME);
-                if (plug == null) {
-                    throw new Exception("Plugin not located.");
+            if (!runOnDedicatedThread) { // run on current thread
+                boolean isScript = false;
+                String scriptFile = null;
+                for (int i = 0; i < plugInfo.size(); i++) {
+                    PluginInfo pi = plugInfo.get(i);
+                    if (pi.getDescriptiveName().equals(pluginName)
+                            || pi.getName().equals(pluginName)) {
+                        pi.setLastUsedToNow();
+                        pi.incrementNumTimesUsed();
+                        if (pi.isScript()) {
+                            isScript = true;
+                            scriptFile = pi.getScriptFile();
+                        }
+                        break;
+                    }
                 }
-                plug.setPluginHost(this);
-                plug.setArgs(args);
-                plug.run();
 
-            } else {
+
+                if (!isScript) {
+                    requestForOperationCancel = false;
+                    WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.SIMPLE_NAME);
+                    if (plug == null) {
+                        throw new Exception("Plugin not located.");
+                    }
+                    plug.setPluginHost(this);
+                    plug.setArgs(args);
+                    plug.run();
+                } else {
+                    // what is the scripting language?
+                    if (scriptFile == null) {
+                        return; // can't find scriptFile
+                    }
+
+                    String myScriptingLanguage;
+                    if (scriptFile.toLowerCase().endsWith(".py")) {
+                        myScriptingLanguage = "python";
+                    } else if (scriptFile.toLowerCase().endsWith(".groovy")) {
+                        myScriptingLanguage = "groovy";
+                    } else if (scriptFile.toLowerCase().endsWith(".js")) {
+                        myScriptingLanguage = "javascript";
+                    } else {
+                        showFeedback("Unsupported script type.");
+                        return;
+                    }
+
+                    // has the scripting engine been initialized for the current script language.
+                    if (engine == null || !myScriptingLanguage.equals(scriptingLanguage)) {
+                        scriptingLanguage = myScriptingLanguage;
+                        ScriptEngineManager mgr = new ScriptEngineManager();
+                        engine = mgr.getEngineByName(scriptingLanguage);
+                    }
+
+                    PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
+                    engine.getContext().setWriter(out);
+
+                    if (scriptingLanguage.equals("python")) {
+                        engine.put("__file__", scriptFile);
+                    }
+                    requestForOperationCancel = false;
+                    engine.put("pluginHost", (WhiteboxPluginHost) this);
+                    engine.put("args", args);
+
+                    // run the script
+                    PrintWriter errOut = new PrintWriter(new TextAreaWriter(textArea));
+                    try {
+                        // read the contents of the file
+                        String scriptContents = new String(Files.readAllBytes(Paths.get(scriptFile)));
+
+                        Object result = engine.eval(scriptContents);
+                    } catch (IOException | ScriptException e) {
+                        errOut.append(e.getMessage() + "\n");
+                    }
+                }
+
+            } else { // run on a dedicated thread
                 runPlugin(pluginName, args);
             }
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "WhiteboxGui.runPlugin", e);
         }
     }
     private boolean suppressReturnedData;
+
     @Override
     public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread,
             boolean suppressReturnedData) {
         try {
+
             this.suppressReturnedData = suppressReturnedData;
-            if (!runOnDedicatedThread) {
+            runPlugin(pluginName, args, runOnDedicatedThread);
+
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "WhiteboxGui.runPlugin", e);
+        }
+    }
+
+    @Override
+    public void runPlugin(String pluginName, String[] args) {
+        try {
+            boolean isScript = false;
+            String scriptFile = null;
+            for (int i = 0; i < plugInfo.size(); i++) {
+                PluginInfo pi = plugInfo.get(i);
+                if (pi.getDescriptiveName().equals(pluginName)
+                        || pi.getName().equals(pluginName)) {
+                    pi.setLastUsedToNow();
+                    pi.incrementNumTimesUsed();
+                    if (pi.isScript()) {
+                        isScript = true;
+                        scriptFile = pi.getScriptFile();
+                    }
+                    break;
+                }
+            }
+
+
+            if (!isScript) {
                 requestForOperationCancel = false;
                 WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.SIMPLE_NAME);
                 if (plug == null) {
@@ -991,32 +1102,66 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
                 plug.setPluginHost(this);
                 plug.setArgs(args);
-                plug.run();
-
+                activePlugs.add(plug);
+                if (plug instanceof NotifyingThread) {
+                    NotifyingThread t = (NotifyingThread) (plug);
+                    t.addListener(this);
+                }
+                new Thread(plug).start();
             } else {
-                runPlugin(pluginName, args);
+                // what is the scripting language?
+                if (scriptFile == null) {
+                    return; // can't find scriptFile
+                }
+
+                String myScriptingLanguage;
+                if (scriptFile.toLowerCase().endsWith(".py")) {
+                    myScriptingLanguage = "python";
+                } else if (scriptFile.toLowerCase().endsWith(".groovy")) {
+                    myScriptingLanguage = "groovy";
+                } else if (scriptFile.toLowerCase().endsWith(".js")) {
+                    myScriptingLanguage = "javascript";
+                } else {
+                    showFeedback("Unsupported script type.");
+                    return;
+                }
+
+                // has the scripting engine been initialized for the current script language.
+                if (engine == null || !myScriptingLanguage.equals(scriptingLanguage)) {
+                    scriptingLanguage = myScriptingLanguage;
+                    ScriptEngineManager mgr = new ScriptEngineManager();
+                    engine = mgr.getEngineByName(scriptingLanguage);
+                }
+
+                PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
+                engine.getContext().setWriter(out);
+
+                if (scriptingLanguage.equals("python")) {
+                    engine.put("__file__", scriptFile);
+                }
+                requestForOperationCancel = false;
+                engine.put("pluginHost", (WhiteboxPluginHost) this);
+                engine.put("args", args);
+
+                // run the script
+                // read the contents of the file
+                final String scriptContents = new String(Files.readAllBytes(Paths.get(scriptFile)));
+
+                //Object result = engine.eval(scriptContents);
+                final Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            engine.eval(scriptContents);
+                        } catch (ScriptException e) {
+                            System.out.println(e.getStackTrace());
+                        }
+                    }
+                };
+                final Thread t = new Thread(r);
+                t.start();
+
             }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "WhiteboxGui.runPlugin", e);
-        }
-    }
-    
-    @Override
-    public void runPlugin(String pluginName, String[] args) {
-        try {
-            requestForOperationCancel = false;
-            WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.SIMPLE_NAME);
-            if (plug == null) {
-                throw new Exception("Plugin not located.");
-            }
-            plug.setPluginHost(this);
-            plug.setArgs(args);
-            activePlugs.add(plug);
-            if (plug instanceof NotifyingThread) {
-                NotifyingThread t = (NotifyingThread) (plug);
-                t.addListener(this);
-            }
-            new Thread(plug).start();
 
             //pool.submit(plug);
         } catch (Exception e) {
@@ -1029,7 +1174,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     @Override
     public void returnData(Object ret) {
         try {
-            if (suppressReturnedData) { return; }
+            if (suppressReturnedData) {
+                return;
+            }
             // this is where all of the data returned by plugins is handled.
             if (ret instanceof String) {
                 String retStr = ret.toString();
@@ -1109,11 +1256,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     @Override
     public void launchDialog(String pluginName) {
+        // update the tools lists
+        populateToolTabs();
+        
         boolean isScript = false;
         String scriptFile = null;
         for (int i = 0; i < plugInfo.size(); i++) {
             PluginInfo pi = plugInfo.get(i);
-            if (pi.getDescriptiveName().equals(pluginName)) {
+            if (pi.getDescriptiveName().equals(pluginName) ||
+                    pi.getName().equals(pluginName)) {
                 pi.setLastUsedToNow();
                 pi.incrementNumTimesUsed();
                 if (pi.isScript()) {
@@ -1123,10 +1274,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             }
         }
-
-
+        
         if (!isScript) {
-            populateToolTabs();
+            
 
             WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.DESCRIPTIVE_NAME);
 
@@ -1213,18 +1363,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
             requestForOperationCancel = false;
             engine.put("pluginHost", (WhiteboxPluginHost) this);
+            engine.put("args", new String[0]);
 
             //ScriptEngineFactory scriptFactory = engine.getFactory();
 
             // run the script
-            PrintWriter errOut = new PrintWriter(new TextAreaWriter(textArea));
+            //PrintWriter errOut = new PrintWriter(new TextAreaWriter(textArea));
             try {
                 // read the contents of the file
                 String scriptContents = new String(Files.readAllBytes(Paths.get(scriptFile)));
 
                 Object result = engine.eval(scriptContents);
             } catch (IOException | ScriptException e) {
-                errOut.append(e.getMessage() + "\n");
+                System.out.println(e.getStackTrace());
             }
         }
     }

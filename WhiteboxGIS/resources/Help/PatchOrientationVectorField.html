@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>Patch orientation vector field</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -21,7 +21,7 @@
             from north. This algorithm works very well at finding the orientation of 
             streamlined features. The output vector database will contain LINEARITY' 
             and 'ORIENT' fields which record the vector's degree of linearity (r-squared 
-            of the regression trendline through its outline nodes) and orientation 
+            of the regression trend line through its outline nodes) and orientation 
             respectively. For effective visualization, select a line colour based on 
             the 'ORIENT' field, use a circular palette such as 'pointer', and stretch 
             the palette.</p>
@@ -46,6 +46,33 @@
             <li><a href="ElongationRatio.html">Elongation Ratio</a></li>
             <li><a href="MinimumBoundingBox.html">Minimum Bounding Box</a></li>
         </ul>
+        
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                inputFile = wd + "input.dep"<br>
+                outputFile = wd + "output.dep"<br>
+                maxLineLength = "100.0"<br>
+                baseOnElongation = "true"<br>
+                args = [inputFile, outputFile, maxLineLength, baseOnElongation]<br>
+                pluginHost.runPlugin("PatchOrientationField", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def inputFile = wd + "input.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                def maxLineLength = "100.0"<br>
+                def baseOnElongation = "true"<br>
+                String[] args = [inputFile, outputFile, maxLineLength, baseOnElongation]<br>
+                pluginHost.runPlugin("PatchOrientationField", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2013)</li>

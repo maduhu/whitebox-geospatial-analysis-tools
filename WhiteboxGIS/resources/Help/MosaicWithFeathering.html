@@ -41,6 +41,35 @@
         <ul>
             <li><a href="Mosaic.html">Mosaic</a></li>
         </ul>
+
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script using this tool:</p>
+        <p style="background-color: rgb(240,240,240);">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                baseFile = wd + "input1.dep"<br>
+                appendFile = wd + "input2.dep"<br>
+                outputFile = wd + "output.dep"<br>
+                resamplingMethod = "nearest neighbour"<br>
+                matchHistograms = "true"<br>
+                args = [baseFile, appendFile, outputFile, resamplingMethod, matchHistograms]<br>
+                pluginHost.runPlugin("MosaicWithFeathering", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240);">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def baseFile = wd + "input1.dep"<br>
+                def appendFile = wd + "input2.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                def resamplingMethod = "nearest neighbour"<br>
+                def matchHistograms = "true"<br>
+                String[] args = [baseFile, appendFile, outputFile, resamplingMethod, matchHistograms]<br>
+                pluginHost.runPlugin("MosaicWithFeathering", args, false)<br>
+            </code>
+        </p>
+
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2013)</li>

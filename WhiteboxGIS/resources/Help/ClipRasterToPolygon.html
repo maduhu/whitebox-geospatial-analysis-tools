@@ -28,6 +28,35 @@
             <li><a href="ErasePolygonFromRaster.html">Erase Polygon From Raster</a></li>
             <li><a href="HowToDigitizeNewVectors.html">How To Digitize New Vectors</a></li>
         </ul>
+        
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script using this tool:</p>
+        <p style="background-color: rgb(240,240,240);">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                # You may have multiple input files but they must<br>
+                # be separated by semicolons in the string.<br>
+                inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
+                clipFile = wd + "polygon.shp"<br>
+                maintainDimensions = "false"<br>
+                args = [inputFiles, clipFile, maintainDimensions]<br>
+                pluginHost.runPlugin("ClipRasterToPolygon", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240);">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                // You may have multiple input files but they must<br>
+                // be separated by semicolons in the string.<br>
+                def inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
+                def clipFile = wd + "polygon.shp"<br>
+                def maintainDimensions = "true"<br>
+                String[] args = [inputFiles, clipFile, maintainDimensions]<br>
+                pluginHost.runPlugin("ClipRasterToPolygon", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2013)</li>

@@ -11,7 +11,7 @@
 
         <p>This tool can be used to perform a mass flux calculation using 
             DEM-based surface flow-routing techniques. For example, it could be 
-            used to model the distribution of sediment or phospherous within a 
+            used to model the distribution of sediment or phosphorous within a 
             catchment. Flow-routing is based on a 
             <a href="FlowPointerD8.html">D8 flow pointer</a> (i.e. flow direction) 
             . 
@@ -42,6 +42,34 @@
             <li><a href="FlowPointerDinf.html">D-Infinity Flow Pointer</a></li>
         </ul>
 
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                pointer = wd + "D8 pointer.dep"<br>
+                loading = wd + "loading.dep"<br>
+                efficiency = wd + "efficiency.dep"<br>
+                absorption = wd + "absorption.dep"<br>
+                output = wd + "output.dep"<br>
+                args = [pointer, loading, efficiency, absorption, output]<br>
+                pluginHost.runPlugin("MassFluxD8", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def pointer = wd + "D8 pointer.dep"<br>
+                def loading = wd + "loading.dep"<br>
+                def efficiency = wd + "efficiency.dep"<br>
+                def absorption = wd + "absorption.dep"<br>
+                def output = wd + "output.dep"<br>
+                String[] args = [pointer, loading, efficiency, absorption, output]<br>
+                pluginHost.runPlugin("MassFluxD8", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li>John Lindsay (2013) email: jlindsay@uoguelph.ca</li>

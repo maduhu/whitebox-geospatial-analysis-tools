@@ -13,10 +13,13 @@ Version 3.0.4
 
 -Improved support for scripting, including syntax highlighting and autocompletion.
 -Scripts can now be added as plugin tools, with integration in the tools panel.
--Added Rename File tool, a python script plugin.
--Added Sink tool, a python script plugin.
--The version of jython (python for java) included in the library has been updated
- to the stand alone version. This has increased the distribution size by 2 Mb.
+-Added Rename File tool, a Python script plugin.
+-Added Sink tool, a Python script plugin.
+-Added user-defined weights filter, a Groovy script plugin.
+-Added scripting examples in all 300+ plugin tool help files (this took quite a 
+ bit of time!).
+-The version of Jython (python for java) included in the library has been updated
+ to the stand alone version. This has increased the distribution size by 2 MB.
 
 Version 3.0.3
 

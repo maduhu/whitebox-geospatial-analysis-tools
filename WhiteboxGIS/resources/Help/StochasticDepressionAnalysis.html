@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>Stochastic depression analysis</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -85,8 +85,39 @@
         </ul>
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
-            <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay and Beau Ahrens</a> (2012)</li>
+            <li>John Lindsay and Beau Ahrens (2012) email: jlindsay@uoguelph.ca</li>
         </ul>
+        
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                inputFile = wd + "input.dep"<br>
+                outputFile = wd + "output.dep"<br>
+                histogramFile = wd + "histo.txt"<br>
+                range = "265.0"<br>
+                numIterations = "100"<br>
+                numBands = "1000"<br>
+                args = [inputFile, outputFile, histogramFile, range, numIterations, numBands]<br>
+                pluginHost.runPlugin("StochasticDepressionAnalysis", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def inputFile = wd + "input.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                def histogramFile = wd + "histo.txt"<br>
+                def range = "265.0"<br>
+                def numIterations = "100"<br>
+                def numBands = "1000"<br>
+                String[] args = [inputFile, outputFile, histogramFile, range, numIterations, numBands]<br>
+                pluginHost.runPlugin("StochasticDepressionAnalysis", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">References:</h2>
         <ul>
             <li>Carr, JR. 2002. Data visualization in the geosciences. Prentice 

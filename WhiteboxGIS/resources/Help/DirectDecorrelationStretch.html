@@ -2,12 +2,12 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Direct Decorrelation Stretch</title>
+        <title>Direct decorrelation stretch</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
 
-        <h1>Direct Decorrelation Stretch</h1>
+        <h1>Direct decorrelation stretch</h1>
 
         <p>The Direct Decorrelation Stretch (DDS) is a simple type of saturation stretch. 
             The stretch is applied to a <a href="CreateColourComposite.html">colour composite 
@@ -39,9 +39,34 @@
             <li><a href="BalanceContrastEnhancement.html">Balance Contrast Enhancement</a></li>
 
         </ul>
+
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                inputFile = wd + "input.dep"<br>
+                outputFile = wd + "output.dep"<br>
+                achromaticFactor = "0.5"<br>
+                args = [inputFile, outputFile, achromaticFactor]<br>
+                pluginHost.runPlugin("DirectDecorrelationStretch", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def inputFile = wd + "input.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                def achromaticFactor = "0.5"<br>
+                String[] args = [inputFile, outputFile, achromaticFactor]<br>
+                pluginHost.runPlugin("DirectDecorrelationStretch", args, false)<br>
+            </code>
+        </p>
+
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
-            <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2013)</li>
+            <li>John Lindsay (2013), email: jlindsay@uoguelph.ca</li>
         </ul>
     </body>
 </html>

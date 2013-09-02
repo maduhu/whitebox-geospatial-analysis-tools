@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>Viewshed</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -25,14 +25,41 @@
             intensive task. Depending on the size of the input DEM grid and the number 
             of viewing stations, this operation may take considerable time to complete.</p>
 
-    <br><h2 class="SeeAlso">See Also:</h2>
-    <ul>
-        <li><a href="VisibilityIndex.html">Visibility Index</a></li>
-        <li><a href="HowToDigitizeNewVectors.html">How To Digitize New Vectors</a></li>
-    </ul>
-    <br><h2 class="SeeAlso">Credits:</h2>
-    <ul>
-        <li><a href="mailto:jlindsay@uguleph.ca">John Lindsay</a> (2013)</li>
-    </ul>
-</body>
+        <h2 class="SeeAlso">See Also:</h2>
+        <ul>
+            <li><a href="VisibilityIndex.html">Visibility Index</a></li>
+            <li><a href="HowToDigitizeNewVectors.html">How To Digitize New Vectors</a></li>
+        </ul>
+
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                demFile = wd + "DEM.dep"<br>
+                viewingStationFile = wd + "station.shp"<br>
+                outputFile = wd + "output.dep"<br>
+                stationHeight = "10.0"<br>
+                args = [demFile, viewingStationFile, outputFile, stationHeight]<br>
+                pluginHost.runPlugin("Viewshed", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def demFile = wd + "DEM.dep"<br>
+                def viewingStationFile = wd + "station.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                def stationHeight = "10.0"<br>
+                String[] args = [demFile, viewingStationFile, outputFile, stationHeight]<br>
+                pluginHost.runPlugin("Viewshed", args, false)<br>
+            </code>
+        </p>
+
+        <h2 class="SeeAlso">Credits:</h2>
+        <ul>
+            <li>John Lindsay (2013), email: jlindsay@uguleph.ca</li>
+        </ul>
+    </body>
 </html>

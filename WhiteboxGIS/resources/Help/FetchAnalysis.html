@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>GAT Help</title>
+        <title>Fetch analysis</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
 
@@ -19,9 +19,9 @@
             hypothetical wind direction, and a value for the height increment 
             parameter. The algorithm searches each grid cell in a path following 
             the specified wind direction until the following condition is met:</p>
-        
+
         <p><br><i>Z<sub>test</sub> >= Z<sub>core</sub> + DI</i></p>
-        
+
         <p><br>Where <i>Z<sub>core</sub></i> is the elevation of the grid cell 
             at which fetch is being determined, <i>Z<sub>test</sub></i> is the 
             elevation of the grid cell being tested as a topographic obstacle, 
@@ -39,7 +39,7 @@
             interpolation is used to estimate the elevation of the surface where 
             a ray (i.e. the search path) does not intersect the DEM grid precisely 
             at one of its nodes.</p>
-        
+
         <p>Ray-tracing is a highly computationally intensive task and therefore 
             this tool may take considerable time to operate for larger sized 
             DEMs. <b><i>NoData</i></b> valued grid cells in the input image will 
@@ -57,6 +57,31 @@
             <li><a href="WindRelatedTAs.html">Wind-related terrain attributes</a></li>
         </ul>
 
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                demFile = wd + "DEM.dep"<br>
+                outputFile = wd + "output.dep"<br>
+                azimuth = "215.0"<br>
+                heightIncrement = "0.05"<br>
+                args = [inputFile, outputFile, azimuth, heightIncrement]<br>
+                pluginHost.runPlugin("FetchAnalysis", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def demFile = wd + "input.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                def azimuth = "215.0"<br>
+                def heightIncrement = "0.05"<br>
+                String[] args = [demFile, outputFile, azimuth, heightIncrement]<br>
+                pluginHost.runPlugin("FetchAnalysis", args, false)<br>
+            </code>
+        </p>
 
         <h2 class="SeeAlso">Credits:</h2>
         <ul>

@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>GAT Help</title>
+        <title>Exposure towards a wind flux</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
 
@@ -53,14 +53,42 @@
             scale. Exposure images are best displayed using the blue-white-red
             bipolar palette to distinguish between the positive and negative 
             values that are present in the output.</p>
-
-        <p><br></p>
-
+        
         <h2 class="SeeAlso">See Also:</h2>
         <ul>
             <li><a href="WindRelatedTAs.html">Wind-related terrain attributes</a></li>
         </ul>
 
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                slope = wd + "slope.dep"<br>
+                aspect = wd + aspect.dep"<br>
+                output = wd + "output.dep"<br>
+                azimuth = "215.0"<br>
+                component = "horizontal"<br>
+                horizonAngle = "not specified"<br>
+                args = [slope, aspect, output, azimuth, component, horizonAngle]<br>
+                pluginHost.runPlugin("ExposureTowardsWindFlux", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def slope = wd + "slope.dep"<br>
+                def aspect = wd + aspect.dep"<br>
+                def output = wd + "output.dep"<br>
+                def azimuth = "215.0"<br>
+                def component = "sloped"<br>
+                def horizonAngle = wd + "horizon angle.dep"<br>
+                String[] args = [slope, aspect, output, azimuth, component, horizonAngle]<br>
+                pluginHost.runPlugin("ExposureTowardsWindFlux", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>

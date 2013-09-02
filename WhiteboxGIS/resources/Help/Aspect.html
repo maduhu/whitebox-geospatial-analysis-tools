@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>GAT Help</title>
+        <title>Aspect</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
 
@@ -26,7 +26,7 @@
             slope. Given the following clock-type grid cell numbering scheme (Gallant and
             Wilson, 2000),</p>
 
-        <p><img alt="Neighbourhood Numbering" src="img/NeighbourhoodNumbering.png"></p>
+        <div style="text-align:center"><img alt="Neighbourhood Numbering" src="img/NeighbourhoodNumbering.png"></div>
 
         <p>the tool calculates aspect as:</p>
 
@@ -42,17 +42,41 @@
 
         <p>Aspect is represented as an azimuth clockwise from north, ranging from 0-360
             degrees.</p>
-    
-    <h2 class="SeeAlso">See Also:</h2>
-    <ul>
-        <li><a href="Slope.html">Slope</a></li>
-        <li><a href="TerrainAnalysis.html">Other terrain analysis tools</a></li>
-    </ul>
-    
 
-    <h2 class="SeeAlso">Credits:</h2>
-    <ul>
-        <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
-    </ul>
-</body>
+        <h2 class="SeeAlso">See Also:</h2>
+        <ul>
+            <li><a href="Slope.html">Slope</a></li>
+            <li><a href="TerrainAnalysis.html">Other terrain analysis tools</a></li>
+        </ul>
+
+
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                inputFile = wd + "DEM.dep"<br>
+                outputFile = wd + "aspect.dep"<br>
+                zFactor = "1.0"<br>
+                args = [inputFile, outputFile, zFactor]<br>
+                pluginHost.runPlugin("Aspect", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def inputFile = wd + "DEM.dep"<br>
+                def outputFile = wd + "aspect.dep"<br>
+                def zFactor = "1.0"<br>
+                String[] args = [inputFile, outputFile, zFactor]<br>
+                pluginHost.runPlugin("Aspect", args, false)<br>
+            </code>
+        </p>
+
+        <h2 class="SeeAlso">Credits:</h2>
+        <ul>
+            <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
+        </ul>
+    </body>
 </html>

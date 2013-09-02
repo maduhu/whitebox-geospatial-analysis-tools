@@ -19,27 +19,62 @@
             of the output image. The user determines the maximum number of 
             classes (<i>k</i>) in the output image. In some cases, fewer classes 
             than the maximum will be identified. </p>
-        <p><br><h2>Algorithm Description</h2></p>
-    <p><i>k</i>-means classification finds statistically similar groups in 
-        multi-spectral space, and is therefore, a type of unsupervised classifier. 
-        The algorithm starts by randomly locating <i>k</i> clusters in spectral 
-        space. Each pixel in the input image group are then assigned to the 
-        nearest cluster centre and the cluster centre locations are moved to the 
-        average of their class values. This process is then repeated until a 
-        stopping condition is met. The stopping condition may either be a maximum 
-        number of iterations (specified by the user) or a tolerance threshold which 
-        designates the smallest possible distance to move cluster centres before 
-        stopping the iterative process.</p>
 
+        <h2>Algorithm Description</h2>
 
-    <h2 class="SeeAlso">See Also:</h2>
-    <ul>
-        <li><a href="ModifiedKMeans.html">Modified <i>k</i>-Means Classification</a></li>
-    </ul>
+        <p><i>k</i>-means classification finds statistically similar groups in 
+            multi-spectral space, and is therefore, a type of unsupervised classifier. 
+            The algorithm starts by randomly locating <i>k</i> clusters in spectral 
+            space. Each pixel in the input image group are then assigned to the 
+            nearest cluster centre and the cluster centre locations are moved to the 
+            average of their class values. This process is then repeated until a 
+            stopping condition is met. The stopping condition may either be a maximum 
+            number of iterations (specified by the user) or a tolerance threshold which 
+            designates the smallest possible distance to move cluster centres before 
+            stopping the iterative process.</p>
 
-    <h2 class="SeeAlso">Credits:</h2>
-    <ul>
-        <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
-    </ul>
-</body>
+        <h2 class="SeeAlso">See Also:</h2>
+        <ul>
+            <li><a href="ModifiedKMeans.html">Modified <i>k</i>-Means Classification</a></li>
+        </ul>
+
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script using this tool:</p>
+        <p style="background-color: rgb(240,240,240);">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                # You may have multiple input files but they must<br>
+                # be separated by semicolons in the string.<br>
+                inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
+                outputFile = wd + "output.dep"<br>
+                numClasses = "10"<br>
+                maxNumIterations = "25"<br>
+                changeThreshold = "2.0"<br>
+                initialize = "randomly"<br>
+                args = [inputFiles, outputFile, numClasses, maxNumIterations, changeThreshold, initialize]<br>
+                pluginHost.runPlugin("kMeansClassification", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240);">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                // You may have multiple input files but they must<br>
+                // be separated by semicolons in the string.<br>
+                def inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                def numClasses = "10"<br>
+                def maxNumIterations = "25"<br>
+                def changeThreshold = "2.0"<br>
+                def initialize = "with max dispersion along diagonal"<br>
+                String[] args = [inputFiles, outputFile, numClasses, maxNumIterations, changeThreshold, initialize]<br>
+                pluginHost.runPlugin("kMeansClassification", args, false)<br>
+            </code>
+        </p>
+
+        <h2 class="SeeAlso">Credits:</h2>
+        <ul>
+            <li>John Lindsay (2012) email: jlindsay@uoguelph.ca</li>
+        </ul>
+    </body>
 </html>

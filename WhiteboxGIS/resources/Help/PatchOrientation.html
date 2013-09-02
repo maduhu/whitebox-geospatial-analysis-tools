@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>Patch orientation</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -47,6 +47,31 @@
             <li><a href="ElongationRatio.html">Elongation Ratio</a></li>
             <li><a href="MinimumBoundingBox.html">Minimum Bounding Box</a></li>
         </ul>
+        
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                inputFile = wd + "polygons.shp" # vector input<br>
+                outputFile = "" # ignored for vector input<br>
+                textOutput = "false" # also ignored<br>
+                args = [inputFile, outputFile, textOutput]<br>
+                pluginHost.runPlugin("PatchOrientation", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def inputFile = wd + "polygons.dep" // raster input<br>
+                def outputFile = wd + "output.dep"<br>
+                def textOutput = "true"<br>
+                String[] args = [inputFile, outputFile, textOutput]<br>
+                pluginHost.runPlugin("PatchOrientation", args, False)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2013)</li>

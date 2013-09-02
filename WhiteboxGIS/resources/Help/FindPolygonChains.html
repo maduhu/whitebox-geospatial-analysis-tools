@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>Find polygon chains</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -29,13 +29,42 @@
             file can be optionally output to display the vector lines connecting 
             the polygons within identified chains.</p>
 
-    <br><h2 class="SeeAlso">See Also:</h2>
-    <ul>
-        <li><a href="MinimumBoundingBox.html">Minimum Bounding Box</a></li>
-    </ul>
-    <br><h2 class="SeeAlso">Credits:</h2>
-    <ul>
-        <li>John Lindsay (2013)</li>
-    </ul>
-</body>
+        <h2 class="SeeAlso">See Also:</h2>
+        <ul>
+            <li><a href="MinimumBoundingBox.html">Minimum Bounding Box</a></li>
+        </ul>
+
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                inputFile = wd + "input.shp"<br>
+                outputFile = wd + "output.shp"<br>
+                searchRadius = "1000.0"<br>
+                minChainSize = "3"<br>
+                chainFile = "not specified"<br>
+                args = [inputFile, outputFile, searchRadius, minChainSize, chainFile]<br>
+                pluginHost.runPlugin("FindPolygonChains", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def inputFile = wd + "input.shp"<br>
+                def outputFile = wd + "output.shp"<br>
+                def searchRadius = "1000.0"<br>
+                def minChainSize = "3"<br>
+                def chainFile = wd + "chains.shp"<br>
+                String[] args = [inputFile, outputFile, searchRadius, minChainSize, chainFile]<br>
+                pluginHost.runPlugin("FindPolygonChains", args, false)<br>
+            </code>
+        </p>
+
+        <h2 class="SeeAlso">Credits:</h2>
+        <ul>
+            <li>John Lindsay (2013)</li>
+        </ul>
+    </body>
 </html>

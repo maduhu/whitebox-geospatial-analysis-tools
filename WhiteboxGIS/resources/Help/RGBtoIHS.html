@@ -61,6 +61,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <li><a href="IHStoRGB.html">IHS to RGB</a></li>
         </ul>
 
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                redFile = wd + "red_band.dep"<br>
+                greenFile = wd + "green_band.dep"<br>
+                blueFile = wd + "blue_band.dep"<br>
+                outIntensityFile = wd + "intensity.dep"<br>
+                outHueFile = wd + "hue.dep"<br>
+                outSaturationFile = wd + "saturation.dep"<br>
+                args = [redFile, greenFile, blueFile, outIntensityFile, outHueFile, outSaturationFile]<br>
+                pluginHost.runPlugin("RGBtoIHS", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def redFile = wd + "red_band.dep"<br>
+                def greenFile = wd + "green_band.dep"<br>
+                def blueFile = wd + "blue_band.dep"<br>
+                def outIntensityFile = wd + "intensity.dep"<br>
+                def outHueFile = wd + "hue.dep"<br>
+                def outSaturationFile = wd + "saturation.dep"<br>
+                String[] args = [redFile, greenFile, blueFile, outIntensityFile, outHueFile, outSaturationFile]<br>
+                pluginHost.runPlugin("RGBtoIHS", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li>John Lindsay (2013) email: jlindsay@uoguelph.ca</li>

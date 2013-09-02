@@ -2,13 +2,13 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Balance Contrast Enhancement</title>
+        <title>Balance contrast enhancement</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
         
     </head>
     <body>
 
-        <h1>Balance Contrast Enhancement</h1>
+        <h1>Balance contrast enhancement</h1>
 
         <p>This tool can be used to reduce colour bias in a 
             <a href="CreateColourComposite.html">colour composite image</a> 
@@ -35,6 +35,31 @@
             <li><a href="CreateColourComposite.html">Create Colour Composite</a></li>
             <li><a href="DirectDecorrelationStretch.html">Direct Decorrelation Stretch</a></li>
         </ul>
+        
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                inputFile = wd + "input.dep"<br>
+                outputFile = wd + "output.dep"<br>
+                bandMean = "100.0"<br>
+                args = [inputFile, outputFile, bandMean]<br>
+                pluginHost.runPlugin("FeatureSpacePlot", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def inputFile = wd + "input.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                def bandMean = "130.0"<br>
+                String[] args = [inputFile, outputFile, bandMean]<br>
+                pluginHost.runPlugin("FeatureSpacePlot", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2013)</li>

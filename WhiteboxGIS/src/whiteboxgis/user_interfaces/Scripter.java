@@ -1037,16 +1037,14 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             PrintWriter out = new PrintWriter(new Scripter.TextAreaWriter(textArea));
             
             engine.getContext().setWriter(out);
+            engine.getContext().setErrorWriter(out);
             
-//            //JTextAreaInputStream textAreaInput = new JTextAreaInputStream(textArea);
-//            TextAreaStreamer textAreaInput = new TextAreaStreamer(textArea);
-//            engine.getContext().setReader(new InputStreamReader(textAreaInput));
-
             if (language == PYTHON && sourceFile != null) {
                 engine.put("__file__", sourceFile);
             }
             engine.put("pluginHost", (WhiteboxPluginHost) host);
-
+            engine.put("args", new String[0]);
+            
             // update the statusbar
             ScriptEngineFactory scriptFactory = engine.getFactory();
             statusLabel.setText(bundle.getString("ScriptingLanguage") + ": " + scriptFactory.getLanguageName());
@@ -1118,6 +1116,8 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
             editor.setEditable(true);
             editor.setCaretPosition(0);
+            
+            this.setTitle("Whitebox Scripter: " + new File(sourceFile).getName());
         }
     }
 
@@ -1189,7 +1189,8 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                     setLanguage(Scripter.ScriptingLanguage.JAVASCRIPT);
                     //language = Scripter.ScriptingLanguage.JAVASCRIPT;
                 }
-
+                
+                this.setTitle("Whitebox Scripter: " + new File(sourceFile).getName());
             } else {
                 return;
             }
@@ -1455,12 +1456,12 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 javascript.setState(true);
                 editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
                 break;
-            case RUBY:
-                python.setState(false);
-                groovy.setState(false);
-                javascript.setState(false);
-                editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_RUBY);
-                break;
+//            case RUBY:
+//                python.setState(false);
+//                groovy.setState(false);
+//                javascript.setState(false);
+//                editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_RUBY);
+//                break;
         }
 
         this.language = lang;

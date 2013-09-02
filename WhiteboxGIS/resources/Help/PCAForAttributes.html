@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>PCA for attributes</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -30,7 +30,7 @@
             represented by the first three or four PCA components. The 
             higher-order components are often associated with noise in the 
             original data set.</p>
-        
+
         <p>The user must specify the name of the input shapefile and the names 
             of the input attributes. Additionally, the user must specify whether 
             to perform a standardized PCA and the number of output components to 
@@ -41,7 +41,10 @@
             appropriate when the variances in the input attributes differ 
             substantially, such as would be the case if they contained values 
             that were recorded in different units (e.g. feet and meters) or 
-            on different scales.</p>
+            on different scales. The tool can output a specified number of 
+            components (must be less than the number of variables). If this 
+            parameter is not specified (left blank in dialog) all components 
+            will be recorded in the output.</p>
 
         <p>Several outputs will be generated when the tool has completed. A text 
             report will output into the text area at the bottom of the Whitebox 
@@ -72,20 +75,51 @@
             of factor loadings can be reveal useful information about the 
             data set. For example, it can help to identify groups of similar 
             attributes.</p>
-        
+
         <p>PCA is used as a data reduction technique and for noise reduction. 
             While this tool is intended to be applied to the attributes of a 
             vector file, PCA can also be performed on imagery data using the 
-        <a href="PrincipalComponentAnalysis.html"><b><i>Principal Component 
-                    Analysis</i></b></a> tool.</p>
+            <a href="PrincipalComponentAnalysis.html"><b><i>Principal Component 
+                        Analysis</i></b></a> tool.</p>
 
-    <br><h2 class="SeeAlso">See Also:</h2>
-    <ul>
-        <li><a href="PrincipalComponentAnalysis.html">Principal Component Analysis</a></li>
-    </ul>
-    <br><h2 class="SeeAlso">Credits:</h2>
-    <ul>
-        <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2012)</li>
-    </ul>
-</body>
+        <h2 class="SeeAlso">See Also:</h2>
+        <ul>
+            <li><a href="PrincipalComponentAnalysis.html">Principal Component Analysis</a></li>
+        </ul>
+
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                # Input data has the shapefile name followed<br>
+                # by each attribute included in the analysis, <br>
+                # separated by semicolons.<br>
+                inputData = wd + "neighbourhoods.shp" + ";" + "NUM_SCHOOLS" + ";" + "INCOME" + ";" + "POP_DENSITY"<br>
+                standardized = "true"<br>
+                numOutputComponents = "not specified"<br>
+                args = [inputData, standardized, numOutputComponents]<br>
+                pluginHost.runPlugin("PCAForAttributes", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                // Input data has the shapefile name followed <br>
+                // by each attribute included in the analysis, <br>
+                // separated by semicolons.<br>
+                def inputData = wd + "neighbourhoods.shp" + ";" + "NUM_SCHOOLS" + ";" + "INCOME" + ";" + "POP_DENSITY"<br>
+                def standardized = "true"<br>
+                def numOutputComponents = "2"<br>
+                String[] args = [inputData, standardized, numOutputComponents]<br>
+                pluginHost.runPlugin("PCAForAttributes", args, False)<br>
+            </code>
+        </p>
+
+        <h2 class="SeeAlso">Credits:</h2>
+        <ul>
+            <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2012)</li>
+        </ul>
+    </body>
 </html>

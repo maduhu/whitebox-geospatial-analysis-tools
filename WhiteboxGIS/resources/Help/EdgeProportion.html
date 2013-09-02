@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>Edge proportion</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -22,6 +22,31 @@
         <ul>
             <li><a href="ShapeComplexityIndex.html">Shape Complexity Index</a></li>
         </ul>
+        
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                inputFile = wd + "input.dep"<br>
+                outputFile = wd + "output.dep"<br>
+                textOutput = "true"<br>
+                args = [inputFile, outputFile, textOutput]<br>
+                pluginHost.runPlugin("EdgeProportion", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def inputFile = wd + "input.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                textOutput = "true"<br>
+                String[] args = [inputFile, outputFile, textOutput]<br>
+                pluginHost.runPlugin("EdgeProportion", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2012)</li>

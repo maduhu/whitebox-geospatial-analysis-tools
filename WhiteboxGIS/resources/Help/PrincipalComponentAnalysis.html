@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>Principal component analysis</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -99,9 +99,40 @@
             <li><a href="InversePrincipalComponentAnalysis.html">Inverse 
                     Principal Component Analysis</a></li>
         </ul>
+        
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script using this tool:</p>
+        <p style="background-color: rgb(240,240,240);">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                # You may have multiple input files but they must<br>
+                # be separated by semicolons in the string.<br>
+                inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
+                outputSuffix = "PCA"<br>
+                standardized = "true"<br>
+                numComponents = "not specified"<br>
+                args = [inputFiles, outputSuffix, standardized, numComponents]<br>
+                pluginHost.runPlugin("PrincipalComponentAnalysis", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240);">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                // You may have multiple input files but they must<br>
+                // be separated by semicolons in the string.<br>
+                def inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
+                def outputSuffix = "PCA"<br>
+                def standardized = "true"<br>
+                def numComponents = "2"<br>
+                String[] args = [inputFiles, outputSuffix, standardized, numComponents]<br>
+                pluginHost.runPlugin("PrincipalComponentAnalysis", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
-            <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2012)</li>
+            <li>John Lindsay (2012), email: jlindsay@uoguelph.ca</li>
         </ul>
         <h2 class="SeeAlso">References:</h2>
         <ul>

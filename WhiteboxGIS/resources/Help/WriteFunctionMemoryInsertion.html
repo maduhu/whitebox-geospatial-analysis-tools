@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>Write function memory insertion</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -42,6 +42,33 @@
             <li><a href="ChangeVectorAnalysis.html">Change Vector Analysis</a></li>
             <li><a href="CreateColourComposite.html">Create Colour Composite</a></li>
         </ul>
+
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                date1File = wd + "image1.dep"<br>
+                date2File = wd + "image2.dep"<br>
+                date3File = "not specified"<br>
+                outputFile = wd + "output.dep"<br>
+                args = [date1File, date2File, date3File, outputFile]<br>
+                pluginHost.runPlugin("WriteFunctionMemoryInsertion", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def date1File = wd + "image1.dep"<br>
+                def date2File = wd + "image2.dep"<br>
+                def date3File = wd + "image3.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                String[] args = [date1File, date2File, date3File, outputFile]<br>
+                pluginHost.runPlugin("WriteFunctionMemoryInsertion", args, false)<br>
+            </code>
+        </p>
+
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2012)</li>

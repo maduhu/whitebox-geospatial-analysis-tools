@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-      <title>Whitebox GAT Help</title>
+      <title>Visibility index</title>
       <link rel="stylesheet" type="text/css" href="Help.css">
   </head>
   <body>
@@ -21,11 +21,40 @@ processing necessary. Naturally this comes at the expense of accuracy. It is rec
 by selecting a large resolution factor (e.g. 50) and decreasing the value until it is no longer computationally 
 viable. The viewing height is in the same units as the elevations of the DEM.</p>
 
-<br><h2 class="SeeAlso">See Also:</h2>
+<h2 class="SeeAlso">See Also:</h2>
 <ul>
 <li><a href="Viewshed.html">Viewshed</a></li>
 </ul>
-<br><h2 class="SeeAlso">Credits:</h2>
+
+<h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                demFile = wd + "DEM.dep"<br>
+                outputFile = wd + "output.dep"<br>
+                resolutionFactor = "2.0"<br>
+                parallelProcess = "true"<br>
+                viewingHeight = "10.0"<br>
+                args = [inputFile, outputFile, resolutionFactor, parallelProcess, viewingHeight]<br>
+                pluginHost.runPlugin("VisibilityIndex", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def demFile = wd + "DEM.dep"<br>
+                def outputFile = wd + "output.dep"<br>
+                def resolutionFactor = "2.0"<br>
+                def parallelProcess = "true"<br>
+                def viewingHeight = "10.0"<br>
+                String[] args = [inputFile, outputFile, resolutionFactor, parallelProcess, viewingHeight]<br>
+                pluginHost.runPlugin("VisibilityIndex", args, false)<br>
+            </code>
+        </p>
+        
+<h2 class="SeeAlso">Credits:</h2>
 <ul>
 <li><a href="mailto:jlindsay@uguleph.ca">John Lindsay</a> (2013)</li>
 </ul>

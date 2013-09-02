@@ -15,29 +15,33 @@ description = "Identifies the sinks (depressions) in a DEM"
 toolboxes = ["TerrainAnalysis"]
 	
 class Sink(ActionListener):
-	def __init__(self):
-		# Create a dialog for this tool to collect user-specified
-		# tool parameters.
-		self.sd = ScriptDialog(pluginHost, descriptiveName, self)	
+	def __init__(self, args):
+		if len(args) != 0:
+			t = Thread(target=lambda: self.execute(args))
+			t.start()
+		else:
+			# Create a dialog for this tool to collect user-specified
+			# tool parameters.
+			self.sd = ScriptDialog(pluginHost, descriptiveName, self)	
 		
-		# Specifying the help file will display the html help
-		# file in the help pane. This file should be be located 
-		# in the help directory and have the same name as the 
-		# class, with an html extension.
-		helpFile = self.__class__.__name__
-		self.sd.setHelpFile(helpFile)
+			# Specifying the help file will display the html help
+			# file in the help pane. This file should be be located 
+			# in the help directory and have the same name as the 
+			# class, with an html extension.
+			helpFile = self.__class__.__name__
+			self.sd.setHelpFile(helpFile)
 		
-		# Specifying the source file allows the 'view code' 
-		# button on the tool dialog to be displayed.
-		self.sd.setSourceFile(os.path.abspath(__file__))
+			# Specifying the source file allows the 'view code' 
+			# button on the tool dialog to be displayed.
+			self.sd.setSourceFile(os.path.abspath(__file__))
 
-		# add some components to the dialog
-		self.sd.addDialogFile("Input file", "Input DEM File:", "open", "Whitebox Files (*.shp; *.dep), DEP, SHP", True, False)
-		self.sd.addDialogFile("Output file", "Output Raster File:", "close", "Whitebox Files (*.shp; *.dep), DEP, SHP", True, False)
+			# add some components to the dialog
+			self.sd.addDialogFile("Input file", "Input DEM File:", "open", "Whitebox Files (*.shp; *.dep), DEP, SHP", True, False)
+			self.sd.addDialogFile("Output file", "Output Raster File:", "close", "Whitebox Files (*.shp; *.dep), DEP, SHP", True, False)
 
-		# resize the dialog to the standard size and display it
-		self.sd.setSize(800, 400)
-		self.sd.visible = True
+			# resize the dialog to the standard size and display it
+			self.sd.setSize(800, 400)
+			self.sd.visible = True
 		
 	def execute(self, args):
 		try:
@@ -106,5 +110,8 @@ class Sink(ActionListener):
 			self.sd.dispose()
 			t = Thread(target=lambda: self.execute(args))
 			t.start()
-			
-Sink()
+
+if args is None:
+	pluginHost.showFeedback("The arguments array has not been set.")
+else:	
+	Sink(args)

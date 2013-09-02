@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Whitebox GAT Help</title>
+        <title>Plan curvature</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
@@ -26,6 +26,31 @@
             <li><a href="TotalCurv.html">Total Curvature</a></li>
             <li><a href="TangentialCurv.html">Tangential Curvature</a></li>
         </ul>
+        
+        <h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+                inputFile = wd + "DEM.dep"<br>
+                outputFile = wd + "curv.dep"<br>
+                zFactor = "1.0"<br>
+                args = [inputFile, outputFile, zFactor]<br>
+                pluginHost.runPlugin("PlanCurv", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+                def inputFile = wd + "DEM.dep"<br>
+                def outputFile = wd + "curv.dep"<br>
+                def zFactor = "1.0"<br>
+                String[] args = [inputFile, outputFile, zFactor]<br>
+                pluginHost.runPlugin("PlanCurv", args, false)<br>
+            </code>
+        </p>
+        
         <h2 class="SeeAlso">Credits:</h2>
         <ul>
             <li><a href="mailto:jlindsay@uoguelph.ca">John Lindsay</a> (2012)</li>

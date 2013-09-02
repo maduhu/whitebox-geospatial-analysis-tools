@@ -12,7 +12,7 @@
 	<DialogComponent type="DialogFile">
 		<Name>OutputFile</Name>
 		<Description>Enter the name of the output file here</Description>
-		<LabelText>Output Raster File:</LabelText>
+		<LabelText>Output Raster or Vector File:</LabelText>
 		<DialogMode>Save File</DialogMode>
 		<Filter>Whitebox Files (*.shp; *.dep), DEP, SHP</Filter>
 		<IsVisible>True</IsVisible>
