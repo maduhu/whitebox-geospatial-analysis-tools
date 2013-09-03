@@ -84,6 +84,17 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
     public static final String PROP_GENERATE_DATA = "generateData";
     private int numLinesInDoc = 1;
     private boolean editorDirty = false;
+    private JTextField searchField;
+    private JTextField replaceField;
+    private JCheckBox regexCB;
+    private JCheckBox matchCaseCB;
+    private JCheckBox wholeWordCB;
+    private JToolBar findAndReplaceToolbar;
+    private JButton nextButton;
+    private JButton prevButton;
+    private JLabel findLabel;
+    private JLabel replaceLabel;
+    private JButton replaceButton;
 
     public enum ScriptingLanguage {
 
@@ -192,13 +203,23 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
             this.setTitle("Whitebox Scripter");
             this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            this.setPreferredSize(new Dimension(500, 650));
+            this.setPreferredSize(new Dimension(550, 650));
 
             Container c = this.getContentPane();
 
             createMenu();
+
             JToolBar toolbar = createToolbar();
-            c.add(toolbar, BorderLayout.PAGE_START);
+            //c.add(toolbar, BorderLayout.PAGE_START);
+
+            findAndReplaceToolbar = createFindToolbar();
+            findAndReplaceToolbar.setVisible(false);
+
+            JPanel toolbarPanel = new JPanel();
+            toolbarPanel.setLayout(new BoxLayout(toolbarPanel, BoxLayout.Y_AXIS));
+            toolbarPanel.add(toolbar);
+            toolbarPanel.add(findAndReplaceToolbar);
+            c.add(toolbarPanel, BorderLayout.PAGE_START);
 
             editor = new RSyntaxTextArea(20, 60);
             editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
@@ -227,7 +248,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             outputBox.add(outputToolbarBox);
             outputBox.add(scroll2);
 
-            splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scroll, outputBox); //scroll2);
+            splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scroll, outputBox);
             splitPane.setDividerLocation(400);
 
             c.add(splitPane);
@@ -277,13 +298,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 bundle.getString("ToggleComments"), "Comment");
         toolbar.add(toggleComment);
 
-//        toolbar.addSeparator();
-
-//        JButton clearConsole = makeToolBarButton("ClearConsole.png", "clearConsole",
-//                bundle.getString("ClearConsole"), bundle.getString("ClearConsole"));
-//        toolbar.add(clearConsole);
-
-        toolbar.addSeparator();
+        //toolbar.addSeparator();
 
         generateDataButton = makeToolBarButton("GenerateData.png", "generateData",
                 bundle.getString("GenerateColumnData"), "Generate Data");
@@ -291,8 +306,233 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
         showGenerateDataButton(false);
 
+        toolbar.add(Box.createHorizontalGlue());
+
         return toolbar;
 
+    }
+
+    private JToolBar createFindToolbar() {
+        // Create a toolbar with searching options.
+        JToolBar toolbar = new JToolBar();
+
+        toolbar.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+
+        findLabel = new JLabel("Find:");
+        //c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 0.15;
+        c.gridx = 0;
+        c.gridy = 0;
+        toolbar.add(findLabel, c);
+
+        searchField = new JTextField(7);
+        searchField.setMinimumSize(searchField.getPreferredSize());
+        c.weightx = 0.25;
+        c.gridx = 1;
+        c.gridy = 0;
+        toolbar.add(searchField, c);
+
+        JPanel findButtonBox = new JPanel(); //Box.createHorizontalBox();
+        findButtonBox.setLayout(new BoxLayout(findButtonBox, BoxLayout.X_AXIS));
+        
+        prevButton = new JButton("\u25C0"); //"\u2190"); // previous
+        prevButton.setActionCommand("FindPrev");
+        prevButton.addActionListener(this);
+        findButtonBox.add(prevButton);
+
+        nextButton = new JButton("\u25B6"); //"\u2192"); // next
+        nextButton.setActionCommand("FindNext");
+        nextButton.addActionListener(this);
+        findButtonBox.add(nextButton);
+        
+        findButtonBox.add(Box.createHorizontalGlue());
+        
+        searchField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                nextButton.doClick(0);
+            }
+        });
+
+        
+        matchCaseCB = new JCheckBox("Match Case");
+        findButtonBox.add(matchCaseCB);
+        wholeWordCB = new JCheckBox("Whole Words");
+        findButtonBox.add(wholeWordCB);
+        regexCB = new JCheckBox("Regex");
+        findButtonBox.add(regexCB);
+        
+        findButtonBox.add(Box.createHorizontalGlue());
+        
+        JButton closeBtn = new JButton("x");
+        closeBtn.setBorderPainted(false);
+        closeBtn.setFocusPainted(false);
+        closeBtn.setContentAreaFilled(false);
+        closeBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                findAndReplaceToolbar.setVisible(false);
+            }
+        });
+        //toolBar.add(closeBtn);
+        findButtonBox.add(closeBtn);
+        
+        c.weightx = 1.0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 2;
+        c.gridy = 0;
+        toolbar.add(findButtonBox, c);
+        
+
+
+        replaceLabel = new JLabel("Replace:");
+        c.weightx = 0.15;
+        c.gridx = 0;
+        c.gridy = 1;
+        toolbar.add(replaceLabel, c);
+
+
+        replaceField = new JTextField(7);
+        replaceField.setMinimumSize(replaceField.getPreferredSize());
+        replaceField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                SearchContext context = new SearchContext();
+                String text = searchField.getText();
+                if (text.length() == 0) {
+                    return;
+                }
+                context.setSearchFor(text);
+                context.setReplaceWith(replaceField.getText());
+                context.setMatchCase(matchCaseCB.isSelected());
+                context.setRegularExpression(regexCB.isSelected());
+                context.setWholeWord(wholeWordCB.isSelected());
+                SearchEngine.replaceAll(editor, context);
+            }
+        });
+        c.weightx = 0.25;
+        c.gridx = 1;
+        c.gridy = 1;
+        toolbar.add(replaceField, c);
+
+        replaceButton = new JButton("replace");
+        replaceButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                SearchContext context = new SearchContext();
+                String text = searchField.getText();
+                if (text.length() == 0) {
+                    return;
+                }
+                context.setSearchFor(text);
+                context.setReplaceWith(replaceField.getText());
+                context.setMatchCase(matchCaseCB.isSelected());
+                context.setRegularExpression(regexCB.isSelected());
+                context.setWholeWord(wholeWordCB.isSelected());
+                SearchEngine.replaceAll(editor, context);
+            }
+        });
+        
+        JPanel replaceButtonPanel = new JPanel();
+        replaceButtonPanel.setLayout(new BoxLayout(replaceButtonPanel, BoxLayout.X_AXIS));
+        replaceButtonPanel.add(replaceButton);
+        replaceButtonPanel.add(Box.createHorizontalGlue());
+        c.weightx = 1.0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 2;
+        c.gridy = 1;
+        toolbar.add(replaceButtonPanel, c);
+
+//        Box textFields = Box.createVerticalBox();
+//        
+//        Box findBox = Box.createHorizontalBox();
+//        findLabel = new JLabel("Find:");
+//        findBox.add(findLabel);
+//        searchField = new JTextField(10);
+//        //toolBar.add(searchField);
+//        findBox.add(searchField);
+//        textFields.add(findBox);
+//        
+//        Box replaceBox = Box.createHorizontalBox();
+//        replaceLabel = new JLabel("Replace:");
+//        replaceBox.add(replaceLabel);
+//        replaceField = new JTextField(10);
+//        replaceField.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                SearchContext context = new SearchContext();
+//                String text = searchField.getText();
+//                if (text.length() == 0) {
+//                    return;
+//                }
+//                context.setSearchFor(text);
+//                context.setReplaceWith(replaceField.getText());
+//                context.setMatchCase(matchCaseCB.isSelected());
+//                context.setRegularExpression(regexCB.isSelected());
+////                context.setWholeWord(false);
+//                
+//                SearchEngine.replaceAll(editor, context);
+//            }
+//        });
+//        
+//        replaceBox.add(replaceField);
+//        textFields.add(replaceBox);
+//        
+//        toolbar.add(textFields);
+//        
+//        Box findButtonBox = Box.createHorizontalBox();
+//        nextButton = new JButton("Next");
+//        nextButton.setActionCommand("FindNext");
+//        nextButton.addActionListener(this);
+//        findButtonBox.add(nextButton);
+//        //toolBar.add(nextButton);
+//        
+//        searchField.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                nextButton.doClick(0);
+//            }
+//        });
+//        
+//        
+//        prevButton = new JButton("Previous");
+//        prevButton.setActionCommand("FindPrev");
+//        prevButton.addActionListener(this);
+//        //toolBar.add(prevButton);
+//        findButtonBox.add(prevButton);
+//        
+//        regexCB = new JCheckBox("Regex");
+//        //toolBar.add(regexCB);
+//        findButtonBox.add(regexCB);
+//        matchCaseCB = new JCheckBox("Match Case");
+//        //toolBar.add(matchCaseCB);
+//        findButtonBox.add(matchCaseCB);
+//        
+//        findButtonBox.add(Box.createHorizontalGlue());
+//        //toolBar.add(Box.createHorizontalGlue());
+//        
+//        JButton closeBtn = new JButton("x");
+//        closeBtn.setBorderPainted(false);
+//        closeBtn.setFocusPainted(false);
+//        closeBtn.setContentAreaFilled(false);
+//        closeBtn.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                findAndReplaceToolbar.setVisible(false);
+//            }
+//        });
+//        //toolBar.add(closeBtn);
+//        findButtonBox.add(closeBtn);
+//        
+//        Box box2 = Box.createVerticalBox();
+//        
+//        box2.add(findButtonBox);
+//        box2.add(Box.createVerticalGlue());
+//        
+//        toolbar.add(box2);
+
+        return toolbar;
     }
 
     private JToolBar createOutputToolbar() {
@@ -377,6 +617,55 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             paste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             paste.addActionListener(this);
             editMenu.add(paste);
+
+            JMenuItem selectAll = new JMenuItem("Select All");
+            selectAll.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            selectAll.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    editor.selectAll();
+                }
+            });
+            editMenu.add(selectAll);
+
+            editMenu.addSeparator();
+
+            JMenuItem find = new JMenuItem("Find");
+            find.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            find.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    findAndReplaceToolbar.setVisible(true);
+                    searchField.requestFocus();
+                    replaceField.setVisible(false);
+                    replaceLabel.setVisible(false);
+                    replaceButton.setVisible(false);
+//                    searchField.setVisible(true);
+//                    findLabel.setVisible(true);
+                    prevButton.setVisible(true);
+                    nextButton.setVisible(true);
+                }
+            });
+            editMenu.add(find);
+
+            JMenuItem replace = new JMenuItem("Replace");
+            replace.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            replace.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    findAndReplaceToolbar.setVisible(true);
+                    searchField.requestFocus();
+                    replaceField.setVisible(true);
+                    replaceLabel.setVisible(true);
+                    replaceButton.setVisible(true);
+//                    searchField.setVisible(false);
+//                    findLabel.setVisible(false);
+                    prevButton.setVisible(false);
+                    nextButton.setVisible(false);
+                }
+            });
+            editMenu.add(replace);
+
 
             menubar.add(editMenu);
 
@@ -699,6 +988,24 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
                                 importVariableAs(variableName, className);
 
+                            }
+                        }
+                    } else if (line.contains("class")) {
+                        String[] s1 = line.split(" ");
+                        // the class name is the one after the class keyword
+                        String className = "";
+                        for (int i = 0; i < s1.length; i++) {
+                            if (s1[i].trim().toLowerCase().equals("class")) {
+                                String[] s2 = s1[i + 1].split("\\(");
+                                className = s2[0];
+                                break;
+                            }
+                        }
+
+                        if (!className.isEmpty()) {
+                            if (!listOfImportedClasses.contains(className)) {
+                                listOfImportedClasses.add(className);
+                                provider.addCompletion(new BasicCompletion(provider, className));
                             }
                         }
                     }
@@ -1035,16 +1342,16 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             }
             engine = mgr.getEngineByName(language.toString().toLowerCase());
             PrintWriter out = new PrintWriter(new Scripter.TextAreaWriter(textArea));
-            
+
             engine.getContext().setWriter(out);
             engine.getContext().setErrorWriter(out);
-            
+
             if (language == PYTHON && sourceFile != null) {
                 engine.put("__file__", sourceFile);
             }
             engine.put("pluginHost", (WhiteboxPluginHost) host);
             engine.put("args", new String[0]);
-            
+
             // update the statusbar
             ScriptEngineFactory scriptFactory = engine.getFactory();
             statusLabel.setText(bundle.getString("ScriptingLanguage") + ": " + scriptFactory.getLanguageName());
@@ -1116,7 +1423,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
             editor.setEditable(true);
             editor.setCaretPosition(0);
-            
+
             this.setTitle("Whitebox Scripter: " + new File(sourceFile).getName());
         }
     }
@@ -1189,7 +1496,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                     setLanguage(Scripter.ScriptingLanguage.JAVASCRIPT);
                     //language = Scripter.ScriptingLanguage.JAVASCRIPT;
                 }
-                
+
                 this.setTitle("Whitebox Scripter: " + new File(sourceFile).getName());
             } else {
                 return;
@@ -1302,7 +1609,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
 //        Object source = e.getSource();
         String actionCommand = e.getActionCommand();
-        switch (actionCommand) {
+        switch (actionCommand.toLowerCase()) {
             case "close":
                 if (editorDirty) {
                     Object[] options = {"Yes", "No", "Cancel"};
@@ -1403,6 +1710,29 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 resetAutocompletion();
                 scanDoc();
                 break;
+            case ("findnext"):
+            case ("findprev"):
+                boolean forward = "findnext".equals(actionCommand.toLowerCase());
+
+                // Create an object defining our search parameters.
+                SearchContext context = new SearchContext();
+                String text = searchField.getText();
+                if (text.length() == 0) {
+                    return;
+                }
+                context.setSearchFor(text);
+                context.setMatchCase(matchCaseCB.isSelected());
+                context.setRegularExpression(regexCB.isSelected());
+                context.setSearchForward(forward);
+                context.setWholeWord(wholeWordCB.isSelected());
+
+                boolean found = SearchEngine.find(editor, context);
+                if (!found) {
+                    JOptionPane.showMessageDialog(this, "Text not found");
+                }
+
+                break;
+
         }
     }
 
@@ -1539,7 +1869,6 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             textArea.append(new String(cbuf, off, len));
         }
     }
-
 //    class JTextAreaInputStream extends InputStream {
 //
 //        byte[] contents;
