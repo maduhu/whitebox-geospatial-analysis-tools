@@ -15,6 +15,7 @@ plugins.FilterHighPass
 plugins.FilterKNearestMean
 plugins.FilterLaplacian
 plugins.FilterLineDetection
+plugins.FilterLocalContrastEnhancement
 plugins.FilterLoG
 plugins.FilterMajority
 plugins.FilterMaximum
