@@ -9,6 +9,22 @@ remote sensing software package for advanced analysis and visualization of geosp
 
 RELEASE NOTES:
 
+Version 3.0.4 (Sept. 5, 2013)
+
+-Improved support for scripting, including syntax highlighting and auto-completion.
+ There have been considerable improvements made to the Whitebox scripter.
+-Scripts can now be added as plugin tools, with integration in the tools panel.
+-Added Rename File tool, a Python script plugin.
+-Added Sink tool, a Python script plugin.
+-Added user-defined weights filter, a Groovy script plugin.
+-Added scripting examples in all 300+ plugin tool help files (this took quite a 
+ lot of time!).
+-The version of Jython (python for java) included in the library has been updated
+ to the stand alone version. This has increased the distribution size by 2 MB.
+-Added a quick-link to all displayed data layers in the file selection components
+ of tool dialogs.
+
+
 Version 3.0.3
 
 -Added FindParallelFlow tool.

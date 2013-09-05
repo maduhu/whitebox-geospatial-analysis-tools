@@ -1491,6 +1491,29 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public String getResourcesDirectory() {
         return resourcesDirectory;
     }
+    
+    @Override
+    /**
+     * Used to retrieve all of the files currently displayed in the active map.
+     * @return String[] of file names of displayed raster and vector files.
+     */
+    public String[] getCurrentlyDisplayedFiles() {
+        MapArea activeMapArea = openMaps.get(activeMap).getActiveMapArea();
+        ArrayList<MapLayer> myLayers = activeMapArea.getLayersList();
+        String[] ret = new String[myLayers.size()];
+        int i = 0;
+        for (MapLayer maplayer : myLayers) {
+            if (maplayer.getLayerType() == MapLayer.MapLayerType.RASTER) {
+                      RasterLayerInfo raster = (RasterLayerInfo) maplayer;
+                        ret[i] = raster.getHeaderFile();
+            } else if (maplayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
+                VectorLayerInfo vector = (VectorLayerInfo)maplayer;
+                ret[i] = vector.getFileName();
+            }
+            i++;
+        }
+        return ret;
+    }
 
     private void getApplicationProperties() {
         // see if the app.config file exists

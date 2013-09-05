@@ -782,4 +782,9 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             this.dispose();
         }
     }
+    
+    @Override
+    public String[] getCurrentlyDisplayedFiles() {
+        return host.getCurrentlyDisplayedFiles();
+    }
 }

@@ -16,8 +16,8 @@
  */
 package whiteboxgis.user_interfaces;
 
-import java.awt.Dimension;
 import java.awt.event.*;
+import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -29,17 +29,18 @@ import javax.swing.event.DocumentListener;
 import whitebox.interfaces.Communicator;
 import whitebox.interfaces.DialogComponent;
 import whitebox.structures.ExtensionFileFilter;
+import org.fife.ui.autocomplete.*;
+import whitebox.utilities.FileUtilities;
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class DialogFile extends JPanel implements ActionListener, DialogComponent, 
+public class DialogFile extends JPanel implements ActionListener, DialogComponent,
         PropertyChangeListener {
-   
+
     static final byte MODE_OPEN = 0;
     static final byte MODE_SAVEAS = 1;
-    
     private int numArgs = 7;
     private String name;
     private String description;
@@ -56,9 +57,12 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
     private String pathSep;
     private ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
     private Communicator hostDialog = null;
-    
-    /** Initialization method
-     * 
+    private AutoCompletion ac;
+    private String spaces = "    ";
+
+    /**
+     * Initialization method
+     *
      * @param host Communicator
      */
     public DialogFile() {
@@ -69,9 +73,9 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
         pathSep = File.separator;
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
         workingDirectory = hostDialog.getWorkingDirectory();
-            
+
     }
-    
+
     public DialogFile(Communicator host) {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.setMaximumSize(new Dimension(2500, 50));
@@ -81,9 +85,9 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
         pathSep = File.separator;
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
         workingDirectory = hostDialog.getWorkingDirectory();
-            
+
     }
-    
+
     private void createUI() {
         try {
             Border border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
@@ -93,8 +97,39 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
             box1.add(Box.createHorizontalGlue());
             Box box2 = Box.createHorizontalBox();
             text.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-                text.getPreferredSize().height));
-            box2.add(text);
+                    text.getPreferredSize().height));
+            
+            if (this.mode == MODE_OPEN) {
+                spaces = "    ";
+                JButton dropDownBtn = makeToolBarButton("GetOpenLayers.png", "GetOpenLayers",
+                        "Displayed Layers", "GetOpenLayers");
+                dropDownBtn.setBorderPainted(false);
+                dropDownBtn.setFocusPainted(false);
+                dropDownBtn.setContentAreaFilled(false);
+                dropDownBtn.setMargin(new Insets(0, 0, 0, 0));
+                dropDownBtn.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        int numLayers = getOpenLayers();
+                        if (numLayers > 0 && ac != null) {
+                            text.setText("");
+                            ac.doCompletion();
+                        }
+                    }
+                });
+                JPanel dropDownPanel = new JPanel(new BorderLayout());
+                dropDownPanel.setBackground(Color.white);
+                dropDownPanel.setPreferredSize(new Dimension(14, 0));
+                dropDownPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+                dropDownPanel.add(dropDownBtn, BorderLayout.CENTER);
+                text.setLayout(new BorderLayout());
+                text.add(dropDownPanel, BorderLayout.EAST);
+                box2.add(text);
+            } else {
+                spaces = "";
+                box2.add(text);
+            }
+
             if (showButton) {
                 String imgLocation = graphicsDirectory + "open.png";
                 ImageIcon image = new ImageIcon(imgLocation, "");
@@ -115,18 +150,22 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
                 }
                 box2.add(button);
             }
-            
+
             MouseListener ml = new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
                     if (e.getClickCount() == 2) {
-                        if (mode == MODE_OPEN) { openFile(); }
-                        if (mode == MODE_SAVEAS) { saveFile(); }
+                        if (mode == MODE_OPEN) {
+                            openFile();
+                        }
+                        if (mode == MODE_SAVEAS) {
+                            saveFile();
+                        }
                     }
                 }
             };
             text.addMouseListener(ml);
-            
+
             text.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
                 public void changedUpdate(DocumentEvent e) {
@@ -149,7 +188,10 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
                     firePropertyChange("value", oldValue, value);
                 }
             });
-            
+
+//            if (mode == MODE_OPEN) {
+//            }
+
             this.add(box1);
             this.add(box2);
             //if (System.getProperty("os.name").contains("Mac")) {
@@ -159,7 +201,69 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
             System.out.println(e.getCause());
         }
     }
-    
+
+    private int getOpenLayers() {
+        int ret = 0;
+        DefaultCompletionProvider provider = new DefaultCompletionProvider();
+        String[] displayedFiles = hostDialog.getCurrentlyDisplayedFiles();
+        for (int i = 0; i < displayedFiles.length; i++) {
+            if (isFileOfAllowableType(displayedFiles[i])) {
+                String fileName = FileUtilities.getShortFileName(displayedFiles[i]);
+                provider.addCompletion(new ShorthandCompletion(provider, fileName,
+                        displayedFiles[i] + spaces, displayedFiles[i]));
+                ret++;
+            }
+        }
+
+        ac = new AutoCompletion(provider);
+        ac.setAutoCompleteEnabled(true);
+        ac.setAutoActivationEnabled(true);
+        ac.setShowDescWindow(false);
+        ac.setParameterAssistanceEnabled(false);
+        ac.install(text);
+        return ret;
+    }
+
+    private JButton makeToolBarButton(String imageName, String actionCommand, String toolTipText, String altText) {
+        //Look for the image.
+        String imgLocation = graphicsDirectory + imageName;
+        ImageIcon image = new ImageIcon(imgLocation, "");
+
+        //Create and initialize the button.
+        JButton button = new JButton();
+        button.setActionCommand(actionCommand);
+        button.setToolTipText(toolTipText);
+        button.addActionListener(this);
+        if (!(new File(imgLocation).exists())) {
+            button.setText(altText);
+            return button;
+        }
+        button.setOpaque(false);
+        button.setBorderPainted(false);
+
+        try {
+            button.setIcon(image);
+        } catch (Exception e) {
+            button.setText(altText);
+            System.out.println(e.getMessage());
+        }
+
+        return button;
+    }
+
+    private boolean isFileOfAllowableType(String fileName) {
+        String myExtension = FileUtilities.getFileExtension(fileName);
+        for (ExtensionFileFilter filter : filters) {
+            String[] extensions = filter.getExtensions();
+            for (int i = 0; i < extensions.length; i++) {
+                if (extensions[i].toLowerCase().endsWith(myExtension)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public String getValue() {
         if (!value.equals(text.getText())) {
@@ -184,8 +288,8 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
         if (!value.trim().equals("")) {
             File file = new File(value.trim());
             if (mode == MODE_SAVEAS && file.exists()) {
-                int n = hostDialog.showFeedback("The file already exists.\n" + 
-                        "Would you like to overwrite it?", JOptionPane.YES_NO_OPTION, 
+                int n = hostDialog.showFeedback("The file already exists.\n"
+                        + "Would you like to overwrite it?", JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE);
                 if (n == JOptionPane.YES_OPTION) {
                     file.delete();
@@ -202,17 +306,17 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
         }
         return null;
     }
-    
+
     @Override
     public String getComponentName() {
         return name;
     }
-    
+
     @Override
     public boolean getOptionalStatus() {
         return makeOptional;
     }
-    
+
     @Override
     public boolean setArgs(String[] args) {
         try {
@@ -229,18 +333,18 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
             showButton = Boolean.parseBoolean(args[4]);
             setFilters(args[5]);
             makeOptional = Boolean.parseBoolean(args[6]);
-            
+
             createUI();
             return true;
         } catch (Exception e) {
             return false;
         }
     }
-    
+
     public void setTextFieldActionListener(ActionListener al) {
         text.addActionListener(al);
     }
-    
+
     @Override
     public String[] getArgsDescriptors() {
         String[] argsDescriptors = new String[numArgs];
@@ -253,8 +357,8 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
         argsDescriptors[6] = "boolean makeOptional";
         return argsDescriptors;
     }
-    
     boolean acceptAllFiles = false;
+
     private void setFilters(String filterStr) {
         try {
             // filters are delimited by a pipe '|'
@@ -283,45 +387,45 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
             System.out.println(e.getStackTrace());
         }
     }
-    
+
     private void openFile() {
         JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setMultiSelectionEnabled(false);
         fc.setAcceptAllFileFilterUsed(acceptAllFiles);
-    
+
         for (int i = 0; i < filters.size(); i++) {
             fc.setFileFilter(filters.get(i));
         }
-        
+
         workingDirectory = hostDialog.getWorkingDirectory();
         fc.setCurrentDirectory(new File(workingDirectory));
         int result = fc.showOpenDialog(this);
         File file = null;
-        if(result == JFileChooser.APPROVE_OPTION) {
+        if (result == JFileChooser.APPROVE_OPTION) {
             file = fc.getSelectedFile();
             String fileDirectory = file.getParentFile() + pathSep;
             if (!fileDirectory.equals(workingDirectory)) {
                 hostDialog.setWorkingDirectory(fileDirectory);
             }
-            text.setText(file.toString());
+            text.setText(file.toString() + spaces);
             String oldValue = this.value;
             this.value = file.toString();
             firePropertyChange("value", oldValue, value);
         }
     }
-    
+
     private void saveFile() {
         JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         workingDirectory = hostDialog.getWorkingDirectory();
         fc.setCurrentDirectory(new File(workingDirectory));
         fc.setAcceptAllFileFilterUsed(false);
-        
+
         for (int i = 0; i < filters.size(); i++) {
             fc.setFileFilter(filters.get(i));
         }
-        
+
         int result = fc.showSaveDialog(this);
         File file = null;
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -332,16 +436,16 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
                 String fileStr = file.toString() + "." + filters.get(0).getExtensions()[0];
                 file = new File(fileStr);
             }
-            
+
             String fileDirectory = file.getParentFile() + pathSep;
             if (!fileDirectory.equals(workingDirectory)) {
                 hostDialog.setWorkingDirectory(fileDirectory);
             }
-            
+
             // see if the file exists already, and if so, should it be overwritten?
             if (file.exists()) {
-                int n = hostDialog.showFeedback("The file already exists.\n" + 
-                        "Would you like to overwrite it?", JOptionPane.YES_NO_OPTION, 
+                int n = hostDialog.showFeedback("The file already exists.\n"
+                        + "Would you like to overwrite it?", JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE);
                 if (n == JOptionPane.YES_OPTION) {
                     file.delete();
@@ -350,15 +454,15 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
                     return;
                 }
             }
-            
-            text.setText(file.toString());
-            
+
+            text.setText(file.toString() + spaces);
+
             String oldValue = this.value;
             this.value = file.toString();
             firePropertyChange("value", oldValue, value);
         }
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();

@@ -1687,10 +1687,10 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             case "saveAs":
                 saveAs();
                 break;
-            case "clearConsole":
+            case "clearconsole":
                 textArea.setText("");
                 break;
-            case "generateData":
+            case "generatedata":
                 this.firePropertyChange("generateData", false, true);
                 break;
             case "undo":

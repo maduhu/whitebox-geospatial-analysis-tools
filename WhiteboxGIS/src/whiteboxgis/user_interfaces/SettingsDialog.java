@@ -385,4 +385,9 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread, boolean suppressReturnedData) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    @Override
+    public String[] getCurrentlyDisplayedFiles() {
+        return host.getCurrentlyDisplayedFiles();
+    }
 }

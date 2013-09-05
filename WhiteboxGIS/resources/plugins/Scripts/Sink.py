@@ -36,8 +36,8 @@ class Sink(ActionListener):
 			self.sd.setSourceFile(os.path.abspath(__file__))
 
 			# add some components to the dialog
-			self.sd.addDialogFile("Input file", "Input DEM File:", "open", "Whitebox Files (*.shp; *.dep), DEP, SHP", True, False)
-			self.sd.addDialogFile("Output file", "Output Raster File:", "close", "Whitebox Files (*.shp; *.dep), DEP, SHP", True, False)
+			self.sd.addDialogFile("Input file", "Input DEM File:", "open", "Whitebox Raster Files (*.dep), DEP", True, False)
+			self.sd.addDialogFile("Output file", "Output Raster File:", "close", "Whitebox Raster Files (*.dep), DEP", True, False)
 
 			# resize the dialog to the standard size and display it
 			self.sd.setSize(800, 400)
