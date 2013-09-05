@@ -681,4 +681,9 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
             host.logMessage(level, message);
         }
     }
+
+    @Override
+    public String[] getCurrentlyDisplayedFiles() {
+        return host.getCurrentlyDisplayedFiles();
+    }
 }

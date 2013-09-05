@@ -51,6 +51,12 @@ public interface Communicator {
     public void logMessage(Level level, String message);
     
     /**
+     * Used to retrieve all of the files currently displayed in the active map.
+     * @return String[] of file names of displayed raster and vector files.
+     */
+    public String[] getCurrentlyDisplayedFiles();
+    
+    /**
      * Used to run a plugin through the Host app.
      * @param pluginName String containing the descriptive name of the plugin.
      * @param args String array containing the parameters to feed to the plugin.

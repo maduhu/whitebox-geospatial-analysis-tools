@@ -142,6 +142,11 @@ public class FileUtilities {
         return filename.substring(0, extensionIndex);
     }
     
+    public static String getShortFileName(String fileName) {
+        int idx = fileName.replaceAll("\\\\", "/").lastIndexOf("/");
+        return idx >= 0 ? fileName.substring(idx + 1) : fileName;
+    }
+    
     public static String getFileExtension(String s) {
 
         String separator = System.getProperty("file.separator");
