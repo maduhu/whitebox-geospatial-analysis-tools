@@ -230,7 +230,7 @@ public class Fuse implements WhiteboxPlugin {
 
             com.vividsolutions.jts.geom.Geometry[] recJTSGeometries = null;
             ArrayList<com.vividsolutions.jts.geom.Geometry> inputGeometryList =
-                    new ArrayList<com.vividsolutions.jts.geom.Geometry>();
+                    new ArrayList<>();
             com.vividsolutions.jts.geom.Geometry outputGeometry = null;
 
 
@@ -417,7 +417,7 @@ public class Fuse implements WhiteboxPlugin {
                     } else if (gN instanceof LineString
                             && outputShapeType == ShapeType.POLYLINE) {
                         LineString ls = (LineString) gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = {0};
 
@@ -440,7 +440,7 @@ public class Fuse implements WhiteboxPlugin {
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon
                             && outputShapeType == ShapeType.POLYLINE) {
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon) gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 
@@ -483,7 +483,7 @@ public class Fuse implements WhiteboxPlugin {
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon
                             && outputShapeType == ShapeType.POLYGON) {
                         com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon) gN;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                         int[] parts = new int[p.getNumInteriorRing() + 1];
 

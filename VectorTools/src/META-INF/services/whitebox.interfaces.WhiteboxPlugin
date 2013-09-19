@@ -16,4 +16,5 @@ plugins.SimplifyLineOrPolygon
 plugins.Smooth
 plugins.SymmetricDifference
 plugins.Union
+plugins.VectorCleaning
 plugins.VoronoiDiagram

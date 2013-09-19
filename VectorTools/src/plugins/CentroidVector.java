@@ -215,8 +215,8 @@ public class CentroidVector implements WhiteboxPlugin {
             // set up the input shapefile.
             ShapeFile input = new ShapeFile(inputFile);
             shapeType = input.getShapeType();
-            if (shapeType.getBaseType() != ShapeType.POLYGON) {
-                showFeedback("The input shapefile must have a POLYGON shape type.");
+            if (shapeType.getBaseType() != ShapeType.POLYGON && shapeType.getBaseType() != ShapeType.POLYLINE) {
+                showFeedback("The input shapefile must have a POLYLINE or POLYGON shape type.");
                 return;
             }
 
@@ -260,7 +260,6 @@ public class CentroidVector implements WhiteboxPlugin {
                         whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(pCoord.x, pCoord.y);
                         
                         Object[] rowData = attributeTableRecords[record.getRecordNumber() - 1];
-//                        writer.addRecord(rowData);
                         output.addRecord(wbGeometry, rowData);
                     }
                 }
@@ -278,8 +277,6 @@ public class CentroidVector implements WhiteboxPlugin {
 
 
             output.write();
-//            writer.write();
-
 
             // returning a header file string displays the image.
             returnData(outputFile);
