@@ -131,10 +131,16 @@ public class MultiPointM implements Geometry {
         return numPoints;
     }
 
+    @Override
     public double[][] getPoints() {
         return points;
     }
 
+    @Override
+    public int[] getParts() {
+        return new int[0];
+    }
+    
     public double[] getmArray() {
         return mArray;
     }

@@ -109,4 +109,7 @@ public interface WhiteboxPluginHost extends Communicator {
      */
     public void resetRequestForOperationCancel();
     
+    public void showHelp();
+    
+    public void showHelp(String helpFile);
 }

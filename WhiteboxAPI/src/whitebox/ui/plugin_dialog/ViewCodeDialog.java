@@ -202,7 +202,7 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
         for (int x = 0; x < files.length; x++) {
             if (files[x].isDirectory()) {
                 findSourceFile(files[x]);
-            } else if (files[x].toString().contains(pluginName + ".java")) {
+            } else if (files[x].toString().contains(pathSep + pluginName + ".java")) {
                 sourceFile = files[x].toString();
                 break;
             }

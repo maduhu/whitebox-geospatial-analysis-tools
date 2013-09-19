@@ -89,6 +89,11 @@ public class PointZ implements Geometry {
     }
     
     @Override
+    public int[] getParts() {
+        return new int[0];
+    }
+    
+    @Override
     public int getLength() {
         return 32;
     }

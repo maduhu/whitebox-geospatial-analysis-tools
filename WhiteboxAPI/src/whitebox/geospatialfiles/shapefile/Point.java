@@ -114,4 +114,9 @@ public class Point implements Geometry {
         retArray[0] = factory.createPoint(coordArray);
         return retArray;
     }
+
+    @Override
+    public int[] getParts() {
+        return new int[0];
+    }
 }

@@ -32,6 +32,8 @@ public interface Geometry {
     
     double[][] getPoints();
     
+    int[] getParts();
+    
     ShapeType getShapeType();
     
     boolean isMappable(BoundingBox box, double minSize);

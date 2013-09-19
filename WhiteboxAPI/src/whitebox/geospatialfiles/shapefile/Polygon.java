@@ -452,7 +452,7 @@ public class Polygon implements Geometry {
         int numHoles = this.getNumberOfHoles();
         int numNonHoles = numParts - numHoles; // this is the number of shells
         CoordinateArraySequence coordArray;
-        ArrayList<com.vividsolutions.jts.geom.Polygon> polyList = new ArrayList<com.vividsolutions.jts.geom.Polygon>();
+        ArrayList<com.vividsolutions.jts.geom.Polygon> polyList = new ArrayList<>();
         
         // read the polygon shells into an array of Geometry
         //com.vividsolutions.jts.geom.Geometry[] shells = new com.vividsolutions.jts.geom.Geometry[numNonHoles];
@@ -485,7 +485,7 @@ public class Polygon implements Geometry {
         for (a = 0; a < numNonHoles; a++) {
             com.vividsolutions.jts.geom.Polygon p = factory.createPolygon(shells[a], new LinearRing[0]);
             // how many holes do each of the shells have?
-            ArrayList<LinearRing> holesLR = new ArrayList<LinearRing>();
+            ArrayList<LinearRing> holesLR = new ArrayList<>();
             for (part = 0; part < numParts; part++) {
                 if (isHole[part]) {
                     startingPointInPart = parts[part];

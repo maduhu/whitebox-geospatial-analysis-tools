@@ -342,7 +342,7 @@ public abstract class KdTree<T> {
         KdTree<T> cursor = this;
         cursor.status = Status.NONE;
         range = range * range; 
-        ArrayList<Entry<T>> results = new ArrayList<Entry<T>>();
+        ArrayList<Entry<T>> results = new ArrayList<>();
         
         do {
             if (cursor.status == Status.ALLVISITED) {
@@ -358,7 +358,7 @@ public abstract class KdTree<T> {
                         double dist = pointDist(cursor.locations[0], location);
                         if (dist <= range) {
                             for (int i = 0; i < cursor.locationCount; i++) {
-                                results.add(new Entry<T>(dist, (T)cursor.data[i]));
+                                results.add(new Entry<>(dist, (T)cursor.data[i]));
                             }
                         }
                     }
@@ -366,7 +366,7 @@ public abstract class KdTree<T> {
                         for (int i = 0; i < cursor.locationCount; i++) {
                             double dist = pointDist(cursor.locations[i], location);
                             if (dist <= range) {
-                                results.add(new Entry<T>(dist, (T)cursor.data[i]));
+                                results.add(new Entry<>(dist, (T)cursor.data[i]));
                             }
                         }
                     }

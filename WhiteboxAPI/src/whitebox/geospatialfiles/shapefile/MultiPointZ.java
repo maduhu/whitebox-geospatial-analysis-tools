@@ -188,8 +188,14 @@ public class MultiPointZ implements Geometry {
         return numPoints;
     }
 
+    @Override
     public double[][] getPoints() {
         return points;
+    }
+    
+    @Override
+    public int[] getParts() {
+        return new int[0];
     }
 
     public double[] getzArray() {

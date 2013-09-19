@@ -109,6 +109,19 @@ public class BoundingBox implements Comparable<BoundingBox>, java.io.Serializabl
         return h;
     }
     
+    public boolean near(BoundingBox other, double distance) {
+        if (overlaps(other)) { return true; }
+        if (intersectsAnEdgeOf(other)) { return true; }
+        if (within(other)) { return true; }
+        if (entirelyContains(other)) { return true; }
+        if (Math.abs(other.minY - maxY) <= distance) { return true; } // just south of
+        if (Math.abs(other.maxY - minY) <= distance) { return true; } // just north of
+        if (Math.abs(other.minX - maxX) <= distance) { return true; } // just west of
+        if (Math.abs(other.maxX - minX) <= distance) { return true; } // just east of
+        
+        return false;
+    }
+    
     public boolean overlaps(BoundingBox other) {
         if (isNull()) { return false; }
         if (this.maxY < other.getMinY()
