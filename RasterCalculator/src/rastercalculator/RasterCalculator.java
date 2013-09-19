@@ -192,7 +192,7 @@ public class RasterCalculator extends JDialog implements ActionListener,
         Box topBox = Box.createHorizontalBox();
         Box expressionBox = Box.createVerticalBox();
         Box labelBox1 = Box.createHorizontalBox();
-        JLabel label1 = new JLabel(bundle.getString("Expression") + ":");
+        JLabel label1 = new JLabel("Expression (e.g. [Output Image] = [Image1] + [Image2])"); //bundle.getString(
         labelBox1.add(label1);
         labelBox1.add(Box.createHorizontalGlue());
         expressionBox.add(labelBox1);
@@ -389,6 +389,11 @@ public class RasterCalculator extends JDialog implements ActionListener,
         if (ac.equals("Evaluate")) {
             String[] expressions = textArea.getText().split("\n");
             processEquations(expressions);
+        } else if (ac.equals("Help")) {
+            if (host != null) {
+                String helpFile = host.getResourcesDirectory() + "Help/RasterCalculator.html";
+                host.showHelp(helpFile);
+            }
         } else if (ac.equals("Exit")) {
             this.dispose();
         } else if (ac.equals("Stop")) {
