@@ -1,8 +1,8 @@
-<Dialog Name="CentroidVector" HelpFile="CentroidVector.html">
+<Dialog Name="VectorCleaning" HelpFile="VectorCleaning.html">
 	<DialogComponent type="DialogFile">
 		<Name>inputFile</Name>
-		<Description>Enter the name of the input vector file here. It must be of a polyline or polygon base shapetype.</Description>
-		<LabelText>Input Vector Polyline or Polygon File:</LabelText>
+		<Description>Enter the name of the input vector file here. It must be either of polyline or polygon base shapetype.</Description>
+		<LabelText>Input Vector File:</LabelText>
 		<DialogMode>Open File</DialogMode>
 		<Filter>ShapeFile (*.shp), SHP</Filter>
 		<IsVisible>True</IsVisible>
@@ -18,5 +18,15 @@
 		<IsVisible>True</IsVisible>
 		<MakeOptional>False</MakeOptional>
 		<ShowButton>True</ShowButton>
+	</DialogComponent>
+        <DialogComponent type="DialogDataInput">
+		<Name>distanceTolerance</Name>
+		<Description>Enter the distance tolerance here</Description>
+		<LabelText>Distance Tolerance:</LabelText>
+		<IsVisible>True</IsVisible>
+		<InitialText></InitialText>
+		<NumericalInputOnly>True</NumericalInputOnly>
+		<MakeOptional>False</MakeOptional>
+		<Width>60</Width>
 	</DialogComponent>
 </Dialog>

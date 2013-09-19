@@ -120,7 +120,7 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
                 JPanel dropDownPanel = new JPanel(new BorderLayout());
                 dropDownPanel.setBackground(Color.white);
                 dropDownPanel.setPreferredSize(new Dimension(14, 0));
-                dropDownPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+//                dropDownPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
                 dropDownPanel.add(dropDownBtn, BorderLayout.CENTER);
                 text.setLayout(new BorderLayout());
                 text.add(dropDownPanel, BorderLayout.EAST);

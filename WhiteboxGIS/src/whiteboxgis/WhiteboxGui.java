@@ -104,7 +104,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private StatusBar status;
     // common variables
     static private String versionName = "3.0 'Iguazu'";
-    static private String versionNumber = "3.0.4";
+    static private String versionNumber = "3.0.5";
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
     private String applicationDirectory;
@@ -1175,7 +1175,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public void returnData(Object ret) {
         try {
             if (suppressReturnedData) {
-                return;
+                return; // returns can be disruptive for scripts
             }
             // this is where all of the data returned by plugins is handled.
             if (ret instanceof String) {
@@ -1258,13 +1258,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public void launchDialog(String pluginName) {
         // update the tools lists
         populateToolTabs();
-        
+
         boolean isScript = false;
         String scriptFile = null;
         for (int i = 0; i < plugInfo.size(); i++) {
             PluginInfo pi = plugInfo.get(i);
-            if (pi.getDescriptiveName().equals(pluginName) ||
-                    pi.getName().equals(pluginName)) {
+            if (pi.getDescriptiveName().equals(pluginName)
+                    || pi.getName().equals(pluginName)) {
                 pi.setLastUsedToNow();
                 pi.incrementNumTimesUsed();
                 if (pi.isScript()) {
@@ -1274,9 +1274,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             }
         }
-        
+
         if (!isScript) {
-            
+
 
             WhiteboxPlugin plug = pluginService.getPlugin(pluginName, StandardPluginService.DESCRIPTIVE_NAME);
 
@@ -1491,10 +1491,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     public String getResourcesDirectory() {
         return resourcesDirectory;
     }
-    
+
     @Override
     /**
      * Used to retrieve all of the files currently displayed in the active map.
+     *
      * @return String[] of file names of displayed raster and vector files.
      */
     public String[] getCurrentlyDisplayedFiles() {
@@ -1504,10 +1505,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         int i = 0;
         for (MapLayer maplayer : myLayers) {
             if (maplayer.getLayerType() == MapLayer.MapLayerType.RASTER) {
-                      RasterLayerInfo raster = (RasterLayerInfo) maplayer;
-                        ret[i] = raster.getHeaderFile();
+                RasterLayerInfo raster = (RasterLayerInfo) maplayer;
+                ret[i] = raster.getHeaderFile();
             } else if (maplayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
-                VectorLayerInfo vector = (VectorLayerInfo)maplayer;
+                VectorLayerInfo vector = (VectorLayerInfo) maplayer;
                 ret[i] = vector.getFileName();
             }
             i++;
@@ -3765,12 +3766,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //    }
     @Override
     public int showFeedback(String message) {
+        if (suppressReturnedData) {
+            return - 1; // returns can be disruptive for scripts
+        }
         JOptionPane.showMessageDialog(this, message);
         return -1;
     }
 
     @Override
     public int showFeedback(String message, int optionType, int messageType) {
+        if (suppressReturnedData) {
+            return - 1; // returns can be disruptive for scripts
+        }
         Object[] options = {"Yes", "No"};
         int n = JOptionPane.showOptionDialog(this,
                 message,
@@ -6101,6 +6108,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             openMaps.get(activeMap).addMapImage(selectedFile);
             refreshMap(false);
         }
+    }
+
+    @Override
+    public void showHelp() {
+        Help help = new Help(this, false, "index");
+        help.setVisible(true);
+    }
+
+    @Override
+    public void showHelp(String helpFile) {
+        Help help = new Help(this, false, "index", helpFile);
+        help.setVisible(true);
     }
 
     @Override

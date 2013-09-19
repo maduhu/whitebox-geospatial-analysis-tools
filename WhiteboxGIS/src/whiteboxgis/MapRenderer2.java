@@ -474,7 +474,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setRenderingHints(rh);
 
-            g2.setColor(Color.white);
+            if (printingMap) {
+                g2.setColor(Color.WHITE);
+            } else {
+                g2.setColor(new Color(160, 160, 160));
+            }
             g2.fillRect(0, 0, (int) w, (int) h);
 
             if (map != null && map.getNumberOfCartographicElements() > 0) {
@@ -554,7 +558,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 // draw the page on the drawing area if it is visible
                 if (map.isPageVisible() && !printingMap) {
 
-                    g2.setColor(Color.GRAY);
+                    g2.setColor(new Color(100, 100, 100)); //Color.GRAY);
                     g2.fillRect((int) (pageShadowSize),
                             (int) (pageShadowSize), (int) pageWidth,
                             (int) pageHeight);

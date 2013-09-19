@@ -115,7 +115,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
             @Override
             public void run() {
-                scripter = new Scripter(null, true);
+                scripter = new Scripter((Frame)host, true);
                 // Add listener for clicking the generate data button in the scripter
                 scripter.addPropertyChangeListener(Scripter.PROP_GENERATE_DATA, generateDataListener);
                 scripter.addPropertyChangeListener(Scripter.PROP_SCRIPTING_LANGUAGE, languageChangedListener);

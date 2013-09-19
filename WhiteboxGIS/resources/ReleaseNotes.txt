@@ -9,6 +9,18 @@ remote sensing software package for advanced analysis and visualization of geosp
 
 RELEASE NOTES:
 
+Version 3.0.5
+
+-Added Dissolve tool.
+-Added VectorCleaning tool.
+-Added IntersectionDensity tool.
+-Added AverageOverlay tool.
+-Added ExtendVectorLine tool.
+-Added Medoid tool.
+-Added FindSaddlePoint tool.
+-Improved the usability of the Raster Calculator.
+
+
 Version 3.0.4 (Sept. 5, 2013)
 
 -Improved support for scripting, including syntax highlighting and auto-completion.

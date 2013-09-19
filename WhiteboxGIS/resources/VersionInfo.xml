@@ -1,9 +1,30 @@
 <?xml version="1.0"?>
 <VersionInfo>
     <VersionName>"3.0 'Iguazu'"</VersionName>
-    <VersionNumber>"3.0.3"</VersionNumber>
+    <VersionNumber>"3.0.4"</VersionNumber>
     <DownloadLocation>"http://code.google.com/p/whitebox-geospatial-analysis-tools/downloads/list"</DownloadLocation>
-    <Announcements number="5">
+    <Announcements number="6">
+        <Announcement>
+            <Date>2013-09-5</Date>
+            <Language>en</Language>
+            <Title>Whitebox Version 3.0.4 has been released</Title>
+            <Message><![CDATA[<p>This version includes the following updates:</p>
+                    <ul>
+                    <li>Improved support for scripting, including syntax highlighting and auto-completion.
+                        There have been considerable improvements made to the Whitebox scripter.</li>
+                    <li>Scripts can now be added as plugin tools, with integration in the tools panel.</li>
+                    <li>Added Rename File tool, a Python script plugin.</li>
+                    <li>Added Sink tool, a Python script plugin.</li>
+                    <li>Added user-defined weights filter, a Groovy script plugin.</li>
+                    <li>Added scripting examples in all 300+ plugin tool help files (this took quite a 
+                        lot of time!).</li>
+                    <li>The version of Jython (python for java) included in the library has been updated
+                    to the stand alone version. This has increased the distribution size by 2 MB.</li>
+                    <li>Added a quick-link to all displayed data layers in the file selection components
+                    of tool dialogs.</li>
+                </ul>]]>
+            </Message>
+        </Announcement>
         <Announcement>
             <Date>2013-07-18</Date>
             <Language>en</Language>

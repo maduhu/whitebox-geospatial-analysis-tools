@@ -572,7 +572,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             fileMenu.add(print);
             JMenuItem close = new JMenuItem(bundle.getString("CloseFile"));
             close.setActionCommand("close");
-            close.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            //close.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             close.addActionListener(this);
             fileMenu.add(close);
 
@@ -1678,13 +1678,13 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             case "javascript":
                 setLanguage(Scripter.ScriptingLanguage.JAVASCRIPT);
                 break;
-            case "Comment":
+            case "comment":
                 comment();
                 break;
             case "save":
                 save();
                 break;
-            case "saveAs":
+            case "saveas":
                 saveAs();
                 break;
             case "clearconsole":
