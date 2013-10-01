@@ -839,7 +839,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
 //                runPlugin(pluginName, args);
 //            }
         } else if (actionCommand.equals("viewCode") && sourceFile != null) {
-            ViewCodeDialog vcd = new ViewCodeDialog((Frame)host, new File(sourceFile), false);
+            ViewCodeDialog vcd = new ViewCodeDialog((Frame)host, false, new File(sourceFile), false);
             vcd.setSize(new Dimension(800, 600));
             vcd.setVisible(true);
         } else if (actionCommand.equals("back")) {

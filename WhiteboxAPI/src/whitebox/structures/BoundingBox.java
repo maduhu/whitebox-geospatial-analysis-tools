@@ -231,10 +231,10 @@ public class BoundingBox implements Comparable<BoundingBox>, java.io.Serializabl
         if (!isNull()) {
             // some performance tests have shown this to be better than Math.min 
             // and Math.max
-            bb.setMaxY((this.maxY <= other.getMaxY()) ? this.maxY : other.getMaxY()); //Math.min(this.maxY, other.getMaxY()));
-            bb.setMaxX((this.maxX <= other.getMaxX()) ? this.maxX : other.getMaxX()); //Math.min(this.maxX, other.getMaxX()));
-            bb.setMinY((this.minY >= other.getMinY()) ? this.minY : other.getMinY()); //Math.max(this.minY, other.getMinY()));
-            bb.setMinX((this.minX >= other.getMinX()) ? this.minX : other.getMinX()); //(Math.max(this.minX, other.getMinX()));
+            bb.setMaxY((this.maxY <= other.getMaxY()) ? this.maxY : other.getMaxY()); 
+            bb.setMaxX((this.maxX <= other.getMaxX()) ? this.maxX : other.getMaxX()); 
+            bb.setMinY((this.minY >= other.getMinY()) ? this.minY : other.getMinY());
+            bb.setMinX((this.minX >= other.getMinX()) ? this.minX : other.getMinX());
         }
         return bb;
     }

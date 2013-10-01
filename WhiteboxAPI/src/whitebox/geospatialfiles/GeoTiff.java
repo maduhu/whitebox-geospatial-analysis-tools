@@ -526,9 +526,13 @@ public class GeoTiff {
 
     public double getNoData() {
         if (findTag(Tag.GDALNoData) != null) {
-            return Double.parseDouble(findTag(Tag.GDALNoData).valueS);
+            if (findTag(Tag.GDALNoData).valueS != null) {
+                return Double.parseDouble(findTag(Tag.GDALNoData).valueS);
+            } else {
+                return -32768;
+            }
         } else {
-            return -9999;
+            return -32768;
         }
     }
     
@@ -995,7 +999,12 @@ public class GeoTiff {
                     key = new GeoKey(tag, value);
 
                 } else if (data.tag == Tag.GeoAsciiParamsTag) { // ascii params
-                    String value = data.valueS.substring(offset, offset + vcount);
+                    String value;
+                    if ((offset + vcount) < data.valueS.length()) {
+                        value = data.valueS.substring(offset, offset + vcount);
+                    } else {
+                        value = data.valueS.substring(offset, data.valueS.length() - 1);
+                    }
                     key = new GeoKey(tag, value);
                 }
 

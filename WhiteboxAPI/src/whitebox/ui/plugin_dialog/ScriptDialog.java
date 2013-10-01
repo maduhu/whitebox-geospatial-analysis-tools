@@ -72,7 +72,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
         bundle = host.getGuiLabelsBundle();
         messages = host.getMessageBundle();
-        
+
         setTitle(title);
 
         this.buttonActionListener = buttonActionListener;
@@ -84,7 +84,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         if (System.getProperty("os.name").contains("Mac")) {
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         }
-        
+
         ok = new JButton(bundle.getString("Run"));
         close = new JButton(bundle.getString("Close"));
         viewCode = new JButton(bundle.getString("ViewCode"));
@@ -126,7 +126,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         box2.add(viewCode);
 
         box2.add(Box.createHorizontalGlue());
-        
+
         // create the newHelp button
         newHelp.setActionCommand("newHelp");
         newHelp.setToolTipText("Create New HelpEntry");
@@ -134,7 +134,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         newHelp.setVisible(false);
         box2.add(newHelp);
         box2.add(Box.createHorizontalStrut(5));
-        
+
         // create the newHelp button
         modifyHelp.setActionCommand("modifyHelp");
         modifyHelp.setToolTipText("Modify Help File");
@@ -143,7 +143,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         box2.add(modifyHelp);
         box2.add(Box.createHorizontalStrut(5));
 
-        
+
         // create the back button
         imgLocation = graphicsDirectory + "HelpBack.png";
         image = new ImageIcon(imgLocation, "");
@@ -172,7 +172,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         box2.add(forward);
         box2.add(Box.createHorizontalStrut(10));
 
-        JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainScrollPane, helpScroll); 
+        JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainScrollPane, helpScroll);
         splitter.setDividerLocation(365);
         splitter.setResizeWeight(0.0);
         splitter.setDividerSize(4);
@@ -258,6 +258,15 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         mainPanel.add(dmf);
     }
 
+    public void addDialogLabel(String text) {
+        Box box = Box.createHorizontalBox();
+        JLabel lbl = new JLabel(text);
+        box.add(Box.createHorizontalStrut(5));
+        box.add(lbl);
+        box.add(Box.createHorizontalGlue());
+        mainPanel.add(box);
+    }
+
     public void addDialogFieldSelector(String description, String labelText,
             boolean allowMultipleSelection) {
         String[] args = new String[4];
@@ -295,7 +304,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         components.add(dcb);
         mainPanel.add(dcb);
     }
-    
+
     public void addDialogComboBox(String description, String labelText,
             String[] listItems, int defaultItem) {
         String[] args = new String[5];
@@ -428,8 +437,8 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
             viewCode.setVisible(true);
         }
     }
-
     String scriptsHelpFile = null;
+
     public void setHelpFile(String newHelpFile) {
         this.helpFile = newHelpFile;
 
@@ -496,8 +505,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
             this.dispose();
         }
     }
-    
-    
+
     @Override
     public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread, boolean suppressReturnedData) {
         host.runPlugin(pluginName, args, runOnDedicatedThread, suppressReturnedData);
@@ -555,7 +563,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
 
     private void newHelp() {
         String helpDirectory = host.getResourcesDirectory() + "Help" + pathSep;
-        
+
         // grab the text within the "NewHelp.txt" file in the helpDirectory;
         String defaultHelp = helpDirectory + "NewHelp.txt";
         if (!(new File(defaultHelp)).exists()) {
@@ -567,7 +575,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
             // now place this text into the new file.
             FileUtilities.fillFileWithString(scriptsHelpFile, defaultText);
 
-            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(scriptsHelpFile), true);
+            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, false, new File(scriptsHelpFile), true);
             vcd.setSize(new Dimension(800, 600));
             vcd.setVisible(true);
         } catch (IOException ioe) {
@@ -578,13 +586,13 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
 
     private void modifyHelp() {
         String helpDirectory = host.getResourcesDirectory() + "Help" + pathSep;
-        
+
         // grab the text within the "NewHelp.txt" file in the helpDirectory;
         if (!(new File(scriptsHelpFile)).exists()) {
             showFeedback(messages.getString("NoHelpDirectory"));
             return;
         }
-        ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(scriptsHelpFile), true);
+        ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, false, new File(scriptsHelpFile), true);
         vcd.setSize(new Dimension(800, 600));
         vcd.setVisible(true);
 
@@ -592,7 +600,6 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
         String actionCommand = e.getActionCommand();
         if (actionCommand.equals("close")) {
             userButtonSelection = 2;
@@ -601,7 +608,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
             userButtonSelection = 1;
             this.setVisible(false);
         } else if (actionCommand.equals("viewCode") && sourceFile != null) {
-            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(sourceFile), false);
+            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, false, new File(sourceFile), false);
             vcd.setSize(new Dimension(800, 600));
             vcd.setVisible(true);
         } else if (actionCommand.equals("back")) {

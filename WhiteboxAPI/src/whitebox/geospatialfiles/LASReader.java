@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import whitebox.utilities.Unsigned;
 import whitebox.utilities.BitOps;
+import whitebox.structures.BoundingBox;
 
 /**
  * This class is used to provide reading and writing capabilities with LAS LiDAR
@@ -60,7 +61,7 @@ public class LASReader {
     private double xScale, yScale, zScale;
     private double xOffset, yOffset, zOffset;
     private double maxX, minX, maxY, minY, maxZ, minZ;
-    private ArrayList<VariableLengthRecord> vlrArray = new ArrayList<VariableLengthRecord>();
+    private ArrayList<VariableLengthRecord> vlrArray = new ArrayList<>();
     private int bufferSize = 1000;
     private int startingPoint = -1;
     private int endingPoint = -1;
@@ -225,6 +226,28 @@ public class LASReader {
     }
     
     // Methods
+    public ArrayList<PointRecord> getPointRecordsInBoundingBox(BoundingBox bb) {
+        double minXbb = bb.getMinX();
+        double minYbb = bb.getMinY();
+        double maxXbb = bb.getMaxX();
+        double maxYbb = bb.getMaxY();
+        double x, y;
+        
+        ArrayList<PointRecord> ret = new ArrayList<>();
+        PointRecord rec;
+        for (int i = 0; i < numPointRecords; i++) {
+            rec = getPointRecord(i);
+            x = rec.getX();
+            y = rec.getY();
+            if (maxYbb < y || maxXbb < x || minYbb > y || minXbb > x) {
+                // do nothing
+            } else {
+                ret.add(rec);
+            }
+        }
+        return ret;
+    }
+    
     public PointRecord getPointRecord(int i) {
         try {
             if (i < 0 || i > numPointRecords) {
