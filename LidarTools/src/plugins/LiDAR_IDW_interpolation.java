@@ -201,6 +201,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
     int numCompletedFiles = 0;
     double weight;
     int numPointsToUse = 8;
+    double maxAbsScanAngle = 999.0;
 
     @Override
     public void run() {
@@ -262,8 +263,10 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
         if (!args[5].equalsIgnoreCase("not specified")) {
             maxDist = Double.parseDouble(args[5]);
         }
-        numPointsToUse = Integer.parseInt(args[6]);
-        resolution = Double.parseDouble(args[7]);
+        resolution = Double.parseDouble(args[6]);
+        if (!args[7].toLowerCase().contains("not specified")) {
+            maxAbsScanAngle = Double.parseDouble(args[7]);
+        }
         excludeNeverClassified = Boolean.parseBoolean(args[8]);
         excludeUnclassified = Boolean.parseBoolean(args[9]);
         excludeBareGround = Boolean.parseBoolean(args[10]);
@@ -320,17 +323,11 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
             }
 
             pointFiles = inputFilesString.split(";");
-//            int numPointFiles = pointFiles.length;
-//            long numPointsInFile = 0;
 
             if (maxDist < Double.POSITIVE_INFINITY) {
                 maxDist = maxDist * maxDist;
             }
 
-//            PointRecord point;
-//            PointRecColours pointColours;
-//            double[] entry;
-            //for (int j = 0; j < numPointFiles; j++) {
             Parallel.For(0, pointFiles.length, 1, new Parallel.LoopBody<Integer>() {
 
                 @Override
@@ -353,59 +350,55 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                     FileWriter fw = null;
                     BufferedWriter bw = null;
                     PrintWriter out = null;
-                    List<KdTree.Entry<Double>> results;
+                    List<KdTree.Entry<InterpolationRecord>> results;
                     double sumWeights;
                     double dist;
 
                     LASReader las = new LASReader(pointFiles[j]);
 
                     long numPointsInFile = las.getNumPointRecords();
-
-                    //LASReader las = new LASReader(pointFiles[j]);
-
-//                    progress = (int) ((j + 1) * 100d / numPointFiles);
-//                    updateProgress("Loop " + (j + 1) + " of " + numPointFiles + " Reading point data:", progress);
-
-                    numPointsInFile = las.getNumPointRecords();
                     // first count how many valid points there are.
                     numPoints = 0;
                     for (a = 0; a < numPointsInFile; a++) {
                         point = las.getPointRecord(a);
                         if (returnNumberToInterpolate.equals("all points")) {
                             if (!point.isPointWithheld()
-                                    && !(classValuesToExclude[point.getClassification()])) {
+                                    && !(classValuesToExclude[point.getClassification()])
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle) {
                                 numPoints++;
                             }
                         } else if (returnNumberToInterpolate.equals("first return")) {
                             if (!point.isPointWithheld()
-                                    && !(classValuesToExclude[point.getClassification()])
+                                    && !(classValuesToExclude[point.getClassification()]
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle)
                                     && point.getReturnNumber() == 1) {
                                 numPoints++;
                             }
                         } else { // if (returnNumberToInterpolate.equals("last return")) {
                             if (!point.isPointWithheld()
                                     && !(classValuesToExclude[point.getClassification()])
-                                    && point.getReturnNumber() == point.getNumberOfReturns()) {
+                                    && point.getReturnNumber() == point.getNumberOfReturns()
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle) {
                                 numPoints++;
                             }
                         }
                     }
 
                     // now read the valid points into the k-dimensional tree.
-
                     double minX = Double.POSITIVE_INFINITY;
                     double maxX = Double.NEGATIVE_INFINITY;
                     double minY = Double.POSITIVE_INFINITY;
                     double maxY = Double.NEGATIVE_INFINITY;
 
-                    KdTree<Double> pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(numPoints));
+                    KdTree<InterpolationRecord> pointsTree = new KdTree.SqrEuclid<>(2, new Integer(numPoints));
 
                     // read the points in
                     if (returnNumberToInterpolate.equals("all points")) {
                         for (a = 0; a < numPointsInFile; a++) {
                             point = las.getPointRecord(a);
                             if (!point.isPointWithheld()
-                                    && !(classValuesToExclude[point.getClassification()])) {
+                                    && !(classValuesToExclude[point.getClassification()])
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle) {
                                 x = point.getX();
                                 y = point.getY();
                                 if (whatToInterpolate.equals("z (elevation)")) {
@@ -424,7 +417,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                 }
 
                                 entry = new double[]{y, x};
-                                pointsTree.addPoint(entry, z);
+                                pointsTree.addPoint(entry, new InterpolationRecord(z, point.getScanAngle()));
 
                                 if (x < minX) {
                                     minX = x;
@@ -448,7 +441,8 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                         for (a = 0; a < numPointsInFile; a++) {
                             point = las.getPointRecord(a);
                             if (!point.isPointWithheld()
-                                    && !(classValuesToExclude[point.getClassification()])
+                                    && !(classValuesToExclude[point.getClassification()]
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle)
                                     && point.getReturnNumber() == 1) {
                                 x = point.getX();
                                 y = point.getY();
@@ -468,7 +462,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                 }
 
                                 entry = new double[]{y, x};
-                                pointsTree.addPoint(entry, z);
+                                pointsTree.addPoint(entry, new InterpolationRecord(z, point.getScanAngle()));
 
                                 if (x < minX) {
                                     minX = x;
@@ -483,17 +477,14 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                     maxY = y;
                                 }
                             }
-//                            progress = (int) (100d * (a + 1) / numPointsInFile);
-//                            if ((progress % 2) == 0) {
-//                                updateProgress("Reading point data:", progress);
-//                            }
                         }
                     } else { // if (returnNumberToInterpolate.equals("last return")) {
                         for (a = 0; a < numPointsInFile; a++) {
                             point = las.getPointRecord(a);
                             if (!point.isPointWithheld()
                                     && !(classValuesToExclude[point.getClassification()])
-                                    && point.getReturnNumber() == point.getNumberOfReturns()) {
+                                    && point.getReturnNumber() == point.getNumberOfReturns()
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle) {
                                 x = point.getX();
                                 y = point.getY();
                                 if (whatToInterpolate.equals("z (elevation)")) {
@@ -512,7 +503,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                 }
 
                                 entry = new double[]{y, x};
-                                pointsTree.addPoint(entry, z);
+                                pointsTree.addPoint(entry, new InterpolationRecord(z, point.getScanAngle()));
 
                                 if (x < minX) {
                                     minX = x;
@@ -527,10 +518,6 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                     maxY = y;
                                 }
                             }
-//                            progress = (int) (100d * (a + 1) / numPointsInFile);
-//                            if ((progress % 2) == 0) {
-//                                updateProgress("Reading point data:", progress);
-//                            }
                         }
                     }
 
@@ -622,11 +609,27 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                 easting = (col * resolution) + (west + halfResolution);
                                 northing = (north - halfResolution) - (row * resolution);
                                 entry = new double[]{northing, easting};
-                                results = pointsTree.nearestNeighbor(entry, numPointsToUse, false);
+                                results = pointsTree.neighborsWithinRange(entry, maxDist);
+                                double minScanAngle = Double.POSITIVE_INFINITY;
+                                double maxScanAngle = Double.NEGATIVE_INFINITY;
+                                double scanAngle;
+                                for (i = 0; i < results.size(); i++) {
+                                    scanAngle = results.get(i).value.scanAngle;
+                                    if (scanAngle > maxScanAngle) { maxScanAngle = scanAngle; }
+                                    if (scanAngle < minScanAngle) { minScanAngle = scanAngle; }
+                                }
+                                boolean[] scanAngleFilter = new boolean[results.size()];
+                                for (i = 0; i < results.size(); i++) {
+                                    scanAngle = results.get(i).value.scanAngle;
+                                    if ((scanAngle - minScanAngle) < 3) {
+                                        scanAngleFilter[i] = true;
+                                    }
+                                }
                                 
                                 sumWeights = 0;
                                 for (i = 0; i < results.size(); i++) {
-                                    if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
+                                    if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist) &&
+                                            scanAngleFilter[i]) {
                                         dist = Math.pow(Math.sqrt(results.get(i).distance), weight);
                                         sumWeights += 1 / dist;
                                     } else if (results.get(i).distance == 0) {
@@ -636,11 +639,12 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                 if (sumWeights > 0) {
                                     z = 0;
                                     for (i = 0; i < results.size(); i++) {
-                                        if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
+                                        if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist) &&
+                                                scanAngleFilter[i]) {
                                             dist = 1 / Math.pow(Math.sqrt(results.get(i).distance), weight);
-                                            z += (dist * results.get(i).value) / sumWeights;
+                                            z += (dist * results.get(i).value.value) / sumWeights;
                                         } else if (results.get(i).distance == 0) {
-                                            z = results.get(i).value;
+                                            z = results.get(i).value.value;
                                             break;
                                         }
                                     }
@@ -653,8 +657,6 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                 cancelOperation();
                                 return;
                             }
-//                            progress = (int) (100f * row / (nrows - 1));
-//                            updateProgress("Interpolating point data:", progress);
                         }
                     } else { // rgb is being interpolated
                         double r, g, b;
@@ -665,7 +667,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                 easting = (col * resolution) + (west + halfResolution);
                                 northing = (north - halfResolution) - (row * resolution);
                                 entry = new double[]{northing, easting};
-                                results = pointsTree.nearestNeighbor(entry, numPointsToUse, false);
+                                results = pointsTree.neighborsWithinRange(entry, maxDist);
                                 sumWeights = 0;
                                 for (i = 0; i < results.size(); i++) {
                                     if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
@@ -682,7 +684,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                     zB = 0;
                                     for (i = 0; i < results.size(); i++) {
                                         if ((results.get(i).distance > 0) && (results.get(i).distance < maxDist)) {
-                                            val = results.get(i).value;
+                                            val = results.get(i).value.value;
                                             r = (double) ((int) val & 0xFF);
                                             g = (double) (((int) val >> 8) & 0xFF);
                                             b = (double) (((int) val >> 16) & 0xFF);
@@ -692,7 +694,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
                                             zG += (dist * g) / sumWeights;
                                             zB += (dist * b) / sumWeights;
                                         } else if (results.get(i).distance == 0) {
-                                            z = results.get(i).value;
+                                            z = results.get(i).value.value;
                                             break;
                                         }
                                     }
@@ -737,6 +739,27 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
             myHost.pluginComplete();
         }
     }
+    
+    private class InterpolationRecord {
+        
+        double value;
+        byte scanAngle;
+        
+        InterpolationRecord(double value, byte scanAngle) {
+            this.value = value;
+            this.scanAngle = (byte)Math.abs(scanAngle);
+        }
+        
+        double getValue() {
+            return value;
+        }
+        
+        byte getScanAngle() {
+            return scanAngle;
+        }
+        
+    }
+    
 //    // this is only used for debugging the tool
 //    public static void main(String[] args) {
 //        LiDAR_IDW_interpolation nn = new LiDAR_IDW_interpolation();

@@ -200,6 +200,7 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
     double resolution = 1;
     double maxDist = Double.POSITIVE_INFINITY;
     int numCompletedFiles = 0;
+    double maxAbsScanAngle = 999.0;
 
     @Override
     public void run() {
@@ -257,17 +258,20 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
             maxDist = Double.parseDouble(args[4]);
         }
         resolution = Double.parseDouble(args[5]);
-        excludeNeverClassified = Boolean.parseBoolean(args[6]);
-        excludeUnclassified = Boolean.parseBoolean(args[7]);
-        excludeBareGround = Boolean.parseBoolean(args[8]);
-        excludeLowVegetation = Boolean.parseBoolean(args[9]);
-        excludeMediumVegetation = Boolean.parseBoolean(args[10]);
-        excludeHighVegetation = Boolean.parseBoolean(args[11]);
-        excludeBuilding = Boolean.parseBoolean(args[12]);
-        excludeLowPoint = Boolean.parseBoolean(args[13]);
+        if (!args[6].toLowerCase().contains("not specified")) {
+            maxAbsScanAngle = Double.parseDouble(args[6]);
+        }
+        excludeNeverClassified = Boolean.parseBoolean(args[7]);
+        excludeUnclassified = Boolean.parseBoolean(args[8]);
+        excludeBareGround = Boolean.parseBoolean(args[9]);
+        excludeLowVegetation = Boolean.parseBoolean(args[10]);
+        excludeMediumVegetation = Boolean.parseBoolean(args[11]);
+        excludeHighVegetation = Boolean.parseBoolean(args[12]);
+        excludeBuilding = Boolean.parseBoolean(args[13]);
+        excludeLowPoint = Boolean.parseBoolean(args[14]);
         //excludeHighPoint = Boolean.parseBoolean(args[14]);
-        excludeModelKeyPoint = Boolean.parseBoolean(args[14]);
-        excludeWater = Boolean.parseBoolean(args[15]);
+        excludeModelKeyPoint = Boolean.parseBoolean(args[15]);
+        excludeWater = Boolean.parseBoolean(args[16]);
 
 
 
@@ -357,18 +361,21 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
                         point = las.getPointRecord(a);
                         if (returnNumberToInterpolate.equals("all points")) {
                             if (!point.isPointWithheld()
-                                    && !(classValuesToExclude[point.getClassification()])) {
+                                    && !(classValuesToExclude[point.getClassification()])
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle) {
                                 numPoints++;
                             }
                         } else if (returnNumberToInterpolate.equals("first return")) {
                             if (!point.isPointWithheld()
-                                    && !(classValuesToExclude[point.getClassification()])
+                                    && !(classValuesToExclude[point.getClassification()]
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle)
                                     && point.getReturnNumber() == 1) {
                                 numPoints++;
                             }
                         } else { // if (returnNumberToInterpolate.equals("last return")) {
                             if (!point.isPointWithheld()
-                                    && !(classValuesToExclude[point.getClassification()])
+                                    && !(classValuesToExclude[point.getClassification()]
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle)
                                     && point.getReturnNumber() == point.getNumberOfReturns()) {
                                 numPoints++;
                             }
@@ -384,13 +391,13 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
 
                     KdTree<Double> pointsTree = new KdTree.SqrEuclid<>(2, new Integer(numPoints));
 
-
                     // read the points in
                     if (returnNumberToInterpolate.equals("all points")) {
                         for (a = 0; a < numPointsInFile; a++) {
                             point = las.getPointRecord(a);
                             if (!point.isPointWithheld()
-                                    && !(classValuesToExclude[point.getClassification()])) {
+                                    && !(classValuesToExclude[point.getClassification()])
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle) {
                                 x = point.getX();
                                 y = point.getY();
                                 if (whatToInterpolate.equals("z (elevation)")) {
@@ -433,7 +440,8 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
                         for (a = 0; a < numPointsInFile; a++) {
                             point = las.getPointRecord(a);
                             if (!point.isPointWithheld()
-                                    && !(classValuesToExclude[point.getClassification()])
+                                    && !(classValuesToExclude[point.getClassification()]
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle)
                                     && point.getReturnNumber() == 1) {
                                 x = point.getX();
                                 y = point.getY();
@@ -478,7 +486,8 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
                             point = las.getPointRecord(a);
                             if (!point.isPointWithheld()
                                     && !(classValuesToExclude[point.getClassification()])
-                                    && point.getReturnNumber() == point.getNumberOfReturns()) {
+                                    && point.getReturnNumber() == point.getNumberOfReturns()
+                                    && Math.abs(point.getScanAngle()) <= maxAbsScanAngle) {
                                 x = point.getX();
                                 y = point.getY();
                                 if (whatToInterpolate.equals("z (elevation)")) {

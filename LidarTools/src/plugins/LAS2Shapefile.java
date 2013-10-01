@@ -21,7 +21,6 @@ import whitebox.geospatialfiles.LASReader;
 import whitebox.geospatialfiles.LASReader.PointRecord;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -195,7 +194,7 @@ public class LAS2Shapefile implements WhiteboxPlugin {
         double x, y;
         double z;
         int intensity;
-        byte classValue, numReturns, returnNum;
+        byte classValue, numReturns, returnNum, scanAngle;
         int a, n;
         int progress = 0;
         int numPoints = 0;
@@ -235,9 +234,8 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                 }
 
                 // set up the output files of the shapefile and the dbf
-                ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT);
-
-                DBFField fields[] = new DBFField[6];
+                
+                DBFField fields[] = new DBFField[7];
 
                 fields[0] = new DBFField();
                 fields[0].setName("FID");
@@ -275,14 +273,14 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                 fields[5].setFieldLength(4);
                 fields[5].setDecimalCount(0);
                 
-                String DBFName = output.getDatabaseFile();
-                DBFWriter writer = new DBFWriter(new File(DBFName)); /*
-                 * this DBFWriter object is now in Syc Mode
-                 */
+                fields[6] = new DBFField();
+                fields[6].setName("SCAN_ANGLE");
+                fields[6].setDataType(DBFField.DBFDataType.NUMERIC);
+                fields[6].setFieldLength(4);
+                fields[6].setDecimalCount(0);
+                
+                ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
 
-                writer.setFields(fields);
-                
-                
                 progress = (int)((j + 1) * 100d / numPointFiles);
                 updateProgress("Loop " + (j + 1) + " of " + numPointFiles + ":", progress);
                 
@@ -301,18 +299,20 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                         classValue = point.getClassification();
                         returnNum = point.getReturnNumber();
                         numReturns = point.getNumberOfReturns();
+                        scanAngle = point.getScanAngle();
                         
                         whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);
-                        output.addRecord(wbGeometry);
                         
-                        Object[] rowData = new Object[6];
+                        Object[] rowData = new Object[7];
                         rowData[0] = new Double(numPoints + 1);
                         rowData[1] = new Double(z);
                         rowData[2] = new Double(intensity);
                         rowData[3] = new Double(classValue);
                         rowData[4] = new Double(returnNum);
                         rowData[5] = new Double(numReturns);
-                        writer.addRecord(rowData);
+                        rowData[6] = new Double(scanAngle);
+                        
+                        output.addRecord(wbGeometry, rowData);
                         
                         numPoints++;
                     }
@@ -329,7 +329,6 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                 }
                 
                 output.write();
-                writer.write();
                 
             }
 
