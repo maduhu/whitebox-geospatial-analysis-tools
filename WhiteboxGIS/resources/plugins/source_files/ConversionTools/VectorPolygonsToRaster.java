@@ -20,6 +20,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.PriorityQueue;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
@@ -227,7 +228,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
         int startingPointInPart, endingPointInPart;
         double x1, y1, x2, y2, xPrime;
         boolean foundIntersection;
-        ArrayList<Integer> edgeList = new ArrayList<Integer>();
+        ArrayList<Integer> edgeList = new ArrayList<>();
         boolean useRecID = false;
         DecimalFormat df = new DecimalFormat("###,###,###,###");
         double smallNumber = -999999.0; // this value will be used
@@ -324,7 +325,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
 
             // first sort the records based on their maxY coordinate. This will
             // help reduce the amount of disc IO for larger rasters.
-            ArrayList<RecordInfo> myList = new ArrayList<RecordInfo>();
+            ArrayList<RecordInfo> myList = new ArrayList<>();
             
             for (ShapeFileRecord record : input.records) {
                 i = record.getRecordNumber();
@@ -346,7 +347,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
             long heapSize = Runtime.getRuntime().totalMemory();
             int flushSize = (int)(heapSize / 32);
             int j, numCellsToWrite;
-            PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<RowPriorityGridCell>(flushSize);
+            PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<>(flushSize);
             RowPriorityGridCell cell;
             int numRecords = input.getNumberOfRecords();
             int count = 0;
@@ -577,6 +578,10 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
                 }
             } while (pq.size() > 0);
 
+            output.addMetadataEntry("Created by the "
+                    + getDescriptiveName() + " tool.");
+            output.addMetadataEntry("Created on " + new Date());
+            
             output.flush();
             output.close();
 

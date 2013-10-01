@@ -220,7 +220,7 @@ public class BufferVector implements WhiteboxPlugin {
         outputFile = args[1];
         bufferSize = Double.parseDouble(args[2]);
         
-        if (bufferSize <= 0) {
+        if (bufferSize < 0) {
             showFeedback("The buffer size has not been set properly.");
             return;
         }
@@ -257,7 +257,7 @@ public class BufferVector implements WhiteboxPlugin {
 
             if (shapeType.getBaseType() == ShapeType.POLYGON) {
                 progress = 0;
-                ArrayList<com.vividsolutions.jts.geom.Polygon> polygons = new ArrayList<com.vividsolutions.jts.geom.Polygon>();
+                ArrayList<com.vividsolutions.jts.geom.Polygon> polygons = new ArrayList<>();
                 com.vividsolutions.jts.geom.Geometry[] recJTSPoly = null;
                 n = 0;
                 for (ShapeFileRecord record : input.records) {
@@ -288,7 +288,7 @@ public class BufferVector implements WhiteboxPlugin {
                 geometriesToBuffer = factory.createMultiPolygon(polygonArray);
                 
             } else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
-                ArrayList<LineString> lineStringList = new ArrayList<LineString>();
+                ArrayList<LineString> lineStringList = new ArrayList<>();
                 com.vividsolutions.jts.geom.Geometry[] recJTSPoly = null;
                 progress = 0;
                 n = 0;
@@ -321,7 +321,7 @@ public class BufferVector implements WhiteboxPlugin {
                 
             } else if (shapeType.getBaseType() == ShapeType.POINT ||
                     shapeType.getBaseType() == ShapeType.MULTIPOINT) {
-                ArrayList<com.vividsolutions.jts.geom.Point> pointList = new ArrayList<com.vividsolutions.jts.geom.Point>();
+                ArrayList<com.vividsolutions.jts.geom.Point> pointList = new ArrayList<>();
                 com.vividsolutions.jts.geom.Geometry[] recJTSPoly = null;
                 n = 0;
                 progress = 0;
@@ -367,7 +367,7 @@ public class BufferVector implements WhiteboxPlugin {
                     com.vividsolutions.jts.geom.Geometry g = mpBuffer.getGeometryN(a);
                     if (g instanceof com.vividsolutions.jts.geom.Polygon) {
                         com.vividsolutions.jts.geom.Polygon bufferPoly = (com.vividsolutions.jts.geom.Polygon) g;
-                        ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                        ArrayList<ShapefilePoint> pnts = new ArrayList<>();
                         int[] parts = new int[bufferPoly.getNumInteriorRing() + 1];
 
                         Coordinate[] buffCoords = bufferPoly.getExteriorRing().getCoordinates();
@@ -487,34 +487,36 @@ public class BufferVector implements WhiteboxPlugin {
         }
        
     }
-//    
-//    // This method is only used during testing.
-//    public static void main(String[] args) {
-//        args = new String[3];
-////        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/rondeau lakes.shp";
-////        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp1.shp";
-//        
-////        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/someLakes.shp";
-////        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp4.shp";
-//        
-////        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Body_rmow.shp";
-////        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp2.shp";
-//        
+    
+    // This method is only used during testing.
+    public static void main(String[] args) {
+        args = new String[3];
+        args[0] = "/Users/johnlindsay/Downloads/sample/tmp1.shp";
+        args[1] = "/Users/johnlindsay/Downloads/sample/tmp3.shp";
+//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/rondeau lakes.shp";
+//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp1.shp";
+        
+//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/someLakes.shp";
+//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp4.shp";
+        
+//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Body_rmow.shp";
+//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp2.shp";
+        
 //        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/Water_Line_rmow.shp";
 //        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp2.shp";
+        
+//        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/NTDB_roads_rmow.shp";
+//        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp1.shp";
 //        
-////        args[0] = "/Users/johnlindsay/Documents/Data/ShapeFiles/NTDB_roads_rmow.shp";
-////        args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp1.shp";
-////        
-//        //args[0] = "/Users/johnlindsay/Documents/Data/Marvin-UofG-20111005-Order2133/SWOOP 2010/DEM - Masspoints and Breaklines - 400km_ZIP_UTM17_50cm_XXbands_0bits/20km173400463002010MAPCON/20km17340046300_masspoints.shp";
-//        //args[1] = "/Users/johnlindsay/Documents/Data/Marvin-UofG-20111005-Order2133/SWOOP 2010/DEM - Masspoints and Breaklines - 400km_ZIP_UTM17_50cm_XXbands_0bits/20km173400463002010MAPCON/tmp1.shp";
-//        //args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp1.shp";
-//        //args[0] = "/Users/johnlindsay/Documents/Research/Conference Presentations and Guest Talks/2012 CGU/Data/ontario roads.shp";
-//        //args[1] = "/Users/johnlindsay/Documents/Research/Conference Presentations and Guest Talks/2012 CGU/Data/tmp1.shp";
-//        args[2] = "550";
-//        
-//        BufferVector bv = new BufferVector();
-//        bv.setArgs(args);
-//        bv.run();
-//    }
+        //args[0] = "/Users/johnlindsay/Documents/Data/Marvin-UofG-20111005-Order2133/SWOOP 2010/DEM - Masspoints and Breaklines - 400km_ZIP_UTM17_50cm_XXbands_0bits/20km173400463002010MAPCON/20km17340046300_masspoints.shp";
+        //args[1] = "/Users/johnlindsay/Documents/Data/Marvin-UofG-20111005-Order2133/SWOOP 2010/DEM - Masspoints and Breaklines - 400km_ZIP_UTM17_50cm_XXbands_0bits/20km173400463002010MAPCON/tmp1.shp";
+        //args[1] = "/Users/johnlindsay/Documents/Data/ShapeFiles/tmp1.shp";
+        //args[0] = "/Users/johnlindsay/Documents/Research/Conference Presentations and Guest Talks/2012 CGU/Data/ontario roads.shp";
+        //args[1] = "/Users/johnlindsay/Documents/Research/Conference Presentations and Guest Talks/2012 CGU/Data/tmp1.shp";
+        args[2] = "0.0";
+        
+        BufferVector bv = new BufferVector();
+        bv.setArgs(args);
+        bv.run();
+    }
 }

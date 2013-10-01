@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Elnaz Shokouhi <ebaradar@uoguelph.ca>
+ * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,19 +16,22 @@
  */
 package plugins;
 
-import java.io.File;
+import java.io.*;
+import whitebox.geospatialfiles.ShapeFile;
+import whitebox.geospatialfiles.shapefile.*;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
-import whitebox.utilities.FileUtilities;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.gml2.*;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class CopyFile implements WhiteboxPlugin {
+public class ExportGML implements WhiteboxPlugin {
 
-    private WhiteboxPluginHost myHost;
+    private WhiteboxPluginHost myHost = null;
     private String[] args;
 
     /**
@@ -39,7 +42,7 @@ public class CopyFile implements WhiteboxPlugin {
      */
     @Override
     public String getName() {
-        return "CopyFile";
+        return "ExportGML";
     }
 
     /**
@@ -50,7 +53,7 @@ public class CopyFile implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Copy File";
+        return "Export Geography Markup Language (GML)";
     }
 
     /**
@@ -60,7 +63,7 @@ public class CopyFile implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-        return "Copies an existing raster or vector file into a new file resource.";
+        return "Exports a vector to a geography markup language (GML) format.";
     }
 
     /**
@@ -70,7 +73,7 @@ public class CopyFile implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-        String[] ret = {"FileUtilities"};
+        String[] ret = {"IOTools"};
         return ret;
     }
 
@@ -92,11 +95,11 @@ public class CopyFile implements WhiteboxPlugin {
      *
      * @param feedback String containing the text to display.
      */
-    private void showFeedback(String feedback) {
+    private void showFeedback(String message) {
         if (myHost != null) {
-            myHost.showFeedback(feedback);
+            myHost.showFeedback(message);
         } else {
-            System.out.println(feedback);
+            System.out.println(message);
         }
     }
 
@@ -111,6 +114,8 @@ public class CopyFile implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
+    private int previousProgress = 0;
+    private String previousProgressLabel = "";
 
     /**
      * Used to communicate a progress update between a plugin tool and the main
@@ -120,11 +125,12 @@ public class CopyFile implements WhiteboxPlugin {
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
-        } else {
-            System.out.println(progressLabel + " " + progress + "%");
         }
+        previousProgress = progress;
+        previousProgressLabel = progressLabel;
     }
 
     /**
@@ -134,11 +140,10 @@ public class CopyFile implements WhiteboxPlugin {
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
-        if (myHost != null) {
+        if (myHost != null && progress != previousProgress) {
             myHost.updateProgress(progress);
-        } else {
-            System.out.println("Progress: " + progress + "%");
         }
+        previousProgress = progress;
     }
 
     /**
@@ -182,91 +187,105 @@ public class CopyFile implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        boolean isInputRaster = true;
-        String inputFile = args[0];
-        if (inputFile.toLowerCase().contains(".shp")) {
-            isInputRaster = false;
+
+        String ouptutFile = null;
+        String shapefileName = null;
+        int i = 0;
+        int row, col, rows, cols;
+        InputStream inStream = null;
+        OutputStream outStream = null;
+        int progress = 0;
+        Geometry[] JTSGeometries;
+        GMLWriter gmlWriter = new GMLWriter();
+        String str1 = null;
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        PrintWriter out = null;
+
+        if (args.length <= 0) {
+            showFeedback("Plugin parameters have not been set.");
+            return;
         }
-        String outputFile = args[1];
-        if (inputFile.isEmpty() || outputFile.isEmpty()) {
+
+        String inputFilesString = args[0];
+
+        // check to see that the inputHeader and outputHeader are not null.
+        if (inputFilesString.isEmpty()) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
-        if (inputFile.endsWith(".dep") && outputFile.endsWith(".shp")) {
-            outputFile = outputFile.replace(".shp", ".dep");
-        }
-        if (inputFile.endsWith(".shp") && outputFile.endsWith(".dep")) {
-            outputFile = outputFile.replace(".dep", ".shp");
-        }
 
+        String[] imageFiles = inputFilesString.split(";");
+        int numFiles = imageFiles.length;
 
         try {
-            if (isInputRaster) {
-                String inputDataFile = inputFile.replace(".dep", ".tas");
-                String outputDataFile = outputFile.replace(".dep", ".tas");
-                FileUtilities.copyFile(new File(inputFile), new File(outputFile));
-                FileUtilities.copyFile(new File(inputDataFile), new File(outputDataFile));
 
-            } else {
-                // .shp file 
-                File file = new File(inputFile);
-                if (file.exists()) {
-                    FileUtilities.copyFile(new File(inputFile), new File(outputFile));
-                } else {
-                    showFeedback("The input file does not exist.");
-                    return;
+            for (i = 0; i < numFiles; i++) {
+                progress = (int) (100f * i / (numFiles - 1));
+                updateProgress("Loop " + (i + 1) + " of " + numFiles + ":", progress);
+
+                shapefileName = imageFiles[i];
+                if (!((new File(shapefileName)).exists())) {
+                    showFeedback("Vector file does not exist.");
+                    break;
                 }
-                // .shx file 
-                file = new File(inputFile.replace(".shp", ".shx"));
-                if (file.exists()) {
-                    FileUtilities.copyFile(file, new File(outputFile.replace(".shp", ".shx")));
+
+                ShapeFile shapefile = new ShapeFile(shapefileName);
+
+
+                // arc file name.
+                ouptutFile = shapefileName.replace(".shp", ".gml");
+
+                // see if it exists, and if so, delete it.
+                (new File(ouptutFile)).delete();
+
+                fw = new FileWriter(ouptutFile, false);
+                bw = new BufferedWriter(fw);
+                out = new PrintWriter(bw, true);
+
+                progress = 0;
+                int n = 0;
+                int onePercentOfRecs = shapefile.getNumberOfRecords() / 100;
+                
+                for (ShapeFileRecord record : shapefile.records) {
+                    if (record.getShapeType() != ShapeType.NULLSHAPE) {
+                        JTSGeometries = record.getGeometry().getJTSGeometries();
+                        for (int a = 0; a < JTSGeometries.length; a++) {
+                            str1 = gmlWriter.write(JTSGeometries[a]);
+                            out.println(str1);
+                        }
+                    }
+
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    n++;
+                    if (n == onePercentOfRecs) {
+                        n = 0;
+                        progress++;
+                        updateProgress("Exporting shapefile data:", progress);
+                    }
                 }
-                // .dbf file 
-                file = new File(inputFile.replace(".shp", ".dbf"));
-                if (file.exists()) {
-                    FileUtilities.copyFile(file, new File(outputFile.replace(".shp", ".dbf")));
-                }
-                // .prj file 
-                file = new File(inputFile.replace(".shp", ".prj"));
-                if (file.exists()) {
-                    FileUtilities.copyFile(file, new File(outputFile.replace(".shp", ".prj")));
-                }
-                // .sbn file 
-                file = new File(inputFile.replace(".shp", ".sbn"));
-                if (file.exists()) {
-                    FileUtilities.copyFile(file, new File(outputFile.replace(".shp", ".sbn")));
-                }
-                // .sbxfile 
-                file = new File(inputFile.replace(".shp", ".sbx"));
-                if (file.exists()) {
-                    FileUtilities.copyFile(file, new File(outputFile.replace(".shp", ".sbx")));
-                }
+
+                showFeedback("Operation complete!");
             }
 
-            showFeedback("Operation complete.");
+
+        } catch (java.io.IOException e) {
+            System.err.println("Error: " + e.getMessage());
         } catch (Exception e) {
             showFeedback(e.getMessage());
-            showFeedback(e.getCause().toString());
         } finally {
+            if (out != null || bw != null) {
+                out.flush();
+                out.close();
+            }
+
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.
-
             amIActive = false;
             myHost.pluginComplete();
         }
-
-    }
-
-    //This method is only used during testing.
-    public static void main(String[] args) {
-        args = new String[2];
-        //args[0] = "/Users/jlindsay/Documents/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/samples/Guelph/hydrology.shp";
-        args[0] = "/Users/jlindsay/Documents/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/samples/Vermont DEM/Vermont DEM.dep";
-        //args[1] = "/Users/jlindsay/Documents/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/samples/Guelph/test1.shp";
-        args[1] = "/Users/jlindsay/Documents/whitebox-geospatial-analysis-tools/WhiteboxGIS/build/classes/whiteboxgis/resources/samples/Vermont DEM/test2.dep";
-
-        CopyFile cf = new CopyFile();
-        cf.setArgs(args);
-        cf.run();
     }
 }

@@ -36,7 +36,7 @@ import org.fife.ui.rsyntaxtextarea.*;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ViewCodeDialog extends JFrame implements ActionListener {
+public class ViewCodeDialog extends JDialog implements ActionListener {
 
     private String pathSep;
     private String resourcesDirectory;
@@ -50,7 +50,8 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
     private boolean editable = false;
     private String fileExtension = "java";
 
-    public ViewCodeDialog(Frame owner, String pluginName, String title) {
+    public ViewCodeDialog(Frame owner, boolean modal, String pluginName, String title) {
+        super(owner, modal);
         host = (Communicator) owner;
         this.pathSep = File.separator;
         this.resourcesDirectory = host.getResourcesDirectory();
@@ -66,7 +67,8 @@ public class ViewCodeDialog extends JFrame implements ActionListener {
         createGui(title);
     }
 
-    public ViewCodeDialog(Frame owner, File fileName, boolean editable) {
+    public ViewCodeDialog(Frame owner, boolean modal, File fileName, boolean editable) {
+        super(owner, modal);
         host = (Communicator) owner;
         this.sourceFile = fileName.toString();
 

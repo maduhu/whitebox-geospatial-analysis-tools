@@ -171,16 +171,10 @@ public class FilterLaplacian implements WhiteboxPlugin {
             return;
         }
         
-        for (int i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                filterSize = args[i].toLowerCase();
-            }
-        }
-
+        inputHeader = args[0];
+        outputHeader = args[1];
+        filterSize = args[2].toLowerCase().replace("\u00D7", "x");
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");

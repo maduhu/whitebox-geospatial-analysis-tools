@@ -172,16 +172,10 @@ public class NumInflowingNeighbours implements WhiteboxPlugin {
             return;
         }
         
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                pntrType = args[i].toLowerCase();
-            }
-        }
-
+        inputHeader = args[0];
+        outputHeader = args[1];
+        pntrType = args[2].toLowerCase();
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");

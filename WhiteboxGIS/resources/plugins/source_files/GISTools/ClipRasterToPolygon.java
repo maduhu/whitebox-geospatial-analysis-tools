@@ -24,10 +24,7 @@ import java.util.Date;
 import java.util.PriorityQueue;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataType;
-import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.PolygonM;
 import whitebox.geospatialfiles.shapefile.PolygonZ;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
@@ -206,7 +203,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
 
         String outputHeader = "";
         int row, col;
-        double rowYCoord, value, z;
+        double rowYCoord, value;
         int progress = 0;
         double cellSizeX, cellSizeY;
         int rows, topRow, bottomRow;
@@ -226,10 +223,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
         boolean foundIntersection;
         ArrayList<Integer> edgeList = new ArrayList<>();
         DecimalFormat df = new DecimalFormat("###,###,###,###");
-        double smallNumber = -999999.0; // this value will be used
-        // to ensure that when there is a hole in a polygon, the cell containing
-        // the background value will be retreived from the priority queue second.
-
+        
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
@@ -255,7 +249,6 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
             PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<>(flushSize);
 
             ShapeFile clip = new ShapeFile(clipFile);
-//            int numRecs = clip.getNumberOfRecords();
 
             BoundingBox clipBox = new BoundingBox();
             clipBox.setMaxX(clip.getxMax());
@@ -295,9 +288,13 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                     cellSizeX = input.getCellSizeX();
                     cellSizeY = input.getCellSizeY();
                     north = clip.getyMax() + cellSizeY / 2.0;
+                    if (input.getNorth() < north) { north = input.getNorth(); }
                     south = clip.getyMin() - cellSizeY / 2.0;
+                    if (input.getSouth() > south) { south = input.getSouth(); }
                     east = clip.getxMax() + cellSizeX / 2.0;
+                    if (input.getEast() < east) { east = input.getEast(); }
                     west = clip.getxMin() - cellSizeX / 2.0;
+                    if (input.getWest() > west) { west = input.getWest(); }
                     rows = (int) (Math.ceil((north - south) / cellSizeY));
                     cols = (int) (Math.ceil((east - west) / cellSizeX));
 
@@ -328,7 +325,7 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                     numPoints = geometry.length;
                     numParts = partData.length;
 
-                    // first do the non-holes.
+                    // do the non-holes.
                     for (part = 0; part < numParts; part++) {
                         if (!partHoleData[part]) {
                             box = new BoundingBox();
@@ -427,11 +424,8 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                         numCellsToWrite = pq.size();
                         do {
                             cell = pq.poll();
-                            if (cell.z == smallNumber) {
-                                output.setValue(cell.row, cell.col, noData);
-                            } else {
-                                output.setValue(cell.row, cell.col, cell.z);
-                            }
+                            output.setValue(cell.row, cell.col, cell.z);
+                            
                             j++;
                             if (j % 1000 == 0) {
                                 if (cancelOp) {
@@ -458,11 +452,8 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                 numCellsToWrite = pq.size();
                 do {
                     cell = pq.poll();
-                    if (cell.z == smallNumber) {
-                        output.setValue(cell.row, cell.col, noData);
-                    } else {
-                        output.setValue(cell.row, cell.col, cell.z);
-                    }
+                    output.setValue(cell.row, cell.col, cell.z);
+                    
                     j++;
                     if (j % 1000 == 0) {
                         if (cancelOp) {

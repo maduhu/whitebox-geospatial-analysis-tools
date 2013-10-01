@@ -16,6 +16,7 @@
  */
 package plugins;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
 import java.text.DecimalFormat;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
@@ -192,6 +193,7 @@ public class ImageAutocorrelation implements WhiteboxPlugin {
         double noData;
         double z, zn;
         int progress = 0;
+        String progressMessage = "";
         String inputFilesString = null;
         String[] imageFiles;
         long[] n;
@@ -203,7 +205,6 @@ public class ImageAutocorrelation implements WhiteboxPlugin {
         double totalDeviation;
         int[] dX;
         int[] dY;
-        //int n;
         double numerator, W;
         //double recipRoot2 = 1 / Math.sqrt(2);
         //double[] wNeighbour = {recipRoot2, 1, recipRoot2, 1, recipRoot2, 1, recipRoot2, 1};
@@ -245,9 +246,13 @@ public class ImageAutocorrelation implements WhiteboxPlugin {
             double[] varRandomization = new double[numImages];
             double[] zN = new double[numImages];
             double[] zR = new double[numImages];
+            double[] pValueN = new double[numImages];
+            double[] pValueR = new double[numImages];
             double[] data;
+            NormalDistribution distribution = new NormalDistribution(0, 1);
 
             for (a = 0; a < numImages; a++) {
+                progressMessage = "Image " + (a + 1) + " of " + numImages;
                 image = new WhiteboxRaster(imageFiles[a], "r");
                 noData = image.getNoDataValue();
                 rows = image.getNumberRows();
@@ -272,6 +277,8 @@ public class ImageAutocorrelation implements WhiteboxPlugin {
                         cancelOperation();
                         return;
                     }
+                    progress = (int)(row * 100.0 / rows);
+                    updateProgress(progressMessage, progress);
                 }
 
                 mean[a] = sigmaZ / n[a];
@@ -307,6 +314,8 @@ public class ImageAutocorrelation implements WhiteboxPlugin {
                         cancelOperation();
                         return;
                     }
+                    progress = (int)(row * 100.0 / rows);
+                    updateProgress(progressMessage, progress);
                 }
                 
                 double S1 = 4 * W;
@@ -320,6 +329,7 @@ public class ImageAutocorrelation implements WhiteboxPlugin {
                         ((W * W) * (n[a] * n[a] - 1));
                 
                 zN[a] = (I[a] - E_I[a]) / (Math.sqrt(varNormality[a])); 
+                pValueN[a] = 2d * (1.0 - distribution.cumulativeProbability(Math.abs(zN[a])));
                 
                 k = k / (n[a] * stdDev[a] * stdDev[a] * stdDev[a] * stdDev[a]);
                 
@@ -328,12 +338,12 @@ public class ImageAutocorrelation implements WhiteboxPlugin {
                         ((n[a] - 1) * (n[a] - 2) * (n[a] - 3) * W * W);
                 
                 zR[a] = (I[a] - E_I[a]) / (Math.sqrt(varRandomization[a])); 
+                pValueR[a] = 2d * (1.0 - distribution.cumulativeProbability(Math.abs(zR[a])));
                 
                 image.close();
                 
-
                 progress = (int) (100f * (a + 1) / numImages);
-                updateProgress("Image " + (a + 1) + ", Calculating Moran's I:", progress);
+                updateProgress(progressMessage, progress);
 
             }
 
@@ -351,17 +361,19 @@ public class ImageAutocorrelation implements WhiteboxPlugin {
                 } else {
                     retstr.append("Mean of cells included:\t\t").append(df2.format(mean[a])).append(" ").append(units[a]).append("\n");
                 }
-                retstr.append("Spatial Autocorrelation (Moran's I):\t").append(df2.format(I[a])).append("\n");
-                retstr.append("Expected Value:\t").append(df2.format(E_I[a])).append("\n");
+                retstr.append("Spatial autocorrelation (Moran's I):\t").append(df2.format(I[a])).append("\n");
+                retstr.append("Expected value:\t\t").append(df2.format(E_I[a])).append("\n");
                 retstr.append("Variance of I (normality assumption):\t").append(df2.format(varNormality[a])).append("\n");
                 retstr.append("z test stat (normality assumption):\t").append(df2.format(zN[a])).append("\n");
+                retstr.append("p-value (normality assumption):\t").append(df2.format(pValueN[a])).append("\n");
                 retstr.append("Variance of I (randomization assumption):\t").append(df2.format(varRandomization[a])).append("\n");
                 retstr.append("z test stat (randomization assumption):\t").append(df2.format(zR[a])).append("\n");
+                retstr.append("p-value (randomization assumption):\t").append(df2.format(pValueR[a])).append("\n");
                 
             }
 
 
-            //System.out.println(retstr.toString());
+//            System.out.println(retstr.toString());
 
             returnData(retstr.toString());
 

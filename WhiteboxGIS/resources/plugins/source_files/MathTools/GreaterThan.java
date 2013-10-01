@@ -337,7 +337,7 @@ public class GreaterThan implements WhiteboxPlugin {
                 double noData = inputFile2.getNoDataValue();
 
                 WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", 
-                        inputHeader1, WhiteboxRaster.DataType.INTEGER, noData);
+                        inputHeader2, WhiteboxRaster.DataType.INTEGER, noData);
                 outputFile.setPreferredPalette("black_white.pal");
 
                 for (row = 0; row < rows; row++) {

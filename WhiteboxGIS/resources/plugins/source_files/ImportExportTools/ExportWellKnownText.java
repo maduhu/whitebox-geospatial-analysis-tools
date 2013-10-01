@@ -53,7 +53,7 @@ public class ExportWellKnownText implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Export Well Known Text (WKT)";
+        return "Export Well-Known Text (WKT)";
     }
 
     /**

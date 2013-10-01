@@ -255,7 +255,7 @@ public class FlowAccumDinf implements WhiteboxPlugin {
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     if (tmpGrid.getValue(row, col) == 0) { //there are no 
-                        //remaining inflowing neighbours, send it's current 
+                        //remaining inflowing neighbours, send its current 
                         //flow accum val downslope
                         DinfAccum(row, col);
                     }

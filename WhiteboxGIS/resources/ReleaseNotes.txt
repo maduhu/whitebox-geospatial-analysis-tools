@@ -3,11 +3,26 @@ Whitebox Geospatial Analysis Tools 3.0 - Iguazu
 
 GENERAL DESCRIPTION: 
 
-Welcome to Whitebox GAT! Whitebox is a Geographical Information System (GIS) and 
+Welcome to Whitebox GAT! Whitebox is a desktop Geographical Information System (GIS) and 
 remote sensing software package for advanced analysis and visualization of geospatial data. 
+
+SYSTEM REQUIREMENTS:
+
+Whitebox GAT requires a minimum of 2 GB of system memory (RAM) to operate. Depending 
+on the size of the data being analyzed, however, more memory may be required. In 
+addition, the Java Runtime Environment (JRE) 7 or higher must be installed and 
+properly configured for Whitebox GAT to operate.
 
 
 RELEASE NOTES:
+
+Version 3.0.6
+
+-Added ImportWellKnownText tool.
+-Fixed a bug in the RenameFile script
+-Rewrote the IDW LiDAR interpolation tool to remove an edge effect at tile 
+ boundaries and to reduce a surface texturing artifact that can appear in some 
+ LiDAR datasets associated with a scan angle patterning at flightline overlaps.
 
 Version 3.0.5
 

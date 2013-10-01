@@ -599,7 +599,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                 forward();
                 break;
             case "viewSource":
-                ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(helpFile), true);
+                ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, false, new File(helpFile), true);
                 vcd.setSize(new Dimension(800, 600));
                 vcd.setVisible(true);
                 break;

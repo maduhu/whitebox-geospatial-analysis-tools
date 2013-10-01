@@ -16,10 +16,12 @@
  */
 package plugins;
 
+import java.nio.ByteOrder;
 import java.io.*;
 import java.util.Date;
 import whitebox.geospatialfiles.GeoTiff;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 //import whitebox.utilities.BitOps;
@@ -192,7 +194,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
         numImages = imageFiles.length;
 
         try {
-
+            String returnedHeader = "";
             for (i = 0; i < numImages; i++) {
                 //int progress = (int) (100f * i / (numImages - 1));
                 updateProgress("Loop " + (i + 1) + " of " + numImages + ":", 0);
@@ -206,62 +208,33 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 int dot = imageFiles[i].lastIndexOf(".");
                 String tiffExtension = imageFiles[i].substring(dot + 1); // either .tif or .tiff
                 whiteboxHeaderFile = imageFiles[i].replace(tiffExtension, "dep");
+                if (i == 0) {
+                    returnedHeader = whiteboxHeaderFile;
+                }
                 whiteboxDataFile = imageFiles[i].replace(tiffExtension, "tas");
 
                 // see if they exist, and if so, delete them.
                 (new File(whiteboxHeaderFile)).delete();
                 (new File(whiteboxDataFile)).delete();
-
-                // create the whitebox header file.
-                fw = new FileWriter(whiteboxHeaderFile, false);
-                bw = new BufferedWriter(fw);
-                out = new PrintWriter(bw, true);
-
-                str1 = "Min:\t" + Double.toString(Integer.MAX_VALUE);
-                out.println(str1);
-                str1 = "Max:\t" + Double.toString(Integer.MIN_VALUE);
-                out.println(str1);
-                str1 = "North:\t" + Double.toString(gt.getNorth());
-                out.println(str1);
-                str1 = "South:\t" + Double.toString(gt.getSouth());
-                out.println(str1);
-                str1 = "East:\t" + Double.toString(gt.getEast());
-                out.println(str1);
-                str1 = "West:\t" + Double.toString(gt.getWest());
-                out.println(str1);
-                str1 = "Cols:\t" + Integer.toString(nCols);
-                out.println(str1);
-                str1 = "Rows:\t" + Integer.toString(nRows);
-                out.println(str1);
-                str1 = "Data Type:\t" + "float";
-                out.println(str1);
-                str1 = "Z Units:\t" + "not specified";
-                out.println(str1);
-                str1 = "XY Units:\t" + "not specified";
-                out.println(str1);
-                str1 = "Projection:\t" + "not specified";
-                out.println(str1);
-                str1 = "Data Scale:\tcontinuous";
-                out.println(str1);
-                str1 = "Preferred Palette:\t" + "grey.pal";
-                out.println(str1);
-                str1 = "NoData:\t" + gt.getNoData(); //-32768";
-                out.println(str1);
-                if (java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN) {
-                    str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
-                } else {
-                    str1 = "Byte Order:\t" + "BIG_ENDIAN";
+                
+                ByteOrder byteOrder = gt.getByteOrder();
+                
+                WhiteboxRasterBase.DataScale myDataScale = WhiteboxRasterBase.DataScale.CONTINUOUS;
+                if (gt.getPhotometricInterpretation() == 2) {
+                    myDataScale = WhiteboxRasterBase.DataScale.RGB;
                 }
-                out.println(str1);
-
-                // Create the whitebox raster object.
-                WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, "rw");
+                WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, gt.getNorth(), gt.getSouth(), gt.getEast(),
+                        gt.getWest(), nRows, nCols, myDataScale,
+                        WhiteboxRasterBase.DataType.FLOAT, gt.getNoData(), gt.getNoData());
+                
+                wbr.setByteOrder(byteOrder.toString());
 
                 double[] data = null;
                 for (int row = 0; row < nRows; row++) {
                     data = gt.getRowData(row);
                     if (!(data != null)) {
-                        showFeedback("The GeoTIFF reader cannot read RGB, aRGB, compressed data files, and files with tile offsets.");
+                        showFeedback("The GeoTIFF reader cannot read 48-bit and 64-bit RGB and aRGB image, "
+                                + "nor compressed data files, and files with tile offsets. We're working on it...");
                         return;
                     }
                     for (int col = 0; col < nCols; col++) {
@@ -271,8 +244,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                     updateProgress(progress);
                 }
                 
-                wbr.flush();
-                //wbr.findMinAndMaxVals();
+                //wbr.flush();
                 wbr.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
                 wbr.addMetadataEntry("Created on " + new Date());
@@ -280,20 +252,22 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 for (int a = 0; a < metaData.length; a++) {
                     wbr.addMetadataEntry(metaData[a]);
                 }
-                wbr.writeHeaderFile();
+                //wbr.writeHeaderFile();
                 wbr.close();
 
                 gt.close();
 
-                // returning a header file string displays the image.
-                //returnData(whiteboxHeaderFile);
             }
 
-
+            showFeedback("Operation complete");
+            if (!returnedHeader.isEmpty()) { returnData(returnedHeader); }
+            
         } catch (IOException e) {
-            showFeedback(e.getMessage());
+            myHost.logException("Error in ImportGeoTiff.run", e);
+            showFeedback(e.toString());
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.logException("Error in ImportGeoTiff.run", e);
+            showFeedback(e.toString());
         } finally {
             if (out != null || bw != null) {
                 out.flush();

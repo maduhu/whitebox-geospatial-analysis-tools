@@ -1,53 +1,32 @@
 <?xml version="1.0"?>
 <VersionInfo>
     <VersionName>"3.0 'Iguazu'"</VersionName>
-    <VersionNumber>"3.0.4"</VersionNumber>
+    <VersionNumber>"3.0.6"</VersionNumber>
     <DownloadLocation>"http://code.google.com/p/whitebox-geospatial-analysis-tools/downloads/list"</DownloadLocation>
-    <Announcements number="6">
+    <Announcements number="7">
         <Announcement>
-            <Date>2013-09-5</Date>
+            <Date>2013-09-20</Date>
             <Language>en</Language>
-            <Title>Whitebox Version 3.0.4 has been released</Title>
+            <Title>Whitebox Version 3.0.5 has been released</Title>
             <Message><![CDATA[<p>This version includes the following updates:</p>
                     <ul>
-                    <li>Improved support for scripting, including syntax highlighting and auto-completion.
-                        There have been considerable improvements made to the Whitebox scripter.</li>
-                    <li>Scripts can now be added as plugin tools, with integration in the tools panel.</li>
-                    <li>Added Rename File tool, a Python script plugin.</li>
-                    <li>Added Sink tool, a Python script plugin.</li>
-                    <li>Added user-defined weights filter, a Groovy script plugin.</li>
-                    <li>Added scripting examples in all 300+ plugin tool help files (this took quite a 
-                        lot of time!).</li>
-                    <li>The version of Jython (python for java) included in the library has been updated
-                    to the stand alone version. This has increased the distribution size by 2 MB.</li>
-                    <li>Added a quick-link to all displayed data layers in the file selection components
-                    of tool dialogs.</li>
+                    <li>Added Dissolve tool.</li>
+                    <li>Added VectorCleaning tool.</li>
+                    <li>Added IntersectionDensity tool.</li>
+                    <li>Added AverageOverlay tool.</li>
+                    <li>Added ExtendVectorLine tool.</li>
+                    <li>Added Medoid tool.</li>
+                    <li>Added FindSaddlePoint tool.</li>
+                    <li>Improved the usability of the Raster Calculator.</li>
                 </ul>]]>
             </Message>
         </Announcement>
         <Announcement>
-            <Date>2013-07-18</Date>
-            <Language>en</Language>
-            <Title>How To Tutorials</Title>
-            <Message><![CDATA[I'm working on a series of <i>How To</i> tutorials, which will be available 
-                under the Tutorials tab of the Whitebox Help. For example, <i>How to create a new 
-                tool</i>, <i>How to digitize new vectors</i>, and <i>How to get data into Whitebox</i>. 
-                If you have any requests for other How To's please contact John Lindsay 
-                (jlindsay@uoguelph.ca).]]>
-            </Message>
-        </Announcement>
-        <Announcement>
-            <Date>2013-06-24</Date>
+            <Date>2013-09-20</Date>
             <Language>en</Language>
             <Title>Translators Needed</Title>
-            <Message>"We're working on improving Whitebox's support for multiple languages. You can help by volunteering as a translator.
-                In the first phase of this work we have translated many of the user-interface labels, menus, and messages 
-                into Persian, Greek, Chinese, German, Russian, Spanish, Catalan, Italian, and Polish thanks to the generous efforts of 
-                numerous volunteers. In the second phase of this project, we would like to expand the number of supported languages 
-                (Hindi, Arabic, Japanese, and Korean volunteers are especially needed, however any language would be appreciated) 
-                and also translate the plugin tool names and descriptions. So there is still plenty of work ahead and any help that 
-                you can provide would be greatly appreciated by the user community. If you are interested, please contact 
-                Dr. John Lindsay (jlindsay@uoguelph.ca)."</Message>
+            <Message>"We're still looking for someone to help with the translation to Portuguese. 
+                If you are interested, please contact Dr. John Lindsay (jlindsay@uoguelph.ca)."</Message>
         </Announcement>
     </Announcements>
 </VersionInfo>

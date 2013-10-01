@@ -329,7 +329,7 @@ public class Max implements WhiteboxPlugin {
                 double noData = inputFile2.getNoDataValue();
 
                 WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", 
-                        inputHeader1, WhiteboxRaster.DataType.FLOAT, noData);
+                        inputHeader2, WhiteboxRaster.DataType.FLOAT, noData);
                 outputFile.setPreferredPalette(inputFile2.getPreferredPalette());
 
                 for (row = 0; row < rows; row++) {

@@ -16,7 +16,6 @@
  */
 package plugins;
 
-import java.io.File;
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPluginHost;
@@ -26,7 +25,7 @@ import whitebox.interfaces.WhiteboxPlugin;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author johnlindsay
  */
-public class GaussianStretch implements WhiteboxPlugin{
+public class GaussianStretch implements WhiteboxPlugin {
     
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -52,7 +51,7 @@ public class GaussianStretch implements WhiteboxPlugin{
      */
     @Override
     public String getToolDescription() {
-    	return "Performs a min-max contrast stretch on an input image.";
+    	return "Performs a Gausian contrast stretch on an input image.";
     }
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.

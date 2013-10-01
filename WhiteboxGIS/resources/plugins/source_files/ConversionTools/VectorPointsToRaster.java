@@ -16,6 +16,7 @@
  */
 package plugins;
 
+import java.util.Date;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
@@ -472,6 +473,11 @@ public class VectorPointsToRaster implements WhiteboxPlugin {
             } else if (assignmentType.equals("range")) {
                 
             }
+            
+            output.addMetadataEntry("Created by the "
+                    + getDescriptiveName() + " tool.");
+            output.addMetadataEntry("Created on " + new Date());
+            
             output.flush();
             output.close();
 

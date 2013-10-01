@@ -22,56 +22,73 @@ import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class SetNoData implements WhiteboxPlugin {
-    
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "SetNoData";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "Set NoData Value";
+        return "Set NoData Value";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "Assign a specified value in an input image to the NoData value.";
+        return "Assign a specified value in an input image to the NoData value.";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "ConversionTools" };
-    	return ret;
+        String[] ret = {"ConversionTools"};
+        return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
-     */ 
+     */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -81,8 +98,11 @@ public class SetNoData implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -90,23 +110,29 @@ public class SetNoData implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
-
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
-     */private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+     */
+    private void updateProgress(String progressLabel, int progress) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -115,33 +141,39 @@ public class SetNoData implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-     /**
+    /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     private boolean cancelOp = false;
+
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -151,57 +183,58 @@ public class SetNoData implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
-        String inputHeader = null;
-        double backgroundValue = 0;
-    	
+
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
-        for (int i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                backgroundValue = Double.parseDouble(args[i]);
-            }
-        }
+
+        String inputFilesString = args[0];
+        String[] imageFiles = inputFilesString.split(";");
+        int numFiles = imageFiles.length;
+        double backgroundValue = Double.parseDouble(args[1]);
 
         // check to see that the inputHeader and outputHeader are not null.
-        if (inputHeader == null) {
+        if (inputFilesString.isEmpty() || numFiles < 1) {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
 
         try {
             int row, col;
-            float progress = 0;
+            int progress = 0;
             double[] data;
-            
-            WhiteboxRaster inputFile = new WhiteboxRaster(inputHeader, "rw");
+            for (int a = 0; a < numFiles; a++) {
+                WhiteboxRaster inputFile = new WhiteboxRaster(imageFiles[a], "rw");
 
-            int rows = inputFile.getNumberRows();
-            int cols = inputFile.getNumberColumns();
-            
-            double noData = inputFile.getNoDataValue();
+                int rows = inputFile.getNumberRows();
+                int cols = inputFile.getNumberColumns();
 
-            for (row = 0; row < rows; row++) {
-                data = inputFile.getRowValues(row);
-                for (col = 0; col < cols; col++) {
-                    if (data[col] == backgroundValue) {
-                        inputFile.setValue(row, col, noData);
+                double noData = inputFile.getNoDataValue();
+
+                for (row = 0; row < rows; row++) {
+                    data = inputFile.getRowValues(row);
+                    for (col = 0; col < cols; col++) {
+                        if (data[col] == backgroundValue) {
+                            inputFile.setValue(row, col, noData);
+                        }
                     }
-
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (int) (100f * row / (rows - 1));
+                    updateProgress("Processing image " + (a + 1) + " of " + numFiles + ":", progress);
                 }
-                if (cancelOp) { cancelOperation(); return; }
-                progress = (float) (100f * row / (rows - 1));
-                updateProgress((int) progress);
+
+                // close all of the open Whitebox rasters.
+                inputFile.close();
+
             }
 
-            // close all of the open Whitebox rasters.
-            inputFile.close();
-            
+            showFeedback("Operation complete");
+
         } catch (Exception e) {
             showFeedback(e.getMessage());
         } finally {

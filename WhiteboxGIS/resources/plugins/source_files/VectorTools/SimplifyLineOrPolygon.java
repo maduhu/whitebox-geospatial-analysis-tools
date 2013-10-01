@@ -292,7 +292,7 @@ public class SimplifyLineOrPolygon implements WhiteboxPlugin {
                         com.vividsolutions.jts.geom.Geometry g = outputGeom.getGeometryN(a);
                         if (g instanceof com.vividsolutions.jts.geom.Polygon && !g.isEmpty()) {
                             com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon) g;
-                            ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                            ArrayList<ShapefilePoint> pnts = new ArrayList<>();
                             int[] parts = new int[p.getNumInteriorRing() + 1];
 
                             Coordinate[] buffCoords = p.getExteriorRing().getCoordinates();

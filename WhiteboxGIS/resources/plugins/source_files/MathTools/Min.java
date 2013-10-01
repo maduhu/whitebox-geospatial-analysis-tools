@@ -326,7 +326,8 @@ public class Min implements WhiteboxPlugin {
                 int cols = inputFile2.getNumberColumns();
                 double noData = inputFile2.getNoDataValue();
 
-                WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader1, WhiteboxRaster.DataType.FLOAT, noData);
+                WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", 
+                        inputHeader2, WhiteboxRaster.DataType.FLOAT, noData);
                 outputFile.setPreferredPalette(inputFile2.getPreferredPalette());
 
                 for (row = 0; row < rows; row++) {

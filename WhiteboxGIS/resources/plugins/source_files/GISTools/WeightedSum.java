@@ -188,8 +188,8 @@ public class WeightedSum implements WhiteboxPlugin {
             return;
         }
 
-        ArrayList<String> imageFiles = new ArrayList<String>();
-        ArrayList<Double> weights = new ArrayList<Double>();
+        ArrayList<String> imageFiles = new ArrayList<>();
+        ArrayList<Double> weights = new ArrayList<>();
         for (a = 0; a < dataSplit.length; a += 2) {
             if (!dataSplit[a].trim().equals("") && 
                     !dataSplit[a].trim().toLowerCase().equals("not specified")) {

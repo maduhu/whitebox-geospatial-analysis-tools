@@ -164,6 +164,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             Box mainBox = Box.createVerticalBox();
             
             dataTable = getDataTable();
+            dataTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
           
             JScrollPane scroll = new JScrollPane(dataTable);
             tabs = new JTabbedPane();
@@ -179,6 +180,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             panel2.setLayout(new BoxLayout(panel2, BoxLayout.Y_AXIS));
             
             fieldTable = getFieldTable();
+            fieldTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 
             JScrollPane scroll2 = new JScrollPane(fieldTable);
             panel2.add(scroll2);
@@ -227,8 +229,6 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                 }
                 return comp;
             }
-            
-            
         };
 
         table.setAutoCreateRowSorter(true);
@@ -517,26 +517,8 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         
         AttributeFileTableModel dataModel = (AttributeFileTableModel)dataTable.getModel();
         AttributeFieldTableModel fieldModel = (AttributeFieldTableModel)fieldTable.getModel();
-        
-        if (!dataModel.isSaved()) {
-            tabs.setSelectedIndex(0);
-            int option = JOptionPane.showOptionDialog(rootPane, 
-                    messages.getString("SaveChangesQuestion"), 
-                messages.getString("SaveChanges") + "?", 
-                JOptionPane.OK_CANCEL_OPTION, 
-                JOptionPane.QUESTION_MESSAGE, null, null, null);
-            if (option == JOptionPane.OK_OPTION) {
-                
-                boolean success = dataModel.saveChanges();
-                if (!success) {
-                    JOptionPane.showMessageDialog(this, 
-                            messages.getString("ErrorSavingChanges"), 
-                            messages.getString("ErrorSaving"), 
-                            JOptionPane.ERROR_MESSAGE);
-                }
-                dataModel.fireTableDataChanged();
-            }
-        }
+//        dataTable.getCellEditor().stopCellEditing();
+//        fieldTable.getCellEditor().stopCellEditing();
         
         if (!fieldModel.isSaved()) {
             tabs.setSelectedIndex(1);
@@ -560,6 +542,26 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                 dataModel.fireTableDataChanged();
             }
             
+        }
+        
+        if (!dataModel.isSaved()) {
+            tabs.setSelectedIndex(0);
+            int option = JOptionPane.showOptionDialog(rootPane, 
+                    messages.getString("SaveChangesQuestion"), 
+                messages.getString("SaveChanges") + "?", 
+                JOptionPane.OK_CANCEL_OPTION, 
+                JOptionPane.QUESTION_MESSAGE, null, null, null);
+            if (option == JOptionPane.OK_OPTION) {
+                
+                boolean success = dataModel.saveChanges();
+                if (!success) {
+                    JOptionPane.showMessageDialog(this, 
+                            messages.getString("ErrorSavingChanges"), 
+                            messages.getString("ErrorSaving"), 
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                dataModel.fireTableDataChanged();
+            }
         }
     }
     

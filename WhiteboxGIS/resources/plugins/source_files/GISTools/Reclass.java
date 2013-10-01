@@ -166,6 +166,7 @@ public class Reclass implements WhiteboxPlugin {
         String[] reclassRangeStr = null;
         double[][] reclassRange;
         boolean blnAssignMode = false;
+        String delimiter = "\t";
         
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -174,7 +175,20 @@ public class Reclass implements WhiteboxPlugin {
         
         inputHeader = args[0];
         outputHeader = args[1];
-        reclassRangeStr = args[2].split("\t");
+        reclassRangeStr = args[2].split(delimiter);
+        if (reclassRangeStr.length == 1) {
+            delimiter = ";";
+            reclassRangeStr = args[2].split(delimiter);
+            if (reclassRangeStr.length == 1) {
+                delimiter = ",";
+                reclassRangeStr = args[2].split(delimiter);
+                if (reclassRangeStr.length == 1) {
+                    showFeedback("Unrecognized relcass string delimiter. Please use "
+                            + "a tab, semicolon, or comma to delimite relcass values.");
+                    return;
+                }
+            }
+        }
         if (reclassRangeStr[2].toLowerCase().equals("not specified")) { blnAssignMode = true; }
         
         // check to see that the inputHeader are not null.

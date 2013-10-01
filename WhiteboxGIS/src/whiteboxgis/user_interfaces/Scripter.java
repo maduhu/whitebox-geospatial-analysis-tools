@@ -144,7 +144,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
             initUI();
         } catch (Exception e) {
-            handleError(e.getMessage());
+            host.logException("Error in Scripter.", e);
         }
     }
 
@@ -271,7 +271,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
             this.pack();
         } catch (Exception e) {
-            handleError(e.getMessage());
+            host.logException("Error in Scripter.", e);
         }
     }
 
@@ -290,15 +290,23 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
         toolbar.addSeparator();
 
-        JButton executeBtn = makeToolBarButton("Execute.png", "execute",
-                bundle.getString("ExecuteCode"), "Execute");
-        toolbar.add(executeBtn);
-
         JButton toggleComment = makeToolBarButton("Comment.png", "Comment",
                 bundle.getString("ToggleComments"), "Comment");
         toolbar.add(toggleComment);
+        
+        JButton indent = makeToolBarButton("Indent.png", "Indent",
+                "Indent", "Indent");
+        toolbar.add(indent);
+        
+        JButton outdent = makeToolBarButton("Outdent.png", "Outdent",
+                "Outdent", "Outdent");
+        toolbar.add(outdent);
+        
+        toolbar.addSeparator();
 
-        //toolbar.addSeparator();
+        JButton executeBtn = makeToolBarButton("Execute.png", "execute",
+                bundle.getString("ExecuteCode"), "Execute");
+        toolbar.add(executeBtn);
 
         generateDataButton = makeToolBarButton("GenerateData.png", "generateData",
                 bundle.getString("GenerateColumnData"), "Generate Data");
@@ -335,7 +343,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
         JPanel findButtonBox = new JPanel(); //Box.createHorizontalBox();
         findButtonBox.setLayout(new BoxLayout(findButtonBox, BoxLayout.X_AXIS));
-        
+
         prevButton = new JButton("\u25C0"); //"\u2190"); // previous
         prevButton.setActionCommand("FindPrev");
         prevButton.addActionListener(this);
@@ -345,9 +353,9 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         nextButton.setActionCommand("FindNext");
         nextButton.addActionListener(this);
         findButtonBox.add(nextButton);
-        
+
         findButtonBox.add(Box.createHorizontalGlue());
-        
+
         searchField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -355,16 +363,16 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             }
         });
 
-        
+
         matchCaseCB = new JCheckBox("Match Case");
         findButtonBox.add(matchCaseCB);
         wholeWordCB = new JCheckBox("Whole Words");
         findButtonBox.add(wholeWordCB);
         regexCB = new JCheckBox("Regex");
         findButtonBox.add(regexCB);
-        
+
         findButtonBox.add(Box.createHorizontalGlue());
-        
+
         JButton closeBtn = new JButton("x");
         closeBtn.setBorderPainted(false);
         closeBtn.setFocusPainted(false);
@@ -377,13 +385,13 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         });
         //toolBar.add(closeBtn);
         findButtonBox.add(closeBtn);
-        
+
         c.weightx = 1.0;
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 2;
         c.gridy = 0;
         toolbar.add(findButtonBox, c);
-        
+
 
 
         replaceLabel = new JLabel("Replace:");
@@ -433,7 +441,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 SearchEngine.replaceAll(editor, context);
             }
         });
-        
+
         JPanel replaceButtonPanel = new JPanel();
         replaceButtonPanel.setLayout(new BoxLayout(replaceButtonPanel, BoxLayout.X_AXIS));
         replaceButtonPanel.add(replaceButton);
@@ -666,7 +674,6 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             });
             editMenu.add(replace);
 
-
             menubar.add(editMenu);
 
 //            JMenu viewMenu = new JMenu("View");
@@ -709,6 +716,26 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             toggleComments.addActionListener(this);
             toggleComments.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             sourceMenu.add(toggleComments);
+            
+            JMenuItem indent = new JMenuItem("Indent");
+//            indent.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            indent.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    indentSelection();
+                }
+            });
+            sourceMenu.add(indent);
+            
+            JMenuItem outdent = new JMenuItem("Outdent");
+//            outdent.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            outdent.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    outdentSelection();
+                }
+            });
+            sourceMenu.add(outdent);
 
             menubar.add(sourceMenu);
 
@@ -716,7 +743,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             this.setJMenuBar(menubar);
 
         } catch (Exception e) {
-            handleError(e.getMessage());
+            host.logException("Error in Scripter.", e);
         }
     }
 
@@ -741,7 +768,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             button.setIcon(image);
         } catch (Exception e) {
             button.setText(altText);
-            handleError(e.getMessage());
+            host.logException("Error in Scripter.", e);
         }
 
         return button;
@@ -1539,7 +1566,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         try {
             editor.print();
         } catch (Exception e) {
-            handleError(e.getMessage());
+            host.logException("Error in Scripter.", e);
         }
     }
 
@@ -1589,6 +1616,45 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         }
     }
 
+    private void indentSelection() {
+        try {
+            int start = editor.getSelectionStart();
+            int end = editor.getSelectionEnd();
+
+            int startLine = editor.getLineOfOffset(start);
+            int endLine = editor.getLineOfOffset(end);
+            for (int i = startLine; i <= endLine; i++) {
+                int j = editor.getLineStartOffset(i);
+                // add a line comment tag.
+                editor.insert("\t", j);
+            }
+        } catch (Exception e) {
+            // do nothing
+        }
+    }
+
+    private void outdentSelection() {
+        try {
+            int start = editor.getSelectionStart();
+            int end = editor.getSelectionEnd();
+
+            int startLine = editor.getLineOfOffset(start);
+            int endLine = editor.getLineOfOffset(end);
+            for (int i = startLine; i <= endLine; i++) {
+                int j = editor.getLineStartOffset(i);
+                if (editor.getText(j, "\t".length()).startsWith("\t")) {
+                    // remove the indent
+                    editor.replaceRange("", j, j + "\t".length());
+                } else if (editor.getText(j, "    ".length()).startsWith("    ")) {
+                    // remove the indent
+                    editor.replaceRange("", j, j + "    ".length());
+                }
+            }
+        } catch (Exception e) {
+            // do nothing
+        }
+    }
+
     private void toggleComment(int lineNum) {
         try {
             int start = editor.getLineStartOffset(lineNum);
@@ -1610,6 +1676,12 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 //        Object source = e.getSource();
         String actionCommand = e.getActionCommand();
         switch (actionCommand.toLowerCase()) {
+            case "indent":
+                indentSelection();
+                break;
+            case "outdent":
+                outdentSelection();
+                break;
             case "close":
                 if (editorDirty) {
                     Object[] options = {"Yes", "No", "Cancel"};

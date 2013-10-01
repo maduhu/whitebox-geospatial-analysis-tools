@@ -655,7 +655,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             // now place this text into the new file.
             FileUtilities.fillFileWithString(fileName, defaultText);
 
-            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(fileName), true);
+            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, false, new File(fileName), true);
             vcd.setSize(new Dimension(800, 600));
             vcd.setVisible(true);
         } catch (IOException ioe) {
@@ -673,7 +673,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
             showFeedback(messages.getString("NoHelpDirectory"));
             return;
         }
-        ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(fileName), true);
+        ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, false, new File(fileName), true);
         vcd.setSize(new Dimension(800, 600));
         vcd.setVisible(true);
 
@@ -688,7 +688,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         } else if (actionCommand.equals("ok")) {
             okPressed();
         } else if (actionCommand.equals("viewCode")) {
-            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, pluginName, this.getTitle());
+            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, false, pluginName, this.getTitle());
             vcd.setSize(new Dimension(800, 600));
             vcd.setVisible(true);
 
@@ -697,7 +697,7 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         } else if (actionCommand.equals("forward")) {
             forward();
         } else if (actionCommand.equals("viewHelpFileSource")) {
-            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, new File(helpFile), true);
+            ViewCodeDialog vcd = new ViewCodeDialog((Frame) host, false, new File(helpFile), true);
             vcd.setSize(new Dimension(800, 600));
             vcd.setVisible(true);
         } else if (actionCommand.equals("newHelp")) {

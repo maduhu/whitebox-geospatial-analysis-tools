@@ -60,7 +60,7 @@ public class Abs implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "Calcuates the absolute value of every cell in a raster.";
+    	return "Calculates the absolute value of every cell in a raster.";
     }
 
     /**

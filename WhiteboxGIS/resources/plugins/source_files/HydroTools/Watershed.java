@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.shapefile.MultiPoint;
 import whitebox.geospatialfiles.shapefile.MultiPointM;
 import whitebox.geospatialfiles.shapefile.MultiPointZ;
@@ -300,7 +301,7 @@ public class Watershed implements WhiteboxPlugin {
                 }
 
                 outlet = new WhiteboxRaster(outletHeader.replace(".shp", ".dep"), "rw",
-                    inputHeader, WhiteboxRaster.DataType.FLOAT, -999);
+                    inputHeader, WhiteboxRaster.DataType.FLOAT, 0);
                 outlet.isTemporaryFile = true;
                 
                 int numOutlets = outletXs.size();
@@ -334,7 +335,9 @@ public class Watershed implements WhiteboxPlugin {
 
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
                     inputHeader, WhiteboxRaster.DataType.FLOAT, -999);
-
+            output.setDataScale(WhiteboxRasterBase.DataScale.CATEGORICAL);
+            output.setPreferredPalette("categorical1.pal");
+            
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     z = outlet.getValue(row, col);

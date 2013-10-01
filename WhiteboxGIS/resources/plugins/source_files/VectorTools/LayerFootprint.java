@@ -16,11 +16,9 @@
  */
 package plugins;
 
-import java.io.File;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.Polygon;
 import whitebox.geospatialfiles.shapefile.ShapeType;

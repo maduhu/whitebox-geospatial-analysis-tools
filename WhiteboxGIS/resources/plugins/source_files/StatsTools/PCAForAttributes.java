@@ -216,7 +216,7 @@ public class PCAForAttributes implements WhiteboxPlugin {
             AttributeTable table = new AttributeTable(shapefile.replace(".shp", ".dbf"));
             int numRecs = table.getNumberOfRecords();
             DBFField[] fields = table.getAllFields();
-            ArrayList<Integer> PCAFields = new ArrayList<Integer>();
+            ArrayList<Integer> PCAFields = new ArrayList<>();
             for (j = 0; j < fieldNames.length; j++) {
                 for (i = 0; i < fields.length; i++) {
                     if (fields[i].getName().equals(fieldNames[j]) && 

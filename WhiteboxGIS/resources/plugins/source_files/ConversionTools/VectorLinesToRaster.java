@@ -19,6 +19,7 @@ package plugins;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.PriorityQueue;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
@@ -484,6 +485,10 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                 }
             } while (pq.size() > 0);
 
+            output.addMetadataEntry("Created by the "
+                    + getDescriptiveName() + " tool.");
+            output.addMetadataEntry("Created on " + new Date());
+                
             output.flush();
             output.close();
 

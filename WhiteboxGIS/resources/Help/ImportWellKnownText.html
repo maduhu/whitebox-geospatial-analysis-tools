@@ -18,21 +18,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Export well-known text (WKT)</title>
+        <title>Import well-known text (WKT)</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
-        <h1>Export well-known text (WKT)</h1>
-        <div>This tool can be used to export a vector shapefile file
-            to an <a href="http://en.wikipedia.org/wiki/Well-known_text">Well-Known 
-                Text (WKT)</a> file. WKT is a text based mark-up 
+        <h1>Import well-known text (WKT)</h1>
+        <div>This tool can be used to import a 
+        <a href="http://en.wikipedia.org/wiki/Well-known_text">Well-Known 
+                Text (WKT)</a> file to a vector shapefile. WKT is a text based mark-up 
         format that is commonly used to store geographical data, and particularly 
         vector features. It is widely used for data exchange among GIS programs. 
-        The WKT writer in Whitebox relies on the Java Topology Suite (JTS).</div>
+        The WKT reader in Whitebox relies on the Java Topology Suite (JTS).</div> 
+        <div>One of the limitations of the shapefile format is that it can only store 
+        geometries of one type, i.e. all the records in a file must be of the same 
+        ShapeType. This is not the case for the WKT format. As such, at present, 
+        only WKT files containing geometries of a singular type (e.g. all records 
+        are Points, LineStrings, or Polygons) can be imported with this tool.</div>
 
         <h2 class="SeeAlso">See Also:</h2>
         <ul>
-            <li><a href="ImportWellKnownText.html">Import Well-Known Text (WKT)</a></li>
+            <li><a href="ExportWellKnownText.html">Export Well-Known Text (WKT)</a></li>
         </ul>
         
         <h2 class="SeeAlso">Scripting:</h2>
@@ -42,9 +47,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 wd = pluginHost.getWorkingDirectory()<br>
                 # You may have multiple input files but they must<br>
                 # be separated by semicolons in the string.<br>
-                inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
+                inputFiles = wd + "input1.wkt" + ";" + wd + "input2.wkt" + ";" + wd + "input3.wkt"<br>
                 args = [inputFiles]<br>
-                pluginHost.runPlugin("ExportWellKnownText", args, False)<br>
+                pluginHost.runPlugin("ImportWellKnownText", args, False)<br>
             </code>
         </p>
         <p>This is a Groovy script also using this tool:</p>
@@ -53,9 +58,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 def wd = pluginHost.getWorkingDirectory()<br>
                 // You may have multiple input files but they must<br>
                 // be separated by semicolons in the string.<br>
-                def inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
+                def inputFiles = wd + "input1.wkt" + ";" + wd + "input2.wkt" + ";" + wd + "input3.wkt"<br>
                 String[] args = [inputFiles]<br>
-                pluginHost.runPlugin("ExportWellKnownText", args, false)<br>
+                pluginHost.runPlugin("ImportWellKnownText", args, false)<br>
             </code>
         </p>
         

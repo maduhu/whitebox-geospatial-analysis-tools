@@ -240,6 +240,8 @@ public class RandomField implements WhiteboxPlugin {
                     cancelOperation();
                     return;
                 }
+                progress = (int)(row * 100.0 / rows);
+                updateProgress(progress);
             }
 
             output.addMetadataEntry("Created by the "

@@ -52,15 +52,15 @@ class RenameFile(ActionListener):
 			elif inputfile.endswith(".shp"):
 				israster = False
 			else:
-				showFeedback("The input file must be a Whitebox raster or shapefile.")
+				pluginHost.showFeedback("The input file must be a Whitebox raster or shapefile.")
 				return
-
+			
 			if israster:
 				# make sure that the output file is of the same 
 				# file type
-				if outputfile.endswith(".dep") == False:
-					showFeedback("The output file is not of the same file type as the input.")
-					return
+				if not outputfile.endswith(".dep"):
+					fileName, fileExtension = os.path.splitext(outputfile)
+					outputfile = fileName + ".dep"
 
 				# rename the header file
 				os.rename(inputfile, outputfile)
@@ -78,10 +78,10 @@ class RenameFile(ActionListener):
 			else:
 				# make sure that the output file is of the same 
 				# file type
-				if outputfile.endswith(".shp") == False:
-					showFeedback("The output file is not of the same file type as the input.")
-					return
-					
+				if not outputfile.endswith(".shp"):
+					fileName, fileExtension = os.path.splitext(outputfile)
+					outputfile = fileName + ".shp"
+				
 				# .shp file 
 				os.rename(inputfile, outputfile)
 

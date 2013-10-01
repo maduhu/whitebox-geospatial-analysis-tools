@@ -54,7 +54,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
+//import javax.swing.tree.DefaultTreeCellRenderer;
 import whiteboxgis.user_interfaces.TreeNodeRenderer;
 import whiteboxgis.user_interfaces.IconTreeNode;
 import javax.swing.tree.TreePath;
@@ -104,7 +104,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private StatusBar status;
     // common variables
     static private String versionName = "3.0 'Iguazu'";
-    static private String versionNumber = "3.0.5";
+    static private String versionNumber = "3.0.6";
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
     private String applicationDirectory;
@@ -282,7 +282,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     public WhiteboxGui() {
         super("Whitebox GAT " + versionName);
-
+        this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         try {
             // initialize the pathSep and GraphicsDirectory variables
             pathSep = File.separator;
@@ -3875,7 +3875,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void addLayer() {
-
         int mapNum;
         int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
@@ -5994,7 +5993,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 // now place this text into the new file.
                 FileUtilities.fillFileWithString(fileName, defaultText);
 
-                ViewCodeDialog vcd = new ViewCodeDialog(this, new File(fileName), true);
+                ViewCodeDialog vcd = new ViewCodeDialog(this, false, new File(fileName), true);
                 vcd.setSize(new Dimension(800, 600));
                 vcd.setVisible(true);
             } catch (IOException ioe) {
