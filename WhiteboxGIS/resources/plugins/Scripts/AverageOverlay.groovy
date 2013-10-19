@@ -130,41 +130,41 @@ public class AverageOverlay implements ActionListener {
 		int progress = 0
 		int oldProgress = -1
 			
-			pluginHost.updateProgress("Please wait...", 0)
-			ArrayList<DoWorkOnRow> tasks = new ArrayList<>();
-			for (row in 0..(rows - 1)) {
-				double[][] data = new double[numFiles][]
-				for (int j = 0; j < numFiles; j++) {
-					data[j] = rasters.get(j).getRowValues(row)
-				}
-				tasks.add(new DoWorkOnRow(data, nodataVals, row))
+		pluginHost.updateProgress("Please wait...", 0)
+		ArrayList<DoWorkOnRow> tasks = new ArrayList<>();
+		for (row in 0..(rows - 1)) {
+			double[][] data = new double[numFiles][]
+			for (int j = 0; j < numFiles; j++) {
+				data[j] = rasters.get(j).getRowValues(row)
 			}
-        
-			ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-	  	    // the only reason for the getExecutorResults method 
-	  	    // is that Groovy throws a compilation type mis-match
-	  	    // error when compiled statically. I think it's a bug.
-	  	    List<Future<RowNumberAndData>> results = getExecutorResults(executor, tasks); //executor.invokeAll(tasks);
-	        executor.shutdown();
+			tasks.add(new DoWorkOnRow(data, nodataVals, row))
+		}
+    
+		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+  	    // the only reason for the getExecutorResults method 
+  	    // is that Groovy throws a compilation type mis-match
+  	    // error when compiled statically. I think it's a bug.
+  	    List<Future<RowNumberAndData>> results = getExecutorResults(executor, tasks); //executor.invokeAll(tasks);
+        executor.shutdown();
 
-	        int i = 0
-    	    for (Future<RowNumberAndData> result : results) {
-        		RowNumberAndData data = result.get()
-        		def row = data.getRow()
-        		output.setRowValues(row, data.getData())
-            	i++
-				// update progress bar
-				progress = (int)(100f * i / rows)
-				if (progress > oldProgress) {
-					pluginHost.updateProgress("Progress", progress)
-					oldProgress = progress
-				}
-				// check to see if the user has requested a cancellation
-				if (pluginHost.isRequestForOperationCancelSet()) {
-					pluginHost.showFeedback("Operation cancelled")
-					return
-				}
-    	    }
+        int i = 0
+	    for (Future<RowNumberAndData> result : results) {
+    		RowNumberAndData data = result.get()
+    		def row = data.getRow()
+    		output.setRowValues(row, data.getData())
+        	i++
+			// update progress bar
+			progress = (int)(100f * i / rows)
+			if (progress > oldProgress) {
+				pluginHost.updateProgress("Progress", progress)
+				oldProgress = progress
+			}
+			// check to see if the user has requested a cancellation
+			if (pluginHost.isRequestForOperationCancelSet()) {
+				pluginHost.showFeedback("Operation cancelled")
+				return
+			}
+	    }
         
 		for (int j = 0; j < numFiles; j++) {
 			rasters.get(j).close()

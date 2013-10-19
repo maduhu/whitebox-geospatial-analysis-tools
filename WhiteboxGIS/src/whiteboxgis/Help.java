@@ -713,7 +713,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             });
 
             DecimalFormat df = new DecimalFormat("0.0%");
-            for (int i = 19; i >= 0; i--) {
+            for (int i = allFiles.length - 1; i >= 0; i--) {
                 if (searchCounts[i][0] > 0) {
                     model.add(index, allFiles[searchCounts[i][1]][1] + " (" + df.format((double) searchCounts[i][0] / numWordsToMatch) + ")");
                 }

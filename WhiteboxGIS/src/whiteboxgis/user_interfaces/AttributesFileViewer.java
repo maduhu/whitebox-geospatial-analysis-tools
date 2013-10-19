@@ -203,7 +203,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             this.setLocation(screenWidth / 4, screenHeight / 4);
             
         } catch (Exception e) {
-            System.out.println(e);
+            if (host != null) {
+                host.showFeedback(messages.getString("ErrorExecutingScript"));
+                host.logException("Error from AttributesFileViewer", e);
+            }
         }
     }
     
@@ -686,7 +689,8 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             
         } catch (Exception e) {
             if (host != null) {
-                host.showFeedback(e.getMessage());
+                host.showFeedback("Error in attributes table viewer. Exception being logged");
+                host.logException("Error from AttributesFileViewer", e);
             }
         }
         
@@ -740,7 +744,8 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             
         } catch (Exception e) {
             if (host != null) {
-                host.showFeedback(e.getMessage());
+                host.showFeedback("Error in attributes table viewer. Exception being logged");
+                host.logException("Error from AttributesFileViewer", e);
             }
         }
         
@@ -878,8 +883,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             }
             
         } catch (ScriptException e) {
-            System.out.println(e);
-            host.showFeedback(messages.getString("ErrorExecutingScript"));
+            if (host != null) {
+                host.showFeedback(messages.getString("ErrorExecutingScript"));
+                host.logException("Error from AttributesFileViewer", e);
+            }
         }
     }
     

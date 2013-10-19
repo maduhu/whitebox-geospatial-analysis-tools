@@ -14,7 +14,7 @@
 		<Description>Enter the name of the appended file here</Description>
 		<LabelText>Image 2 (Appended File):</LabelText>
 		<DialogMode>Open File</DialogMode>
-		<Filter>Whitebox Files (*.shp; *.dep), DEP, SHP</Filter>
+		<Filter>Raster Files (*.dep), DEP</Filter>
 		<IsVisible>True</IsVisible>
 		<MakeOptional>False</MakeOptional>
 		<ShowButton>True</ShowButton>
@@ -43,5 +43,15 @@
 		<LabelText>Match append file's histogram to base file's?</LabelText>
 		<InitialState>True</InitialState>
 		<IsVisible>True</IsVisible>
+	</DialogComponent>
+        <DialogComponent type="DialogDataInput">
+		<Name>distanceWeight</Name>
+                <Description>Enter the distance weighting parameter here.</Description>
+		<LabelText>Distance Weight Parameter:</LabelText>
+		<IsVisible>True</IsVisible>
+		<InitialText>4.0</InitialText>
+		<NumericalInputOnly>True</NumericalInputOnly>
+		<MakeOptional>False</MakeOptional>
+		<Width>60</Width>
 	</DialogComponent>
 </Dialog>

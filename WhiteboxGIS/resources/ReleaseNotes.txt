@@ -20,9 +20,18 @@ Version 3.0.6
 
 -Added ImportWellKnownText tool.
 -Fixed a bug in the RenameFile script
--Rewrote the IDW LiDAR interpolation tool to remove an edge effect at tile 
+-Re-wrote the IDW LiDAR interpolation tool to remove an edge effect at tile 
  boundaries and to reduce a surface texturing artifact that can appear in some 
- LiDAR datasets associated with a scan angle patterning at flightline overlaps.
+ LiDAR datasets associated with a scan angle patterning at flight-line overlaps.
+-Updated Groovy to version 2.1.8
+-Added Correct Vignetting tool.
+-Added image de-striping tool.
+-Added Find Flightline Edge Points tool.
+-Added Find Tie-points tool
+-Added the ability to delete recently digitized nodes.
+-Fixed a bug that allowed for the outlines of polygons under other polygons to 
+ show through.
+
 
 Version 3.0.5
 
