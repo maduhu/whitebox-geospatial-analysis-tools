@@ -15,12 +15,12 @@ public class Point2d implements HasCoordinates2d {
 		set(other);
 	}
 
-	public void set(double x, double y) {
+	final public void set(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
 
-	public void set(HasCoordinates2d v) {
+	final public void set(HasCoordinates2d v) {
 		this.x = v.getX();
 		this.y = v.getY();
 	}

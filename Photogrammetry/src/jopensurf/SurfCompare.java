@@ -159,8 +159,8 @@ public class SurfCompare extends JPanel {
     public void matchesInfo() {
         Map<SURFInterestPoint, SURFInterestPoint> pointsA = mSurfA.getMatchingPoints(mSurfB, 0.65, true);
         Map<SURFInterestPoint, SURFInterestPoint> pointsB = mSurfB.getMatchingPoints(mSurfA, 0.65, true);
-        System.out.println("There are: " + pointsA.size() + " matching points of " + mSurfA.getUprightInterestPoints().size());
-        System.out.println("There are: " + pointsB.size() + " matching points of " + mSurfB.getUprightInterestPoints().size());
+//        System.out.println("There are: " + pointsA.size() + " matching points of " + mSurfA.getUprightInterestPoints().size());
+//        System.out.println("There are: " + pointsB.size() + " matching points of " + mSurfB.getUprightInterestPoints().size());
     }
 
     public static void main(String[] args) throws IOException {

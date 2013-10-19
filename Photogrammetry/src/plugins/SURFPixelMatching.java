@@ -82,23 +82,23 @@ public class SURFPixelMatching {
             // left image
             //String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus_C6430-74072-L9_253_Blue_clipped.dep";
             //String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-82_Blue.dep";
-            String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus 253.dep";
+            //String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus 253.dep";
             //String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus 253 epipolar.dep";
-            //String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-82_Blue low res.dep";
+            String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-82_Blue low res.dep";
             //String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp1.dep";
 
             // right image
             //String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus_C6430-74072-L9_254_Blue_clipped.dep";
             //String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-83_Blue.dep";
-            String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus 254.dep";
+            //String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus 254.dep";
             //String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus 254 epipolar.dep";
-            //String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-83_Blue low res.dep";
+            String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-83_Blue low res.dep";
             //String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus 253.dep";
 
 
-            String leftOutputHeader = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp5.shp";
+            String leftOutputHeader = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp4.shp";
 
-            String rightOutputHeader = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp5_2.shp";
+            String rightOutputHeader = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp4_2.shp";
 
 
             DBFField[] fields = new DBFField[5];

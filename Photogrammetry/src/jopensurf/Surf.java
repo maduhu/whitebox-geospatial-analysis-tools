@@ -143,8 +143,8 @@ public class Surf implements Serializable {
                 mFreeOrientedPoints = points;
             }
 
-            final int numPoints = points.size();
-            System.out.println("There are " + numPoints + " points to match");
+//            final int numPoints = points.size();
+//            System.out.println("There are " + numPoints + " points to match");
             Parallel.ForEach(points, new CallableLoopBody<SURFInterestPoint>() {
                 @Override
                 public Boolean call(SURFInterestPoint point) {
@@ -539,16 +539,16 @@ public class Surf implements Serializable {
         out.defaultWriteObject();
     }
 
-    public static void main(String args[]) {
-        try {
-            BufferedImage image = ImageIO.read(new File("/Users/johnlindsay/NetBeansProjects/JOpenSurf/trunk/example/graffiti.png"));
-            Surf board = new Surf(image);
-            saveToFile(board, "/Users/johnlindsay/NetBeansProjects/JOpenSurf/trunk/example/surf_test.bin");
-            Surf boarder = readFromFile("/Users/johnlindsay/NetBeansProjects/JOpenSurf/trunk/example/surf_test.bin");
-            List<SURFInterestPoint> points = boarder.getFreeOrientedInterestPoints();
-            System.out.println("Found " + points.size() + " interest points");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    public static void main(String args[]) {
+//        try {
+//            BufferedImage image = ImageIO.read(new File("/Users/johnlindsay/NetBeansProjects/JOpenSurf/trunk/example/graffiti.png"));
+//            Surf board = new Surf(image);
+//            saveToFile(board, "/Users/johnlindsay/NetBeansProjects/JOpenSurf/trunk/example/surf_test.bin");
+//            Surf boarder = readFromFile("/Users/johnlindsay/NetBeansProjects/JOpenSurf/trunk/example/surf_test.bin");
+//            List<SURFInterestPoint> points = boarder.getFreeOrientedInterestPoints();
+//            System.out.println("Found " + points.size() + " interest points");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

@@ -88,8 +88,8 @@ public class IntegralImage implements Serializable {
         mHeight = mIntImage[0].length;
 
         double nodata = input.getNoDataValue();
-        double imageMin = input.getMinimumValue();
-        double imageRange = input.getMaximumValue() - imageMin;
+        double imageMin = input.getDisplayMinimum();
+        double imageRange = input.getDisplayMaximum()- imageMin;
         int width = input.getNumberColumns();
         int height = input.getNumberRows();
 
