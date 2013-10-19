@@ -94,6 +94,11 @@ public interface WhiteboxPluginHost extends Communicator {
     public void deleteFeature();
     
     /**
+     * Used to delete the last digitized node in a feature.
+     */
+    public void deleteLastNodeInFeature();
+    
+    /**
      * The default font.
      * @return  default font
      */

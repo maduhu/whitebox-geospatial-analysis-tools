@@ -253,9 +253,6 @@ public class PolynomialLeastSquares2DFitting {
             double SStotalX = (n - 1) * varianceX;
             double rsqX = 1 - SSresidX / SStotalX;
 
-            //System.out.println("x-coordinate r-square: " + rsqX);
-
-
             // now the y-coordinate 
             constants = new ArrayRealVector(yCoords2, false);
             solution = solver.solve(constants);

@@ -59,6 +59,11 @@ public class Point implements Geometry {
     }
     
     @Override
+    public BoundingBox getBox() {
+        return new BoundingBox(x, y, x, y);
+    }
+    
+    @Override
     public double[][] getPoints() {
         double[][] points = new double[1][2];
         points[0][0] = x;

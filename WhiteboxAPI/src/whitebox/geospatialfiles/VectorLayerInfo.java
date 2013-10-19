@@ -907,23 +907,35 @@ public class VectorLayerInfo implements MapLayer {
         this.recData = recordData;
     }
 
-    public void addNodeToNewFeature(double x, double y) {
-//        if (!isFeatureOpen) {
-//            openNewFeature();
-//        }
-        if (x != previousX && y != previousY) {
-            if (shapeType.getDimension() == ShapeTypeDimension.XY) {
-                digitizedPoints.add(new ShapefilePoint(x, y));
-            } else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
-                digitizedPoints.add(new ShapefilePoint(x, y, zValue, mValue));
-            } else if (shapeType.getDimension() == ShapeTypeDimension.M) {
-                digitizedPoints.add(new ShapefilePoint(x, y, mValue));
+    public boolean addNodeToNewFeature(double x, double y) throws Exception {
+        try {
+            if (x != previousX && y != previousY) {
+                if (shapeType.getDimension() == ShapeTypeDimension.XY) {
+                    digitizedPoints.add(new ShapefilePoint(x, y));
+                } else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
+                    digitizedPoints.add(new ShapefilePoint(x, y, zValue, mValue));
+                } else if (shapeType.getDimension() == ShapeTypeDimension.M) {
+                    digitizedPoints.add(new ShapefilePoint(x, y, mValue));
+                } else {
+                    return false;
+                }
+                if (shapeType.getBaseType() == ShapeType.POINT) {
+                    closeNewFeature();
+                }
+                previousX = x;
+                previousY = y;
+                return true;
             }
-            if (shapeType.getBaseType() == ShapeType.POINT) {
-                closeNewFeature();
-            }
-            previousX = x;
-            previousY = y;
+        } catch (Exception e) {
+            throw e;
+        }
+        return false;
+    }
+
+    public void deleteLastNodeInFeature() {
+        int numPoints = digitizedPoints.size();
+        if (numPoints > 0) {
+            digitizedPoints.remove(numPoints - 1);
         }
     }
 
@@ -982,51 +994,48 @@ public class VectorLayerInfo implements MapLayer {
                     if (pl.getPoint(0) != pl.getPoint(pl.size() - 1)) {
                         pl.addPoint(pl.getPoint(0).x, pl.getPoint(0).y);
                     }
-                    
+
                     // Non-hole polygons must be in a clockwise order
                     try {
                         if (!isPointsListClockwiseOrder(pl)) {
                             // reverse the order
                             pl.reverseOrder();
-                        } 
+                        }
                     } catch (Exception e) {
-                        
                     }
-                    
+
                     Polygon polygon = new Polygon(parts, pl.getPointsArray());
                     shapefile.addRecord(polygon, recData);
                 case POLYGONZ:
                     if (pl.getPoint(0) != pl.getPoint(pl.size() - 1)) {
                         pl.addZPoint(pl.getPoint(0).x, pl.getPoint(0).y, pl.getPoint(0).z, pl.getPoint(0).m);
                     }
-                    
+
                     // Non-hole polygons must be in a clockwise order
                     try {
                         if (!isPointsListClockwiseOrder(pl)) {
                             // reverse the order
                             pl.reverseOrder();
-                        } 
+                        }
                     } catch (Exception e) {
-                        
                     }
-                    
+
                     PolygonZ polygonZ = new PolygonZ(parts, pl.getPointsArray(), pl.getZArray(), pl.getMArray());
                     shapefile.addRecord(polygonZ, recData);
                 case POLYGONM:
                     if (pl.getPoint(0) != pl.getPoint(pl.size() - 1)) {
                         pl.addMPoint(pl.getPoint(0).x, pl.getPoint(0).y, pl.getPoint(0).m);
                     }
-                    
+
                     // Non-hole polygons must be in a clockwise order
                     try {
                         if (!isPointsListClockwiseOrder(pl)) {
                             // reverse the order
                             pl.reverseOrder();
-                        } 
+                        }
                     } catch (Exception e) {
-                        
                     }
-                    
+
                     PolygonM polygonM = new PolygonM(parts, pl.getPointsArray(), pl.getMArray());
                     shapefile.addRecord(polygonM, recData);
             }

@@ -104,6 +104,7 @@ public class PolyLine implements Geometry {
     }
     
     // properties
+    @Override
     public BoundingBox getBox() {
         return bb;
     }

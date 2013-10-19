@@ -200,6 +200,7 @@ public class PolygonZ implements Geometry {
     }
     
     // properties
+    @Override
     public BoundingBox getBox() {
         return bb;
     }

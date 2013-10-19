@@ -30,6 +30,8 @@ public interface Geometry {
      */
     int getLength();
     
+    public BoundingBox getBox();
+    
     double[][] getPoints();
     
     int[] getParts();

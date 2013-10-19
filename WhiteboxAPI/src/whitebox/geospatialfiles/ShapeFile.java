@@ -1581,6 +1581,36 @@ public class ShapeFile {
         }
 
     }
+    
+    public boolean areGeometriesEqual(ShapeFile other) {
+        if (other.getNumberOfRecords() != this.getNumberOfRecords()) {
+            return false;
+        }
+        
+        if (other.getShapeType() != this.getShapeType()) {
+            return false;
+        }
+        
+        int numRecords = this.getNumberOfRecords();
+        double[][] thisPoints;
+        double[][] otherPoints;
+        for (int a = 0; a < numRecords; a++) {
+            thisPoints = this.getRecord(a).getGeometry().getPoints();
+            otherPoints = other.getRecord(a).getGeometry().getPoints();
+            if (thisPoints.length != otherPoints.length) {
+                return false;
+            } else {
+                for (int b = 0; b < thisPoints.length; b++) {
+                    if (thisPoints[b][0] != otherPoints[b][0] ||
+                            thisPoints[b][1] != otherPoints[b][1]) {
+                        return false;
+                    }
+                }
+            }
+        }
+        
+        return true;
+    }
 
     public void refreshAttributeTable() {
         try {

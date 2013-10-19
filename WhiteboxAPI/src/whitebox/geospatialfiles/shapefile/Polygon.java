@@ -128,6 +128,7 @@ public class Polygon implements Geometry {
     }
 
     // properties
+    @Override
     public BoundingBox getBox() {
         return bb;
     }

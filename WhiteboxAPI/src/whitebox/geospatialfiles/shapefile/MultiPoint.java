@@ -80,6 +80,7 @@ public class MultiPoint implements Geometry {
     }
     
     // properties
+    @Override
     public BoundingBox getBox() {
         return bb;
     }

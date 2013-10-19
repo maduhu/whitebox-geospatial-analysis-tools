@@ -173,6 +173,7 @@ public class PolygonM implements Geometry {
     }
     
     // properties
+    @Override
     public BoundingBox getBox() {
         return bb;
     }

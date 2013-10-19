@@ -464,6 +464,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
             numberOfDataFileWrites++;
         }
     }
+    
     private int previousRow = 0;
     private int currentReadDirection = -1;
     private int numSwitchReadDirections = 0;

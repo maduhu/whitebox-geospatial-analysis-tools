@@ -107,6 +107,7 @@ public class MultiPointM implements Geometry {
     }
     
     // properties
+    @Override
     public BoundingBox getBox() {
         return bb;
     }

@@ -266,7 +266,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         box.add(Box.createHorizontalGlue());
         mainPanel.add(box);
     }
-
+    
     public void addDialogFieldSelector(String description, String labelText,
             boolean allowMultipleSelection) {
         String[] args = new String[4];

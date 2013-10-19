@@ -161,6 +161,7 @@ public class PolyLineM implements Geometry {
     }
     
     // properties
+    @Override
     public BoundingBox getBox() {
         return bb;
     }

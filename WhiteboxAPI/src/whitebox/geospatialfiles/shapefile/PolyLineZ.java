@@ -186,6 +186,7 @@ public class PolyLineZ implements Geometry {
     }
     
     // properties
+    @Override
     public BoundingBox getBox() {
         return bb;
     }

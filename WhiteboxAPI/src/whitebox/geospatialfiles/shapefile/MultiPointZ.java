@@ -164,6 +164,7 @@ public class MultiPointZ implements Geometry {
     }
     
     // properties
+    @Override
     public BoundingBox getBox() {
         return bb;
     }
