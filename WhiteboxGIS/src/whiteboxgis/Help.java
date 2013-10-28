@@ -73,7 +73,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
     private JTextField searchField = new JTextField();
     private static JList searchOutput;
     private String[][] helpFiles;
-    private String[][] tutorialFiles;
+    private static String[][] tutorialFiles;
     private String[][] allFiles;
     private int[][] searchCounts;
     private String activeTab = "index";
@@ -403,7 +403,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         mi.setActionCommand("viewHelpFileSource");
         helpPopup.add(mi);
     }
-
+    
     private void findAvailableHelpFiles() {
         try {
             ArrayList<String> allHelpFiles =
@@ -473,7 +473,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
         }
     }
 
-    private String findTitle(String fileName) {
+    public static String findTitle(String fileName) {
         try {
             Path path = Paths.get(fileName);
             List<String> lines = Files.readAllLines(path, Charset.defaultCharset());
@@ -563,7 +563,11 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
             for (int i = 0; i < helpFiles.length; i++) {
                 //model.add(i, helpFiles[i][1]);
-                str = "<a href=\"http://www.uoguelph.ca/~hydrogeo/Whitebox/Help/" + helpFiles[i][1] + ".html\" "
+                int idx = helpFiles[i][0].replaceAll("\\\\", "/").lastIndexOf("/");
+                 String shortName = helpFiles[i][0].substring(idx + 1);
+//                str = "<a href=\"http://www.uoguelph.ca/~hydrogeo/Whitebox/Help/" + helpFiles[i][1] + ".html\" "
+//                        + "target=\"Body_Frame\">" + helpFiles[i][1] + "</a><br>";
+                 str = "<a href=\"" + shortName + "\" "
                         + "target=\"Body_Frame\">" + helpFiles[i][1] + "</a><br>";
                 out.println(str);
             }

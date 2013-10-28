@@ -92,9 +92,9 @@ public class FindTiePoints implements ActionListener {
 			
 			sd.addDialogLabel(" ")
 			sd.addDialogLabel("<html><b><i>SURF Feature Detection Paramters:</i></b></html>")
-			sd.addDialogDataInput("Threshold value", "Threshold Value:", "0.004", true, false)
+			sd.addDialogDataInput("Threshold value", "Threshold Value:", "4.0", true, false)
             sd.addDialogDataInput("Number of octaves", "Number of Octaves:", "4", true, false)
-            sd.addDialogDataInput("Balance value", "Balance Value:", "0.81", true, false)
+            //sd.addDialogDataInput("Balance value", "Balance Value:", "0.81", true, false)
 			sd.addDialogDataInput("SURF point matching threshold value", "Matching Threshold Value:", "0.6", true, false)
 
             sd.addDialogLabel(" ")
@@ -115,7 +115,7 @@ public class FindTiePoints implements ActionListener {
 	private void execute(String[] args) {
 		try {
 	  	
-			if (args.length != 10) {
+			if (args.length != 9) {
 				pluginHost.showFeedback("Incorrect number of arguments given to tool.")
 				return
 			}
@@ -132,12 +132,12 @@ public class FindTiePoints implements ActionListener {
 			String rightFile = args[1]
 			String leftOutputFile = args[2]
 			String rightOutputFile = args[3]
-			float surfThreshold = Float.parseFloat(args[4])
+			float surfThreshold = (float)(Double.parseDouble(args[4]) / 1000.0)
 			int surfNumOctaves = Integer.parseInt(args[5])
-			float surfBalanceValue = Float.parseFloat(args[6])
-			double matchingThreshold = Double.parseDouble(args[7])
-			double ransacThreshold = Double.parseDouble(args[8])
-			int polyOrder = Integer.parseInt(args[9])
+			float surfBalanceValue = 0.81; //Float.parseFloat(args[6])
+			double matchingThreshold = Double.parseDouble(args[6])
+			double ransacThreshold = Double.parseDouble(args[7])
+			int polyOrder = Integer.parseInt(args[8])
 			if (polyOrder > 5) { polyOrder = 5; }
 
 			// read in the left and right images

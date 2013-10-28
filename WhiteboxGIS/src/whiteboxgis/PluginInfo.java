@@ -161,12 +161,6 @@ public class PluginInfo implements Comparable<PluginInfo> {
         } else if (str1.compareTo(str2) > 0) {
             return BEFORE;
         }
-//        
-//        if (this.descriptiveName.compareTo(other.descriptiveName) < 0) {
-//            return AFTER;
-//        } else if (this.descriptiveName.compareTo(other.descriptiveName) > 0) {
-//            return BEFORE;
-//        }
 
         return EQUAL;
     }

@@ -167,6 +167,18 @@ public class LayersPopupMenu extends JPopupMenu {
             this.add(mi);
 
             this.addSeparator();
+            
+            mi = new JMenuItem(bundle.getString("clearAllSelectedFeatures"));
+            mi.addActionListener(listener);
+            mi.setActionCommand("clearAllSelectedFeatures");
+            this.add(mi);
+
+            mi = new JMenuItem(bundle.getString("saveSelection"));
+            mi.addActionListener(listener);
+            mi.setActionCommand("saveSelection");
+            this.add(mi);
+            
+            this.addSeparator();
 
             mi = new JMenuItem(bundle.getString("ZoomToLayer"), 
                     new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));

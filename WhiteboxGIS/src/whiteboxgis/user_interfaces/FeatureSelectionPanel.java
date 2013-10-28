@@ -17,19 +17,21 @@
 package whiteboxgis.user_interfaces;
 
 import java.awt.BorderLayout;
-import javax.swing.JPanel;
+import javax.swing.*;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.File;
-import javax.swing.Box;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import java.util.ArrayList;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -38,7 +40,7 @@ import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
-
+import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * This class is used to report the attributes of a selected feature from a
@@ -54,9 +56,12 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
     private VectorLayerInfo vli = null;
     private DBFField[] fields;
     private ResourceBundle bundle;
+    private JList listOfSelectedFeatures;
+    private WhiteboxPluginHost host;
     
-    public FeatureSelectionPanel(ResourceBundle bundle) {
+    public FeatureSelectionPanel(ResourceBundle bundle, WhiteboxPluginHost host) {
         this.bundle = bundle;
+        this.host = host;
         createGui();
     }
 
@@ -94,9 +99,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
 
     public void setSelectedFeatureNumber(int selectedFeature) {
         this.selectedFeature = selectedFeature;
-//        getDataTable();
         updateTable();
-//        createGui();
     }
 
     private void createGui() {
@@ -106,7 +109,38 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             selectedFeature = -1;
             Box mainBox = Box.createVerticalBox();
             mainBox.add(Box.createVerticalStrut(10));
-
+            
+            Box listBox = Box.createVerticalBox();
+            Box headerBox2 = Box.createHorizontalBox();
+            JLabel label2 = new JLabel("<html><b>Selected Features:</b></html>");
+            headerBox2.add(label2);
+            headerBox2.add(Box.createHorizontalGlue());
+            listBox.add(headerBox2);
+            listOfSelectedFeatures = new JList();
+            listOfSelectedFeatures.removeAll();
+            JScrollPane scroller1 = new JScrollPane(listOfSelectedFeatures);
+            listBox.add(scroller1);
+            mainBox.add(listBox);
+            
+            mainBox.add(Box.createVerticalStrut(2));
+            
+            JButton deselectAll = new JButton("Deselect All");
+            deselectAll.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (host != null) {
+                        host.delectedAllFeaturesInActiveLayer();
+                        updateTable();
+                    }
+                }
+            });
+            Box buttonBox = Box.createHorizontalBox();
+            buttonBox.add(deselectAll);
+            buttonBox.add(Box.createHorizontalGlue());
+            mainBox.add(buttonBox);
+            
+            mainBox.add(Box.createVerticalStrut(5));
+            
             Box headerBox = Box.createHorizontalBox();
             //headerBox.add(Box.createHorizontalStrut(10));
             JLabel label = new JLabel(bundle.getString("SelectedFeatureAttributes") + ":");
@@ -133,10 +167,33 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             scrollBox.add(scroll);
             scrollBox.add(Box.createHorizontalGlue());
             mainBox.add(scrollBox);
+            
+            
+            MouseListener ml = new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    JList theList = (JList) e.getSource();
+                    String label = null;
+                    int index = theList.locationToIndex(e.getPoint());
+                    if (index >= 0) {
+                        Object o = theList.getModel().getElementAt(index);
+                        label = o.toString();
+                    }
+                    if (label != null && !label.isEmpty()) {
+                        setSelectedFeatureNumber(Integer.parseInt(label));
+                    }
+                }
+            };
+            listOfSelectedFeatures.addMouseListener(ml);
+            scroller1.setPreferredSize(new Dimension(tableWidth + 5, 80));
+            
             this.add(mainBox, BorderLayout.WEST);
             this.validate();
             this.repaint();
         } catch (Exception e) {
+            if (host != null) {
+                host.logException("Error in FeatureSelectionPanel", e);
+            }
             System.out.println(e.getMessage());
         }
     }
@@ -149,8 +206,8 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             }
 
             int numColumns = 2;
-            File dbfFile = new File(shape.getDatabaseFile());
-            if (!dbfFile.exists()) {
+            //File dbfFile = new File(shape.getDatabaseFile());
+            if (!shape.databaseFileExists) {
                 noDatabaseAvailable = true;
                 return null;
             }
@@ -209,15 +266,33 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             }
             return table;
         } catch (Exception e) {
+            if (host != null) {
+                host.logException("Error in FeatureSelectionPanel", e);
+            }
             return null;
         }
     }
 
-    private void updateTable() {
+    public void updateTable() {
         try {
             if (table == null || noDatabaseAvailable) {
                 return;
             }
+            
+            
+            listOfSelectedFeatures.removeAll();
+            DefaultListModel model = new DefaultListModel();
+            if (vli != null) {
+                ArrayList<Integer> selectedRecords = vli.getSelectedFeatureNumbers();
+                int a = 0;
+                for (Integer i : selectedRecords) {
+                    model.add(a, i);
+                    a++;
+                }
+                listOfSelectedFeatures.setModel(model);
+            }
+            
+            
             shape.refreshAttributeTable();
             if (fields.length != shape.getAttributeTable().getFieldCount()) {
                 int oldSelectedFeature = selectedFeature;
@@ -254,6 +329,9 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             //tm.fireTableDataChanged();
             
         } catch (Exception e) {
+            if (host != null) {
+                host.logException("Error in FeatureSelectionPanel", e);
+            }
             System.out.println(e.getMessage());
         }
     }

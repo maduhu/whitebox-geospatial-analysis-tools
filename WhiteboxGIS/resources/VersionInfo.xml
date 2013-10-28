@@ -3,30 +3,28 @@
     <VersionName>"3.0 'Iguazu'"</VersionName>
     <VersionNumber>"3.0.6"</VersionNumber>
     <DownloadLocation>"http://code.google.com/p/whitebox-geospatial-analysis-tools/downloads/list"</DownloadLocation>
-    <Announcements number="7">
+    <Announcements number="8">
         <Announcement>
-            <Date>2013-09-20</Date>
+            <Date>2013-10-19</Date>
             <Language>en</Language>
-            <Title>Whitebox Version 3.0.5 has been released</Title>
+            <Title>Whitebox Version 3.0.6 has been released</Title>
             <Message><![CDATA[<p>This version includes the following updates:</p>
                     <ul>
-                    <li>Added Dissolve tool.</li>
-                    <li>Added VectorCleaning tool.</li>
-                    <li>Added IntersectionDensity tool.</li>
-                    <li>Added AverageOverlay tool.</li>
-                    <li>Added ExtendVectorLine tool.</li>
-                    <li>Added Medoid tool.</li>
-                    <li>Added FindSaddlePoint tool.</li>
-                    <li>Improved the usability of the Raster Calculator.</li>
+                    <li>Added ImportWellKnownText tool.</li>
+                    <li>Fixed a bug in the RenameFile script</li>
+                    <li>Re-wrote the IDW LiDAR interpolation tool to remove an edge effect at tile 
+                     boundaries and to reduce a surface texturing artifact that can appear in some 
+                     LiDAR datasets associated with a scan angle patterning at flight-line overlaps.</li>
+                    <li>Updated Groovy to version 2.1.8</li>
+                    <li>Added Correct Vignetting tool.</li>
+                    <li>Added image de-striping tool.</li>
+                    <li>Added Find Flightline Edge Points tool.</li>
+                    <li>Added Find Tie-points tool</li>
+                    <li>Added the ability to delete recently digitized nodes.</li>
+                    <li>Fixed a bug that allowed for the outlines of polygons under other polygons to 
+                     show through.</li>
                 </ul>]]>
             </Message>
-        </Announcement>
-        <Announcement>
-            <Date>2013-09-20</Date>
-            <Language>en</Language>
-            <Title>Translators Needed</Title>
-            <Message>"We're still looking for someone to help with the translation to Portuguese. 
-                If you are interested, please contact Dr. John Lindsay (jlindsay@uoguelph.ca)."</Message>
         </Announcement>
     </Announcements>
 </VersionInfo>

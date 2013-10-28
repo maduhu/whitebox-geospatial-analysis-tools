@@ -8,15 +8,18 @@ remote sensing software package for advanced analysis and visualization of geosp
 
 SYSTEM REQUIREMENTS:
 
-Whitebox GAT requires a minimum of 2 GB of system memory (RAM) to operate. Depending 
-on the size of the data being analyzed, however, more memory may be required. In 
-addition, the Java Runtime Environment (JRE) 7 or higher must be installed and 
-properly configured for Whitebox GAT to operate.
-
+Whitebox GAT requires a minimum of 2 GB of system memory (RAM) to operate, although 
+4 GB is preferable. Depending on the size of the data being analyzed, however, 
+more memory may be required. In addition, the Java Runtime Environment (JRE) 7 or 
+higher must be installed and properly configured for Whitebox GAT to operate. 
+Whitebox will run on any computer running the Java Runtime Environment (JRE) 7.0 or higher, 
+including computers running MS Windows, MacOS, and Linux operating systems. A solid 
+state drive (SSD) is recommended for those working on massive data files, as it 
+greatly increased performance.
 
 RELEASE NOTES:
 
-Version 3.0.6
+Version 3.0.6 (Oct. 19, 2013)
 
 -Added ImportWellKnownText tool.
 -Fixed a bug in the RenameFile script
@@ -33,7 +36,7 @@ Version 3.0.6
  show through.
 
 
-Version 3.0.5
+Version 3.0.5 (Sept. 20, 2013)
 
 -Added Dissolve tool.
 -Added VectorCleaning tool.
@@ -141,14 +144,6 @@ Oracle website for instructions on how to update Java.
 
 Innumerable bug fixes have been included, along with substantial code refactoring. These are 
 too numerous to list individually.
-
-
-RECOMMENDED COMPUTING REQUIREMENTS
-
-Whitebox will run on any computer running the Java Runtime Environment (JRE) 7.0 or higher, 
-including computers running MS Windows, MacOS, and Linux operating systems. It is 
-recommended that computers have at least 4 GB of memory (RAM). A solid state drive (SSD) is 
-recommended for those working on massive data files, as it greatly increased performance.
 
 
 INSTALLATION:

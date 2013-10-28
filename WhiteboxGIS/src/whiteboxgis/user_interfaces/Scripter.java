@@ -904,8 +904,11 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
     private boolean scanDoc() {
         try {
             // read each line in the doc
-            String[] lines = editor.getText().split(System.lineSeparator());
-
+            String[] lines = editor.getText().split("\r\n"); //System.lineSeparator());
+            if (lines.length <= 1) {
+                lines = editor.getText().split("\n");
+            }
+            
             for (String line : lines) {
                 line = line.replace("\t", "");
                 if (!line.isEmpty()) {

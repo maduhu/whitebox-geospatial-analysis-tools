@@ -633,7 +633,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 if (mouseDragged && (myMode == MOUSE_MODE_ZOOM
                         || backgroundMouseMode == MOUSE_MODE_ZOOM
                         || myMode == MOUSE_MODE_SELECT
-                        || backgroundMouseMode == MOUSE_MODE_SELECT)
+                        || backgroundMouseMode == MOUSE_MODE_SELECT
+                        || backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT)
                         && !(myMode == MOUSE_MODE_RESIZE)) {
                     boolean drawLine = true;
                     if (myMode == MOUSE_MODE_CARTO_ELEMENT || myMode == MOUSE_MODE_MAPAREA) {
@@ -1946,14 +1947,15 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             mapArea.setXYUnits(XYUnits);
                         }
                         // is it the active layer?
-                        int selectedFeature = -1;
+                        //int selectedFeature = -1;
                         boolean activeLayerBool = false;
                         //if (backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
                         if (mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
-                            selectedFeature = layer.getSelectedFeatureNumber();
+                            //selectedFeature = layer.getSelectedFeatureNumber();
                             activeLayerBool = true;
-                        } else if (layer.getSelectedFeatureNumber() >= 0) {
-                            layer.setSelectedFeatureNumber(-1);
+                        } else { // if (layer.getSelectedFeatureNumber() >= 0) {
+                            //layer.setSelectedFeatureNumber(-1);
+                            layer.clearSelectedFeatures();
                         }
                         float xPoint, yPoint;
                         /*
@@ -2077,7 +2079,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.setColor(lineColour);
                                                             g2.draw(gp);
                                                         }
-                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                        if (activeLayerBool && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
                                                             g2.setColor(selectedFeatureColour);
                                                             g2.draw(gp);
                                                         }
@@ -2147,7 +2149,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 g2.setColor(lineColour);
                                                                 g2.draw(gp);
                                                             }
-                                                            if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                            if (activeLayerBool && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
                                                                 g2.setColor(selectedFeatureColour);
                                                                 g2.draw(gp);
                                                             }
@@ -2203,7 +2205,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                         polyline.lineTo(xPoints[index], yPoints[index]);
                                                     }
                                                     if (activeLayerBool && isActivelyEdited) {
-                                                        if (activeLayerBool && record.getRecordNumber() == selectedFeature) {
+                                                        if (activeLayerBool && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
                                                             g2.setColor(selectedFeatureColour);
                                                         } else {
                                                             g2.setColor(colours[r]);
@@ -2223,8 +2225,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.draw(polyline2);
                                                         }
                                                         g2.setStroke(oldStroke);
-                                                    } else if ((activeLayerBool && record.getRecordNumber() == selectedFeature)
-                                                            && !isActivelyEdited) {
+                                                    } else if ((activeLayerBool && layer.isFeatureSelected(record.getRecordNumber()))
+                                                            && !isActivelyEdited) { //record.getRecordNumber() == selectedFeature)
                                                         g2.setColor(selectedFeatureColour);
                                                         g2.draw(polyline);
                                                     } else {
@@ -2361,7 +2363,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                         if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
                                             g2.setColor(selectedFeatureColour);
                                             for (ShapeFileRecord record : records) {
-                                                if (record.getRecordNumber() == selectedFeature) {
+                                                if (layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
                                                     partStart = record.getGeometry().getParts();
                                                     points = record.getGeometry().getPoints();
                                                     int numParts = partStart.length;
@@ -2986,11 +2988,16 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                     VectorLayerInfo vli = (VectorLayerInfo) mapArea.getActiveLayer();
                     if (clickCount == 2) {
-                        vli.closeNewFeature(mapX, mapY);
-                        distPoints.clear();
-                        if (host instanceof WhiteboxGui) {
-                            WhiteboxGui wb = (WhiteboxGui) host;
-                            wb.digitizeNewFeature();
+                        try {
+                            vli.closeNewFeature(mapX, mapY);
+                            distPoints.clear();
+                            if (host instanceof WhiteboxGui) {
+                                WhiteboxGui wb = (WhiteboxGui) host;
+                                wb.digitizeNewFeature();
+                            }
+                        } catch (Exception ex) {
+                            host.logException("Error adding new digitized point", ex);
+                            host.showFeedback("An error has been enountered while digitizing.");
                         }
                     } else {
                         try {
@@ -3226,7 +3233,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             map.deslectAllCartographicElements();
             this.repaint();
         } else if (clickCount == 1 && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT
-                && button != 3 && !isPopupTrigger) {
+                && button != 3 && !isPopupTrigger && !digitizingNewFeature) {
             if (myMode == MOUSE_MODE_MAPAREA) { //map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                 MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
                 if (mapArea != null) {
@@ -3430,7 +3437,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 double mapYEnd = currentExtent.getMinY() + (viewAreaLRY - y) / viewAreaHeight * yRange;
                 double mapXEnd = currentExtent.getMinX() + (x - viewAreaULX) / viewAreaWidth * xRange;
 
-                if (backgroundMouseMode == MOUSE_MODE_ZOOM) {
+                if (backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
+                    BoundingBox bb = new BoundingBox(Math.min(mapX, mapXEnd),
+                            Math.min(mapY, mapYEnd),
+                            Math.max(mapX, mapXEnd),
+                            Math.max(mapY, mapYEnd));
+                    mapArea.selectVectorFeaturesByBox(bb);
+                } else if (backgroundMouseMode == MOUSE_MODE_ZOOM) {
                     BoundingBox bb = new BoundingBox(Math.min(mapX, mapXEnd),
                             Math.min(mapY, mapYEnd),
                             Math.max(mapX, mapXEnd),
@@ -3596,12 +3609,12 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     status.setMessage("E: " + xStr + "  N: " + yStr);
                 }
             } else {
-                int selectedFeature = mapArea.getSelectedFeatureFromActiveVector();
-                if (selectedFeature >= 0) {
-                    status.setMessage("E: " + xStr + "  N: " + yStr + "  Selected Feature: " + selectedFeature);
-                } else {
-                    status.setMessage("E: " + xStr + "  N: " + yStr);
-                }
+//                int selectedFeature = mapArea.getSelectedFeatureFromActiveVector();
+//                if (selectedFeature >= 0) {
+//                    status.setMessage("E: " + xStr + "  N: " + yStr + "  Selected Feature: " + selectedFeature);
+//                } else {
+                status.setMessage("E: " + xStr + "  N: " + yStr);
+//                }
             }
         }
     }

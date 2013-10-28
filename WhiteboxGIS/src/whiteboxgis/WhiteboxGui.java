@@ -104,7 +104,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private StatusBar status;
     // common variables
     static private String versionName = "3.0 'Iguazu'";
-    static private String versionNumber = "3.0.6";
+    static private String versionNumber = "3.0.7";
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
     private String applicationDirectory;
@@ -2178,6 +2178,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             LayersMenu.addSeparator();
 
+            JMenuItem deselectAllFeatures = new JMenuItem(bundle.getString("clearAllSelectedFeatures"));
+            deselectAllFeatures.addActionListener(this);
+            deselectAllFeatures.setActionCommand("clearAllSelectedFeatures");
+            LayersMenu.add(deselectAllFeatures);
+
+            JMenuItem saveSelection = new JMenuItem(bundle.getString("saveSelection"));
+            saveSelection.addActionListener(this);
+            saveSelection.setActionCommand("saveSelection");
+            LayersMenu.add(saveSelection);
+
+            LayersMenu.addSeparator();
+
             JMenuItem viewAttributeTable = new JMenuItem(bundle.getString("ViewAttributeTable"),
                     new ImageIcon(graphicsDirectory + "AttributeTable.png"));
             LayersMenu.add(viewAttributeTable);
@@ -2458,15 +2470,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             ToolsMenu.add(distanceToolMenuItem);
             distanceToolMenuItem.addActionListener(this);
             distanceToolMenuItem.setActionCommand("distanceTool");
-            
+
             ToolsMenu.add(paletteManagerMenu);
             paletteManagerMenu.addActionListener(this);
             paletteManagerMenu.setActionCommand("paletteManager");
-            
+
             ToolsMenu.add(modifyPixels);
             modifyPixels.addActionListener(this);
             modifyPixels.setActionCommand("modifyPixels");
-            
+
             ToolsMenu.add(refreshTools);
             refreshTools.addActionListener(this);
             refreshTools.setActionCommand("refreshTools");
@@ -2502,7 +2514,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             deleteLastNodeInFeatureMenuItem.addActionListener(this);
             deleteLastNodeInFeatureMenuItem.setActionCommand("deleteLastNodeInFeature");
             deleteLastNodeInFeatureMenuItem.setEnabled(false);
-            
+
             deleteFeatureMenuItem = new JMenuItem(bundle.getString("DeleteFeature"),
                     new ImageIcon(graphicsDirectory + "DeleteFeature.png"));
             editVectorMenu.add(deleteFeatureMenuItem);
@@ -2533,6 +2545,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             helpTutorials.setActionCommand("helpTutorials");
             helpTutorials.addActionListener(this);
 
+            HelpMenu.addSeparator();
+
+            String[][] tutorialFiles = findTutorialFiles();
+            if (tutorialFiles != null) {
+                JMenuItem[] tutorialMenuItems = new JMenuItem[tutorialFiles.length];
+                for (int a = 0; a < tutorialFiles.length; a++) {
+                    tutorialMenuItems[a] = new JMenuItem(tutorialFiles[a][1]);
+                    tutorialMenuItems[a].setActionCommand("tutorial_file:\t" + tutorialFiles[a][0]);
+                    tutorialMenuItems[a].addActionListener(this);
+                    HelpMenu.add(tutorialMenuItems[a]);
+                }
+            }
+
+            HelpMenu.addSeparator();
+
             JMenuItem helpAbout = new JMenuItem(bundle.getString("About") + " Whitebox GAT");
             helpAbout.setActionCommand("helpAbout");
             helpAbout.addActionListener(this);
@@ -2553,6 +2580,41 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } catch (Exception e) {
             logger.log(Level.SEVERE, "WhiteboxGui.createMenu", e);
             showFeedback(e.getMessage());
+        }
+    }
+
+    private String[][] findTutorialFiles() {
+        String[][] tutorialFiles = null;
+        try {
+            ArrayList<String> allTutorialFiles =
+                    FileUtilities.findAllFilesWithExtension(new File(helpDirectory + "tutorials" + pathSep), ".html", true);
+
+            String[] tutorialFiles1 = new String[allTutorialFiles.size()];
+            tutorialFiles1 = allTutorialFiles.toArray(tutorialFiles1);
+
+            Arrays.sort(tutorialFiles1, new Comparator<String>() {
+                @Override
+                public int compare(String str1, String str2) {
+                    return str1.toLowerCase().compareTo(str2.toLowerCase());
+                }
+            });
+            tutorialFiles = new String[tutorialFiles1.length][2];
+            for (int a = 0; a < tutorialFiles1.length; a++) {
+                tutorialFiles[a][0] = tutorialFiles1[a];
+                tutorialFiles[a][1] = Help.findTitle(tutorialFiles1[a]);
+            }
+
+
+            Arrays.sort(tutorialFiles, new Comparator<String[]>() {
+                @Override
+                public int compare(String[] str1, String[] str2) {
+                    return str1[1].toLowerCase().compareTo(str2[1].toLowerCase());
+                }
+            });
+        } catch (Exception e) {
+            logException("Help.findAvailableHelpFiles Error", e);
+        } finally {
+            return tutorialFiles;
         }
     }
 
@@ -2869,25 +2931,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JButton rasterCalculator = makeToolBarButton("RasterCalculator.png", "rasterCalculator",
                     bundle.getString("RasterCalculator"), "Raster Calc");
             toolbar.add(rasterCalculator);
-            
+
             JButton scripter = makeToolBarButton("ScriptIcon2.png", "scripter",
                     bundle.getString("Scripting"), "Scripter");
             toolbar.add(scripter);
-            
+
             distanceToolButton = makeToggleToolBarButton("DistanceTool.png", "distanceTool",
                     bundle.getString("MeasureDistance"), "Distance Tool");
             toolbar.add(distanceToolButton);
-            
+
             paletteManager = makeToolBarButton("paletteManager.png", "paletteManager",
                     bundle.getString("PaletteManager"), "Palette Manager");
             toolbar.add(paletteManager);
             paletteManager.setVisible(false);
-            
+
             modifyPixelVals = makeToggleToolBarButton("ModifyPixels.png", "modifyPixels",
                     bundle.getString("ModifyPixelValues"), "Modify Pixels");
             toolbar.add(modifyPixelVals);
             modifyPixelVals.setVisible(false);
-            
+
             toolbar.addSeparator();
 
             editVectorButton = makeToggleToolBarButton("Digitize.png", "editVector",
@@ -2909,7 +2971,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     bundle.getString("DeleteLastNodeFeature"), "Delete Last Node In Feature");
             deleteLastNodeInFeatureButton.setVisible(false);
             toolbar.add(deleteLastNodeInFeatureButton);
-            
+
             deleteFeatureButton = makeToolBarButton("DeleteFeature.png", "deleteFeature",
                     bundle.getString("DeleteFeature"), "Delete Feature");
             deleteFeatureButton.setVisible(false);
@@ -3029,7 +3091,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             layersPanel.setBackground(Color.white);
             updateLayersTab();
             tabs.insertTab(bundle.getString("Layers"), null, layersPanel, "", 1);
-            featuresPanel = new FeatureSelectionPanel(bundle);
+            featuresPanel = new FeatureSelectionPanel(bundle, this);
             tabs.insertTab(bundle.getString("Features"), null, featuresPanel, "", 2);
 
             return tabs;
@@ -3136,7 +3198,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                         editVectorButton.setEnabled(true);
                                         editVectorMenuItem.setState(true);
                                         digitizeNewFeatureButton.setVisible(true);
-//                                        moveNodesButton.setVisible(true);
                                         deleteFeatureButton.setVisible(true);
                                         deleteLastNodeInFeatureButton.setVisible(true);
                                         digitizeNewFeatureMenuItem.setEnabled(true);
@@ -3148,7 +3209,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                         editVectorMenuItem.setState(false);
                                         digitizeNewFeatureButton.setVisible(false);
                                         drawingArea.setDigitizingNewFeature(false);
-//                                        moveNodesButton.setVisible(false);
                                         deleteFeatureButton.setVisible(false);
                                         deleteLastNodeInFeatureButton.setVisible(false);
                                         digitizeNewFeatureMenuItem.setState(false);
@@ -3162,7 +3222,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                     editVectorMenuItem.setState(false);
                                     digitizeNewFeatureButton.setVisible(false);
                                     drawingArea.setDigitizingNewFeature(false);
-//                                        moveNodesButton.setVisible(false);
                                     deleteFeatureButton.setVisible(false);
                                     deleteLastNodeInFeatureButton.setVisible(false);
                                     digitizeNewFeatureMenuItem.setState(false);
@@ -4375,7 +4434,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         fc.setSelectedFile(f);
 
         // set the filter.
-//        ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
         String filterDescription = "Whitebox Map Files (*.wmap)";
         String[] extensions = {"WMAP"};
         ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
@@ -4417,7 +4475,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void openMap() {
         // set the filter.
-        ArrayList<ExtensionFileFilter> filters = new ArrayList<ExtensionFileFilter>();
+        ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
         String filterDescription = "Whitebox Map Files (*.wmap)";
         String[] extensions = {"WMAP", "XML"};
         ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
@@ -5499,6 +5557,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
         if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.VECTOR) {
             VectorLayerInfo vli = (VectorLayerInfo) ma.getLayer(layerOverlayNum);
+            if (!vli.doesAttributeFileExist()) {
+                showFeedback(messages.getString("AttributeFileDoesNotExist"));
+                return;
+            }
             String shapeFileName = vli.getFileName();
             AttributesFileViewer afv = new AttributesFileViewer(this, false, shapeFileName);
             int height = 500;
@@ -5508,6 +5570,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             showFeedback(messages.getString("FunctionForVectorsOnly"));
         }
     }
+    
     String currentTextFile = null;
 
     private void openText() {
@@ -5645,7 +5708,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void modifyPixelValues() {
-        if (!modifyPixelVals.isVisible()) { modifyPixelVals.setVisible(true); }
+        if (!modifyPixelVals.isVisible()) {
+            modifyPixelVals.setVisible(true);
+        }
         if (drawingArea.isModifyingPixels()) { // is true; unset
             drawingArea.setModifyingPixels(false);
             modifyPixels.setState(false);
@@ -5810,16 +5875,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                             + messages.getString("SelectEditVector"));
                     return;
                 }
-                int selectedFeature = vli.getSelectedFeatureNumber();
-                if (selectedFeature < 0) {
+                if (vli.getSelectedFeatureNumbers().isEmpty()) {
                     showFeedback(messages.getString("NoFeaturesSelected"));
                     return;
                 } else {
-                    int n = showFeedback(messages.getString("DeleteFeature") + " "
-                            + selectedFeature + "?", JOptionPane.YES_NO_OPTION,
+                    int n = showFeedback(messages.getString("DeleteFeature") + "?",
+                            JOptionPane.YES_NO_OPTION,
                             JOptionPane.QUESTION_MESSAGE);
                     if (n == JOptionPane.YES_OPTION) {
-                        vli.getShapefile().deleteRecord(selectedFeature);
+                        vli.deleteSelectedFeatures();
                         vli.reloadShapefile();
                         refreshMap(false);
                     } else if (n == JOptionPane.NO_OPTION) {
@@ -5835,7 +5899,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             logger.log(Level.SEVERE, "WhiteboxGui.deleteFeature", e);
         }
     }
-    
+
     /**
      * Used to delete the last digitized node in a feature.
      */
@@ -5863,7 +5927,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             logger.log(Level.SEVERE, "WhiteboxGui.deleteFeature", e);
         }
     }
-    
+
     private void digitizeTool() {
         MapLayer layer = openMaps.get(activeMap).getActiveMapArea().getActiveLayer();
         if (layer instanceof VectorLayerInfo) {
@@ -6199,10 +6263,126 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     @Override
+    public void setSelectFeature() {
+        drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_FEATURE_SELECT);
+        selectMenuItem.setState(false);
+        selectFeatureMenuItem.setState(true);
+        zoomMenuItem.setState(false);
+        zoomOutMenuItem.setState(false);
+        panMenuItem.setState(false);
+        tabs.setSelectedIndex(2);
+        if (!selectFeature.isSelected()) {
+            selectFeature.setSelected(true);
+        }
+        select.setSelected(false);
+        pan.setSelected(false);
+        zoomIntoBox.setSelected(false);
+    }
+
+    @Override
+    public void delectedAllFeaturesInActiveLayer() {
+        try {
+            MapLayer layer = openMaps.get(activeMap).getActiveMapArea().getActiveLayer();
+            if (layer instanceof VectorLayerInfo) {
+                VectorLayerInfo vli = (VectorLayerInfo) layer;
+                vli.clearSelectedFeatures();
+                refreshMap(false);
+                featuresPanel.updateTable();
+            } else {
+                showFeedback(messages.getString("ActiveLayerNotVector"));
+            }
+        } catch (Exception e) {
+            showFeedback(messages.getString("Error") + e.getMessage());
+            logger.log(Level.SEVERE, "WhiteboxGui.deleteFeature", e);
+        }
+    }
+
+    @Override
+    public void saveSelection() {
+        try {
+            MapLayer layer = openMaps.get(activeMap).getActiveMapArea().getActiveLayer();
+            if (layer instanceof VectorLayerInfo) {
+                VectorLayerInfo vli = (VectorLayerInfo) layer;
+                if (vli.getSelectedFeatureNumbers().isEmpty()) {
+                    return;
+                }
+                
+                // Ask the user to specify a file name for saving the active map.
+                JFileChooser fc = new JFileChooser();
+                fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fc.setCurrentDirectory(new File(workingDirectory + pathSep + "NewFile.shp"));
+                fc.setAcceptAllFileFilterUsed(false);
+
+                File f = new File(workingDirectory + pathSep + "NewFile.shp");
+                fc.setSelectedFile(f);
+
+                // set the filter.
+                String filterDescription = "Whitebox Vector Files (*.shp)";
+                String[] extensions = {"SHP"};
+                ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
+                fc.setFileFilter(eff);
+
+                int result = fc.showSaveDialog(this);
+                File file = null;
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    file = fc.getSelectedFile();
+                    // see if file has an extension.
+                    String newFile = file.toString();
+                    if (!newFile.contains(".shp")) {
+                        newFile = newFile + ".shp";
+                        file = new File(newFile);
+                    }
+
+                    String fileDirectory = file.getParentFile() + pathSep;
+                    if (!fileDirectory.equals(workingDirectory)) {
+                        setWorkingDirectory(fileDirectory);
+                    }
+
+                    // see if the file exists already, and if so, should it be overwritten?
+                    if (file.exists()) {
+                        int n = showFeedback(messages.getString("FileExists"), JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE);
+                        if (n == JOptionPane.YES_OPTION) {
+                            file.delete();
+                        } else if (n == JOptionPane.NO_OPTION) {
+                            return;
+                        }
+                    }
+
+                    String fileName = file.getPath();
+                    vli.saveSelectedFeatures(fileName);
+                    addLayer(fileName);
+                    refreshMap(false);
+                    featuresPanel.updateTable();
+                    
+                }
+                
+            } else {
+                showFeedback(messages.getString("ActiveLayerNotVector"));
+            }
+        } catch (Exception e) {
+            showFeedback(messages.getString("Error") + e.getMessage());
+            logger.log(Level.SEVERE, "WhiteboxGui.deleteFeature", e);
+        }
+    }
+
+    @Override
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
+//        Object source = e.getSource();
         String actionCommand = e.getActionCommand();
+        if (actionCommand.contains("tutorial_file:\t")) {
+            String[] splitString = actionCommand.split("\t");
+            Help help = new Help(this, false, "tutorials", splitString[1]);
+            help.setVisible(true);
+            return;
+        }
         switch (actionCommand) {
+            case "clearAllSelectedFeatures":
+                delectedAllFeaturesInActiveLayer();
+                break;
+            case "saveSelection":
+                saveSelection();
+                break;
             case "addLayer":
                 addLayer();
                 break;
@@ -6344,13 +6524,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 panMenuItem.setState(false);
                 break;
             case "selectFeature":
-                drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_FEATURE_SELECT);
-                selectMenuItem.setState(false);
-                selectFeatureMenuItem.setState(true);
-                zoomMenuItem.setState(false);
-                zoomOutMenuItem.setState(false);
-                panMenuItem.setState(false);
-                tabs.setSelectedIndex(2);
+                setSelectFeature();
                 break;
             case "nextExtent":
                 nextExtent();
@@ -6362,7 +6536,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 PaletteManager pm = new PaletteManager(paletteDirectory,
                         bundle);
                 pm.setVisible(true);
-                if (!paletteManager.isVisible()) { paletteManager.setVisible(true); }
+                if (!paletteManager.isVisible()) {
+                    paletteManager.setVisible(true);
+                }
                 break;
             case "rasterCalculator":
                 RasterCalculator rc = new RasterCalculator(this, false, workingDirectory);
@@ -6589,6 +6765,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             case "deleteLastNodeInFeature":
                 deleteLastNodeInFeature();
                 break;
+
         }
 
         selectedMapAndLayer[0] = -1;
@@ -6599,6 +6776,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     private void close() {
         setApplicationProperties();
+
+        for (Handler h : logger.getHandlers()) {
+            h.close();   //must call h.close or a .LCK file will remain.
+        }
+
         dispose();
         System.exit(0);
     }
