@@ -101,6 +101,7 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
         ShapeTypeDimension shapeTypeDimension = shapefile.getShapeType().getDimension();
         if (shapeTypeDimension == ShapeTypeDimension.Z) {
             numProp = new NumericProperty("Z value", "");
+            numProp.setName("Z value");
             numProp.setBackColour(Color.WHITE);
             numProp.setTextboxWidth(10);
             numProp.setPrecision(NumericProperty.Precision.DOUBLE);
@@ -110,6 +111,7 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
             box.add(numProp);
             
             numProp = new NumericProperty("M value", "");
+            numProp.setName("M value");
             numProp.setBackColour(Color.WHITE);
             numProp.setTextboxWidth(10);
             numProp.setPrecision(NumericProperty.Precision.DOUBLE);
@@ -119,6 +121,7 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
             box.add(numProp);
         } else if (shapeTypeDimension == ShapeTypeDimension.M) {
             numProp = new NumericProperty("M value:", "");
+            numProp.setName("M value");
             numProp.setBackColour(Color.WHITE);
             numProp.setTextboxWidth(10);
             numProp.setPrecision(NumericProperty.Precision.DOUBLE);
@@ -243,9 +246,9 @@ public class ShapefileDatabaseRecordEntry extends JDialog implements PropertyCha
         }
         if (source instanceof NumericProperty) {
             NumericProperty np = (NumericProperty) source;
-            if (np.getName().equals("Z value")) {
+            if (np.getLabelText().equals("Z value")) {
                 
-            } else if (np.getName().equals("M value")) {
+            } else if (np.getLabelText().equals("M value")) {
                 
             } else if (np.getPrecision() == NumericProperty.Precision.DOUBLE) {
                 for (int i = 0; i < fields.length; i++) {

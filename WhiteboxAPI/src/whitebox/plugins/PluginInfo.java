@@ -25,11 +25,13 @@ import java.util.Date;
 public class PluginInfo implements Comparable<PluginInfo> {
     private String name = null;
     private String descriptiveName = null;
-    private String description = null;
+    private String description;
+    private String[] toolboxes = null;
     private int numTimesUsed = 0;
     private Date lastUsed = new Date(Long.MIN_VALUE);
     private byte sortMode = 0;
     private boolean script = false;
+    private String scriptFile;
     
     public static final byte SORT_MODE_USAGE = 0;
     public static final byte SORT_MODE_RECENT = 1;
@@ -40,13 +42,12 @@ public class PluginInfo implements Comparable<PluginInfo> {
         this.sortMode = sortMode;
     }
     
-    public PluginInfo(String name, String descriptiveName, 
-            String description, byte sortMode, boolean isScript) {
+    public PluginInfo(String name, String descriptiveName, String description, String[] toolboxes, byte sortMode) {
         this.name = name;
         this.descriptiveName = descriptiveName;
         this.description = description;
         this.sortMode = sortMode;
-        this.script = isScript;
+        this.toolboxes = toolboxes;
     }
     
     public String getName() {
@@ -60,7 +61,7 @@ public class PluginInfo implements Comparable<PluginInfo> {
     public void setDescriptiveName(String descriptiveName) {
         this.descriptiveName = descriptiveName;
     }
-
+    
     public String getDescription() {
         return description;
     }
@@ -109,6 +110,22 @@ public class PluginInfo implements Comparable<PluginInfo> {
         return this.script;
     }
     
+    public void setScriptFile(String file) {
+        this.scriptFile = file;
+    }
+    
+    public String getScriptFile() {
+        return this.scriptFile;
+    }
+    
+    public void setToolboxes(String[] toolboxes) {
+        this.toolboxes = toolboxes;
+    }
+    
+    public String[] getToolboxes() {
+        return this.toolboxes;
+    }
+    
     @Override
     public int compareTo(PluginInfo other) {
         final int BEFORE = 1;
@@ -136,9 +153,12 @@ public class PluginInfo implements Comparable<PluginInfo> {
         }
         
         // else compare them based on their names.
-        if (this.descriptiveName.compareTo(other.descriptiveName) < 0) {
+        String str1 = this.descriptiveName.toLowerCase();
+        String str2 = other.descriptiveName.toLowerCase();
+        
+        if (str1.compareTo(str2) < 0) {
             return AFTER;
-        } else if (this.descriptiveName.compareTo(other.descriptiveName) > 0) {
+        } else if (str1.compareTo(str2) > 0) {
             return BEFORE;
         }
 

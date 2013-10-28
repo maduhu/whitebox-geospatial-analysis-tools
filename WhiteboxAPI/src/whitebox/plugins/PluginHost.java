@@ -17,18 +17,23 @@
 package whitebox.plugins;
 
 import java.awt.Font;
+import java.io.BufferedReader;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.ui.plugin_dialog.ToolDialog;
 import java.util.ArrayList;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
+import whitebox.utilities.FileUtilities;
 
 /**
- *
+ * Serves as a basic PluginHost used for running plugin tools outside of the Whitebox GAT user interface.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class PluginHost implements WhiteboxPluginHost {
@@ -94,9 +99,203 @@ public class PluginHost implements WhiteboxPluginHost {
             pluginService = PluginServiceFactory.createPluginService(applicationDirectory);
             pluginService.initPlugins();
             plugInfo = pluginService.getPluginList();
+            
+            loadScripts();
+            
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+    
+    private void loadScripts() {
+        ArrayList<String> pythonScripts = FileUtilities.findAllFilesWithExtension(resourcesDirectory, ".py", true);
+        ArrayList<String> groovyScripts = FileUtilities.findAllFilesWithExtension(resourcesDirectory, ".groovy", true);
+        ArrayList<String> jsScripts = FileUtilities.findAllFilesWithExtension(resourcesDirectory, ".js", true);
+        //ArrayList<PluginInfo> scriptPlugins = new ArrayList<>();
+        for (String str : pythonScripts) {
+            try {
+                // Open the file
+                FileInputStream fstream = new FileInputStream(str);
+                BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+                String strLine;
+
+                //Read File Line By Line
+                boolean containsName = false;
+                boolean containsDescriptiveName = false;
+                boolean containsDescription = false;
+                boolean containsToolboxes = false;
+                String name = "";
+                String descriptiveName = "";
+                String description = "";
+                String[] toolboxes = null;
+                while ((strLine = br.readLine()) != null
+                        && (!containsName || !containsDescriptiveName
+                        || !containsDescription || !containsToolboxes)) {
+                    if (strLine.startsWith("name = \"")) {
+                        containsName = true;
+                        // now retreive the name
+                        String[] str2 = strLine.split("=");
+                        name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.startsWith("descriptiveName = \"")) {
+                        containsDescriptiveName = true;
+                        String[] str2 = strLine.split("=");
+                        descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.startsWith("description = \"")) {
+                        containsDescription = true;
+                        String[] str2 = strLine.split("=");
+                        description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.startsWith("toolboxes = [\"")) {
+                        containsToolboxes = true;
+                        String[] str2 = strLine.split("=");
+                        toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                        for (int i = 0; i < toolboxes.length; i++) {
+                            toolboxes[i] = toolboxes[i].trim();
+                        }
+                    }
+                }
+
+                //Close the input stream
+                br.close();
+
+                if (containsName && containsDescriptiveName
+                        && containsDescription && containsToolboxes) {
+                    // it's a plugin!
+                    PluginInfo pi = new PluginInfo(name, descriptiveName,
+                            description, toolboxes, PluginInfo.SORT_MODE_NAMES);
+                    pi.setScript(true);
+                    pi.setScriptFile(str);
+                    plugInfo.add(pi);
+                    //scriptPlugins.add(pi);
+                }
+            } catch (IOException ioe) {
+                System.out.println(ioe.getStackTrace());
+            }
+        }
+
+        for (String str : jsScripts) {
+            try {
+                // Open the file
+                FileInputStream fstream = new FileInputStream(str);
+                BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+                String strLine;
+
+                //Read File Line By Line
+                boolean containsName = false;
+                boolean containsDescriptiveName = false;
+                boolean containsDescription = false;
+                boolean containsToolboxes = false;
+                String name = "";
+                String descriptiveName = "";
+                String description = "";
+                String[] toolboxes = null;
+                while ((strLine = br.readLine()) != null
+                        && (!containsName || !containsDescriptiveName
+                        || !containsDescription || !containsToolboxes)) {
+                    if (strLine.toLowerCase().contains("name = \"")
+                            && !strLine.toLowerCase().contains("descriptivename")) {
+                        containsName = true;
+                        // now retreive the name
+                        String[] str2 = strLine.split("=");
+                        name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("descriptivename = \"")) {
+                        containsDescriptiveName = true;
+                        String[] str2 = strLine.split("=");
+                        descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("description = \"")) {
+                        containsDescription = true;
+                        String[] str2 = strLine.split("=");
+                        description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("toolboxes = [\"")) {
+                        containsToolboxes = true;
+                        String[] str2 = strLine.split("=");
+                        toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                        for (int i = 0; i < toolboxes.length; i++) {
+                            toolboxes[i] = toolboxes[i].trim();
+                        }
+                    }
+                }
+
+                //Close the input stream
+                br.close();
+
+                if (containsName && containsDescriptiveName
+                        && containsDescription && containsToolboxes) {
+                    // it's a plugin!
+                    PluginInfo pi = new PluginInfo(name, descriptiveName,
+                            description, toolboxes, PluginInfo.SORT_MODE_NAMES);
+                    pi.setScript(true);
+                    pi.setScriptFile(str);
+                    plugInfo.add(pi);
+                    //scriptPlugins.add(pi);
+                }
+            } catch (IOException ioe) {
+                System.out.println(ioe.getStackTrace());
+            }
+        }
+
+        for (String str : groovyScripts) {
+            try {
+                // Open the file
+                FileInputStream fstream = new FileInputStream(str);
+                BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+                String strLine;
+
+                //Read File Line By Line
+                boolean containsName = false;
+                boolean containsDescriptiveName = false;
+                boolean containsDescription = false;
+                boolean containsToolboxes = false;
+                String name = "";
+                String descriptiveName = "";
+                String description = "";
+                String[] toolboxes = null;
+                while ((strLine = br.readLine()) != null
+                        && (!containsName || !containsDescriptiveName
+                        || !containsDescription || !containsToolboxes)) {
+                    if (strLine.toLowerCase().contains("name = \"")
+                            && !strLine.toLowerCase().contains("descriptivename")) {
+                        containsName = true;
+                        // now retreive the name
+                        String[] str2 = strLine.split("=");
+                        name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("descriptivename = \"")) {
+                        containsDescriptiveName = true;
+                        String[] str2 = strLine.split("=");
+                        descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("description = \"")) {
+                        containsDescription = true;
+                        String[] str2 = strLine.split("=");
+                        description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("toolboxes = [\"")) {
+                        containsToolboxes = true;
+                        String[] str2 = strLine.split("=");
+                        toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                        for (int i = 0; i < toolboxes.length; i++) {
+                            toolboxes[i] = toolboxes[i].trim();
+                        }
+                    }
+                }
+
+                //Close the input stream
+                br.close();
+
+                if (containsName && containsDescriptiveName
+                        && containsDescription && containsToolboxes) {
+                    // it's a plugin!
+                    PluginInfo pi = new PluginInfo(name, descriptiveName,
+                            description, toolboxes, PluginInfo.SORT_MODE_NAMES);
+                    pi.setScript(true);
+                    pi.setScriptFile(str);
+                    plugInfo.add(pi);
+                    //scriptPlugins.add(pi);
+                }
+            } catch (IOException ioe) {
+                System.out.println(ioe.getStackTrace());
+            }
         }
     }
     
@@ -342,6 +541,21 @@ public class PluginHost implements WhiteboxPluginHost {
 
     @Override
     public void deleteLastNodeInFeature() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void setSelectFeature() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void delectedAllFeaturesInActiveLayer() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void saveSelection() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

@@ -1611,7 +1611,7 @@ public class ShapeFile {
         
         return true;
     }
-
+    
     public void refreshAttributeTable() {
         try {
             this.attributeTable = new AttributeTable(databaseFile);

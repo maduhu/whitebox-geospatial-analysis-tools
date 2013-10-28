@@ -16,10 +16,6 @@
  */
 package whitebox.plugins;
 
-/**
- *
- * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
- */
 import whitebox.interfaces.WhiteboxPlugin;
 import java.util.Iterator;
 import java.util.ServiceLoader;
@@ -135,6 +131,7 @@ public class StandardPluginService implements PluginService {
         String plugName;
         String plugDescriptiveName;
         String plugDescription;
+        String[] toolboxes;
         Iterator<WhiteboxPlugin> iterator = getPlugins();
         while (iterator.hasNext()) {
             WhiteboxPlugin plugin = iterator.next();
@@ -150,8 +147,10 @@ public class StandardPluginService implements PluginService {
                 plugDescription = plugin.getToolDescription();
             }
             
+            toolboxes = plugin.getToolbox();
+            
             plugInfo.add(new PluginInfo(plugin.getName(), plugDescriptiveName,
-                    plugDescription, PluginInfo.SORT_MODE_USAGE, false));
+                    plugDescription, toolboxes, PluginInfo.SORT_MODE_USAGE));
 //            plugInfo.add(new PluginInfo(plugin.getName(), 
 //                    plugin.getDescriptiveName(), plugin.getToolDescription(),
 //                    PluginInfo.SORT_MODE_USAGE));

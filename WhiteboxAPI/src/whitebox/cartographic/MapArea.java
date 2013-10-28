@@ -339,12 +339,21 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         return false;
     }
     
-    public int getSelectedFeatureFromActiveVector() {
+//    public int getSelectedFeatureFromActiveVector() {
+//        if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
+//            VectorLayerInfo vli = (VectorLayerInfo)activeLayer;
+//            return vli.getSelectedFeatureNumber();
+//        }
+//        return -1;
+//    }
+    
+    public ArrayList<Integer> getSelectedFeaturesFromActiveVector() {
         if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
             VectorLayerInfo vli = (VectorLayerInfo)activeLayer;
-            return vli.getSelectedFeatureNumber();
+            //return vli.getSelectedFeatureNumber();
+            return vli.getSelectedFeatureNumbers();
         }
-        return -1;
+        return null;
     }
     
     
@@ -409,7 +418,15 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
     public void deselectVectorFeatures() {
         if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
             VectorLayerInfo vli = (VectorLayerInfo)activeLayer;
-            vli.setSelectedFeatureNumber(-1);
+            //vli.setSelectedFeatureNumber(-1);
+            vli.clearSelectedFeatures();
+        }
+    }
+    
+    public void selectVectorFeaturesByBox(BoundingBox box) {
+        if (activeLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
+            VectorLayerInfo vli = (VectorLayerInfo)activeLayer;
+            vli.selectFeaturesByBox(box);
         }
     }
     

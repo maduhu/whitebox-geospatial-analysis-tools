@@ -117,4 +117,19 @@ public interface WhiteboxPluginHost extends Communicator {
     public void showHelp();
     
     public void showHelp(String helpFile);
+    
+    /**
+     * Used to set the select feature mode of a Whitebox user interface.
+     */
+    public void setSelectFeature();
+    
+    /**
+     * Used to clear all the selected features from the active vector layer.
+     */
+    public void delectedAllFeaturesInActiveLayer();
+    
+    /**
+     * Called to save selected features into a separate vector file.
+     */
+    public void saveSelection();
 }

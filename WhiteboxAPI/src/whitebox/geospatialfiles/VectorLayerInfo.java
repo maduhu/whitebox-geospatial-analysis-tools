@@ -83,6 +83,7 @@ public class VectorLayerInfo implements MapLayer {
     private int maxDisplayedEntries = 25;
     private boolean visibleInLegend = true;
     private boolean isActivelyEdited = false;
+    private boolean[] selectedFeatures;
 
     // Constructors
     public VectorLayerInfo() {
@@ -167,6 +168,7 @@ public class VectorLayerInfo implements MapLayer {
         } catch (Exception e) {
         }
 
+        selectedFeatures = new boolean[shapefile.getNumberOfRecords() + 1];
     }
 
     public int getAlpha() {
@@ -466,16 +468,88 @@ public class VectorLayerInfo implements MapLayer {
         return minimumValue;
     }
 
-    public int getSelectedFeatureNumber() {
-        return selectedFeatureNumber;
+    /**
+     * Sets a specified record number as selected.
+     *
+     * @param recordNumber The one-based record ID.
+     */
+    public void setSelectedFeature(int recordNumber) {
+        if (selectedFeatures[recordNumber]) {
+            deselectFeature(recordNumber);
+        } else {
+            selectedFeatures[recordNumber] = true;
+            selectedFeatureNumbers.add(recordNumber);
+        }
+
+        //int oldValue = this.selectedFeatureNumber;
+        this.selectedFeatureNumber = recordNumber;
+        this.pcs.firePropertyChange("selectedFeatureNumber", -1, selectedFeatureNumber);
     }
 
-    public void setSelectedFeatureNumber(int selectedFeatureNumber) {
-        int oldValue = this.selectedFeatureNumber;
-        this.selectedFeatureNumber = selectedFeatureNumber;
-        this.pcs.firePropertyChange("selectedFeatureNumber", oldValue, selectedFeatureNumber);
+    private void deselectFeature(int recordNumber) {
+        if (selectedFeatures[recordNumber]) {
+            selectedFeatures[recordNumber] = false;
+            // remove it from the list of selected features
+            selectedFeatureNumbers.remove(new Integer(recordNumber));
+
+            this.pcs.firePropertyChange("selectedFeatureNumber", -2, -1);
+        }
     }
-    // methods
+
+    /**
+     * Clears all of the selected features from a vector layer.
+     */
+    public void clearSelectedFeatures() {
+        selectedFeatures = new boolean[shapefile.getNumberOfRecords() + 1];
+        selectedFeatureNumbers.clear();
+
+        int oldValue = this.selectedFeatureNumber;
+        this.selectedFeatureNumber = -1;
+        this.pcs.firePropertyChange("selectedFeatureNumber", -1, selectedFeatureNumber);
+    }
+
+    /**
+     * Deletes all of the selected features from the shapefile. <b><i>This
+     * action cannot be reversed</i></b>.
+     */
+    public void deleteSelectedFeatures() {
+        // sort the list of selected features
+        Collections.sort(selectedFeatureNumbers);
+
+        for (int i = selectedFeatureNumbers.size() - 1; i >= 0; i--) {
+            shapefile.deleteRecord(selectedFeatureNumbers.get(i));
+        }
+
+        clearSelectedFeatures();
+    }
+
+    /**
+     * Determines if a specified record number is selected.
+     *
+     * @param recordNumber The one-based record ID.
+     */
+    public boolean isFeatureSelected(int recordNumber) {
+        return selectedFeatures[recordNumber];
+    }
+    private ArrayList<Integer> selectedFeatureNumbers = new ArrayList<>();
+
+    /**
+     * Gets a list of all selected feature record numbers.
+     *
+     * @return ArrayList of selected feature numbers.
+     */
+    public ArrayList<Integer> getSelectedFeatureNumbers() {
+        return selectedFeatureNumbers;
+    }
+//    public int getSelectedFeatureNumber() {
+//        return selectedFeatureNumber;
+//    }
+//
+//    public void setSelectedFeatureNumber(int selectedFeatureNumber) {
+//        int oldValue = this.selectedFeatureNumber;
+//        this.selectedFeatureNumber = selectedFeatureNumber;
+//        this.pcs.firePropertyChange("selectedFeatureNumber", oldValue, selectedFeatureNumber);
+//    }
     private VectorLayerInfo.LegendEntry[] legendEntries;
 
     public void setRecordsColourData() {
@@ -939,7 +1013,7 @@ public class VectorLayerInfo implements MapLayer {
         }
     }
 
-    private void closeNewFeature() {
+    private void closeNewFeature() throws Exception {
         try {
             if (digitizedPoints.isEmpty()) {
                 return;
@@ -1048,19 +1122,24 @@ public class VectorLayerInfo implements MapLayer {
 //            colourData = null;
             //openNewFeature();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw e;
+            //System.out.println(e.getMessage());
         } finally {
             isFeatureOpen = false;
         }
     }
 
-    public void closeNewFeature(double x, double y) {
-        if (x != previousX && y != previousY) {
-            digitizedPoints.add(new ShapefilePoint(x, y));
-            previousX = x;
-            previousY = y;
+    public void closeNewFeature(double x, double y) throws Exception {
+        try {
+            if (x != previousX && y != previousY) {
+                digitizedPoints.add(new ShapefilePoint(x, y));
+                previousX = x;
+                previousY = y;
+            }
+            closeNewFeature();
+        } catch (Exception e) {
+            throw e;
         }
-        closeNewFeature();
     }
 
     public void reloadShapefile() {
@@ -1068,6 +1147,7 @@ public class VectorLayerInfo implements MapLayer {
                 shapefile.getxMax(), shapefile.getyMax());
         recs = shapefile.getRecordsInBoundingBox(currentExtent, 1);
         colourData = null;
+        selectedFeatures = new boolean[shapefile.getNumberOfRecords() + 1];
     }
 
     private boolean isPointsListClockwiseOrder(PointsList pl) throws Exception {
@@ -1162,95 +1242,69 @@ public class VectorLayerInfo implements MapLayer {
         }
     }
 
+    /**
+     * Used to select a feature contained in the vector based on bounding box.
+     * Selected features must be contained within the box.
+     *
+     * @param box BoundingBox used to select features
+     */
+    public void selectFeaturesByBox(BoundingBox box) {
+        switch (shapeType) {
+            case POLYGON:
+            case POLYGONZ:
+            case POLYGONM:
+            case POLYLINE:
+            case POLYLINEZ:
+            case POLYLINEM:
+                for (ShapeFileRecord record : recs) {
+                    BoundingBox bb = record.getGeometry().getBox();
+                    if (bb.within(box)) {
+                        setSelectedFeature(record.getRecordNumber());
+                    }
+                }
+                break;
+
+            case POINT:
+            case POINTZ:
+            case POINTM:
+                double pointX,
+                 pointY;
+                double[][] points;
+                for (ShapeFileRecord record : recs) {
+                    points = record.getGeometry().getPoints();
+                    pointX = points[0][0];
+                    pointY = points[0][1];
+                    if (box.isPointInBox(pointX, pointY)) {
+                        setSelectedFeature(record.getRecordNumber());
+                    }
+                }
+                break;
+
+            // have to add something here for multipoints.
+        }
+    }
+
+    /**
+     * Used to select a feature contained in the vector based on the coordinates
+     * of a point.
+     *
+     * @param x x coordinate
+     * @param y y coordinate
+     * @return int of selected feature's record number
+     */
     public int selectFeatureByLocation(double x, double y) {
         double minDist = Double.POSITIVE_INFINITY;
         double dist, boxCentreX, boxCentreY;
         int newSelectedFeatureNum = -1;
         switch (shapeType) {
             case POLYGON:
-                for (ShapeFileRecord record : recs) {
-                    Polygon poly = (Polygon) (record.getGeometry());
-                    BoundingBox bb = poly.getBox();
-                    if (bb.isPointInBox(x, y)) {
-                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
-                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x)
-                                + (boxCentreY - y) * (boxCentreY - y);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            newSelectedFeatureNum = record.getRecordNumber();
-                        }
-                    }
-                }
-                break;
             case POLYGONZ:
-                for (ShapeFileRecord record : recs) {
-                    PolygonZ poly = (PolygonZ) (record.getGeometry());
-                    BoundingBox bb = poly.getBox();
-                    if (bb.isPointInBox(x, y)) {
-                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
-                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x)
-                                + (boxCentreY - y) * (boxCentreY - y);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            newSelectedFeatureNum = record.getRecordNumber();
-                        }
-                    }
-                }
-                break;
             case POLYGONM:
-                for (ShapeFileRecord record : recs) {
-                    PolygonM poly = (PolygonM) (record.getGeometry());
-                    BoundingBox bb = poly.getBox();
-                    if (bb.isPointInBox(x, y)) {
-                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
-                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x)
-                                + (boxCentreY - y) * (boxCentreY - y);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            newSelectedFeatureNum = record.getRecordNumber();
-                        }
-                    }
-                }
-                break;
             case POLYLINE:
-                for (ShapeFileRecord record : recs) {
-                    PolyLine poly = (PolyLine) (record.getGeometry());
-                    BoundingBox bb = poly.getBox();
-                    if (bb.isPointInBox(x, y)) {
-                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
-                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x)
-                                + (boxCentreY - y) * (boxCentreY - y);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            newSelectedFeatureNum = record.getRecordNumber();
-                        }
-                    }
-                }
-                break;
             case POLYLINEZ:
-                for (ShapeFileRecord record : recs) {
-                    PolyLineZ poly = (PolyLineZ) (record.getGeometry());
-                    BoundingBox bb = poly.getBox();
-                    if (bb.isPointInBox(x, y)) {
-                        boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
-                        boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
-                        dist = (boxCentreX - x) * (boxCentreX - x)
-                                + (boxCentreY - y) * (boxCentreY - y);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            newSelectedFeatureNum = record.getRecordNumber();
-                        }
-                    }
-                }
-                break;
             case POLYLINEM:
                 for (ShapeFileRecord record : recs) {
-                    PolyLineM poly = (PolyLineM) (record.getGeometry());
-                    BoundingBox bb = poly.getBox();
+                    BoundingBox bb = record.getGeometry().getBox();
                     if (bb.isPointInBox(x, y)) {
                         boxCentreX = bb.getMinX() + (bb.getMaxX() - bb.getMinX()) / 2;
                         boxCentreY = bb.getMinY() + (bb.getMaxY() - bb.getMinY()) / 2;
@@ -1263,35 +1317,18 @@ public class VectorLayerInfo implements MapLayer {
                     }
                 }
                 break;
+
             case POINT:
-                for (ShapeFileRecord record : recs) {
-                    Point point = (Point) (record.getGeometry());
-                    dist = (point.getX() - x) * (point.getX() - x)
-                            + (point.getY() - y) * (point.getY() - y);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        newSelectedFeatureNum = record.getRecordNumber();
-                    }
-
-                }
-                break;
             case POINTZ:
-                for (ShapeFileRecord record : recs) {
-                    PointZ point = (PointZ) (record.getGeometry());
-                    dist = (point.getX() - x) * (point.getX() - x)
-                            + (point.getY() - y) * (point.getY() - y);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        newSelectedFeatureNum = record.getRecordNumber();
-                    }
-
-                }
-                break;
             case POINTM:
+                double pointX,
+                 pointY;
+                double[][] points;
                 for (ShapeFileRecord record : recs) {
-                    PointM point = (PointM) (record.getGeometry());
-                    dist = (point.getX() - x) * (point.getX() - x)
-                            + (point.getY() - y) * (point.getY() - y);
+                    points = record.getGeometry().getPoints();
+                    pointX = points[0][0];
+                    pointY = points[0][1];
+                    dist = (pointX - x) * (pointX - x) + (pointY - y) * (pointY - y);
                     if (dist < minDist) {
                         minDist = dist;
                         newSelectedFeatureNum = record.getRecordNumber();
@@ -1302,14 +1339,41 @@ public class VectorLayerInfo implements MapLayer {
 
             // have to add something here for multipoints.
         }
-        if (newSelectedFeatureNum != selectedFeatureNumber) {
-            //selectedFeatureNumber = newSelectedFeatureNum;
-            setSelectedFeatureNumber(newSelectedFeatureNum);
-        } else {
-            setSelectedFeatureNumber(-1);
-            //selectedFeatureNumber = -1;
+
+        if (newSelectedFeatureNum >= 0) {
+            setSelectedFeature(newSelectedFeatureNum);
         }
-        return selectedFeatureNumber;
+
+        return newSelectedFeatureNum;
+    }
+
+    /**
+     * Used to save the selected features into a new vector file.
+     *
+     * @param fileName String with the directory and file name of the new file
+     */
+    public void saveSelectedFeatures(String fileName) {
+        try {
+            shapeType = shapefile.getShapeType();
+            int numRecs = shapefile.getNumberOfRecords();
+            AttributeTable table = shapefile.getAttributeTable();
+            ShapeFile output = new ShapeFile(fileName, shapeType, table.getAllFields());
+
+            for (int i = 1; i <= numRecs; i++) {
+                if (selectedFeatures[i]) {
+                    ShapeFileRecord record = shapefile.getRecord(i - 1);
+                    output.addRecord(record.getGeometry(), table.getRecord(i - 1));
+                }
+            }
+
+            output.write();
+
+        } catch (Exception e) {
+        }
+    }
+    
+    public boolean doesAttributeFileExist() {
+        return shapefile.databaseFileExists;
     }
 
     @Override
