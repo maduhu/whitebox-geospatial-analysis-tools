@@ -217,6 +217,9 @@ public class MosaicWithFeathering implements WhiteboxPlugin {
         } else {
             performHistoMatching = false;
         }
+        double power = Double.parseDouble(args[5]);
+        if (power > 15.0) { power = 15.0; }
+        if (power < 1.0) { power = 1.0; }
 
         try {
             
@@ -397,7 +400,7 @@ public class MosaicWithFeathering implements WhiteboxPlugin {
             }
 
             calculateDistance(distToEdgeAppend);
-
+            
             if (resampleMethod.contains("nearest")) {
                 for (row = 0; row < nRows; row++) {
                     for (col = 0; col < nCols; col++) {
@@ -425,10 +428,10 @@ public class MosaicWithFeathering implements WhiteboxPlugin {
                             dist1 = distToEdgeBase.getValue(baseRow, baseCol); //baseCol;
                             dist2 = distToEdgeAppend.getValue(appendRow, appendCol); //appendCol;
 
-                            sumDist = dist1 + dist2;
+                            sumDist = Math.pow(dist1, power) + Math.pow(dist2, power);
 
-                            w1 = dist1 / sumDist;
-                            w2 = dist2 / sumDist;
+                            w1 = Math.pow(dist1, power) / sumDist;
+                            w2 = Math.pow(dist2, power) / sumDist;
 
                             z = w1 * zBase + w2 * zAppend;
 

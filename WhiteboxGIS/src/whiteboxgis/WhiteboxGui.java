@@ -4477,7 +4477,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         // set the filter.
         ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
         String filterDescription = "Whitebox Map Files (*.wmap)";
-        String[] extensions = {"WMAP", "XML"};
+        String[] extensions = {"WMAP"}; //, "XML"};
         ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
 
         filters.add(eff);

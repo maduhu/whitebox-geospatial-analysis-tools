@@ -3001,9 +3001,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         }
                     } else {
                         try {
-                            if (!vli.addNodeToNewFeature(mapX, mapY)) {
-                                host.showFeedback("An error has been enountered while digitizing.");
-                            }
+                            vli.addNodeToNewFeature(mapX, mapY);
+//                                host.showFeedback("An error has been enountered while digitizing.");
+//                            }
                         } catch (Exception ex) {
                             host.logException("Error adding new digitized point", ex);
                             host.showFeedback("An error has been enountered while digitizing.");
