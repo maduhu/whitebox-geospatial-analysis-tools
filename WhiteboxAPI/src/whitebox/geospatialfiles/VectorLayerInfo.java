@@ -981,9 +981,9 @@ public class VectorLayerInfo implements MapLayer {
         this.recData = recordData;
     }
 
-    public boolean addNodeToNewFeature(double x, double y) throws Exception {
+    public void addNodeToNewFeature(double x, double y) throws Exception {
         try {
-            if (x != previousX && y != previousY) {
+            //if (x != previousX && y != previousY) {
                 if (shapeType.getDimension() == ShapeTypeDimension.XY) {
                     digitizedPoints.add(new ShapefilePoint(x, y));
                 } else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
@@ -991,19 +991,19 @@ public class VectorLayerInfo implements MapLayer {
                 } else if (shapeType.getDimension() == ShapeTypeDimension.M) {
                     digitizedPoints.add(new ShapefilePoint(x, y, mValue));
                 } else {
-                    return false;
+                    return;
                 }
                 if (shapeType.getBaseType() == ShapeType.POINT) {
                     closeNewFeature();
                 }
                 previousX = x;
                 previousY = y;
-                return true;
-            }
+            //}
+            return;
         } catch (Exception e) {
             throw e;
         }
-        return false;
+        
     }
 
     public void deleteLastNodeInFeature() {
@@ -1019,6 +1019,8 @@ public class VectorLayerInfo implements MapLayer {
                 return;
             }
             PointsList pl = new PointsList(digitizedPoints);
+            pl.removeDuplicates();
+            
             int[] parts = {0};
             double x, y, z, m;
             switch (shapeType) {

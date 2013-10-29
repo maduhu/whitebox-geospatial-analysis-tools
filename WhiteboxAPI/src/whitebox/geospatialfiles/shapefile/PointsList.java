@@ -127,4 +127,15 @@ public class PointsList {
     public void reverseOrder() {
         Collections.reverse(myList);
     }
+    
+    public void removeDuplicates() {
+        int numElements = myList.size();
+        for (int i = numElements - 1; i > 0; i--) {
+            ShapefilePoint p1 = myList.get(i);
+            ShapefilePoint p2 = myList.get(i - 1);
+            if (p1.equals(p2)) {
+                myList.remove(i);
+            }
+        }
+    }
 }
