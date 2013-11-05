@@ -1180,36 +1180,38 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
             }
             if (neatLine.isVisible() || neatLine.isSelected()) {
-                Stroke oldStroke = g2.getStroke();
-                if (neatLine.isSelected() && !printingMap) {
-                    g2.setColor(selectedColour);
-                    g2.setStroke(dashed);
-                } else {
-                    g2.setColor(neatLine.getBorderColour());
-                    g2.setStroke(new BasicStroke(outerLineWidth));
+                if (neatLine.isBorderVisible()) {
+                    Stroke oldStroke = g2.getStroke();
+                    if (neatLine.isSelected() && !printingMap) {
+                        g2.setColor(selectedColour);
+                        g2.setStroke(dashed);
+                    } else {
+                        g2.setColor(neatLine.getBorderColour());
+                        g2.setStroke(new BasicStroke(outerLineWidth));
+                    }
+
+                    if (isDoubleLine) {
+                        // outer line
+                        g2.drawRect(neatLineULX,
+                                neatLineULY,
+                                neatLineWidth,
+                                neatLineHeight);
+
+                        // inner line
+                        g2.setStroke(new BasicStroke(innerLineWidth));
+                        g2.drawRect(neatLineULX + gap,
+                                neatLineULY + gap,
+                                neatLineWidth - 2 * gap,
+                                neatLineHeight - 2 * gap);
+                    } else {
+                        g2.drawRect(neatLineULX,
+                                neatLineULY,
+                                neatLineWidth,
+                                neatLineHeight);
+                    }
+
+                    g2.setStroke(oldStroke);
                 }
-
-                if (isDoubleLine) {
-                    // outer line
-                    g2.drawRect(neatLineULX,
-                            neatLineULY,
-                            neatLineWidth,
-                            neatLineHeight);
-
-                    // inner line
-                    g2.setStroke(new BasicStroke(innerLineWidth));
-                    g2.drawRect(neatLineULX + gap,
-                            neatLineULY + gap,
-                            neatLineWidth - 2 * gap,
-                            neatLineHeight - 2 * gap);
-                } else {
-                    g2.drawRect(neatLineULX,
-                            neatLineULY,
-                            neatLineWidth,
-                            neatLineHeight);
-                }
-
-                g2.setStroke(oldStroke);
             }
 
 
@@ -1356,7 +1358,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             int imageHeight = 35;
             int imageWidth = 12;
             top += fontHeight;
-            label = "Legend";
+            label = legend.getLabel(); //"Legend";
             adv = metrics.stringWidth(label);
             g2.drawString(label, legendULX + (legendWidth - adv) / 2, top);
             top += 4;
@@ -1846,8 +1848,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             if (mapArea.isBackgroundVisible()) {
                 g2.setColor(mapArea.getBackgroundColour());
 
-                g2.fillRect(mapAreaULX, mapAreaULY,
-                        mapAreaWidth, mapAreaHeight);
+                g2.fillRect(viewAreaULX, viewAreaULY,
+                        viewAreaWidth, viewAreaHeight);
 
             }
 

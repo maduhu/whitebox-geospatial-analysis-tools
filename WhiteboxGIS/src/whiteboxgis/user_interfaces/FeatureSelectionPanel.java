@@ -30,13 +30,12 @@ import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.io.File;
 import java.util.ArrayList;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.util.ResourceBundle;
-import whitebox.geospatialfiles.ShapeFile;
+//import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
@@ -50,7 +49,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
  */
 public class FeatureSelectionPanel extends JPanel implements PropertyChangeListener {
 
-    private ShapeFile shape = null;
+    //private ShapeFile shape = null;
     private JTable table = new JTable();
     private int selectedFeature = -1;
     private VectorLayerInfo vli = null;
@@ -71,27 +70,29 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
 
     public void setVectorLayerInfo(VectorLayerInfo vli) {
         this.vli = vli;
-        this.setShapeFileName(vli.getFileName());
-        this.vli.pcs.addPropertyChangeListener("selectedFeatureNumber", this);
-        createGui();
-    }
-
-    public String getShapeFileName() {
-        if (this.shape != null) {
-            return this.shape.getFileName();
-        } else {
-            return bundle.getString("NotSpecified");
-        }
-    }
-
-    public void setShapeFileName(String shapeFileName) {
-        try {
-            this.shape = new ShapeFile(shapeFileName);
-        } catch (IOException ioe) {
-            
+        if (vli != null) {
+//            this.setShapeFileName(vli.getFileName());
+            this.vli.pcs.addPropertyChangeListener("selectedFeatureNumber", this);
         }
         createGui();
     }
+
+//    public String getShapeFileName() {
+//        if (this.shape != null) {
+//            return this.shape.getFileName();
+//        } else {
+//            return bundle.getString("NotSpecified");
+//        }
+//    }
+//
+//    public void setShapeFileName(String shapeFileName) {
+//        try {
+//            this.shape = new ShapeFile(shapeFileName);
+//        } catch (IOException ioe) {
+//            
+//        }
+//        createGui();
+//    }
 
     public int getSelectedFeatureNumber() {
         return selectedFeature;
@@ -201,19 +202,19 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
     private boolean noDatabaseAvailable = false;
     private JTable getDataTable() {
         try {
-            if (shape == null) {
+            if (vli == null) {
                 return null;
             }
 
             int numColumns = 2;
             //File dbfFile = new File(shape.getDatabaseFile());
-            if (!shape.databaseFileExists) {
+            if (!vli.getShapefile().databaseFileExists) {
                 noDatabaseAvailable = true;
                 return null;
             }
-            shape.refreshAttributeTable();
-            AttributeTable attributeTable = shape.getAttributeTable();
-            int numRows = shape.getAttributeTable().getFieldCount() + 1;
+            vli.getShapefile().refreshAttributeTable();
+            AttributeTable attributeTable = vli.getShapefile().getAttributeTable();
+            int numRows = vli.getShapefile().getAttributeTable().getFieldCount() + 1;
             //String[] ch = shape.attributeTable.getAttributeTableFieldNames();
             fields = attributeTable.getAllFields();
             String[] columnHeaders = {bundle.getString("Attribute"), 
@@ -275,12 +276,12 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
 
     public void updateTable() {
         try {
-            if (table == null || noDatabaseAvailable) {
+            listOfSelectedFeatures.removeAll();
+            
+            if (table == null || noDatabaseAvailable || vli == null) {
                 return;
             }
             
-            
-            listOfSelectedFeatures.removeAll();
             DefaultListModel model = new DefaultListModel();
             if (vli != null) {
                 ArrayList<Integer> selectedRecords = vli.getSelectedFeatureNumbers();
@@ -293,8 +294,8 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             }
             
             
-            shape.refreshAttributeTable();
-            if (fields.length != shape.getAttributeTable().getFieldCount()) {
+            vli.getShapefile().refreshAttributeTable();
+            if (fields.length != vli.getShapefile().getAttributeTable().getFieldCount()) {
                 int oldSelectedFeature = selectedFeature;
                 createGui();
                 selectedFeature = oldSelectedFeature;
@@ -302,7 +303,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
             DefaultTableModel tm = (DefaultTableModel)table.getModel();
             if (selectedFeature >= 0) {
                 tm.setValueAt(selectedFeature, 0, 1);
-                AttributeTable attributeTable = shape.getAttributeTable();
+                AttributeTable attributeTable = vli.getShapefile().getAttributeTable();
                 Object[] rowData = attributeTable.getRecord(selectedFeature - 1);
                 if (rowData == null) {
                     return;

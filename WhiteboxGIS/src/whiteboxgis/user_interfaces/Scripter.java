@@ -148,6 +148,39 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         }
     }
 
+    public Scripter(Frame owner, boolean modal, String fileName) {
+        super(owner, modal);
+        try {
+            this.pathSep = File.separator;
+            String applicationDirectory = java.net.URLDecoder.decode(getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
+            if (applicationDirectory.endsWith(".exe") || applicationDirectory.endsWith(".jar")) {
+                applicationDirectory = new File(applicationDirectory).getParent();
+            } else {
+                // Add the path to the class files
+                applicationDirectory += getClass().getName().replace('.', File.separatorChar);
+
+                // Step one level up as we are only interested in the
+                // directory containing the class files
+                applicationDirectory = new File(applicationDirectory).getParent();
+            }
+            applicationDirectory = new File(applicationDirectory).getParent();
+            findGraphicsDirectory(new File(applicationDirectory));
+            findScriptDirectory(new File(applicationDirectory));
+
+            if (owner != null && owner instanceof WhiteboxPluginHost) {
+                host = (WhiteboxPluginHost) owner;
+                bundle = host.getGuiLabelsBundle();
+            }
+
+            initUI();
+
+            openFile(fileName);
+            
+        } catch (Exception e) {
+            host.logException("Error in Scripter.", e);
+        }
+    }
+
     private void findScriptDirectory(File dir) {
         File[] files = dir.listFiles();
         for (int x = 0; x < files.length; x++) {
@@ -293,15 +326,15 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         JButton toggleComment = makeToolBarButton("Comment.png", "Comment",
                 bundle.getString("ToggleComments"), "Comment");
         toolbar.add(toggleComment);
-        
+
         JButton indent = makeToolBarButton("Indent.png", "Indent",
                 "Indent", "Indent");
         toolbar.add(indent);
-        
+
         JButton outdent = makeToolBarButton("Outdent.png", "Outdent",
                 "Outdent", "Outdent");
         toolbar.add(outdent);
-        
+
         toolbar.addSeparator();
 
         JButton executeBtn = makeToolBarButton("Execute.png", "execute",
@@ -716,7 +749,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             toggleComments.addActionListener(this);
             toggleComments.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             sourceMenu.add(toggleComments);
-            
+
             JMenuItem indent = new JMenuItem("Indent");
 //            indent.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             indent.addActionListener(new ActionListener() {
@@ -726,7 +759,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 }
             });
             sourceMenu.add(indent);
-            
+
             JMenuItem outdent = new JMenuItem("Outdent");
 //            outdent.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             outdent.addActionListener(new ActionListener() {
@@ -908,7 +941,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             if (lines.length <= 1) {
                 lines = editor.getText().split("\n");
             }
-            
+
             for (String line : lines) {
                 line = line.replace("\t", "");
                 if (!line.isEmpty()) {
@@ -1388,6 +1421,58 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         } catch (Exception e) {
             handleError(e.getMessage());
         }
+    }
+
+    public void openFile(String fileName) {
+        sourceFile = fileName;
+        if (sourceFile == null || sourceFile.isEmpty()) {
+            openFile();
+        }
+
+        if (sourceFile.toLowerCase().contains(".py")) {
+            //language = Scripter.ScriptingLanguage.PYTHON;
+            setLanguage(Scripter.ScriptingLanguage.PYTHON);
+            editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
+        } else if (sourceFile.toLowerCase().contains(".groovy")) {
+            //language = Scripter.ScriptingLanguage.GROOVY;
+            setLanguage(Scripter.ScriptingLanguage.GROOVY);
+            editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
+        } else {
+            //language = Scripter.ScriptingLanguage.JAVASCRIPT;
+            setLanguage(Scripter.ScriptingLanguage.JAVASCRIPT);
+            editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
+        }
+
+        //editor.setContentType("text/" + language);
+        editor.setEditable(true);
+
+
+        DataInputStream in = null;
+        BufferedReader br = null;
+        try {
+            // Open the file that is the first command line parameter
+            FileInputStream fstream = new FileInputStream(this.sourceFile);
+            // Get the object of DataInputStream
+            in = new DataInputStream(fstream);
+
+            br = new BufferedReader(new InputStreamReader(in));
+            String line;
+            String str = "";
+
+            if (this.sourceFile != null) {
+                //Read File Line By Line
+                while ((line = br.readLine()) != null) {
+                    str += line + "\n";
+                }
+            }
+            editor.setText(str);
+        } catch (Exception e) {
+        }
+
+        editor.setEditable(true);
+        editor.setCaretPosition(0);
+
+        this.setTitle("Whitebox Scripter: " + new File(sourceFile).getName());
     }
 
     private void openFile() {

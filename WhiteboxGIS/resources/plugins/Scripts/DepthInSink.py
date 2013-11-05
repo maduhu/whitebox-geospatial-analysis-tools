@@ -9,12 +9,12 @@ from java.awt.event import ActionEvent
 # The following four variables are required for this 
 # script to be integrated into the tool tree panel. 
 # Comment them out if you want to remove the script.
-name = "Sink"
-descriptiveName = "Sink"
-description = "Identifies the sinks (depressions) in a DEM"
+name = "DepthInSink"
+descriptiveName = "Depth in Sink"
+description = "Measures the depth of sinks (depressions) in a DEM"
 toolboxes = ["TerrainAnalysis"]
 	
-class Sink(ActionListener):
+class DepthInSink(ActionListener):
 	def __init__(self, args):
 		if len(args) != 0:
 			t = Thread(target=lambda: self.execute(args))
@@ -38,69 +38,77 @@ class Sink(ActionListener):
 			# add some components to the dialog
 			self.sd.addDialogFile("Input file", "Input DEM File:", "open", "Whitebox Raster Files (*.dep), DEP", True, False)
 			self.sd.addDialogFile("Output file", "Output Raster File:", "close", "Whitebox Raster Files (*.dep), DEP", True, False)
-
+			self.sd.addDialogCheckBox("Set the background value to NoData?", "Set the background value to NoData?", True)
+			
 			# resize the dialog to the standard size and display it
 			self.sd.setSize(800, 400)
 			self.sd.visible = True
 		
 	def execute(self, args):
 		try:
+			if len(args) != 3:
+				pluginHost.showFeedback("Incorrect number of arguments given to tool.")
+				return
+                
 			inputfile = args[0]
 			outputfile = args[1]
-
+			backgroundVal = 0.0
+				
 			# fill the depressions in the DEM, being sure to 
 			# run on a dedicated thread and supressing
 			# the return data (automatically displayed image)
-			outputfile2 = outputfile.replace(".dep", "_temp.dep")
-			args2 = [inputfile, outputfile2, "0.0"]
+			args2 = [inputfile, outputfile, "0.0"]
 			pluginHost.runPlugin("FillDepressions", args2, False, True)
 
-			# flag the cells that have been affected by the filling.
+			# measure the depth in sink.
 			inputraster = WhiteboxRaster(inputfile, 'r')
-			tempraster = WhiteboxRaster(outputfile2, 'rw')
-			rows = tempraster.getNumberRows()
-			cols = tempraster.getNumberColumns()
+			outputraster = WhiteboxRaster(outputfile, 'rw')
+			rows = outputraster.getNumberRows()
+			cols = outputraster.getNumberColumns()
 			nodata = inputraster.getNoDataValue()
-
+			
+			if args[2] == "true":
+				backgroundVal = nodata
+				outputraster.setPreferredPalette("spectrum.plt")
+			else:
+				outputraster.setPreferredPalette("spectrum_black_background.plt")
+			
 			oldprogress = -1
 			for row in xrange(0, rows):
 				for col in xrange(0, cols):
 					z1 = inputraster.getValue(row, col)
-					z2 = tempraster.getValue(row, col)
+					z2 = outputraster.getValue(row, col)
 					if z1 != nodata:
 						if z1 < z2:
-							tempraster.setValue(row, col, 1.0)
+							outputraster.setValue(row, col, z2 - z1)
 						else:
-							tempraster.setValue(row, col, 0.0)
+							outputraster.setValue(row, col, backgroundVal)
 					else:
-						tempraster.setValue(row, col, nodata)
+						outputraster.setValue(row, col, nodata)
 				
-				progress = (int)((100.0 * (row + 1.0)) / rows)
+				progress = (int)(100.0 * row / (rows - 1))
 				if progress > oldprogress:
 					oldprogress = progress
 					pluginHost.updateProgress(progress)
 				if pluginHost.isRequestForOperationCancelSet():
 					pluginHost.showFeedback("Operation cancelled")
 					return
-					
-			tempraster.flush()
-
-			# clump the filled cells, being sure to 
-			# run on a dedicated thread and supressing
-			# the return data (automatically displayed image)
-			args2 = [outputfile2, outputfile, 'true', 'true']
-			pluginHost.runPlugin("Clump", args2, False, True)
-
-			inputraster.close()
 			
-			# delete the temporary file
-			os.remove(outputfile2)
-			os.remove(outputfile2.replace(".dep", ".tas"))
+			inputraster.close()
+
+			outputraster.flush()
+			outputraster.findMinAndMaxVals()
+			outputraster.setDisplayMinimum(outputraster.getMinimumValue())
+			outputraster.setDisplayMaximum(outputraster.getMaximumValue())
+			outputraster.close()
 			
 			# display the final output
 			pluginHost.returnData(outputfile)
+
+			pluginHost.updateProgress(0)
 			
-		except:
+		except Exception, e:
+			pluginHost.logException("Error in DepthInSink", e)
 			pluginHost.showFeedback("Error during script execution.")
 			return
 
@@ -114,4 +122,4 @@ class Sink(ActionListener):
 if args is None:
 	pluginHost.showFeedback("The arguments array has not been set.")
 else:	
-	Sink(args)
+	DepthInSink(args)

@@ -126,7 +126,7 @@ public class SplashWindow extends JWindow {
             g2d.drawString(str, x, y);
             str = "Dr. John Lindsay (Lead Developer)";
             g2d.drawString(str, x, y + 2 * dY);
-            //str = "The Centre for Hydrogeomatics";
+            //str = "The Department of Geography";
             //g2d.drawString(str, x, y + 3 * dY);
             str = "The University of Guelph, Canada";
             g2d.drawString(str, x, y + 3 * dY);

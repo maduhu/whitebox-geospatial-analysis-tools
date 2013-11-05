@@ -89,7 +89,7 @@ public class AboutWhitebox extends JDialog implements ActionListener {
         JScrollPane scroll = new JScrollPane(contributors);
         StringBuilder strBuilder = new StringBuilder();
         strBuilder.append("Dr. John Lindsay (Lead Developer)\n");
-        strBuilder.append("Centre for Hydrogeomatics\n");
+        strBuilder.append("Department of Geography\n");
         strBuilder.append("The University of Guelph, Canada\n");
         strBuilder.append("e-mail: jlindsay@uoguelph.ca\n\n");
         

@@ -19,6 +19,14 @@ greatly increased performance.
 
 RELEASE NOTES:
 
+Version 3.0.8 ()
+-Added the TraceDownslopeFlowpath tool.
+-Fixed a bug with the FD8 and Dinf flow accumulation tools that allowed for 
+ stack overflow errors if the DEM was large or contained a very long flow path.
+-Fixed a bug in the generate data functionality of the data base viewer/scripter.
+-Added Depth-In-Sink tool.
+
+
 Version 3.0.7 (Oct. 28, 2013)
 -Added preliminary support for multi-feature selection.
 -Fixed error in Find Tie Points tool.
