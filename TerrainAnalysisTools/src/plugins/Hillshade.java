@@ -27,7 +27,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class Hillshade implements WhiteboxPlugin {
-    
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
 
@@ -50,7 +50,7 @@ public class Hillshade implements WhiteboxPlugin {
      */
     @Override
     public String getDescriptiveName() {
-    	return "Hillshade";
+        return "Hillshade";
     }
 
     /**
@@ -60,7 +60,7 @@ public class Hillshade implements WhiteboxPlugin {
      */
     @Override
     public String getToolDescription() {
-    	return "This tool calculates a hillshade grid from a digital elevation model (DEM).";
+        return "This tool calculates a hillshade grid from a digital elevation model (DEM).";
     }
 
     /**
@@ -70,8 +70,8 @@ public class Hillshade implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "SurfDerivatives" };
-    	return ret;
+        String[] ret = {"SurfDerivatives"};
+        return ret;
     }
 
     /**
@@ -111,10 +111,9 @@ public class Hillshade implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
-
     private int previousProgress = 0;
     private String previousProgressLabel = "";
-    
+
     /**
      * Used to communicate a progress update between a plugin tool and the main
      * Whitebox user interface.
@@ -123,8 +122,8 @@ public class Hillshade implements WhiteboxPlugin {
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
@@ -143,7 +142,7 @@ public class Hillshade implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
-    
+
     /**
      * Sets the arguments (parameters) used by the plugin.
      *
@@ -153,9 +152,8 @@ public class Hillshade implements WhiteboxPlugin {
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
     private boolean cancelOp = false;
-    
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
      *
@@ -165,14 +163,13 @@ public class Hillshade implements WhiteboxPlugin {
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
     private boolean amIActive = false;
-    
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
      *
@@ -187,10 +184,10 @@ public class Hillshade implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
+
         String inputHeader = null;
         String outputHeader = null;
-        
+
         final double radToDeg = 180 / Math.PI;
         final double degToRad = Math.PI / 180;
         double azimuth = 315 * degToRad;
@@ -206,29 +203,20 @@ public class Hillshade implements WhiteboxPlugin {
         int row, col;
         double fx, fy, aspect;
         double gridRes, eightGridRes;
-        double minVal = Double.MAX_VALUE;
-        double maxVal = -Double.MAX_VALUE;
         double[] N = new double[8];
         double term1, term2, term3;
-        
+        double outNoData = -32768;
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
-        for (int i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                azimuth = (Double.parseDouble(args[i]) - 90) * degToRad;
-            } else if (i == 3) {
-                altitude = Double.parseDouble(args[i]) * degToRad;
-            } else if (i == 4) {
-                zFactor = Double.parseDouble(args[i]);
-            }
-        }
+
+        inputHeader = args[0];
+        outputHeader = args[1];
+        azimuth = (Double.parseDouble(args[2]) - 90) * degToRad;
+        altitude = Double.parseDouble(args[3]) * degToRad;
+        zFactor = Double.parseDouble(args[4]);
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
@@ -242,7 +230,7 @@ public class Hillshade implements WhiteboxPlugin {
 
             WhiteboxRaster inputFile = new WhiteboxRaster(inputHeader, "r");
             inputFile.isReflectedAtEdges = true;
-            
+
             int rows = inputFile.getNumberRows();
             int cols = inputFile.getNumberColumns();
             gridRes = inputFile.getCellSizeX();
@@ -253,8 +241,12 @@ public class Hillshade implements WhiteboxPlugin {
 
             double noData = inputFile.getNoDataValue();
 
-            WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
+            WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.INTEGER, outNoData);
+            outputFile.setNoDataValue(outNoData);
             outputFile.setPreferredPalette("grey.pal");
+
+            long[] histo = new long[256];
+            long numCells = 0;
 
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
@@ -283,15 +275,10 @@ public class Hillshade implements WhiteboxPlugin {
                         } else {
                             z = 0.5;
                         }
-                        if (z > maxVal) {
-                            maxVal = z;
-                        }
-                        if (z < minVal) {
-                            minVal = z;
-                        }
+                        z = (int) (z * 255);
+                        histo[(int) z]++;
+                        numCells++;
                         outputFile.setValue(row, col, z);
-                    } else {
-                        outputFile.setValue(row, col, noData);
                     }
                 }
 
@@ -299,30 +286,37 @@ public class Hillshade implements WhiteboxPlugin {
                     cancelOperation();
                     return;
                 }
-                progress = (int)(100f * row / (rows - 1));
-                updateProgress("Loop 1 of 2", progress);
+                progress = (int) (100f * row / (rows - 1));
+                updateProgress(progress);
             }
 
-            outputFile.setMaximumValue(1.0);
-            outputFile.setMinimumValue(0.0);
-            double range = maxVal - minVal;
-            double value;
-            for (row = 0; row < rows; row++) {
-                for (col = 0; col < cols; col++) {
-                    z = outputFile.getValue(row, col);
-                    if (z != noData) {
-                        value = (z - minVal) / range;
-                        outputFile.setValue(row, col, value);
-                    }
+            // trim the display min and max values by 1%
+            int newMin = 0;
+            int newMax = 0;
+            double targetCellNum = numCells * 0.01;
+            long sum = 0;
+            for (int c = 0; c < 256; c++) {
+                sum += histo[c];
+                if (sum >= targetCellNum) {
+                    newMin = c;
+                    break;
                 }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
-                progress = (int)(100f * row / (rows - 1));
-                updateProgress("Loop 2 of 2", (int) progress);
             }
-            
+
+            sum = 0;
+            for (int c = 255; c >= 0; c--) {
+                sum += histo[c];
+                if (sum >= targetCellNum) {
+                    newMax = c;
+                    break;
+                }
+            }
+
+            if (newMax > newMin) {
+                outputFile.setDisplayMinimum((double) newMin);
+                outputFile.setDisplayMaximum((double) newMax);
+            }
+
             outputFile.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             outputFile.addMetadataEntry("Created on " + new Date());
@@ -332,7 +326,7 @@ public class Hillshade implements WhiteboxPlugin {
 
             // returning a header file string displays the image.
             returnData(outputHeader);
-            
+
         } catch (Exception e) {
             showFeedback(e.getMessage());
         } finally {
