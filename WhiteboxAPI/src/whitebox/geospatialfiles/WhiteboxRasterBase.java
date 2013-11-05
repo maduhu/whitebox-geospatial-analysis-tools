@@ -907,9 +907,15 @@ public abstract class WhiteboxRasterBase {
      * @return An array of doubles containing the values store in the specified row.
      */
     public double[] getRowValues(int row) {
-        if (row < 0 || row >= numberRows) { return null; }
-        
         double[] retVals = new double[numberColumns];
+        
+        if (row < 0 || row >= numberRows) { 
+            for (int i = 0; i < numberColumns; i++) {
+                retVals[i] = noDataValue;
+            }
+            return retVals; 
+        }
+        
         RandomAccessFile rIn = null;
         ByteBuffer buf = null;
         

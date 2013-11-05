@@ -486,7 +486,11 @@ public class VectorLayerInfo implements MapLayer {
         this.pcs.firePropertyChange("selectedFeatureNumber", -1, selectedFeatureNumber);
     }
 
-    private void deselectFeature(int recordNumber) {
+    /**
+     * Deselects a feature from a vector layer.
+     * @param recordNumber the record index number
+     */
+    public void deselectFeature(int recordNumber) {
         if (selectedFeatures[recordNumber]) {
             selectedFeatures[recordNumber] = false;
             // remove it from the list of selected features
@@ -503,7 +507,7 @@ public class VectorLayerInfo implements MapLayer {
         selectedFeatures = new boolean[shapefile.getNumberOfRecords() + 1];
         selectedFeatureNumbers.clear();
 
-        int oldValue = this.selectedFeatureNumber;
+//        int oldValue = this.selectedFeatureNumber;
         this.selectedFeatureNumber = -1;
         this.pcs.firePropertyChange("selectedFeatureNumber", -1, selectedFeatureNumber);
     }
@@ -529,6 +533,7 @@ public class VectorLayerInfo implements MapLayer {
      * @param recordNumber The one-based record ID.
      */
     public boolean isFeatureSelected(int recordNumber) {
+        if (recordNumber >= selectedFeatures.length) { return false; }
         return selectedFeatures[recordNumber];
     }
     private ArrayList<Integer> selectedFeatureNumbers = new ArrayList<>();
@@ -1243,6 +1248,21 @@ public class VectorLayerInfo implements MapLayer {
             }
         }
     }
+    
+    /**
+     * Used to select a feature contained in the vector.
+     * 
+     * @param recordNumber the record index number
+     */
+    public void selectFeature(int recordNumber) {
+        if (!selectedFeatures[recordNumber]) {
+            selectedFeatures[recordNumber] = true;
+            // add it from the list of selected features
+            selectedFeatureNumbers.add(new Integer(recordNumber));
+
+            this.pcs.firePropertyChange("selectedFeatureNumber", -2, recordNumber);
+        }
+    }
 
     /**
      * Used to select a feature contained in the vector based on bounding box.
@@ -1285,7 +1305,7 @@ public class VectorLayerInfo implements MapLayer {
             // have to add something here for multipoints.
         }
     }
-
+    
     /**
      * Used to select a feature contained in the vector based on the coordinates
      * of a point.
