@@ -23,10 +23,11 @@ import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class FlowAccumDinf implements WhiteboxPlugin {
-    
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
     WhiteboxRaster pointer;
@@ -38,51 +39,67 @@ public class FlowAccumDinf implements WhiteboxPlugin {
     double gridRes = 1;
     double[] startFD = new double[]{180, 225, 270, 315, 0, 45, 90, 135};
     double[] endFD = new double[]{270, 315, 360, 45, 90, 135, 180, 225};
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "FlowAccumDinf";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "D-infinity Flow Accumulation";
+        return "D-infinity Flow Accumulation";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "Performs an D-infinity flow accumulation operation on a "
+        return "Performs an D-infinity flow accumulation operation on a "
                 + "specified digital elevation model (DEM).";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "FlowAccum" };
-    	return ret;
+        String[] ret = {"FlowAccum"};
+        return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -92,8 +109,11 @@ public class FlowAccumDinf implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -101,24 +121,29 @@ public class FlowAccumDinf implements WhiteboxPlugin {
             myHost.returnData(ret);
         }
     }
-
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -127,34 +152,39 @@ public class FlowAccumDinf implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
-     */ 
+     *
+     * @param args
+     */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -164,7 +194,7 @@ public class FlowAccumDinf implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
+
         String inputHeader = null;
         String outputHeader = null;
         int row, col, x, y;
@@ -177,13 +207,13 @@ public class FlowAccumDinf implements WhiteboxPlugin {
         boolean logTransform = false;
         String outputType = null;
         double flowDir;
-        
-        
+
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
+
         for (i = 0; i < args.length; i++) {
             if (i == 0) {
                 inputHeader = args[i];
@@ -208,19 +238,20 @@ public class FlowAccumDinf implements WhiteboxPlugin {
             int cols = pointer.getNumberColumns();
             noData = pointer.getNoDataValue();
             gridRes = pointer.getCellSizeX();
-                    
-            output = new WhiteboxRaster(outputHeader, "rw", 
+
+            output = new WhiteboxRaster(outputHeader, "rw",
                     inputHeader, WhiteboxRaster.DataType.FLOAT, 1);
             output.setPreferredPalette("blueyellow.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
             output.setZUnits("dimensionless");
-            
-            tmpGrid = new WhiteboxRaster(outputHeader.replace(".dep", 
+
+            tmpGrid = new WhiteboxRaster(outputHeader.replace(".dep",
                     "_temp.dep"), "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
             tmpGrid.isTemporaryFile = true;
-            
+
             // Calculate the number of inflowing neighbours to each cell.
-            updateProgress("Loop 1 of 3:", 0);
+            int loopNum = 1;
+            updateProgress("Loop " + loopNum + ":", 0);
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     flowDir = pointer.getValue(row, col);
@@ -232,9 +263,13 @@ public class FlowAccumDinf implements WhiteboxPlugin {
                             flowDir = pointer.getValue(y, x);
                             if (flowDir >= 0 && flowDir <= 360) {
                                 if (c != 3) {
-                                    if (flowDir > startFD[c] && flowDir < endFD[c]) { i++; }
+                                    if (flowDir > startFD[c] && flowDir < endFD[c]) {
+                                        i++;
+                                    }
                                 } else {
-                                    if (flowDir > startFD[c] || flowDir < endFD[c]) { i++; }
+                                    if (flowDir > startFD[c] || flowDir < endFD[c]) {
+                                        i++;
+                                    }
                                 }
                             }
                         }
@@ -248,27 +283,35 @@ public class FlowAccumDinf implements WhiteboxPlugin {
                     return;
                 }
                 progress = (float) (100f * row / (rows - 1));
-                updateProgress("Loop 1 of 3:", (int) progress);
+                updateProgress("Loop " + loopNum + ":", (int) progress);
             }
 
-            updateProgress("Loop 2 of 3:", 0);
-            for (row = 0; row < rows; row++) {
-                for (col = 0; col < cols; col++) {
-                    if (tmpGrid.getValue(row, col) == 0) { //there are no 
-                        //remaining inflowing neighbours, send its current 
-                        //flow accum val downslope
-                        DinfAccum(row, col);
+            boolean somethingDone;
+            do {
+                loopNum++;
+                updateProgress("Loop " + loopNum + ":", 0);
+                somethingDone = false;
+                for (row = 0; row < rows; row++) {
+                    for (col = 0; col < cols; col++) {
+                        if (tmpGrid.getValue(row, col) == 0) { //there are no 
+                            //remaining inflowing neighbours, send its current 
+                            //flow accum val downslope
+                            currentDepth = 0;
+                            somethingDone = true;
+                            DinfAccum(row, col);
+                        }
                     }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (float) (100f * row / (rows - 1));
+                    updateProgress("Loop " + loopNum + ":", (int) progress);
                 }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
-                progress = (float) (100f * row / (rows - 1));
-                updateProgress("Loop 2 of 3:", (int) progress);
-            }
-            
-            updateProgress("Loop 3 of 3:", 0);
+            } while (somethingDone);
+
+            loopNum++;
+            updateProgress("Loop " + loopNum + ":", 0);
             if (outputType.equals("specific catchment area (sca)")) {
                 for (row = 0; row < rows; row++) {
                     for (col = 0; col < cols; col++) {
@@ -283,7 +326,7 @@ public class FlowAccumDinf implements WhiteboxPlugin {
                         return;
                     }
                     progress = (float) (100f * row / (rows - 1));
-                    updateProgress("Loop 3 of 3:", (int) progress);
+                    updateProgress("Loop " + loopNum + ":", (int) progress);
                 }
             } else if (outputType.equals("total catchment area")) {
                 double gridCellArea = gridRes * gridRes;
@@ -300,11 +343,11 @@ public class FlowAccumDinf implements WhiteboxPlugin {
                         return;
                     }
                     progress = (float) (100f * row / (rows - 1));
-                    updateProgress("Loop 3 of 3:", (int) progress);
+                    updateProgress("Loop " + loopNum + ":", (int) progress);
                 }
 
             }
-            
+
             if (logTransform) {
                 for (row = 0; row < rows; row++) {
                     for (col = 0; col < cols; col++) {
@@ -319,14 +362,14 @@ public class FlowAccumDinf implements WhiteboxPlugin {
                         return;
                     }
                     progress = (float) (100f * row / (rows - 1));
-                    updateProgress("Loop 3 of 3:", (int) progress);
+                    updateProgress("Loop " + loopNum + ":", (int) progress);
                 }
             }
-            
+
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
-            
+
             pointer.close();
             tmpGrid.close();
             output.close();
@@ -336,6 +379,7 @@ public class FlowAccumDinf implements WhiteboxPlugin {
 
         } catch (Exception e) {
             showFeedback(e.getMessage());
+            myHost.logException("Error in FlowAccumDinf", e);
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.
@@ -344,6 +388,9 @@ public class FlowAccumDinf implements WhiteboxPlugin {
         }
     }
     
+    int currentDepth;
+    final int maxDepth = 1000;
+
     private void DinfAccum(int row, int col) {
         double flowAccumVal = output.getValue(row, col);
         double flowDir = pointer.getValue(row, col);
@@ -354,8 +401,13 @@ public class FlowAccumDinf implements WhiteboxPlugin {
         int a2 = 0;
         int b2 = 0;
 
-        tmpGrid.setValue(row, col, -1); // 'this ensures that you don't process this cell a second time.
-        
+        currentDepth++;
+        if (currentDepth > maxDepth) {
+            return;
+        }
+
+        tmpGrid.setValue(row, col, -1); // this ensures that you don't process this cell a second time.
+
         if (flowDir >= 0) {
             // find which two cells receive flow and the proportion to each
             if (flowDir >= 0 && flowDir < 45) {
@@ -417,19 +469,20 @@ public class FlowAccumDinf implements WhiteboxPlugin {
             }
 
             if (proportion1 > 0 && output.getValue(b1, a1) != noData) {
-                output.setValue(b1, a1, output.getValue(b1, a1) + flowAccumVal * proportion1);
-                tmpGrid.setValue(b1, a1, tmpGrid.getValue(b1, a1) - 1);
+                output.incrementValue(b1, a1, flowAccumVal * proportion1);
+                tmpGrid.decrementValue(b1, a1);
                 if (tmpGrid.getValue(b1, a1) == 0) {
                     DinfAccum(b1, a1);
                 }
             }
             if (proportion2 > 0 && output.getValue(b2, a2) != noData) {
-                output.setValue(b2, a2, output.getValue(b2, a2) + flowAccumVal * proportion2);
-                tmpGrid.setValue(b2, a2, tmpGrid.getValue(b2, a2) - 1);
+                output.incrementValue(b2, a2, flowAccumVal * proportion2);
+                tmpGrid.decrementValue(b2, a2);
                 if (tmpGrid.getValue(b2, a2) == 0) {
                     DinfAccum(b2, a2);
                 }
             }
         }
+        currentDepth--;
     }
 }
