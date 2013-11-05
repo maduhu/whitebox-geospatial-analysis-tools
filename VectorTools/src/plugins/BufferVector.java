@@ -427,7 +427,7 @@ public class BufferVector implements WhiteboxPlugin {
                 com.vividsolutions.jts.geom.Polygon pBuffer = (com.vividsolutions.jts.geom.Polygon) buffer;
                 com.vividsolutions.jts.geom.Geometry g = pBuffer.getGeometryN(0);
                 if (g instanceof com.vividsolutions.jts.geom.Polygon) {
-                    ArrayList<ShapefilePoint> pnts = new ArrayList<ShapefilePoint>();
+                    ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
                     int[] parts = new int[pBuffer.getNumInteriorRing() + 1];
 
