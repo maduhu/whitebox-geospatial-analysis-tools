@@ -44,7 +44,7 @@ public class RotationTranslationEstimator {
 		Matrix RT = new Matrix(new double[][] { new double[] { 0, -1, 0 },
 				new double[] { 1, 0, 0 }, new double[] { 0, 0, 1 } });
 
-		List<Matrix> matrices = new ArrayList<Matrix>(4);
+		List<Matrix> matrices = new ArrayList<>(4);
 
 		matrices.add(svd.getU().times(RT).times(svd.getV().transpose()));
 		matrices.add(svd.getU().times(RT).times(svd.getV().transpose()).times(-1));

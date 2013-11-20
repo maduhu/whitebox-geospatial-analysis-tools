@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import photogrammetry.util.model.Feature;
-import photogrammetry.util.model.Image;
 import photogrammetry.util.model.Point3d;
 import photogrammetry.util.model.SceneView;
 import photogrammetry.util.model.models.Model;
@@ -71,7 +70,7 @@ public class MultipleViewReconstructor {
      * images two models)
      */
     private List<List<Model>> createModels(List<Pair<SceneView, SceneView>> imgList) {
-        List<List<Model>> modelList = new ArrayList<List<Model>>();
+        List<List<Model>> modelList = new ArrayList<>();
         for (Pair<SceneView, SceneView> p : imgList) {
             modelList.add(TwoViewReconstructor.getPossibleModels(camera, p.a, p.b, false));
         }
