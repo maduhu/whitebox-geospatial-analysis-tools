@@ -247,7 +247,7 @@ public class Hillshade implements WhiteboxPlugin {
 
             long[] histo = new long[256];
             long numCells = 0;
-
+            int index;
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     z = inputFile.getValue(row, col);
@@ -275,7 +275,10 @@ public class Hillshade implements WhiteboxPlugin {
                         } else {
                             z = 0.5;
                         }
-                        z = (int) (z * 255);
+                        z = (int)(z * 255);
+                        if (z < 0) {
+                            z = 0;
+                        }
                         histo[(int) z]++;
                         numCells++;
                         outputFile.setValue(row, col, z);
@@ -328,7 +331,8 @@ public class Hillshade implements WhiteboxPlugin {
             returnData(outputHeader);
 
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            showFeedback("Error in " + getDescriptiveName() + " tool. Please check the log file for details.");
+            myHost.logException("Error in Hillshade", e);
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.
