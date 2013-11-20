@@ -397,9 +397,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // Issue a warning if Whitebox is being run on 32-bit JRE on a 64-bit machine, at least on Windows
             if (System.getProperty("os.name").toLowerCase().contains("Windows")) {
-                if (System.getProperty("sun.arch.data.model").contains("32") &&
+                if (!System.getProperty("sun.arch.data.model").contains("32") &&
                         (System.getenv("ProgramFiles(x86)") != null)) {
-                    String str = "WARNGING: Whitebox is running on a 32-bit Java runtime which could lead to memory errors.";
+                    String str = "WARNGING: Whitebox is running on a 32-bit Java runtime which could lead to out-of-memory errors \n"
+                            + "when handling large files. It is advisable that you uninstall the 32-bit version of Java and \n"
+                            + "download and install the 64-bit version. This will allow Whitebox to take fuller advantage of \n"
+                            + "the RAM resources of your computer.";
+                    returnData(str);
                     status.setMessage(str);
                 } 
             }
@@ -2009,7 +2013,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
             sb.append("      ").append(wba.getMessage()).append("\n");
             if (!wba.getDate().isEmpty()) {
-                sb.append("<br>Date: ").append(wba.getDate());
+                sb.append("<p>Date: ").append(wba.getDate());
             }
             sb.append("    </p>\n");
         }
@@ -4132,6 +4136,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
                 }
                 recentFilesMenu.addMenuItem(files[i].toString());
+                recentFilesMenu2.addMenuItem(files[i].toString());
                 recentFilesPopupMenu.addMenuItem(files[i].toString());
             }
             if (files.length > 1) {
@@ -4214,6 +4219,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
 
         recentFilesMenu.addMenuItem(fileName);
+        recentFilesMenu2.addMenuItem(fileName);
         recentFilesPopupMenu.addMenuItem(fileName);
 
         refreshMap(true);

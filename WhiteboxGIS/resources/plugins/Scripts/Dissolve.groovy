@@ -133,8 +133,6 @@ public class Dissolve implements ActionListener {
 				pluginHost.runPlugin("BufferVector", args2, false, true)
 			
 			} else {
-//				def input = new ShapeFile(inputFile)
-//				ShapeType shapeType = input.getShapeType()
 	            int numFeatures = input.getNumberOfRecords()
 	            AttributeTable table = input.getAttributeTable()
 	            DBFField[] inputFields = table.getAllFields();

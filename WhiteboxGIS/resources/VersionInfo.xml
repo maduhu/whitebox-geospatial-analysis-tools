@@ -1,33 +1,40 @@
 <?xml version="1.0"?>
 <VersionInfo>
     <VersionName>"3.0 'Iguazu'"</VersionName>
-    <VersionNumber>"3.0.6"</VersionNumber>
+    <VersionNumber>"3.0.7"</VersionNumber>
     <DownloadLocation>"http://code.google.com/p/whitebox-geospatial-analysis-tools/downloads/list"</DownloadLocation>
-    <Announcements number="8">
+    <Announcements number="10">
         <Announcement>
-            <Date>2013-10-19</Date>
+            <Date>2013-11-15</Date>
             <Language>en</Language>
-            <Title>Whitebox Version 3.0.6 has been released</Title>
-            <Message><![CDATA[<p>This version includes the following updates:</p>
-                    <ul>
-                    <li>Added ImportWellKnownText tool.</li>
-                    <li>Fixed a bug in the RenameFile script</li>
-                    <li>Re-wrote the IDW LiDAR interpolation tool to remove an edge effect at tile 
-                     boundaries and to reduce a surface texturing artifact that can appear in some 
-                     LiDAR datasets associated with a scan angle patterning at flight-line overlaps.</li>
-                    <li>Updated Groovy to version 2.1.8</li>
-                    <li>Added Correct Vignetting tool.</li>
-                    <li>Added image de-striping tool.</li>
-                    <li>Added Find Flightline Edge Points tool.</li>
-                    <li>Added Find Tie-points tool</li>
-                    <li>Added the ability to delete recently digitized nodes.</li>
-                    <li>Fixed a bug that allowed for the outlines of polygons under other polygons to 
-                     show through.</li>
-                </ul>]]>
+            <Title>Join the Whitebox Listserv</Title>
+            <Message><![CDATA[<p>If you would like to join the <i>Whitebox GAT listserv</i> 
+                    send an email message to <b><i>listserv@listserv.uoguelph.ca</i></b> that 
+                    says only:</p>
+                    <p><code><b>SUBSCRIBE whitebox-gat <i>your name</i></b></code></p>
+                    <p>If you have an email signature, be sure to delete it from your message.
+                    To post a message, email <b><i>whitebox-gat@listserv.uoguelph.ca</i></b>.</p>
+                    <p>You can use the listserv to get help from Whitebox experts and offer your 
+                    expertise to the Whitebox user community. It's also a great way to catch 
+                    up on recent developments.</p><]]>
+            </Message>
+        </Announcement>
+        <Announcement>
+            <Date>2013-11-12</Date>
+            <Language>en</Language>
+            <Title>Check your Java version if you are running on MS Windows</Title>
+            <Message><![CDATA[<p>The default Java Runtime Environment (JRE) for download 
+                        on the Oracle site for computers running Microsoft Windows OS is
+                        the 32-bit version even if you are running a 64-bit version of the 
+                        operating system. This will severely limit the amount of memory 
+                        that Whitebox can access and will affect performance and can lead 
+                        to out-of-memory errors when handling large files. Given the 
+                        large number of Windows users, this affects many people.</p>
+                        <p>You can check what version of the JRE Whitebox is running 
+                        under by selecting <b>Options and Settings</b> under the <b>View</b> 
+                        menu. If you are running the 32-bit version on a 64-bit computer 
+                        it would be advisable to upgrade your Java to the 64-bit version.</p><]]>
             </Message>
         </Announcement>
     </Announcements>
-    <xhtml:script xmlns:xhtml="http://www.w3.org/1999/xhtml"
-                src="googleAnalytics.js"
-                type="application/javascript"/>
 </VersionInfo>

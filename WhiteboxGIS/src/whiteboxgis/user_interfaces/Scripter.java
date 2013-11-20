@@ -24,6 +24,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.*;
 import java.lang.reflect.*;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -821,7 +822,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                     && e.getKeyCode() != KeyEvent.VK_RIGHT) {
                 editorDirty = true;
             }
-            if (e.getKeyCode() == 10) { //pressed enter
+            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                 if (editor.getLineCount() != numLinesInDoc) {
                     scanDoc();
                     numLinesInDoc = editor.getLineCount();
@@ -904,6 +905,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         listOfImportedVariables.clear();
         listOfImportedMethods.clear();
         listOfMethodReturns.clear();
+        variableClassMap.clear();
         setupAutocomplete();
 
 //        ArrayList<String> jars = FileUtilities.findAllFilesWithExtension(new File(host.getApplicationDirectory()), ".jar", true);
@@ -933,6 +935,8 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 //            importClass("groovy.util.*");
 //        }
     }
+    
+    Map<String, String> variableClassMap = new HashMap<>();
 
     private boolean scanDoc() {
         try {
@@ -944,7 +948,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
             for (String line : lines) {
                 line = line.replace("\t", "");
-                if (!line.isEmpty()) {
+                if (!line.isEmpty() && !line.startsWith(language.getCommentMarker())) {
                     if (line.startsWith("import")) {
                         // import a class
                         String className = line.replace("import", "").trim();
@@ -957,7 +961,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                         if (!listOfImportedClasses.contains(className)) {
                             importClass(className);
                         }
-                    } else if (line.contains("=") && !line.contains("==")) {
+                    } else if (line.contains("=") && !line.contains("==") && !line.contains("!=")) {
                         // variable definition
                         // first find the name of the variable
                         String[] s1 = line.split("=");
@@ -990,6 +994,9 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                                             && variableType.endsWith("]")
                                             && !variableType.contains(":")) {
                                         className = "java.util.MapWithDefault";
+                                    } else if (listOfImportedVariables.contains(variableType)) {
+                                        // it is being assigned another variable. Use the other variable's class
+                                        className = variableClassMap.get(variableType);
                                     } else if (variableType.contains("(")) {
                                         variableType = s1[1].substring(0, s1[1].indexOf("(")).replace(" new ", "").trim();
                                         // is the type known?String className = null;
@@ -1041,6 +1048,9 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                                                 break;
                                             }
                                         }
+                                    } else if (listOfImportedVariables.contains(variableType)) {
+                                        // it is being assigned another variable. Use the other variable's class
+                                        className = variableClassMap.get(variableType);
                                     } else if (className == null) {
                                         className = "org.python.core.PyObject";
                                     }
@@ -1050,6 +1060,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                                 }
 
                                 importVariableAs(variableName, className);
+                                variableClassMap.put(variableName, className);
 
                             }
                         }
@@ -1865,7 +1876,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             case "copy":
                 editor.copy();
                 break;
-            case "past":
+            case "paste":
                 editor.paste();
                 resetAutocompletion();
                 scanDoc();

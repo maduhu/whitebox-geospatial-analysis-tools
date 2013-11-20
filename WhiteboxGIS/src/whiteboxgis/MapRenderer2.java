@@ -705,7 +705,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         (CartographicElementGroup) ce, dashed);
             }
         }
-
+        
         if (group.isSelected()) {
             Color selectedColour = Color.BLACK;
             PageFormat pageFormat = map.getPageFormat();
@@ -1180,7 +1180,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
             }
             if (neatLine.isVisible() || neatLine.isSelected()) {
-                if (neatLine.isBorderVisible()) {
+                if (neatLine.isBorderVisible() || neatLine.isSelected()) {
                     Stroke oldStroke = g2.getStroke();
                     if (neatLine.isSelected() && !printingMap) {
                         g2.setColor(selectedColour);
@@ -2081,7 +2081,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.setColor(lineColour);
                                                             g2.draw(gp);
                                                         }
-                                                        if (activeLayerBool && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
+                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
                                                             g2.setColor(selectedFeatureColour);
                                                             g2.draw(gp);
                                                         }
@@ -2151,7 +2151,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                                 g2.setColor(lineColour);
                                                                 g2.draw(gp);
                                                             }
-                                                            if (activeLayerBool && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
+                                                            if (activeLayerBool && layer.getNumSelectedFeatures() > 0 && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
                                                                 g2.setColor(selectedFeatureColour);
                                                                 g2.draw(gp);
                                                             }
@@ -2237,7 +2237,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                     }
                                                 }
 
-                                                if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
+                                                if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT &&
+                                                        layer.getNumSelectedFeatures() > 0) {
                                                     BoundingBox bb = record.getGeometry().getBox();
                                                     if (bb.isPointInBox(mapX, mapY)) {
                                                         g2.setColor(selectionBoxColour);
@@ -2310,7 +2311,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                         myStroke =
                                                                 new BasicStroke(layer.getLineThickness(),
                                                                 BasicStroke.CAP_BUTT,
-                                                                BasicStroke.JOIN_MITER,
+                                                                BasicStroke.JOIN_BEVEL,
                                                                 10.0f, layer.getDashArray(), 0.0f);
                                                     }
                                                     oldStroke = g2.getStroke();
@@ -2362,7 +2363,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             }
                                         }
 
-                                        if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
+                                        if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && 
+                                                layer.getNumSelectedFeatures() > 0) {
                                             g2.setColor(selectedFeatureColour);
                                             for (ShapeFileRecord record : records) {
                                                 if (layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {

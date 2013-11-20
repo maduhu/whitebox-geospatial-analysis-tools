@@ -245,14 +245,15 @@ public class FindTiePoints implements ActionListener {
 //            	rightTiePointsList.clear();
 //				includedList = new boolean[numTiePoints]
 //				
-//            	// chose some points at random to create a model from
+//            	// choose some points at random to create a model from
 //            	a = 0
 //            	k = 0
 //            	while (a < n) {
 //            		b = (int)(Math.random() * numTiePoints)
-//            		leftTiePointsList.add(tiePointsList[b][0]);
-//					rightTiePointsList.add(tiePointsList[b][1]);
+//            		
 //					if (!includedList[b]) {
+//						leftTiePointsList.add(tiePointsList[b][0]);
+//						rightTiePointsList.add(tiePointsList[b][1]);
 //						includedList[b] = true;
 //						a++
 //					}

@@ -203,10 +203,9 @@ public class TraceDownslopeFlowpaths implements ActionListener {
             	int numPoints = input.getNumberOfRecords();
             	double[][] points = new double[numPoints][2]
             	double[][] point
-            	
+
             	for (ShapeFileRecord record : input.records) {
-            		
-					point = record.getGeometry().getPoints()
+            	 	point = record.getGeometry().getPoints()
 
 					col = output.getColumnFromXCoordinate(point[0][0])
 					row = output.getRowFromYCoordinate(point[0][1])
@@ -219,7 +218,8 @@ public class TraceDownslopeFlowpaths implements ActionListener {
   						flag = false;
                         colN = col;
                         rowN = row;
-                        while (!flag) {
+                        
+						while (!flag) {
                             // find it's downslope neighbour
                             flowDir = pntr.getValue(rowN, colN);
                             if (flowDir > 0 && flowDir != nodata) {
@@ -227,6 +227,7 @@ public class TraceDownslopeFlowpaths implements ActionListener {
                                 c = (int) (Math.log(flowDir) / LnOf2);
                                 colN += dX[c];
                                 rowN += dY[c];
+
                                 //if the new cell already has a value in the output, use that as the outletID
                                 if (output.getValue(rowN, colN) != backgroundValue) {
                                     flag = true;
