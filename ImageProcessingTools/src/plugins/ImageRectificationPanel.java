@@ -42,7 +42,7 @@ import whitebox.structures.XYPoint;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ResourceBundle;
- 
+
 /**
  *
  * @author johnlindsay
@@ -220,6 +220,11 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
         polyOrderSpinner.setPreferredSize(new Dimension(15,
                 polyOrderSpinner.getPreferredSize().height));
         polyOrderSpinner.addChangeListener(this);
+
+        JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) polyOrderSpinner.getEditor();
+        editor.getTextField().setEnabled(true);
+        editor.getTextField().setEditable(false);
+
         box1.add(polyOrderSpinner);
         box1.add(Box.createHorizontalGlue());
         JLabel label = new JLabel("RMSE: " + df.format(overallRMSE));
@@ -248,16 +253,15 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
             dataValues[i][6] = useGCP[i];
         }
 
-        String columnNames[] = {"GCP", bundle.getString("Image") + " X", 
-            bundle.getString("Image") + " Y", bundle.getString("Map") + " X", 
+        String columnNames[] = {"GCP", bundle.getString("Image") + " X",
+            bundle.getString("Image") + " Y", bundle.getString("Map") + " X",
             bundle.getString("Map") + " Y", messages.getString("Error"), "Use"};
 
         DefaultTableModel tableModel = new DefaultTableModel(dataValues, columnNames);
 
         dataTable = new JTable(tableModel) {
-            
             private static final long serialVersionUID = 1L;
-            
+
             @Override
             public Class getColumnClass(int column) {
                 switch (column) {
@@ -311,7 +315,7 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
         }
         Component c = rendCol.getTableCellRendererComponent(dataTable, tc.getHeaderValue(), false, false, 0, 0);
         tc.setPreferredWidth(35);
-        
+
         tc = tcm.getColumn(6);
         rendCol = tc.getHeaderRenderer(); // likely null  
         if (rendCol == null) {
@@ -455,7 +459,7 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
                     numCoefficients++;
                 }
             }
-            
+
             for (i = 0; i < n; i++) {
                 imageX[i] -= imageXMin;
                 imageY[i] -= imageYMin;
@@ -749,11 +753,11 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
 //            TiePointTransformation tpt = new TiePointTransformation();
 //            tpt.setArgs(args);
 //            tpt.run();
-
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
     }
+    boolean isRunning = false;
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -765,11 +769,12 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
                 cancelOp = true;
                 break;
             case "ok":
-                //run();
-                cancelOp = false;
-                task = new Task();
-                task.addPropertyChangeListener(this);
-                task.execute();
+                if (!isRunning) { // you only want one of these threads running at a time.
+                    cancelOp = false;
+                    task = new Task();
+                    task.addPropertyChangeListener(this);
+                    task.execute();
+                }
                 break;
             case "cancel":
                 cancelOp = true;
@@ -803,16 +808,15 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        
+
         if (evt.getPropertyName().equals("progress")) {
             int progress = (Integer) evt.getNewValue();
             progressBar.setValue(progress);
-        } 
+        }
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-       
     }
 
     @Override
@@ -828,12 +832,10 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
 
     @Override
     public void mouseEntered(MouseEvent e) {
-        
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-        
     }
 
     class Task extends SwingWorker<Void, Void> {
@@ -843,144 +845,150 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
 
         @Override
         public Void doInBackground() {
-            WhiteboxRaster inputImage = new WhiteboxRaster(inputImageFile, "r");
+            try {
+                WhiteboxRaster inputImage = new WhiteboxRaster(inputImageFile, "r");
 
 
-            double image2North = inputImage.getNorth();
-            double image2South = inputImage.getSouth();
-            double image2West = inputImage.getWest();
-            double image2East = inputImage.getEast();
-            XYPoint topLeftCorner = getForwardCoordinates(image2West, image2North);
-            XYPoint topRightCorner = getForwardCoordinates(image2East, image2North);
-            XYPoint bottomLeftCorner = getForwardCoordinates(image2West, image2South);
-            XYPoint bottomRightCorner = getForwardCoordinates(image2East, image2South);
-            
-            // figure out the grid resolution
-            double vertCornerDist = Math.sqrt((topLeftCorner.x - bottomLeftCorner.x) * 
-                    (topLeftCorner.x - bottomLeftCorner.x) + 
-                    (topLeftCorner.y - bottomLeftCorner.y) * 
-                    (topLeftCorner.y - bottomLeftCorner.y));
+                double image2North = inputImage.getNorth();
+                double image2South = inputImage.getSouth();
+                double image2West = inputImage.getWest();
+                double image2East = inputImage.getEast();
+                XYPoint topLeftCorner = getForwardCoordinates(image2West, image2North);
+                XYPoint topRightCorner = getForwardCoordinates(image2East, image2North);
+                XYPoint bottomLeftCorner = getForwardCoordinates(image2West, image2South);
+                XYPoint bottomRightCorner = getForwardCoordinates(image2East, image2South);
 
-            double horizCornerDist = Math.sqrt((topLeftCorner.x - topRightCorner.x) * 
-                    (topLeftCorner.x - topRightCorner.x) + 
-                    (topLeftCorner.y - topRightCorner.y) * 
-                    (topLeftCorner.y - topRightCorner.y));
-            
-            double avgGridRes = (vertCornerDist / inputImage.getNumberRows() + 
-                    horizCornerDist / inputImage.getNumberColumns()) / 2.0;
-            
-            double outputNorth = Double.NEGATIVE_INFINITY;
-            double outputSouth = Double.POSITIVE_INFINITY;
-            double outputEast = Double.NEGATIVE_INFINITY;
-            double outputWest = Double.POSITIVE_INFINITY;
+                // figure out the grid resolution
+                double vertCornerDist = Math.sqrt((topLeftCorner.x - bottomLeftCorner.x)
+                        * (topLeftCorner.x - bottomLeftCorner.x)
+                        + (topLeftCorner.y - bottomLeftCorner.y)
+                        * (topLeftCorner.y - bottomLeftCorner.y));
 
-            if (topLeftCorner.y > outputNorth) {
-                outputNorth = topLeftCorner.y;
-            }
-            if (topLeftCorner.y < outputSouth) {
-                outputSouth = topLeftCorner.y;
-            }
-            if (topLeftCorner.x > outputEast) {
-                outputEast = topLeftCorner.x;
-            }
-            if (topLeftCorner.x < outputWest) {
-                outputWest = topLeftCorner.x;
-            }
+                double horizCornerDist = Math.sqrt((topLeftCorner.x - topRightCorner.x)
+                        * (topLeftCorner.x - topRightCorner.x)
+                        + (topLeftCorner.y - topRightCorner.y)
+                        * (topLeftCorner.y - topRightCorner.y));
 
-            if (topRightCorner.y > outputNorth) {
-                outputNorth = topRightCorner.y;
-            }
-            if (topRightCorner.y < outputSouth) {
-                outputSouth = topRightCorner.y;
-            }
-            if (topRightCorner.x > outputEast) {
-                outputEast = topRightCorner.x;
-            }
-            if (topRightCorner.x < outputWest) {
-                outputWest = topRightCorner.x;
-            }
+                double avgGridRes = (vertCornerDist / inputImage.getNumberRows()
+                        + horizCornerDist / inputImage.getNumberColumns()) / 2.0;
 
-            if (bottomLeftCorner.y > outputNorth) {
-                outputNorth = bottomLeftCorner.y;
-            }
-            if (bottomLeftCorner.y < outputSouth) {
-                outputSouth = bottomLeftCorner.y;
-            }
-            if (bottomLeftCorner.x > outputEast) {
-                outputEast = bottomLeftCorner.x;
-            }
-            if (bottomLeftCorner.x < outputWest) {
-                outputWest = bottomLeftCorner.x;
-            }
+                double outputNorth = Double.NEGATIVE_INFINITY;
+                double outputSouth = Double.POSITIVE_INFINITY;
+                double outputEast = Double.NEGATIVE_INFINITY;
+                double outputWest = Double.POSITIVE_INFINITY;
 
-            if (bottomRightCorner.y > outputNorth) {
-                outputNorth = bottomRightCorner.y;
-            }
-            if (bottomRightCorner.y < outputSouth) {
-                outputSouth = bottomRightCorner.y;
-            }
-            if (bottomRightCorner.x > outputEast) {
-                outputEast = bottomRightCorner.x;
-            }
-            if (bottomRightCorner.x < outputWest) {
-                outputWest = bottomRightCorner.x;
-            }
-
-            double nsRange = outputNorth - outputSouth;
-            double ewRange = outputEast - outputWest;
-
-            int nRows = (int)(nsRange / avgGridRes);
-            int nCols = (int)(ewRange / avgGridRes);
-
-            WhiteboxRaster output = new WhiteboxRaster(outputImageFile, outputNorth,
-                    outputSouth, outputEast, outputWest, nRows, nCols, inputImage.getDataScale(),
-                    inputImage.getDataType(), inputImage.getNoDataValue(), inputImage.getNoDataValue());
-
-
-            double outputX, outputY;
-            double inputX, inputY;
-            int inputCol, inputRow;
-            XYPoint point;
-            double z;
-            int oldProgress = -1;
-            int progress;
-            for (int row = 0; row < nRows; row++) {
-                for (int col = 0; col < nCols; col++) {
-                    outputX = output.getXCoordinateFromColumn(col);
-                    outputY = output.getYCoordinateFromRow(row);
-
-                    // back transform them into image 2 coordinates.
-                    point = getBackwardCoordinates(outputX, outputY);
-
-                    inputX = point.x;
-                    inputY = point.y;
-
-                    inputCol = inputImage.getColumnFromXCoordinate(inputX);
-                    inputRow = inputImage.getRowFromYCoordinate(inputY);
-
-                    z = inputImage.getValue(inputRow, inputCol);
-
-                    output.setValue(row, col, z);
+                if (topLeftCorner.y > outputNorth) {
+                    outputNorth = topLeftCorner.y;
                 }
-                if (cancelOp) {
-                    cancelOperation();
-                    return null;
+                if (topLeftCorner.y < outputSouth) {
+                    outputSouth = topLeftCorner.y;
                 }
-                progress = (int) (100f * row / (nRows - 1));
-                if (progress != oldProgress) {
-                    setProgress(progress);
+                if (topLeftCorner.x > outputEast) {
+                    outputEast = topLeftCorner.x;
                 }
+                if (topLeftCorner.x < outputWest) {
+                    outputWest = topLeftCorner.x;
+                }
+
+                if (topRightCorner.y > outputNorth) {
+                    outputNorth = topRightCorner.y;
+                }
+                if (topRightCorner.y < outputSouth) {
+                    outputSouth = topRightCorner.y;
+                }
+                if (topRightCorner.x > outputEast) {
+                    outputEast = topRightCorner.x;
+                }
+                if (topRightCorner.x < outputWest) {
+                    outputWest = topRightCorner.x;
+                }
+
+                if (bottomLeftCorner.y > outputNorth) {
+                    outputNorth = bottomLeftCorner.y;
+                }
+                if (bottomLeftCorner.y < outputSouth) {
+                    outputSouth = bottomLeftCorner.y;
+                }
+                if (bottomLeftCorner.x > outputEast) {
+                    outputEast = bottomLeftCorner.x;
+                }
+                if (bottomLeftCorner.x < outputWest) {
+                    outputWest = bottomLeftCorner.x;
+                }
+
+                if (bottomRightCorner.y > outputNorth) {
+                    outputNorth = bottomRightCorner.y;
+                }
+                if (bottomRightCorner.y < outputSouth) {
+                    outputSouth = bottomRightCorner.y;
+                }
+                if (bottomRightCorner.x > outputEast) {
+                    outputEast = bottomRightCorner.x;
+                }
+                if (bottomRightCorner.x < outputWest) {
+                    outputWest = bottomRightCorner.x;
+                }
+
+                double nsRange = outputNorth - outputSouth;
+                double ewRange = outputEast - outputWest;
+
+                int nRows = (int) (nsRange / avgGridRes);
+                int nCols = (int) (ewRange / avgGridRes);
+
+                WhiteboxRaster output = new WhiteboxRaster(outputImageFile, outputNorth,
+                        outputSouth, outputEast, outputWest, nRows, nCols, inputImage.getDataScale(),
+                        inputImage.getDataType(), inputImage.getNoDataValue(), inputImage.getNoDataValue());
+
+
+                double outputX, outputY;
+                double inputX, inputY;
+                int inputCol, inputRow;
+                XYPoint point;
+                double z;
+                int oldProgress = -1;
+                int progress;
+                for (int row = 0; row < nRows; row++) {
+                    for (int col = 0; col < nCols; col++) {
+                        outputX = output.getXCoordinateFromColumn(col);
+                        outputY = output.getYCoordinateFromRow(row);
+
+                        // back transform them into image 2 coordinates.
+                        point = getBackwardCoordinates(outputX, outputY);
+
+                        inputX = point.x;
+                        inputY = point.y;
+
+                        inputCol = inputImage.getColumnFromXCoordinate(inputX);
+                        inputRow = inputImage.getRowFromYCoordinate(inputY);
+
+                        z = inputImage.getValue(inputRow, inputCol);
+
+                        output.setValue(row, col, z);
+                    }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return null;
+                    }
+                    progress = (int) (100f * row / (nRows - 1));
+                    if (progress != oldProgress) {
+                        setProgress(progress);
+                    }
+                }
+
+                output.addMetadataEntry("Created by the "
+                        + "ImageRectification tool.");
+                output.addMetadataEntry("Created on " + new Date());
+
+                output.close();
+
+                returnData(outputImageFile);
+
+                return null;
+            } catch (Exception e) {
+                return null;
+            } finally {
+                isRunning = false;
             }
-
-            output.addMetadataEntry("Created by the "
-                    + "ImageRectification tool.");
-            output.addMetadataEntry("Created on " + new Date());
-
-            output.close();
-
-            returnData(outputImageFile);
-            
-            return null;
         }
 
         /*
@@ -989,10 +997,6 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
         @Override
         public void done() {
             setProgress(0);
-//            Toolkit.getDefaultToolkit().beep();
-//            startButton.setEnabled(true);
-//            setCursor(null); //turn off the wait cursor
-//            taskOutput.append("Done!\n");
         }
     }
 }
