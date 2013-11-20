@@ -30,7 +30,7 @@ import javax.swing.event.HyperlinkListener;
 import whitebox.utilities.FileUtilities;
 
 /**
- *
+ * This class is used to provide a dialog box for a Whitebox GAT script tool.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ScriptDialog extends JDialog implements Communicator, ActionListener, HyperlinkListener {
@@ -62,6 +62,12 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
     private ResourceBundle bundle;
     private ResourceBundle messages;
 
+    /**
+     * Constructor
+     * @param owner the name of the Whitebox GAT GUI class
+     * @param title A string that should be the same name as the script's descriptive name
+     * @param buttonActionListener A listener to attach to the OK button
+     */
     public ScriptDialog(Frame owner, String title, ActionListener buttonActionListener) {
         super(owner, false);
         pathSep = File.separator;
@@ -193,6 +199,12 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         setLocation(screenWidth / 4, screenHeight / 4);
     }
 
+    /**
+     * Adds a checkbox to the dialog
+     * @param description This string is entered into the pop-up description.
+     * @param labelText This string is added to the checkbox label.
+     * @param initialState Determines whether the checkbox is checked at startup.
+     */
     public void addDialogCheckBox(String description, String labelText,
             boolean initialState) {
         String[] args = new String[4];
@@ -660,12 +672,20 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
 
     @Override
     public ResourceBundle getGuiLabelsBundle() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (host != null) {
+            return host.getGuiLabelsBundle();
+        } else {
+            return null;
+        }
     }
 
     @Override
     public ResourceBundle getMessageBundle() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (host != null) {
+            return host.getMessageBundle();
+        } else {
+            return null;
+        }
     }
 
     @Override

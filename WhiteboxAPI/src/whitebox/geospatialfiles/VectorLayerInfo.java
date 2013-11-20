@@ -99,7 +99,7 @@ public class VectorLayerInfo implements MapLayer {
         this.layerTitle = file.getName().replace(".shp", "");
         this.alpha = alpha;
         this.overlayNumber = overlayNumber;
-
+        
         try {
             shapefile = new ShapeFile(fileName);
         } catch (IOException e) {
@@ -545,6 +545,14 @@ public class VectorLayerInfo implements MapLayer {
      */
     public ArrayList<Integer> getSelectedFeatureNumbers() {
         return selectedFeatureNumbers;
+    }
+    
+    /**
+     * Returns the number of features that are currently selected.
+     * @return int of the number of selected features.
+     */
+    public int getNumSelectedFeatures() {
+        return selectedFeatureNumbers.size();
     }
 //    public int getSelectedFeatureNumber() {
 //        return selectedFeatureNumber;

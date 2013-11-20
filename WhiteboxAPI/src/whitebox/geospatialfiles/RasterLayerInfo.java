@@ -487,6 +487,7 @@ public class RasterLayerInfo implements MapLayer {
             int backgroundColour = 0; // transparent black
             pixelData = new int[numCells];
             data = new double[numCells];
+            //data = new double[1];
 
             int numPaletteEntriesLessOne = numPaletteEntries - 1;
 
@@ -582,10 +583,6 @@ public class RasterLayerInfo implements MapLayer {
                     }
                 }
             }
-
-            //long endTime = System.currentTimeMillis();
-
-            //System.out.println("CreatePixels took " + (endTime - startTime) + " milliseconds.");
 
             sourceData.close();
             sourceData = null;
