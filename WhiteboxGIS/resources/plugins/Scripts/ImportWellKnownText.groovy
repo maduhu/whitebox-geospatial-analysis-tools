@@ -51,14 +51,7 @@ public class ImportWellKnownText implements ActionListener {
         this.descriptiveName = descriptiveName
 			
         if (args.length > 0) {
-            final Runnable r = new Runnable() {
-            	@Override
-            	public void run() {
-                    execute(args)
-            	}
-            }
-            final Thread t = new Thread(r)
-            t.start()
+            execute(args)
         } else {
             // Create a dialog for this tool to collect user-specified
             // tool parameters.
@@ -278,11 +271,14 @@ public class ImportWellKnownText implements ActionListener {
                 
             }
 
-        } catch (Exception e) {
-            pluginHost.showFeedback("Error: " + e.getMessage())
+        } catch (OutOfMemoryError oe) {
+            pluginHost.showFeedback("An out-of-memory error has occurred during operation.")
+	    } catch (Exception e) {
+	        pluginHost.showFeedback("An error has occurred during operation. See log file for details.")
+	        pluginHost.logException("Error in " + descriptiveName, e)
         } finally {
         	// reset the progress bar
-        	pluginHost.updateProgress("", 0)
+        	pluginHost.updateProgress(0)
         }
     }
 

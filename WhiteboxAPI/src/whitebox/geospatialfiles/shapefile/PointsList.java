@@ -138,4 +138,22 @@ public class PointsList {
             }
         }
     }
+    
+    @Override
+    public PointsList clone() throws CloneNotSupportedException {
+//        super.clone();
+        ArrayList<ShapefilePoint> newList = new ArrayList<>();
+        for (ShapefilePoint p : myList) {
+            newList.add(p);
+        }
+        return new PointsList(newList);
+    }
+    
+    public void appendList(PointsList other) {
+        if (other == null) { return; }
+        for (int i = 0; i < other.size(); i++) {
+            ShapefilePoint p = other.getPoint(i);
+            myList.add(p);
+        }
+    }
 }

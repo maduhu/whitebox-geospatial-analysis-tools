@@ -34,8 +34,11 @@ Version 3.0.8 ()
 -Modified the dissolve tool so that it can dissolve based on an attribute.
 -Added CreateHexagonalVectorGrid tool.
 -Added RescaleImageValueRange tool.
+-Added ThickenRasterLine tool.
+-Added FindStraightSegments tool.
 -Other minor bug fixes, particularly related to the newly added multi-feature 
  selection feature.
+-Improved error logging for most plugin tools.
 
 
 Version 3.0.7 (Oct. 28, 2013)

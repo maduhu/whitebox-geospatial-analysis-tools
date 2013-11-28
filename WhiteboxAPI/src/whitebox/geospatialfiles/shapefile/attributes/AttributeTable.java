@@ -500,7 +500,7 @@ public class AttributeTable {
                             t_float = Utils.trimLeftSpaces(t_float);
                             if (t_float.length > 0 && !Utils.contains(t_float, (byte) '?')) {
 
-                                recordObjects[i] = new Float(new String(t_float));
+                                recordObjects[i] = new Double(new String(t_float)); //Float(new String(t_float));
                             } else {
 
                                 recordObjects[i] = null;
@@ -818,7 +818,7 @@ public class AttributeTable {
             Class equivalentClass = this.fieldArray[i].getDataType().getEquivalentClass();
             
             // Check if values[i] is an instance or subclassed instance of the field's expected type
-            if (!(values[i].getClass().isAssignableFrom(equivalentClass))) {
+            if (!(equivalentClass.isAssignableFrom(values[i].getClass()))) { //!(values[i].getClass().isAssignableFrom(equivalentClass))) {
                 throw new DBFException("Invalid value for field " + i);
             }
 

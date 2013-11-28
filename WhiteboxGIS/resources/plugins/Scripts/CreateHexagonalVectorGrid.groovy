@@ -49,14 +49,7 @@ public class CreateHexagonalVectorGrid implements ActionListener {
         this.descriptiveName = descriptiveName
 			
         if (args.length > 0) {
-            final Runnable r = new Runnable() {
-            	@Override
-            	public void run() {
-                    execute(args)
-            	}
-            }
-            final Thread t = new Thread(r)
-            t.start()
+            execute(args)
         } else {
             // Create a dialog for this tool to collect user-specified
             // tool parameters.

@@ -315,7 +315,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
                         tm.setValueAt((double)(rowData[a]), a + 1, 1);
                     } else if (fields[a].getDataType() == DBFField.DBFDataType.FLOAT
                             && !(rowData[a] == null)) {
-                        tm.setValueAt((float)(rowData[a]), a + 1, 1);
+                        tm.setValueAt((double)(rowData[a]), a + 1, 1);
                     } else {
                         tm.setValueAt(String.valueOf(rowData[a]), a + 1, 1);
                     }

@@ -1260,7 +1260,7 @@ public class VectorLayerInfo implements MapLayer {
     /**
      * Used to select a feature contained in the vector.
      * 
-     * @param recordNumber the record index number
+     * @param recordNumber the base-1 record index number
      */
     public void selectFeature(int recordNumber) {
         if (!selectedFeatures[recordNumber]) {
@@ -1392,7 +1392,8 @@ public class VectorLayerInfo implements MapLayer {
             for (int i = 1; i <= numRecs; i++) {
                 if (selectedFeatures[i]) {
                     ShapeFileRecord record = shapefile.getRecord(i - 1);
-                    output.addRecord(record.getGeometry(), table.getRecord(i - 1));
+                    Object[] fields = table.getRecord(i - 1);
+                    output.addRecord(record.getGeometry(), fields);
                 }
             }
 

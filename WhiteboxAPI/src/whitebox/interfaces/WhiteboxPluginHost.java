@@ -18,7 +18,7 @@
 package whitebox.interfaces;
 
 import java.util.List;
-//import java.util.ResourceBundle;
+import java.util.ArrayList;
 import java.awt.Font;
 /**
  *
@@ -61,14 +61,6 @@ public interface WhiteboxPluginHost extends Communicator {
 //    public void runPlugin(String pluginName, String[] args);
     
     public void pluginComplete();
-
-//    /**
-//     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
-//     * @param feedback String containing the text to display.
-//     */
-//    public int showFeedback(String message);
-//    
-//    public int showFeedback(String message, int optionType, int messageType);
 
     /**
      * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
@@ -132,4 +124,16 @@ public interface WhiteboxPluginHost extends Communicator {
      * Called to save selected features into a separate vector file.
      */
     public void saveSelection();
+    
+    /**
+     * Used to retrieve the active map layer.
+     * @return MapLayer that is currently active.
+     */
+    public MapLayer getActiveMapLayer();
+    
+    /**
+     * Used to retrieve all the displayed map layers.
+     * @return ArrayList of MapLayers
+     */
+    public ArrayList<MapLayer> getAllMapLayers();
 }

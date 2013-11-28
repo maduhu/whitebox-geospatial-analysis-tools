@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
+import whitebox.interfaces.MapLayer;
 import whitebox.utilities.FileUtilities;
 
 /**
@@ -556,6 +557,16 @@ public class PluginHost implements WhiteboxPluginHost {
 
     @Override
     public void saveSelection() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public MapLayer getActiveMapLayer() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ArrayList<MapLayer> getAllMapLayers() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

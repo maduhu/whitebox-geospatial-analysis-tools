@@ -59,8 +59,7 @@ class MyScript(ActionListener):
 		if len(args) != 0:
 			''' This will be followed if the parameters have already 
 			been set, e.g. if the tool was called from another script. '''
-			t = Thread(target=lambda: self.execute(args))
-			t.start()
+			self.execute(args)
 		else:
 			''' The script dialog is created here. The first parameter 
 			points the dialog to the Whitebox user interface. The second 

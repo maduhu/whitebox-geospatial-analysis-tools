@@ -563,7 +563,7 @@ public class GeoTiff {
 //            System.out.println(findTag(Tag.TileOffsets));
 //            System.out.println(findTag(Tag.TileWidth) + "\t" + findTag(Tag.TileLength) + "\t" + findTag(Tag.TileByteCounts));
 
-//            return null; // can't handle this type of tiff.
+            return null; // can't handle this type of tiff.
         }
 
         if (getPhotometricInterpretation() != 2) {
@@ -639,7 +639,7 @@ public class GeoTiff {
                             }
                             ia = null;
                         } else if (sampleFormat == 1 && bitsPerSample[0] == 64) { // unsigned 64-bit long
-                            // I don't know what data type your could cast an unsigned long into. Perhaps a BigInteger.
+                            // I don't know what data type you could cast an unsigned long into. Perhaps a BigInteger.
                             return null;
                         } else if (sampleFormat == 2 && bitsPerSample[0] == 64) { // signed 64-bit long
                             LongBuffer lb = buffer.asLongBuffer();

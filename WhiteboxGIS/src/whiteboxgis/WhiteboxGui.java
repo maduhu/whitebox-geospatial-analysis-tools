@@ -397,15 +397,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // Issue a warning if Whitebox is being run on 32-bit JRE on a 64-bit machine, at least on Windows
             if (System.getProperty("os.name").toLowerCase().contains("Windows")) {
-                if (!System.getProperty("sun.arch.data.model").contains("32") &&
-                        (System.getenv("ProgramFiles(x86)") != null)) {
+                if (!System.getProperty("sun.arch.data.model").contains("32")
+                        && (System.getenv("ProgramFiles(x86)") != null)) {
                     String str = "WARNGING: Whitebox is running on a 32-bit Java runtime which could lead to out-of-memory errors \n"
                             + "when handling large files. It is advisable that you uninstall the 32-bit version of Java and \n"
                             + "download and install the 64-bit version. This will allow Whitebox to take fuller advantage of \n"
                             + "the RAM resources of your computer.";
                     returnData(str);
                     status.setMessage(str);
-                } 
+                }
             }
 
         } catch (IOException | SecurityException e) {
@@ -1017,29 +1017,29 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     }
 
                     // has the scripting engine been initialized for the current script language.
-                    if (engine == null || !myScriptingLanguage.equals(scriptingLanguage)) {
-                        scriptingLanguage = myScriptingLanguage;
-                        ScriptEngineManager mgr = new ScriptEngineManager();
-                        engine = mgr.getEngineByName(scriptingLanguage);
-                    }
+                    //if (engine == null || !myScriptingLanguage.equals(scriptingLanguage)) {
+                    scriptingLanguage = myScriptingLanguage;
+                    ScriptEngineManager mgr = new ScriptEngineManager();
+                    final ScriptEngine newEngine = mgr.getEngineByName(scriptingLanguage);
+                    //}
 
                     PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
-                    engine.getContext().setWriter(out);
+                    newEngine.getContext().setWriter(out);
 
                     if (scriptingLanguage.equals("python")) {
-                        engine.put("__file__", scriptFile);
+                        newEngine.put("__file__", scriptFile);
                     }
                     requestForOperationCancel = false;
-                    engine.put("pluginHost", (WhiteboxPluginHost) this);
-                    engine.put("args", args);
+                    newEngine.put("pluginHost", (WhiteboxPluginHost) this);
+                    newEngine.put("args", args);
 
                     // run the script
                     PrintWriter errOut = new PrintWriter(new TextAreaWriter(textArea));
                     try {
                         // read the contents of the file
-                        String scriptContents = new String(Files.readAllBytes(Paths.get(scriptFile)));
+                        final String scriptContents = new String(Files.readAllBytes(Paths.get(scriptFile)));
 
-                        Object result = engine.eval(scriptContents);
+                        Object result = newEngine.eval(scriptContents);
                     } catch (IOException | ScriptException e) {
                         errOut.append(e.getMessage() + "\n");
                     }
@@ -1247,7 +1247,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             suppressReturnedData = false;
         }
     }
-    
+
     private boolean isToolAScript(String pluginName) {
         boolean isScript = false;
         for (int i = 0; i < plugInfo.size(); i++) {
@@ -1264,7 +1264,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
         return isScript;
     }
-    
+
     private String getScriptFile(String pluginName) {
         String scriptFile = null;
         for (int i = 0; i < plugInfo.size(); i++) {
@@ -1409,6 +1409,47 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
     private ScriptEngine engine;
     private String scriptingLanguage = "python";
+
+    @Override
+    public MapLayer getActiveMapLayer() {
+        int mapNum;
+        int mapAreaNum;
+        
+        if (selectedMapAndLayer[0] != -1) {
+            mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } else {
+            // use the active layer and map
+            mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is no mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback(messages.getString("NoMapAreas"));
+                return null;
+            }
+        }
+
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return null;
+        }
+        return ma.getActiveLayer();
+    }
+
+    @Override
+    public ArrayList<MapLayer> getAllMapLayers() {
+        ArrayList<MapLayer> ret = new ArrayList<>();
+        for (MapInfo mi : openMaps) {
+            for (MapArea ma : mi.getMapAreas()) {
+                for (MapLayer ml :ma.getLayersList()) {
+                    ret.add(ml);
+                }
+            }
+        }
+        return ret;
+    }
 
     public final class TextAreaWriter extends Writer {
 
@@ -2069,7 +2110,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JMenuItem layerProperties = new JMenuItem(bundle.getString("LayerDisplayProperties"));
             layerProperties.setActionCommand("layerProperties");
             layerProperties.addActionListener(this);
-            
+
             JMenuItem rasterCalc = new JMenuItem(bundle.getString("RasterCalculator"),
                     new ImageIcon(graphicsDirectory + "RasterCalculator.png"));
             modifyPixels = new JCheckBoxMenuItem(bundle.getString("ModifyPixelValues"),
@@ -2161,7 +2202,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             });
             LayersMenu.add(recentFilesMenu2);
-            
+
             JMenuItem addLayers = new JMenuItem(bundle.getString("AddLayersToMap"),
                     new ImageIcon(graphicsDirectory + "AddLayer.png"));
             LayersMenu.add(addLayers);
@@ -2358,7 +2399,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewHistogram.setActionCommand("viewHistogram");
             viewHistogram.addActionListener(this);
             viewMenu.add(viewHistogram);
-            
+
             JMenuItem options = new JMenuItem(bundle.getString("OptionsAndSettings"));
             viewMenu.add(options);
             options.addActionListener(this);
@@ -3458,7 +3499,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             doc.getDocumentElement().normalize();
             Node topNode = doc.getFirstChild();
             tree = new JTree(populateTree(topNode));
-            
+
             MouseListener ml = new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
@@ -3476,7 +3517,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                         final String scriptName = getScriptFile(label);
                                         JMenuItem mi = new JMenuItem(bundle.getString("EditScript"));
                                         mi.addActionListener(new ActionListener() {
-
                                             @Override
                                             public void actionPerformed(ActionEvent e) {
                                                 editScript(scriptName);
@@ -3485,7 +3525,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                         mi.setActionCommand("editScript");
                                         pm.add(mi);
                                         pm.show((JComponent) e.getSource(), e.getX(), e.getY());
-                                        
+
                                     }
                                 } else {
                                     showToolDescription(label);
@@ -3596,13 +3636,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return null;
         }
     }
-    
+
     private void editScript(String scriptName) {
         Scripter scripter = new Scripter(this, false, scriptName);
         scripter.openFile(scriptName);
         scripter.setVisible(true);
     }
-    
     private ActionListener searchFieldListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent evt) {
@@ -5641,7 +5680,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             showFeedback(messages.getString("FunctionForVectorsOnly"));
         }
     }
-    
     String currentTextFile = null;
 
     private void openText() {
@@ -6378,7 +6416,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (vli.getSelectedFeatureNumbers().isEmpty()) {
                     return;
                 }
-                
+
                 // Ask the user to specify a file name for saving the active map.
                 JFileChooser fc = new JFileChooser();
                 fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -6426,9 +6464,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     addLayer(fileName);
                     refreshMap(false);
                     featuresPanel.updateTable();
-                    
+
                 }
-                
+
             } else {
                 showFeedback(messages.getString("ActiveLayerNotVector"));
             }

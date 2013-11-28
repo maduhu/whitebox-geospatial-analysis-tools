@@ -162,6 +162,7 @@ public class Polygon implements Geometry {
         return numParts;
     }
 
+    @Override
     public int[] getParts() {
         return parts;
     }

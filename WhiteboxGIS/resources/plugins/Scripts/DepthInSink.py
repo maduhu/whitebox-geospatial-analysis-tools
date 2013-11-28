@@ -17,8 +17,7 @@ toolboxes = ["TerrainAnalysis"]
 class DepthInSink(ActionListener):
 	def __init__(self, args):
 		if len(args) != 0:
-			t = Thread(target=lambda: self.execute(args))
-			t.start()
+			self.execute(args)
 		else:
 			# Create a dialog for this tool to collect user-specified
 			# tool parameters.
