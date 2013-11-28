@@ -223,7 +223,11 @@ public class MinMaxContrastStretch implements WhiteboxPlugin {
             returnData(outputHeader);
 
 
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
             showFeedback(e.getMessage());
         } finally {
             updateProgress("Progress: ", 0);

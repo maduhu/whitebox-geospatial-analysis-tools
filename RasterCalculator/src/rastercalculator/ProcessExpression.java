@@ -27,6 +27,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.interfaces.MapLayer;
 import whitebox.interfaces.ThreadListener;
 
 /**
@@ -159,7 +160,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
         }
     }
     
-    public void handelException(Exception e) {
+    public void handleException(Exception e) {
         if (myListener != null) {
             myListener.passOnThreadException(e);
         }
@@ -307,6 +308,16 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
 
     @Override
     public void saveSelection() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public MapLayer getActiveMapLayer() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ArrayList<MapLayer> getAllMapLayers() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -1606,7 +1617,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
             
         } catch (Exception e) {
             eqDepth--;
-            handelException(e);
+            handleException(e);
             return "";
         }
     }
@@ -1642,7 +1653,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
             
             return "operation complete";
         } catch (Exception e) {
-            handelException(e);
+            handleException(e);
             return "";
         }
     }
@@ -1847,7 +1858,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
             // returning a header file string displays the image.
             return outputHeader;
         } catch (Exception e) {
-            handelException(e);
+            handleException(e);
             return "";
         }
     }

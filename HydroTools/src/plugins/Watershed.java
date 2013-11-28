@@ -245,7 +245,7 @@ public class Watershed implements WhiteboxPlugin {
 
                 ShapeFile input = new ShapeFile(outletHeader);
                 if (input.getShapeType().getBaseType() != ShapeType.POINT) {
-                    showFeedback("The input viewing station vector should be \n"
+                    showFeedback("The input pour point vector should be \n"
                             + "of a Point or MultiPoint ShapeType.");
                     return;
                 }
@@ -423,8 +423,11 @@ public class Watershed implements WhiteboxPlugin {
             // returning a header file string displays the image.
             returnData(outputHeader);
 
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.

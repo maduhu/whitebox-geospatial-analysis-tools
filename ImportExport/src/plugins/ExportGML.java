@@ -272,10 +272,11 @@ public class ExportGML implements WhiteboxPlugin {
             }
 
 
-        } catch (java.io.IOException e) {
-            System.err.println("Error: " + e.getMessage());
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
             if (out != null || bw != null) {
                 out.flush();

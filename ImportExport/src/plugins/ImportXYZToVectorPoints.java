@@ -276,7 +276,8 @@ public class ImportXYZToVectorPoints implements WhiteboxPlugin {
                     br.close();
 
                 } catch (java.io.IOException e) {
-                    System.err.println("Error: " + e.getMessage());
+                    myHost.showFeedback("An error has occurred during operation. See log file for details.");
+                    myHost.logException("Error in " + getDescriptiveName(), e);
                 } finally {
                     try {
                         if (in != null || br != null) {
@@ -295,9 +296,10 @@ public class ImportXYZToVectorPoints implements WhiteboxPlugin {
             returnData(XYZFiles[0].replace("." + fileExtension, ".shp"));
             
         } catch (OutOfMemoryError oe) {
-            showFeedback("The Java Virtual Machine (JVM) is out of memory");
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
             updateProgress("Progress: ", 0);
             if (rIn != null) {

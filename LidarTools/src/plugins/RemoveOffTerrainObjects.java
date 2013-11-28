@@ -581,8 +581,11 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
             // returning a header file string displays the image.
             returnData(gridFiles[0].replace(".dep", " " + suffix + ".dep"));
 
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.
@@ -867,8 +870,11 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
                 }
             }
 
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         }
     }
 
@@ -1065,8 +1071,11 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
                 }
             }
 
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         }
     }
 

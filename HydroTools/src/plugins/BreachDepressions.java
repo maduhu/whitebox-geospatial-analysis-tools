@@ -576,8 +576,11 @@ public class BreachDepressions implements WhiteboxPlugin {
             String duration = String.format("%02d:%02d:%02d:%02d", sec / 86400, (sec % 86400) / 3600, (sec % 3600) / 60, (sec % 60));
             results += "\nDuration:\t" + duration;
             returnData(results);
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.

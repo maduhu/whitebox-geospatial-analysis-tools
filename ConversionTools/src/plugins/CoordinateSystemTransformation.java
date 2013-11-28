@@ -189,7 +189,7 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
         //cancelOp = cancel;
         //if (cancel) {
         panel.cancelOperation();
-            
+
         //}
     }
 
@@ -279,7 +279,6 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
 
             Box mainBox = Box.createVerticalBox();
 
-
             // input file
             args = new String[7];
             args[0] = "inputFileDialog";
@@ -359,7 +358,6 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             box1.add(utm2llButton);
             mainBox.add(box1);
 
-
             mainBox.add(Box.createVerticalStrut(5));
 
             // ellipsoid combobox
@@ -393,7 +391,6 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             ellipsoidChooser.setBackColour(this.getBackground());
             mainBox.add(ellipsoidChooser);
 
-
             // N or S
             northButton = new JRadioButton("North");
             //LL2UTMButton.setMnemonic(KeyEvent.VK_R);
@@ -412,12 +409,10 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             //Register a listener for the radio buttons.
             //ll2utmButton.addActionListener(this);
             //utm2llButton.addActionListener(this);
-
 //            Box box2 = Box.createHorizontalBox();
 //            box2.add(northButton);
 //            box2.add(southButton);
 //            //mainBox.add(box2);
-
             // UTM zone
             String[] zones = new String[60];
             for (int a = 0; a < 60; a++) {
@@ -444,7 +439,6 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             box2.add(southButton);
             mainBox.add(box2);
 
-
             Box box3 = Box.createHorizontalBox();
             spansUTMZones.setForeground(Color.red);
             spansUTMZones.setVisible(false);
@@ -453,9 +447,7 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             box3.add(Box.createHorizontalGlue());
             mainBox.add(box3);
 
-
             mainBox.add(Box.createVerticalStrut(5));
-
 
             // interpolation method
             String[] interpolationMethods = {"Nearest Neighbour", "Bilinear"};
@@ -476,9 +468,7 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             interpolationChooser.setBackColour(this.getBackground());
             mainBox.add(interpolationChooser);
 
-
             mainBox.add(Box.createVerticalStrut(15));
-
 
             Box btnBox = Box.createHorizontalBox();
             btnBox.add(Box.createHorizontalGlue());
@@ -499,7 +489,7 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
             btnBox.add(close);
 
             btnBox.add(Box.createHorizontalStrut(10));
-            
+
             cancel = new JButton("Cancel");
             cancel.addActionListener(new ActionListener() {
                 @Override
@@ -669,7 +659,11 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
                     }
 
                 }
+            } catch (OutOfMemoryError oe) {
+                myHost.showFeedback("An out-of-memory error has occurred during operation.");
             } catch (Exception e) {
+                myHost.showFeedback("An error has occurred during operation. See log file for details.");
+                myHost.logException("Error in " + getDescriptiveName(), e);
             }
         }
         private boolean inputFileIsRaster = true;
@@ -1311,15 +1305,15 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
                         for (ShapeFileRecord record : input.records) {
                             switch (shapeType) {
                                 case POINT:
-                                    whitebox.geospatialfiles.shapefile.Point recPoint =
-                                            (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
+                                    whitebox.geospatialfiles.shapefile.Point recPoint
+                                            = (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
                                     recordPoints = recPoint.getPoints();
                                     x = recordPoints[0][0];
                                     y = recordPoints[0][1];
                                     ll2utm.convertGeographicCoordinates(y, x);
-                                    whitebox.geospatialfiles.shapefile.Point outRecPoint =
-                                            new whitebox.geospatialfiles.shapefile.Point(
-                                            ll2utm.getEasting(), ll2utm.getNorthing());
+                                    whitebox.geospatialfiles.shapefile.Point outRecPoint
+                                            = new whitebox.geospatialfiles.shapefile.Point(
+                                                    ll2utm.getEasting(), ll2utm.getNorthing());
                                     output.addRecord(outRecPoint);
                                     break;
                                 case POINTZ:
@@ -1557,15 +1551,15 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
                         for (ShapeFileRecord record : input.records) {
                             switch (shapeType) {
                                 case POINT:
-                                    whitebox.geospatialfiles.shapefile.Point recPoint =
-                                            (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
+                                    whitebox.geospatialfiles.shapefile.Point recPoint
+                                            = (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
                                     recordPoints = recPoint.getPoints();
                                     x = recordPoints[0][0];
                                     y = recordPoints[0][1];
                                     utm2ll.convertUTMCoordinates(x, y);
-                                    whitebox.geospatialfiles.shapefile.Point outRecPoint =
-                                            new whitebox.geospatialfiles.shapefile.Point(
-                                            utm2ll.getLongitude(), utm2ll.getLatitude());
+                                    whitebox.geospatialfiles.shapefile.Point outRecPoint
+                                            = new whitebox.geospatialfiles.shapefile.Point(
+                                                    utm2ll.getLongitude(), utm2ll.getLatitude());
                                     output.addRecord(outRecPoint);
                                     break;
                                 case POINTZ:
@@ -1773,12 +1767,13 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
 
                     }
                 }
-                
+
                 updateProgress(0);
                 myListener.notifyOfThreadComplete(this);
                 showFeedback("Operation complete!");
             } catch (Exception e) {
-                System.out.println(e.toString());
+                myHost.showFeedback("An error has occurred during operation. See log file for details.");
+                myHost.logException("Error in " + getDescriptiveName(), e);
             } finally {
                 //amIActive = false;
             }
@@ -1800,7 +1795,6 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
     public static void main(String[] args) {
         CoordinateSystemTransformation cst = new CoordinateSystemTransformation();
         cst.testLaunch();
-
 
     }
 

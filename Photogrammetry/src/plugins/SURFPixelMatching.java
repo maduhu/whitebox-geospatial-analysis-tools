@@ -78,7 +78,6 @@ public class SURFPixelMatching {
             double maxAllowableRMSE = 1.0;
             double matchingThreshold = 0.6;
 
-
             // left image
             //String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus_C6430-74072-L9_253_Blue_clipped.dep";
             //String leftImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-82_Blue.dep";
@@ -95,11 +94,9 @@ public class SURFPixelMatching {
             String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/Guelph_A19409-83_Blue low res.dep";
             //String rightImageName = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/GuelphCampus 253.dep";
 
-
             String leftOutputHeader = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp4.shp";
 
             String rightOutputHeader = "/Users/johnlindsay/Documents/Teaching/GEOG2420/airphotos/tmp4_2.shp";
-
 
             DBFField[] fields = new DBFField[5];
             fields[0] = new DBFField();
@@ -133,7 +130,6 @@ public class SURFPixelMatching {
             fields[4].setFieldLength(10);
 
             // read the input data
-
             WhiteboxRaster leftImage = new WhiteboxRaster(leftImageName, "r");
 //            leftImage.setForceAllDataInMemory(true);
             int nRowsLeft = leftImage.getNumberRows();
@@ -156,9 +152,6 @@ public class SURFPixelMatching {
 //            System.out.println("Interest points generated");
 //            IDescriptor descriptor = mySURF.createDescriptor(interest_points);
 //            descriptor.generateAllDescriptors();
-
-
-
             System.out.println("Performing SURF analysis on left image...");
             Surf leftSurf = new Surf(leftImage, balanceValue, threshold, octaves);
 //            if (leftSurf.getNumberOfPoints() > 500000) {
@@ -178,8 +171,8 @@ public class SURFPixelMatching {
             }
 
             System.out.println("Matching points of interest...");
-            Map<SURFInterestPoint, SURFInterestPoint> matchingPoints =
-                    leftSurf.getMatchingPoints(rightSurf, matchingThreshold, false);
+            Map<SURFInterestPoint, SURFInterestPoint> matchingPoints
+                    = leftSurf.getMatchingPoints(rightSurf, matchingThreshold, false);
 
             int numTiePoints = matchingPoints.size();
             if (numTiePoints < 3) {
@@ -188,7 +181,6 @@ public class SURFPixelMatching {
             }
             System.out.println(numTiePoints + " potential tie points located");
             System.out.println("Trimming outlier tie points...");
-
 
             boolean flag;
             do {
@@ -206,7 +198,6 @@ public class SURFPixelMatching {
 
                     leftTiePointsList.add(new XYPoint(x, y));
                     rightTiePointsList.add(new XYPoint(x2, y2));
-
 
                     i++;
                 }
@@ -265,69 +256,67 @@ public class SURFPixelMatching {
                 leftPoints[0][i] = point.getX();
                 leftPoints[1][i] = point.getY();
                 leftPoints[2][i] = 1;
-                
+
                 SURFInterestPoint target = matchingPoints.get(point);
-                
+
                 rightPoints[0][i] = target.getX();
                 rightPoints[1][i] = target.getY();
                 rightPoints[2][i] = 1;
                 i++;
             }
-            
+
             double[][] normalizedLeftPoints = Normalize2DHomogeneousPoints.normalize(leftPoints);
             RealMatrix Tl = MatrixUtils.createRealMatrix(Normalize2DHomogeneousPoints.T);
             double[][] normalizedRightPoints = Normalize2DHomogeneousPoints.normalize(rightPoints);
             RealMatrix Tr = MatrixUtils.createRealMatrix(Normalize2DHomogeneousPoints.T);
-            
+
             RealMatrix pnts1 = MatrixUtils.createRealMatrix(normalizedLeftPoints);
             RealMatrix pnts2 = MatrixUtils.createRealMatrix(normalizedRightPoints);
-            
-            RealMatrix A =  MatrixUtils.createRealMatrix(buildA(normalizedLeftPoints, normalizedRightPoints));
-            
+
+            RealMatrix A = MatrixUtils.createRealMatrix(buildA(normalizedLeftPoints, normalizedRightPoints));
+
             //RealMatrix ata = A.transpose().multiply(A);
-            
             SingularValueDecomposition svd = new SingularValueDecomposition(A);
-            
+
             RealMatrix V = svd.getV();
             RealVector V_smallestSingularValue = V.getColumnVector(8);
             RealMatrix F = MatrixUtils.createRealMatrix(3, 3);
             for (i = 0; i < 9; i++) {
                 F.setEntry(i / 3, i % 3, V_smallestSingularValue.getEntry(i));
             }
-            
+
             for (i = 0; i < V.getRowDimension(); i++) {
                 System.out.println(V.getRowVector(i).toString());
             }
-            
+
             SingularValueDecomposition svd2 = new SingularValueDecomposition(F);
             RealMatrix U = svd2.getU();
             RealMatrix S = svd2.getS();
             V = svd2.getV();
             RealMatrix m = MatrixUtils.createRealMatrix(new double[][]{{S.getEntry(1, 1), 0, 0}, {0, S.getEntry(2, 2), 0}, {0, 0, 0}});
             F = U.multiply(m).multiply(V).transpose();
-            
+
             // Denormalise
             F = Tr.transpose().multiply(F).multiply(Tl);
             for (i = 0; i < F.getRowDimension(); i++) {
                 System.out.println(F.getRowVector(i).toString());
             }
-            
+
             svd2 = new SingularValueDecomposition(F);
             //[U,D,V] = svd(F,0);
             RealMatrix e1 = svd2.getV().getColumnMatrix(2); //hnormalise(svd2.getV(:,3));
             RealMatrix e2 = svd2.getU().getColumnMatrix(2); //e2 = hnormalise(U(:,3));
-            
+
             e1.setEntry(0, 0, (e1.getEntry(0, 0) / e1.getEntry(2, 0)));
             e1.setEntry(1, 0, (e1.getEntry(1, 0) / e1.getEntry(2, 0)));
             e1.setEntry(2, 0, 1);
-            
+
             e2.setEntry(0, 0, (e2.getEntry(0, 0) / e2.getEntry(2, 0)));
             e2.setEntry(1, 0, (e2.getEntry(1, 0) / e2.getEntry(2, 0)));
             e2.setEntry(2, 0, 1);
-            
-            
+
             System.out.println("");
-            
+
 //                boolean[] removeTiePoint = new boolean[numTiePoints];
 //                double[] residuals = null;
 //                double[] residualsOrientation = null;
@@ -384,60 +373,58 @@ public class SURFPixelMatching {
 //                        i++;
 //                    }
 //                }
-                System.out.println(numPoints + " tie points remain.");
+            System.out.println(numPoints + " tie points remain.");
 
-                System.out.println("Outputing tie point files...");
+            System.out.println("Outputing tie point files...");
 
-                ShapeFile leftOutput = new ShapeFile(leftOutputHeader, ShapeType.POINT, fields);
+            ShapeFile leftOutput = new ShapeFile(leftOutputHeader, ShapeType.POINT, fields);
 
-                ShapeFile rightOutput = new ShapeFile(rightOutputHeader, ShapeType.POINT, fields);
+            ShapeFile rightOutput = new ShapeFile(rightOutputHeader, ShapeType.POINT, fields);
 
-
-
-                i = 0;
-                k = 0;
-                for (SURFInterestPoint point : matchingPoints.keySet()) {
+            i = 0;
+            k = 0;
+            for (SURFInterestPoint point : matchingPoints.keySet()) {
 //                    if (i < numTiePoints && !removeTiePoint[i]) {
-                        x = leftImage.getXCoordinateFromColumn((int) point.getX());
-                        y = leftImage.getYCoordinateFromRow((int) point.getY());
+                x = leftImage.getXCoordinateFromColumn((int) point.getX());
+                y = leftImage.getYCoordinateFromRow((int) point.getY());
 
-                        SURFInterestPoint target = matchingPoints.get(point);
-                        x2 = rightImage.getXCoordinateFromColumn((int) target.getX());
-                        y2 = rightImage.getYCoordinateFromRow((int) target.getY());
+                SURFInterestPoint target = matchingPoints.get(point);
+                x2 = rightImage.getXCoordinateFromColumn((int) target.getX());
+                y2 = rightImage.getYCoordinateFromRow((int) target.getY());
 
-                        outputPoint = new whitebox.geospatialfiles.shapefile.Point(x, y);
-                        rowData = new Object[5];
-                        rowData[0] = new Double(k + 1);
-                        rowData[1] = new Double(point.getOrientation());
-                        rowData[2] = new Double(point.getScale());
-                        rowData[3] = new Double(point.getLaplacian());
-                        rowData[4] = new Double(0); //residuals[k]);
-                        leftOutput.addRecord(outputPoint, rowData);
+                outputPoint = new whitebox.geospatialfiles.shapefile.Point(x, y);
+                rowData = new Object[5];
+                rowData[0] = new Double(k + 1);
+                rowData[1] = new Double(point.getOrientation());
+                rowData[2] = new Double(point.getScale());
+                rowData[3] = new Double(point.getLaplacian());
+                rowData[4] = new Double(0); //residuals[k]);
+                leftOutput.addRecord(outputPoint, rowData);
 
-                        outputPoint = new whitebox.geospatialfiles.shapefile.Point(x2, y2);
-                        rowData = new Object[5];
-                        rowData[0] = new Double(k + 1);
-                        rowData[1] = new Double(target.getOrientation());
-                        rowData[2] = new Double(target.getScale());
-                        rowData[3] = new Double(target.getLaplacian());
-                        rowData[4] = new Double(0); //residuals[k]);
-                        rightOutput.addRecord(outputPoint, rowData);
+                outputPoint = new whitebox.geospatialfiles.shapefile.Point(x2, y2);
+                rowData = new Object[5];
+                rowData[0] = new Double(k + 1);
+                rowData[1] = new Double(target.getOrientation());
+                rowData[2] = new Double(target.getScale());
+                rowData[3] = new Double(target.getLaplacian());
+                rowData[4] = new Double(0); //residuals[k]);
+                rightOutput.addRecord(outputPoint, rowData);
 
-                        k++;
+                k++;
 //                    }
-                    i++;
-                }
+                i++;
+            }
 
-                leftOutput.write();
-                rightOutput.write();
+            leftOutput.write();
+            rightOutput.write();
 
-                System.out.println("Done!");
+            System.out.println("Done!");
 
-            }   catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     private double[][] buildA(double[][] points1, double[][] points2) {
         int numPoints = points1[0].length;
         double[][] result = new double[numPoints][9];

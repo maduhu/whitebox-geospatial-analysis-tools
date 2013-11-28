@@ -258,8 +258,11 @@ public class NewRasterFromBase implements WhiteboxPlugin {
             image.close();
             output.close();
 
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.

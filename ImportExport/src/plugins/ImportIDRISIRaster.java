@@ -334,10 +334,11 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
             }
 
 
-        } catch (IOException e) {
-            showFeedback(e.getMessage());
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.
@@ -477,11 +478,12 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
 
             }
             return true;
-        } catch (java.io.IOException e) {
-            System.err.println("Error: " + e.getMessage());
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
             return false;
-        } catch (Exception e) { //Catch exception if any
-            System.err.println("Error: " + e.getMessage());
+        } catch (Exception e) {
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
             return false;
         } finally {
             try {

@@ -20,9 +20,6 @@ import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.*;
-import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINT;
-import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINTM;
-import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINTZ;
 import static whitebox.geospatialfiles.shapefile.ShapeType.POINT;
 import static whitebox.geospatialfiles.shapefile.ShapeType.POINTM;
 import static whitebox.geospatialfiles.shapefile.ShapeType.POINTZ;
@@ -408,8 +405,11 @@ public class JensonSnapPourPoints implements WhiteboxPlugin {
             returnData(outputHeader);
 
 
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback(e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.

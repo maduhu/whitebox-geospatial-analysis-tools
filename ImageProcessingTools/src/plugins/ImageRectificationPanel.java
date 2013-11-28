@@ -437,9 +437,11 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
                 useGCP[i] = true;
             }
 
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback("Error in ImageRectificationDialog.readFiles: "
-                    + e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in ImageRectification", e);
         }
     }
     double overallRMSE = 0.0;
@@ -597,9 +599,11 @@ public class ImageRectificationPanel extends JPanel implements ActionListener,
             for (int a = 0; a < numCoefficients; a++) {
                 backRegressCoeffY[a] = solution.getEntry(a);
             }
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            showFeedback("Error in ImageRectificationDialog.calculateEquations: "
-                    + e.getMessage());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in ImageRectification", e);
         }
     }
 

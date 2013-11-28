@@ -26,40 +26,64 @@ import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 //import whitebox.utilities.BitOps;
 
+import java.awt.image.Raster;
+import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.imaging.ImageFormat;
+//import org.apache.commons.imaging.ImageFormats;
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.ImageWriteException;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.ImagingConstants;
+import org.apache.commons.imaging.formats.tiff.constants.TiffConstants;
+
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ImportGeoTiff implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "ImportGeoTiff";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
         return "Import GeoTIFF (.tif)";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
         return "Imports a GeoTIFF.";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
@@ -67,17 +91,23 @@ public class ImportGeoTiff implements WhiteboxPlugin {
         String[] ret = {"IOTools"};
         return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -87,8 +117,11 @@ public class ImportGeoTiff implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -98,8 +131,11 @@ public class ImportGeoTiff implements WhiteboxPlugin {
     }
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
@@ -111,8 +147,11 @@ public class ImportGeoTiff implements WhiteboxPlugin {
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -121,17 +160,21 @@ public class ImportGeoTiff implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
@@ -144,9 +187,12 @@ public class ImportGeoTiff implements WhiteboxPlugin {
         updateProgress("Progress: ", 0);
     }
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -171,18 +217,14 @@ public class ImportGeoTiff implements WhiteboxPlugin {
         FileWriter fw = null;
         BufferedWriter bw = null;
         PrintWriter out = null;
-        
+
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
 
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputFilesString = args[i];
-            }
-        }
+        inputFilesString = args[0];
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputFilesString == null)) {
@@ -201,7 +243,7 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 GeoTiff gt = new GeoTiff(imageFiles[i]);
                 gt.read();
                 //gt.showInfo(System.out);
-                
+
                 int nRows = gt.getNumberRows();
                 int nCols = gt.getNumberColumns();
 
@@ -216,9 +258,9 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 // see if they exist, and if so, delete them.
                 (new File(whiteboxHeaderFile)).delete();
                 (new File(whiteboxDataFile)).delete();
-                
+
                 ByteOrder byteOrder = gt.getByteOrder();
-                
+
                 WhiteboxRasterBase.DataScale myDataScale = WhiteboxRasterBase.DataScale.CONTINUOUS;
                 if (gt.getPhotometricInterpretation() == 2) {
                     myDataScale = WhiteboxRasterBase.DataScale.RGB;
@@ -226,8 +268,30 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                 WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, gt.getNorth(), gt.getSouth(), gt.getEast(),
                         gt.getWest(), nRows, nCols, myDataScale,
                         WhiteboxRasterBase.DataType.FLOAT, gt.getNoData(), gt.getNoData());
-                
+
                 wbr.setByteOrder(byteOrder.toString());
+
+
+                final BufferedImage img = Imaging.getBufferedImage(new File(imageFiles[i]));
+                
+                Raster imgData = img.getData();
+                //System.out.println(img.getColorModel().toString());
+
+                int[][] pixelData = new int[img.getHeight() * img.getWidth()][3];
+                int[] rgb;
+
+//                int counter = 0;
+//                for (int row = 0; row < img.getHeight(); row++) {
+//                    for (int col = 0; col < img.getWidth(); col++) {
+//                        rgb = getPixelData(img, col, row);
+//                        img.get
+//                        for (int k = 0; k < rgb.length; k++) {
+//                            pixelData[counter][k] = rgb[k];
+//                        }
+//
+//                        counter++;
+//                    }
+//                }
 
                 double[] data = null;
                 for (int row = 0; row < nRows; row++) {
@@ -240,13 +304,13 @@ public class ImportGeoTiff implements WhiteboxPlugin {
                     for (int col = 0; col < nCols; col++) {
                         wbr.setValue(row, col, data[col]);
                     }
-                    progress = (int)(100f * row / (nRows - 1));
+                    progress = (int) (100f * row / (nRows - 1));
                     updateProgress(progress);
                 }
-                
+
                 //wbr.flush();
                 wbr.addMetadataEntry("Created by the "
-                    + getDescriptiveName() + " tool.");
+                        + getDescriptiveName() + " tool.");
                 wbr.addMetadataEntry("Created on " + new Date());
                 String[] metaData = gt.showInfo();
                 for (int a = 0; a < metaData.length; a++) {
@@ -260,25 +324,25 @@ public class ImportGeoTiff implements WhiteboxPlugin {
             }
 
             showFeedback("Operation complete");
-            if (!returnedHeader.isEmpty()) { returnData(returnedHeader); }
-            
-        } catch (IOException e) {
-            myHost.logException("Error in ImportGeoTiff.run", e);
-            showFeedback(e.toString());
+            if (!returnedHeader.isEmpty()) {
+                returnData(returnedHeader);
+            }
+
+        } catch (OutOfMemoryError oe) {
+            myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
-            myHost.logException("Error in ImportGeoTiff.run", e);
-            showFeedback(e.toString());
+            myHost.showFeedback("An error has occurred during operation. See log file for details.");
+            myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
             if (out != null || bw != null) {
                 out.flush();
                 out.close();
             }
-            
+
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.
             amIActive = false;
             myHost.pluginComplete();
         }
     }
-
 }
