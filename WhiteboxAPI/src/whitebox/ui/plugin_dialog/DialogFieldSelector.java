@@ -20,6 +20,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.io.File;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -34,7 +36,7 @@ import whitebox.interfaces.DialogComponent;
  */
 public class DialogFieldSelector extends JPanel implements ActionListener, DialogComponent,
         PropertyChangeListener {
-   
+
     private String name;
     private String description;
     private String value;
@@ -45,7 +47,7 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
     private Communicator hostDialog = null;
     private String shapefile = null;
     private boolean multiSelect = true;
-    
+
     private void createUI() {
         try {
             this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -53,18 +55,18 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
             this.setBorder(border);
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-            
+
             Box box = Box.createVerticalBox();
-            
+
             String[] args = new String[7];
             args[0] = "fileSelector"; //Name
             args[1] = "file selector"; //Description
-            args[2] = "Input shapefile:"; //getTextValue(el, "LabelText");
+            args[2] = "Input Shapefile:"; //getTextValue(el, "LabelText");
             args[3] = Integer.toString(DialogFile.MODE_OPEN);
             args[4] = "true"; //getTextValue(el, "ShowButton").toLowerCase();
             args[5] = "ShapeFile (*.shp), SHP"; //getTextValue(el, "Filter");
             args[6] = "false"; //getTextValue(el, "MakeOptional").toLowerCase();
-            
+
             df = new DialogFile(hostDialog);
             df.setArgs(args);
             df.addPropertyChangeListener("value", this);
@@ -75,7 +77,7 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
                 }
             });
             box.add(df);
-            
+
             //list.addListSelectionListener(this);
             Box hbox = Box.createHorizontalBox();
             lbl = new JLabel(label);
@@ -83,19 +85,27 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
             hbox.add(Box.createHorizontalGlue());
             box.add(hbox);
             box.add(Box.createHorizontalStrut(5));
-            
+
             list = new JList();
-        
+
             if (!multiSelect) {
                 list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             } else { //true
                 list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
             }
-            
+
+            ListSelectionListener listSelectionListener = new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent listSelectionEvent) {
+                    raisePropertyChangedEvent("");
+                }
+            };
+            list.addListSelectionListener(listSelectionListener);
+
             updateList();
-            
+
             JScrollPane scroller1 = new JScrollPane(list);
-            
+
             box.add(scroller1);
             box.setToolTipText(description);
             this.setToolTipText(description);
@@ -104,10 +114,10 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
             panel.add(box);
             this.add(panel);
             this.add(Box.createHorizontalGlue());
-            
+
             this.setMaximumSize(new Dimension(2500, 140));
             this.setPreferredSize(new Dimension(350, 140));
-        
+
         } catch (Exception e) {
             System.out.println(e.getCause());
         }
@@ -116,13 +126,20 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
     public void setHostDialog(Communicator hostDialog) {
         this.hostDialog = hostDialog;
     }
-    
+
+    private void raisePropertyChangedEvent(String oldValue) {
+        value = getValue();
+        firePropertyChange("value", oldValue, value);
+    }
+
     private void updateList() {
         list.removeAll();
         DefaultListModel model = new DefaultListModel();
-        if (shapefile == null) { return; }
+        if (shapefile == null) {
+            return;
+        }
         if (new File(shapefile.replace(".shp", ".dbf")).exists()) {
-            
+
             try {
                 AttributeTable table = new AttributeTable(shapefile.replace(".shp", ".dbf"));
                 DBFField[] fields = table.getAllFields();
@@ -130,14 +147,14 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
                     model.add(model.size(), field.getName());
                 }
             } catch (Exception e) {
-                
+
             }
         } else {
             model.add(0, "");
         }
         list.setModel(model);
     }
-    
+
     @Override
     public String getValue() {
         Object[] selectedValues = list.getSelectedValuesList().toArray();
@@ -151,17 +168,17 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
         }
         return value.trim();
     }
-    
+
     @Override
     public String getComponentName() {
         return name;
     }
-    
+
     @Override
     public boolean getOptionalStatus() {
         return false;
     }
-    
+
     @Override
     public boolean setArgs(String[] args) {
         try {
@@ -179,19 +196,15 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
                 multiSelect = true;
                 list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
             }
-//            if (args[4].toLowerCase().contains("false")) {
-//                this.isVisible() = false; 
-//            }
-            //value = (String)comboBox.getSelectedItem();
             createUI();
             return true;
         } catch (Exception e) {
             return false;
         }
     }
-    
+
     private int numArgs = 4;
-    
+
     @Override
     public String[] getArgsDescriptors() {
         String[] argsDescriptors = new String[numArgs];
@@ -201,13 +214,13 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
         argsDescriptors[3] = "boolean allowMultipleSelection";
         return argsDescriptors;
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        JComboBox cb = (JComboBox)e.getSource();
-        value = (String)cb.getSelectedItem();
+        JComboBox cb = (JComboBox) e.getSource();
+        value = (String) cb.getSelectedItem();
     }
-    
+
     private void okPressed() {
         hostDialog.showFeedback("Please press the OK button");
     }
@@ -215,6 +228,7 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         shapefile = df.getValue();
+        raisePropertyChangedEvent("");
         updateList();
     }
 }

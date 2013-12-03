@@ -76,8 +76,8 @@ public class VectorLayerInfo implements MapLayer {
     private String colouringAttribute = "";
     private int numPaletteEntries = 0;
     private int[] paletteData = null;
-    private double minimumValue = 0;
-    private double maximumValue = 0;
+    private double minimumValue = -32768.0;
+    private double maximumValue = -32768.0;
     private double cartographicGeneralizationLevel = 0.5;
     private int selectedFeatureNumber = -1;
     private int maxDisplayedEntries = 25;
@@ -99,7 +99,7 @@ public class VectorLayerInfo implements MapLayer {
         this.layerTitle = file.getName().replace(".shp", "");
         this.alpha = alpha;
         this.overlayNumber = overlayNumber;
-        
+
         try {
             shapefile = new ShapeFile(fileName);
         } catch (IOException e) {
@@ -433,8 +433,14 @@ public class VectorLayerInfo implements MapLayer {
         return colouringAttribute;
     }
 
+    /**
+     * Sets the attribute within the shapefile dbf that is used for setting fill/line colours.
+     * @param fillAttribute Name of the attribute.
+     */
     public void setFillAttribute(String fillAttribute) {
         this.colouringAttribute = fillAttribute;
+        minimumValue = -32768.0;
+        maximumValue = -32768.0;
         //setRecordsColourData();
     }
 
@@ -463,9 +469,17 @@ public class VectorLayerInfo implements MapLayer {
     public double getMaximumValue() {
         return maximumValue;
     }
+    
+    public void setMaximumValue(double value) {
+        this.maximumValue = value;
+    }
 
     public double getMinimumValue() {
         return minimumValue;
+    }
+    
+    public void setMinimumValue(double value) {
+        this.minimumValue = value;
     }
 
     /**
@@ -488,6 +502,7 @@ public class VectorLayerInfo implements MapLayer {
 
     /**
      * Deselects a feature from a vector layer.
+     *
      * @param recordNumber the record index number
      */
     public void deselectFeature(int recordNumber) {
@@ -533,7 +548,9 @@ public class VectorLayerInfo implements MapLayer {
      * @param recordNumber The one-based record ID.
      */
     public boolean isFeatureSelected(int recordNumber) {
-        if (recordNumber >= selectedFeatures.length) { return false; }
+        if (recordNumber >= selectedFeatures.length) {
+            return false;
+        }
         return selectedFeatures[recordNumber];
     }
     private ArrayList<Integer> selectedFeatureNumbers = new ArrayList<>();
@@ -546,9 +563,10 @@ public class VectorLayerInfo implements MapLayer {
     public ArrayList<Integer> getSelectedFeatureNumbers() {
         return selectedFeatureNumbers;
     }
-    
+
     /**
      * Returns the number of features that are currently selected.
+     *
      * @return int of the number of selected features.
      */
     public int getNumSelectedFeatures() {
@@ -713,7 +731,6 @@ public class VectorLayerInfo implements MapLayer {
                     });
 
                     // fill the colourData array.
-
                     if (!paletteScaled) {
                         for (i = 0; i < numRecords; i++) {
                             if (data[i][1] == null) {
@@ -751,41 +768,48 @@ public class VectorLayerInfo implements MapLayer {
 
                         legendEntries = new VectorLayerInfo.LegendEntry[1];
                         legendEntries[0] = new VectorLayerInfo.LegendEntry("continuous numerical variable", Color.black);
-                        // find the min and max values
-                        double minValue = Float.POSITIVE_INFINITY;
-                        double maxValue = Float.NEGATIVE_INFINITY;
+
                         if (numRecords > 1) {
-                            for (i = 0; i < numRecords; i++) {
-                                if (data[i][1] == null) {
-                                    // do nothing
-                                } else {
-                                    if ((Double) data[i][1] > maxValue) {
-                                        maxValue = (Double) data[i][1];
+
+                            if (minimumValue == -32768.0 && maximumValue == -32768.0) {
+                                // find the min and max values
+                                double minValue = Float.POSITIVE_INFINITY;
+                                double maxValue = Float.NEGATIVE_INFINITY;
+                                for (i = 0; i < numRecords; i++) {
+                                    if (data[i][1] == null) {
+                                        // do nothing
+                                    } else {
+                                        if ((Double) data[i][1] > maxValue) {
+                                            maxValue = (Double) data[i][1];
+                                        }
+                                    }
+                                    if (data[i][1] == null) {
+                                        // do nothing
+                                    } else {
+                                        if ((Double) data[i][1] < minValue) {
+                                            minValue = (Double) data[i][1];
+                                        }
                                     }
                                 }
-                                if (data[i][1] == null) {
-                                    // do nothing
-                                } else {
-                                    if ((Double) data[i][1] < minValue) {
-                                        minValue = (Double) data[i][1];
-                                    }
-                                }
+
+                                minimumValue = minValue;
+                                maximumValue = maxValue;
                             }
-                            double range = maxValue - minValue;
+
+                            double range = maximumValue - minimumValue;
                             double value;
                             for (i = 0; i < numRecords; i++) {
                                 if (data[i][1] == null) {
                                     colourData[i] = new Color(255, 255, 255, 0);
                                 } else {
                                     value = (Double) data[i][1];
-                                    entryNum = (int) (((value - minValue) / range) * (numPaletteEntries - 1));
+                                    entryNum = (int) (((value - minimumValue) / range) * (numPaletteEntries - 1));
+                                    if (entryNum < 0) { entryNum = 0; }
+                                    if (entryNum > numPaletteEntries - 1) { entryNum = numPaletteEntries - 1; }
                                     clr = new Color(paletteData[entryNum]);
                                     colourData[i] = new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), a1);
                                 }
                             }
-
-                            minimumValue = minValue;
-                            maximumValue = maxValue;
 
                         } else {
                             colourData[0] = new Color(paletteData[0]);
@@ -997,26 +1021,26 @@ public class VectorLayerInfo implements MapLayer {
     public void addNodeToNewFeature(double x, double y) throws Exception {
         try {
             //if (x != previousX && y != previousY) {
-                if (shapeType.getDimension() == ShapeTypeDimension.XY) {
-                    digitizedPoints.add(new ShapefilePoint(x, y));
-                } else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
-                    digitizedPoints.add(new ShapefilePoint(x, y, zValue, mValue));
-                } else if (shapeType.getDimension() == ShapeTypeDimension.M) {
-                    digitizedPoints.add(new ShapefilePoint(x, y, mValue));
-                } else {
-                    return;
-                }
-                if (shapeType.getBaseType() == ShapeType.POINT) {
-                    closeNewFeature();
-                }
-                previousX = x;
-                previousY = y;
+            if (shapeType.getDimension() == ShapeTypeDimension.XY) {
+                digitizedPoints.add(new ShapefilePoint(x, y));
+            } else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
+                digitizedPoints.add(new ShapefilePoint(x, y, zValue, mValue));
+            } else if (shapeType.getDimension() == ShapeTypeDimension.M) {
+                digitizedPoints.add(new ShapefilePoint(x, y, mValue));
+            } else {
+                return;
+            }
+            if (shapeType.getBaseType() == ShapeType.POINT) {
+                closeNewFeature();
+            }
+            previousX = x;
+            previousY = y;
             //}
             return;
         } catch (Exception e) {
             throw e;
         }
-        
+
     }
 
     public void deleteLastNodeInFeature() {
@@ -1033,7 +1057,7 @@ public class VectorLayerInfo implements MapLayer {
             }
             PointsList pl = new PointsList(digitizedPoints);
             pl.removeDuplicates();
-            
+
             int[] parts = {0};
             double x, y, z, m;
             switch (shapeType) {
@@ -1256,10 +1280,10 @@ public class VectorLayerInfo implements MapLayer {
             }
         }
     }
-    
+
     /**
      * Used to select a feature contained in the vector.
-     * 
+     *
      * @param recordNumber the base-1 record index number
      */
     public void selectFeature(int recordNumber) {
@@ -1313,7 +1337,7 @@ public class VectorLayerInfo implements MapLayer {
             // have to add something here for multipoints.
         }
     }
-    
+
     /**
      * Used to select a feature contained in the vector based on the coordinates
      * of a point.
@@ -1402,7 +1426,7 @@ public class VectorLayerInfo implements MapLayer {
         } catch (Exception e) {
         }
     }
-    
+
     public boolean doesAttributeFileExist() {
         return shapefile.databaseFileExists;
     }

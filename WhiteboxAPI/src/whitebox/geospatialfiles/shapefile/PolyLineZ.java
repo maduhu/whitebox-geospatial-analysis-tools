@@ -211,6 +211,7 @@ public class PolyLineZ implements Geometry {
         return numPoints;
     }
 
+    @Override
     public double[][] getPoints() {
         return points;
     }
@@ -219,6 +220,7 @@ public class PolyLineZ implements Geometry {
         return numParts;
     }
 
+    @Override
     public int[] getParts() {
         return parts;
     }

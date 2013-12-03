@@ -60,11 +60,7 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
     private AutoCompletion ac;
     private String spaces = "    ";
 
-    /**
-     * Initialization method
-     *
-     * @param host Communicator
-     */
+    
     public DialogFile() {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.setMaximumSize(new Dimension(2500, 50));
@@ -75,7 +71,12 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
         workingDirectory = hostDialog.getWorkingDirectory();
 
     }
-
+    
+    /**
+     * Initialization method
+     *
+     * @param host Communicator
+     */
     public DialogFile(Communicator host) {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.setMaximumSize(new Dimension(2500, 50));

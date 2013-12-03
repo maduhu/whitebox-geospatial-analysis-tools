@@ -225,6 +225,7 @@ public class PolygonZ implements Geometry {
         return numPoints;
     }
 
+    @Override
     public double[][] getPoints() {
         return points;
     }
@@ -233,6 +234,7 @@ public class PolygonZ implements Geometry {
         return numParts;
     }
 
+    @Override
     public int[] getParts() {
         return parts;
     }

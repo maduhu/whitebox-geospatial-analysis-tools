@@ -103,10 +103,12 @@ public class DialogCheckBox extends JPanel implements ItemListener, DialogCompon
     
     @Override
     public void itemStateChanged(ItemEvent e) {
+        String oldValue = value;
         if (e.getStateChange() == ItemEvent.DESELECTED) {
             value = "false";
         } else if (e.getStateChange() == ItemEvent.SELECTED) {
             value = "true";
         }
+        firePropertyChange("value", oldValue, value);
     }
 }

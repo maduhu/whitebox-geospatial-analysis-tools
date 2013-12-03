@@ -204,8 +204,9 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
      * @param description This string is entered into the pop-up description.
      * @param labelText This string is added to the checkbox label.
      * @param initialState Determines whether the checkbox is checked at startup.
+     * @return DialogCheckBox a reference to the created object.
      */
-    public void addDialogCheckBox(String description, String labelText,
+    public DialogCheckBox addDialogCheckBox(String description, String labelText,
             boolean initialState) {
         String[] args = new String[4];
         args[0] = "checkbox";
@@ -217,9 +218,10 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         dcb.setArgs(args);
         components.add(dcb);
         mainPanel.add(dcb);
+        return dcb;
     }
 
-    public void addDialogDataInput(String description, String labelText,
+    public DialogDataInput addDialogDataInput(String description, String labelText,
             String initialText, boolean numericalInput, boolean makeOptional) {
         String[] args = new String[6];
         args[0] = "data";
@@ -233,9 +235,10 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         ddi.setArgs(args);
         components.add(ddi);
         mainPanel.add(ddi);
+        return ddi;
     }
 
-    public void addDialogFile(String description, String labelText,
+    public DialogFile addDialogFile(String description, String labelText,
             String dialogMode, String filter, boolean showButton, boolean makeOptional) {
         String[] args = new String[7];
         args[0] = "file";
@@ -254,9 +257,34 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         df.setArgs(args);
         components.add(df);
         mainPanel.add(df);
+        return df;
     }
+    
+//    public DialogFile addDialogFile(String description, String labelText,
+//            String dialogMode, String filter, boolean showButton, 
+//            boolean makeOptional, ActionListener actionListener) {
+//        String[] args = new String[7];
+//        args[0] = "file";
+//        args[1] = description;
+//        args[2] = labelText;
+//        if (dialogMode.toLowerCase().contains("open")) {
+//            args[3] = Integer.toString(DialogFile.MODE_OPEN);
+//        } else {
+//            args[3] = Integer.toString(DialogFile.MODE_SAVEAS);
+//        }
+//        args[4] = Boolean.toString(showButton);
+//        args[5] = filter;
+//        args[6] = Boolean.toString(makeOptional);
+//
+//        DialogFile df = new DialogFile(host);
+//        df.setArgs(args);
+//        df.setTextFieldActionListener(actionListener);
+//        components.add(df);
+//        mainPanel.add(df);
+//        return df;
+//    }
 
-    public void addDialogMultiFile(String description, String labelText,
+    public DialogMultiFile addDialogMultiFile(String description, String labelText,
             String filter) {
         String[] args = new String[4];
         args[0] = "multifile";
@@ -268,18 +296,20 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         dmf.setArgs(args);
         components.add(dmf);
         mainPanel.add(dmf);
+        return dmf;
     }
 
-    public void addDialogLabel(String text) {
+    public JLabel addDialogLabel(String text) {
         Box box = Box.createHorizontalBox();
         JLabel lbl = new JLabel(text);
         box.add(Box.createHorizontalStrut(5));
         box.add(lbl);
         box.add(Box.createHorizontalGlue());
         mainPanel.add(box);
+        return lbl;
     }
     
-    public void addDialogFieldSelector(String description, String labelText,
+    public DialogFieldSelector addDialogFieldSelector(String description, String labelText,
             boolean allowMultipleSelection) {
         String[] args = new String[4];
         args[0] = "fieldselector";
@@ -292,9 +322,10 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         dfs.setArgs(args);
         components.add(dfs);
         mainPanel.add(dfs);
+        return dfs;
     }
 
-    public void addDialogComboBox(String description, String labelText,
+    public DialogComboBox addDialogComboBox(String description, String labelText,
             ArrayList<String> listItems, int defaultItem) {
         String[] args = new String[5];
         args[0] = "combobox";
@@ -315,9 +346,10 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         dcb.setArgs(args);
         components.add(dcb);
         mainPanel.add(dcb);
+        return dcb;
     }
 
-    public void addDialogComboBox(String description, String labelText,
+    public DialogComboBox addDialogComboBox(String description, String labelText,
             String[] listItems, int defaultItem) {
         String[] args = new String[5];
         args[0] = "combobox";
@@ -338,9 +370,10 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         dcb.setArgs(args);
         components.add(dcb);
         mainPanel.add(dcb);
+        return dcb;
     }
 
-    public void addDialogOption(String description, String labelText,
+    public DialogOption addDialogOption(String description, String labelText,
             String button1String, String button2String) {
         String[] args = new String[5];
         args[0] = "dialogoption";
@@ -353,6 +386,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         d.setArgs(args);
         components.add(d);
         mainPanel.add(d);
+        return d;
     }
 
     private String[] collectValues() {
