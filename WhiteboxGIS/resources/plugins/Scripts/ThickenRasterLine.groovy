@@ -36,7 +36,7 @@ import groovy.transform.CompileStatic
 def name = "ThickenRasterLine"
 def descriptiveName = "Thicken Raster Line"
 def description = "Thickens single-cell wide lines within a raster."
-def toolboxes = ["Filters"]
+def toolboxes = ["Filters", "MathematicalMorphology"]
 
 public class ThickenRasterLine implements ActionListener {
 	private WhiteboxPluginHost pluginHost

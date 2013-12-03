@@ -19,7 +19,11 @@ greatly increased performance.
 
 RELEASE NOTES:
 
-Version 3.0.8 ()
+Version 3.0.9 ()
+-Added the Create TIN and Rasterize TIN tools.
+
+
+Version 3.0.8 (November 27, 2013)
 -Added the TraceDownslopeFlowpath tool.
 -Fixed a bug with the FD8 and Dinf flow accumulation tools that allowed for 
  stack overflow errors if the DEM was large or contained a very long flow path.
@@ -31,14 +35,14 @@ Version 3.0.8 ()
 -Added the Multi-scale Elevation Residual Index (MERI) tool for performing 
  multi-scale landscape position analysis on a DEM.
 -Modified the Hillshade tool so that it only requires two passes instead of three.
--Modified the dissolve tool so that it can dissolve based on an attribute.
+-Modified the Dissolve tool so that it can dissolve based on an attribute.
 -Added CreateHexagonalVectorGrid tool.
 -Added RescaleImageValueRange tool.
 -Added ThickenRasterLine tool.
 -Added FindStraightSegments tool.
 -Other minor bug fixes, particularly related to the newly added multi-feature 
- selection feature.
--Improved error logging for most plugin tools.
+ selection.
+-Improved error logging for all plug-in tools.
 
 
 Version 3.0.7 (Oct. 28, 2013)

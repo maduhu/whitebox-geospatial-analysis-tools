@@ -1410,8 +1410,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             vli.setMarkerStyle(PointMarkers.findMarkerStyleFromIndex(markerCombo.getSelectedIndex()));
             vli.setCartographicGeneralizationLevel(scrollGeneralizeLevel.getValue() / 100.0 * 5.0);
             ShapeType shapeType = vli.getShapeType();
-            if (shapeType == ShapeType.POLYLINE || shapeType == ShapeType.POLYLINEM
-                    || shapeType == ShapeType.POLYLINEZ) {
+            if (shapeType.getBaseType() == ShapeType.POLYLINE) {
                 //vli.setLineAttribute("");
                 vli.setOutlinedWithOneColour(uniqueLineColour.isSelected());
                 vli.setPaletteFile(paletteFile);

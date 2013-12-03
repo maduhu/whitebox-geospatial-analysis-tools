@@ -1,3 +1,7 @@
+// This script can be used to merge a table contained in a csv file with 
+// the entries in an attribute table. It's really only meant for 
+// temporary use until I figure out a more permanent solution to 
+// this particular application.
 import java.util.Collections
 import whitebox.geospatialfiles.ShapeFile
 import whitebox.geospatialfiles.shapefile.*

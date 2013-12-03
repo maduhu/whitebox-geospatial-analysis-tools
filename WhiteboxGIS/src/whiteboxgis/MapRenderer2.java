@@ -1821,8 +1821,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             int mapAreaULY = mapArea.getUpperLeftY();
             int mapAreaLRX = mapArea.getLowerRightX();
             int mapAreaLRY = mapArea.getLowerRightY();
-            int mapAreaWidth = mapAreaLRX - mapAreaULX;
-            int mapAreaHeight = mapAreaLRY - mapAreaULY;
+//            int mapAreaWidth = mapAreaLRX - mapAreaULX;
+//            int mapAreaHeight = mapAreaLRY - mapAreaULY;
             int viewAreaULX = mapArea.getUpperLeftX() + referenceMarkSize;
             int viewAreaULY = mapArea.getUpperLeftY() + referenceMarkSize;
             int viewAreaLRX = mapArea.getLowerRightX() - referenceMarkSize;
@@ -1835,8 +1835,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 mapAreaULY = (int) (-pageTop / scale);
                 mapAreaLRX = (int) ((-pageLeft + w) / scale);
                 mapAreaLRY = (int) ((-pageTop + h) / scale);
-                mapAreaWidth = mapAreaLRX - mapAreaULX;
-                mapAreaHeight = mapAreaLRY - mapAreaULY;
+//                mapAreaWidth = mapAreaLRX - mapAreaULX;
+//                mapAreaHeight = mapAreaLRY - mapAreaULY;
                 viewAreaULX = mapAreaULX + referenceMarkSize;
                 viewAreaULY = mapAreaULY + referenceMarkSize;
                 viewAreaLRX = viewAreaULX + (int) (w / scale - 2 * referenceMarkSize);
@@ -2167,12 +2167,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     case POLYLINEZ:
                                     case POLYLINEM:
                                         //g2.setColor(lineColour);
-                                        myStroke = new BasicStroke(layer.getLineThickness());
+                                        myStroke = new BasicStroke(layer.getLineThickness(), BasicStroke.CAP_BUTT,
+                                                    BasicStroke.JOIN_ROUND);
                                         if (layer.isDashed()) {
                                             myStroke =
                                                     new BasicStroke(layer.getLineThickness(),
                                                     BasicStroke.CAP_BUTT,
-                                                    BasicStroke.JOIN_MITER,
+                                                    BasicStroke.JOIN_ROUND,
                                                     10.0f, layer.getDashArray(), 0.0f);
                                         }
                                         oldStroke = g2.getStroke();
@@ -2306,12 +2307,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                                                 if (layer.isOutlined() || (activeLayerBool && isActivelyEdited)) {
                                                     g2.setColor(lineColour);
-                                                    myStroke = new BasicStroke(layer.getLineThickness());
+                                                    myStroke = new BasicStroke(layer.getLineThickness(), BasicStroke.CAP_BUTT,
+                                                        BasicStroke.JOIN_ROUND);
                                                     if (layer.isDashed()) {
                                                         myStroke =
                                                                 new BasicStroke(layer.getLineThickness(),
                                                                 BasicStroke.CAP_BUTT,
-                                                                BasicStroke.JOIN_BEVEL,
+                                                                BasicStroke.JOIN_ROUND,
                                                                 10.0f, layer.getDashArray(), 0.0f);
                                                     }
                                                     oldStroke = g2.getStroke();

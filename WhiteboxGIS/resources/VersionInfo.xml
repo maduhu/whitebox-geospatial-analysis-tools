@@ -1,9 +1,35 @@
 <?xml version="1.0"?>
 <VersionInfo>
     <VersionName>"3.0 'Iguazu'"</VersionName>
-    <VersionNumber>"3.0.7"</VersionNumber>
+    <VersionNumber>"3.0.8"</VersionNumber>
     <DownloadLocation>"http://code.google.com/p/whitebox-geospatial-analysis-tools/downloads/list"</DownloadLocation>
-    <Announcements number="10">
+    <Announcements number="11">
+        <Announcement>
+            <Date>2013-11-28</Date>
+            <Language>en</Language>
+            <Title>Whitebox Version 3.0.8 Has Been Released</Title>
+            <Message><![CDATA[<p>Version 3.0.8 (November 27, 2013)</p> <ul>
+                <li>Added the TraceDownslopeFlowpath tool.</li>
+               <li>Fixed a bug with the FD8 and Dinf flow accumulation tools that allowed for 
+                    stack overflow errors if the DEM was large or contained a very long flow path.</li>
+               <li>Fixed a bug in the generate data functionality of the data base viewer/scripter.</li>
+                <li>Added Depth-In-Sink tool.</li>
+                <li>Modified the Difference From Mean Elevation tool to use an integral image. This
+                    speeds up the performance with large neighbourhoods dramatically. In fact, it 
+                    will take the same time to run regardless of the size of the neighbourhood.</li>
+                <li>Added the Multi-scale Elevation Residual Index (MERI) tool for performing 
+                    multi-scale landscape position analysis on a DEM.</li>
+                <li>Modified the Hillshade tool so that it only requires two passes instead of three.</li>
+                <li>Modified the Dissolve tool so that it can dissolve based on an attribute.</li>
+                <li>Added CreateHexagonalVectorGrid tool.</li>
+                <li>Added RescaleImageValueRange tool.</li>
+                <li>Added ThickenRasterLine tool.</li>
+                <li>Added FindStraightSegments tool.</li>
+                <li>Other minor bug fixes, particularly related to the newly added multi-feature 
+                    selection.</li>
+                <li>Improved error logging for all plug-in tools.</li></ul><]]>
+            </Message>
+        </Announcement>
         <Announcement>
             <Date>2013-11-15</Date>
             <Language>en</Language>
