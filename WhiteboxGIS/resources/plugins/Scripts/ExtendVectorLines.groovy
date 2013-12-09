@@ -67,7 +67,7 @@ public class ExtendVectorLines implements ActionListener {
 			
             // add some components to the dialog
             sd.addDialogFile("Input file", "Input Vector Polyline File:", "open", "Vector Files (*.shp), SHP", true, false)
-            sd.addDialogFile("Output file", "Output Vector File:", "close", "Vector Files (*.shp), SHP", true, false)
+            sd.addDialogFile("Output file", "Output Vector File:", "saveAs", "Vector Files (*.shp), SHP", true, false)
             sd.addDialogDataInput("Distance:", "Enter a distance", "", true, false)
             sd.addDialogComboBox("Extend direction", "Extend Direction:", ["both ends", "line start", "line end"], 0)
             

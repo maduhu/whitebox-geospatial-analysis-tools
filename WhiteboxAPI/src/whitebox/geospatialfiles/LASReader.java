@@ -359,9 +359,9 @@ public class LASReader {
                     }
                 }
                 pointRecs[i].setClassification(b);
-                pointRecs[i].setSynthetic(BitOps.checkBit(returnNumberByte, 5));
-                pointRecs[i].setKeyPoint(BitOps.checkBit(returnNumberByte, 6));
-                pointRecs[i].setPointWithheld(BitOps.checkBit(returnNumberByte, 7));
+                pointRecs[i].setSynthetic(BitOps.checkBit(classificationByte, 5));
+                pointRecs[i].setKeyPoint(BitOps.checkBit(classificationByte, 6));
+                pointRecs[i].setPointWithheld(BitOps.checkBit(classificationByte, 7));
                 pointRecs[i].setScanAngle(buf.get(pos2 + 16));
                 pointRecs[i].setUserData(Unsigned.getUnsignedByte(buf, pos2 + 17));
                 pointRecs[i].setPointSourceID(Unsigned.getUnsignedShort(buf, pos2 + 18));

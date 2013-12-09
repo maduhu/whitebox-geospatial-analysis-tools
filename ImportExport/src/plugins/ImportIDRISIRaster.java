@@ -35,41 +35,53 @@ import java.io.RandomAccessFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.InteropPlugin;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImportIDRISIRaster implements WhiteboxPlugin {
+public class ImportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "ImportIDRISIRaster";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
         return "Import IDRISI Raster (.rst)";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
         return "Imports an IDRISI binary grid file (.rdc and .rst).";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
@@ -77,17 +89,23 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
         String[] ret = {"IOTools"};
         return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -97,8 +115,11 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -108,8 +129,11 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
     }
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
@@ -121,8 +145,11 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -131,17 +158,21 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
@@ -154,9 +185,12 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
         updateProgress("Progress: ", 0);
     }
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -203,7 +237,7 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
         try {
 
             for (i = 0; i < numImages; i++) {
-                int progress = (int)(100f * i / (numImages - 1));
+                int progress = (int) (100f * i / (numImages - 1));
                 updateProgress("Loop " + (i + 1) + " of " + numImages + ":", (int) progress);
                 idrisiDataFile = imageFiles[i];
                 // check to see if the file exists.
@@ -230,24 +264,24 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                             + "Tool failed to import");
                     return;
                 }
-                
+
                 int length;
                 byte[] buffer = new byte[1024];
-                
+
                 if (!idrisiFileIsByteDataType && !idrisiFileIsRGB) {
                     // copy the data file.
                     File fromfile = new File(idrisiDataFile);
                     inStream = new FileInputStream(fromfile);
                     File tofile = new File(whiteboxDataFile);
                     outStream = new FileOutputStream(tofile);
-                    
+
                     //copy the file content in bytes 
                     while ((length = inStream.read(buffer)) > 0) {
                         outStream.write(buffer, 0, length);
                     }
                     outStream.close();
                     inStream.close();
-                
+
                 } else if (!idrisiFileIsRGB) {
                     RandomAccessFile rIn = null;
                     FileChannel inChannel = null;
@@ -255,9 +289,9 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                     ByteBuffer buf = ByteBuffer.allocate(numBytesToRead);
 
                     rIn = new RandomAccessFile(idrisiDataFile, "r");
-            
+
                     inChannel = rIn.getChannel();
-            
+
                     inChannel.position(0);
                     inChannel.read(buf);
 
@@ -271,7 +305,7 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                     double z;
                     int row = 0, col = 0;
                     for (int j = 0; j < numBytesToRead; j++) {
-                        z = (double)(ba[j] & 0xff);
+                        z = (double) (ba[j] & 0xff);
                         wr.setValue(row, col, z);
                         col++;
                         if (col == ncols) {
@@ -288,9 +322,9 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                     ByteBuffer buf = ByteBuffer.allocate(numBytesToRead);
 
                     rIn = new RandomAccessFile(idrisiDataFile, "r");
-            
+
                     inChannel = rIn.getChannel();
-            
+
                     inChannel.position(0);
                     inChannel.read(buf);
 
@@ -301,15 +335,15 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                     byte[] ba = new byte[numBytesToRead];
                     buf.get(ba);
                     int r, g, b;
-                    
+
                     WhiteboxRaster wr = new WhiteboxRaster(whiteboxHeaderFile, "rw");
                     double z;
                     int row = 0, col = 0;
                     for (int j = 0; j < numBytesToRead; j += 3) {
-                        b = (int)(ba[j] & 0xff);
-                        g = (int)(ba[j + 1] & 0xff);
-                        r = (int)(ba[j + 2] & 0xff);
-                        z = (double)((255 << 24) | (b << 16) | (g << 8) | r);
+                        b = (int) (ba[j] & 0xff);
+                        g = (int) (ba[j + 1] & 0xff);
+                        r = (int) (ba[j + 2] & 0xff);
+                        z = (double) ((255 << 24) | (b << 16) | (g << 8) | r);
                         wr.setValue(row, col, z);
                         col++;
                         if (col == ncols) {
@@ -320,11 +354,11 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                     wr.close();
                     inChannel.close();
                 }
-                    
+
                 output = new WhiteboxRaster(whiteboxHeaderFile, "r");
                 output.findMinAndMaxVals();
                 output.addMetadataEntry("Created by the "
-                    + getDescriptiveName() + " tool.");
+                        + getDescriptiveName() + " tool.");
                 output.addMetadataEntry("Created on " + new Date());
                 output.writeHeaderFile();
                 output.close();
@@ -332,7 +366,6 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                 // returning a header file string displays the image.
                 returnData(whiteboxHeaderFile);
             }
-
 
         } catch (OutOfMemoryError oe) {
             myHost.showFeedback("An out-of-memory error has occurred during operation.");
@@ -350,25 +383,28 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
     private boolean idrisiFileIsByteDataType = false;
     private boolean idrisiFileIsRGB = false;
     private int nrows, ncols;
+
     private boolean createHeaderFile(String idrisiHeaderFile, String whiteboxHeaderFile) {
-        double north = 0;
-        double east = 0;
-        double west = 0;
-        double south = 0;
-        double noData = 0;
-        String dataType = "float";
-        String dataScale = "continuous";
+        amIActive = true;
+
         DataInputStream in = null;
         BufferedReader br = null;
-        String delimiter = ":";
-        String byteOrder = java.nio.ByteOrder.nativeOrder().toString();
-        
-        String str1 = null;
         FileWriter fw = null;
         BufferedWriter bw = null;
         PrintWriter out = null;
-        
+
         try {
+            double north = 0;
+            double east = 0;
+            double west = 0;
+            double south = 0;
+            double noData = 0;
+            String dataType = "float";
+            String dataScale = "continuous";
+            String delimiter = ":";
+            String byteOrder = java.nio.ByteOrder.nativeOrder().toString();
+            String str1 = null;
+
             // Open the file that is the first command line parameter
             FileInputStream fstream = new FileInputStream(idrisiHeaderFile);
             // Get the object of DataInputStream
@@ -431,7 +467,7 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                 //Close the input stream
                 in.close();
                 br.close();
-                
+
                 int numPixels = ncols * nrows;
 
                 fw = new FileWriter(whiteboxHeaderFile, false);
@@ -468,8 +504,8 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
                 out.println(str1);
                 str1 = "NoData:\t-9999";
                 out.println(str1);
-                if (byteOrder.toLowerCase().contains("lsb") || 
-                        byteOrder.toLowerCase().contains("little")) {
+                if (byteOrder.toLowerCase().contains("lsb")
+                        || byteOrder.toLowerCase().contains("little")) {
                     str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
                 } else {
                     str1 = "Byte Order:\t" + "BIG_ENDIAN";
@@ -500,5 +536,20 @@ public class ImportIDRISIRaster implements WhiteboxPlugin {
 
         }
 
+    }
+
+    @Override
+    public String[] getExtensions() {
+        return new String[]{"rst"};
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "Idrisi Binary Raster";
+    }
+
+    @Override
+    public boolean isRasterFormat() {
+        return true;
     }
 }

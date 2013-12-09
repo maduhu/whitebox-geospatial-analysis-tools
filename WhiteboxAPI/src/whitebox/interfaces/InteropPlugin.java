@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,22 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package whiteboxgis;
 
-import whitebox.interfaces.WhiteboxPlugin;
-import java.util.Iterator;
-import java.util.ArrayList;
-import whitebox.structures.InteroperableGeospatialDataFormat;
+package whitebox.interfaces;
 
 /**
- *
- * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * This interface is used by the import tools so that the supported file formats
+ * can be added to the current map using the AddLayer method.
+ * @author johnlindsay
  */
-public interface PluginService {
-    Iterator<WhiteboxPlugin> getPlugins();
-    void initPlugins();
-    WhiteboxPlugin getPlugin(String pluginName, int nameType);
-    int getNumberOfPlugins();
-    ArrayList getPluginList();
-    public ArrayList<InteroperableGeospatialDataFormat> getInteroperableDataFormats();
+public interface InteropPlugin {
+    
+    public String[] getExtensions();
+    
+    public String getFileTypeName();
+    
+    public boolean isRasterFormat();
 }

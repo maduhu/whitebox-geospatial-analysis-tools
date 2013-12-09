@@ -191,7 +191,7 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
     public boolean isActive() {
         return amIActive;
     }
-    
+
     String[] pointFiles;
     String whatToInterpolate = "";
     String returnNumberToInterpolate = "all points";
@@ -205,10 +205,11 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
+        try {
 
-        String inputFilesString = null;
+            String inputFilesString = null;
         //String outputHeader = null;
-        //String[] pointFiles;
+            //String[] pointFiles;
 //        int row, col;
 //        int nrows, ncols;
 //        double x, y;
@@ -233,55 +234,51 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
 //        String whatToInterpolate = "";
 //        String returnNumberToInterpolate = "all points";
 //        String suffix = "";
-        boolean excludeNeverClassified;
-        boolean excludeUnclassified;
-        boolean excludeBareGround;
-        boolean excludeLowVegetation;
-        boolean excludeMediumVegetation;
-        boolean excludeHighVegetation;
-        boolean excludeBuilding;
-        boolean excludeLowPoint;
-        //boolean excludeHighPoint;
-        boolean excludeModelKeyPoint;
-        boolean excludeWater;
+            boolean excludeNeverClassified;
+            boolean excludeUnclassified;
+            boolean excludeBareGround;
+            boolean excludeLowVegetation;
+            boolean excludeMediumVegetation;
+            boolean excludeHighVegetation;
+            boolean excludeBuilding;
+            boolean excludeLowPoint;
+            //boolean excludeHighPoint;
+            boolean excludeModelKeyPoint;
+            boolean excludeWater;
 
-        // get the arguments
-        if (args.length <= 0) {
-            showFeedback("Plugin parameters have not been set.");
-            return;
-        }
-        inputFilesString = args[0];
-        suffix = " " + args[1].trim();
-        whatToInterpolate = args[2].toLowerCase();
-        returnNumberToInterpolate = args[3].toLowerCase();
-        if (!args[4].equalsIgnoreCase("not specified")) {
-            maxDist = Double.parseDouble(args[4]);
-        }
-        resolution = Double.parseDouble(args[5]);
-        if (!args[6].toLowerCase().contains("not specified")) {
-            maxAbsScanAngle = Double.parseDouble(args[6]);
-        }
-        excludeNeverClassified = Boolean.parseBoolean(args[7]);
-        excludeUnclassified = Boolean.parseBoolean(args[8]);
-        excludeBareGround = Boolean.parseBoolean(args[9]);
-        excludeLowVegetation = Boolean.parseBoolean(args[10]);
-        excludeMediumVegetation = Boolean.parseBoolean(args[11]);
-        excludeHighVegetation = Boolean.parseBoolean(args[12]);
-        excludeBuilding = Boolean.parseBoolean(args[13]);
-        excludeLowPoint = Boolean.parseBoolean(args[14]);
-        //excludeHighPoint = Boolean.parseBoolean(args[14]);
-        excludeModelKeyPoint = Boolean.parseBoolean(args[15]);
-        excludeWater = Boolean.parseBoolean(args[16]);
+            // get the arguments
+            if (args.length <= 0) {
+                showFeedback("Plugin parameters have not been set.");
+                return;
+            }
+            inputFilesString = args[0];
+            suffix = " " + args[1].trim();
+            whatToInterpolate = args[2].toLowerCase();
+            returnNumberToInterpolate = args[3].toLowerCase();
+            if (!args[4].equalsIgnoreCase("not specified")) {
+                maxDist = Double.parseDouble(args[4]);
+            }
+            resolution = Double.parseDouble(args[5]);
+            if (!args[6].toLowerCase().contains("not specified")) {
+                maxAbsScanAngle = Double.parseDouble(args[6]);
+            }
+            excludeNeverClassified = Boolean.parseBoolean(args[7]);
+            excludeUnclassified = Boolean.parseBoolean(args[8]);
+            excludeBareGround = Boolean.parseBoolean(args[9]);
+            excludeLowVegetation = Boolean.parseBoolean(args[10]);
+            excludeMediumVegetation = Boolean.parseBoolean(args[11]);
+            excludeHighVegetation = Boolean.parseBoolean(args[12]);
+            excludeBuilding = Boolean.parseBoolean(args[13]);
+            excludeLowPoint = Boolean.parseBoolean(args[14]);
+            //excludeHighPoint = Boolean.parseBoolean(args[14]);
+            excludeModelKeyPoint = Boolean.parseBoolean(args[15]);
+            excludeWater = Boolean.parseBoolean(args[16]);
 
-
-
-        // check to see that the inputHeader and outputHeader are not null.
-        if ((inputFilesString.length() <= 0)) {
-            showFeedback("One or more of the input parameters have not been set properly.");
-            return;
-        }
-
-        try {
+            // check to see that the inputHeader and outputHeader are not null.
+            if ((inputFilesString.length() <= 0)) {
+                showFeedback("One or more of the input parameters have not been set properly.");
+                return;
+            }
 
             classValuesToExclude = new boolean[32]; // there can be up to 32 different classes in future versions
 
@@ -383,7 +380,6 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
                     }
 
                     // now read the valid points into the k-dimensional tree.
-
                     double minX = Double.POSITIVE_INFINITY;
                     double maxX = Double.NEGATIVE_INFINITY;
                     double minY = Double.POSITIVE_INFINITY;
@@ -622,7 +618,7 @@ public class LiDAR_NN_interpolation implements WhiteboxPlugin {
                             return;
                         }
                     }
-                    
+
                     image.addMetadataEntry("Created by the "
                             + getDescriptiveName() + " tool.");
                     image.addMetadataEntry("Created on " + new Date());

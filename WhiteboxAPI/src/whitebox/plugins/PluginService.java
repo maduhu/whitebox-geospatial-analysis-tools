@@ -19,6 +19,7 @@ package whitebox.plugins;
 import whitebox.interfaces.WhiteboxPlugin;
 import java.util.Iterator;
 import java.util.ArrayList;
+import whitebox.structures.InteroperableGeospatialDataFormat;
 
 /**
  *
@@ -30,4 +31,5 @@ public interface PluginService {
     WhiteboxPlugin getPlugin(String pluginName, int nameType);
     int getNumberOfPlugins();
     ArrayList getPluginList();
+    public ArrayList<InteroperableGeospatialDataFormat> getInteroperableDataFormats();
 }

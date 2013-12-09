@@ -23,13 +23,14 @@ import javax.imageio.ImageIO;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.interfaces.InteropPlugin;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImportImage implements WhiteboxPlugin {
+public class ImportImage implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -230,7 +231,9 @@ public class ImportImage implements WhiteboxPlugin {
 
             for (i = 0; i < numImages; i++) {
                 int progress = (int) (100f * i / (numImages - 1));
-                updateProgress("Loop " + (i + 1) + " of " + numImages + ":", (int) progress);
+                if (numImages > 1) {
+                    updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                }
                 fileName = imageFiles[i];
                 // check to see if the file exists.
                 if (!((new File(fileName)).exists())) {
@@ -494,6 +497,20 @@ public class ImportImage implements WhiteboxPlugin {
         }
     }
 
+    @Override
+    public String[] getExtensions() {
+        return new String[]{ "jpg", "jpeg", "png", "gif", "bmp" };
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "Generic Image";
+    }
+    
+    @Override 
+    public boolean isRasterFormat() {
+        return true;
+    }
 //    // This method is only used during testing.
 //    public static void main(String[] args) {
 //        args = new String[1];

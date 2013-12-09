@@ -112,7 +112,8 @@ public class MapLayerDeserializer implements JsonDeserializer<MapLayer> {
                 alpha = jo.getAsJsonPrimitive("alpha").getAsInt();
                 boolean isPaletteReversed = jo.getAsJsonPrimitive("isPaletteReversed").getAsBoolean();
                 
-                RasterLayerInfo rli = new RasterLayerInfo(headerFile, paletteFile, alpha, overlayNumber);
+                RasterLayerInfo rli = new RasterLayerInfo(headerFile, paletteFile, 
+                        alpha, overlayNumber);
                 rli.setDisplayMaxVal(displayMaxVal);
                 rli.setDisplayMinVal(displayMinVal);
                 rli.setNonlinearity(nonlinearity);

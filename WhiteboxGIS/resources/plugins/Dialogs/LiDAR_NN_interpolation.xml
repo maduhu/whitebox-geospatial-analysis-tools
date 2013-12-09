@@ -49,6 +49,15 @@
 		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
+        <DialogComponent type="DialogDataInput">
+		<Name>maxAbsScanAngle</Name>
+		<Description>Enter the maximum absolute scan angle</Description>
+                <LabelText>Max Absolute Scan Angle:</LabelText>
+		<IsVisible>True</IsVisible>
+		<InitialText>25.0</InitialText>
+		<NumericalInputOnly>True</NumericalInputOnly>
+		<MakeOptional>False</MakeOptional>
+	</DialogComponent>
         <DialogComponent type="Label">
             <Name>excludeLabel</Name>
             <LabelText>Exclude points with the following classification</LabelText>

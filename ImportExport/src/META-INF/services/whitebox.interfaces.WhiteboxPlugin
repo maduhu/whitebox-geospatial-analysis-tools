@@ -11,6 +11,8 @@ plugins.ImportGeoTiff
 plugins.ImportGRASSAsciiGrid
 plugins.ImportIDRISIRaster
 plugins.ImportImage
+plugins.ImportSagaGrid
+plugins.ImportSRTM
 plugins.ImportSurferAsciiGrid
 plugins.ImportTASVector
 plugins.ImportXYZToVectorPoints

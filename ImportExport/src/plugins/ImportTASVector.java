@@ -30,12 +30,13 @@ import whitebox.geospatialfiles.shapefile.ShapeType;
 import whitebox.geospatialfiles.shapefile.ShapefilePoint;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
+import whitebox.interfaces.InteropPlugin;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImportTASVector implements WhiteboxPlugin {
+public class ImportTASVector implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -356,6 +357,21 @@ public class ImportTASVector implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+    
+    @Override
+    public String[] getExtensions() {
+        return new String[]{ "vtr" };
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "TAS Vector";
+    }
+    
+    @Override 
+    public boolean isRasterFormat() {
+        return false;
     }
 
 //    // this is only used for debugging the tool

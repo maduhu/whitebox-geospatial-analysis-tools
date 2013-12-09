@@ -32,6 +32,7 @@
  */
 package whitebox.geospatialfiles;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
@@ -443,6 +444,19 @@ public class GeoTiff {
             parseGeoInfo();
         }
 
+        nCols = getNumberColumns();
+        nRows = getNumberRows();
+        nodata = getNoData();
+        if (findTag(Tag.TileOffsets) != null) {
+            tiledFormat = true;
+            tileWidth = findTag(Tag.TileWidth).value[0];
+            tileLength = findTag(Tag.TileLength).value[0];
+            nTilesX = (nCols + tileWidth - 1) / tileWidth;
+            nTilesY = (nRows + tileLength - 1) / tileLength;
+        } else {
+            rowsPerStrip = findTag(Tag.RowsPerStrip).value[0];
+        }
+
         //parseGeoInfo();
     }
 
@@ -467,11 +481,20 @@ public class GeoTiff {
     }
 
     public int getNumberBitsPerSample() {
-        return findTag(Tag.BitsPerSample).value[0];
+        int[] bitsPerSample = findTag(Tag.BitsPerSample).value;
+        int totalBitsPerSample = 0;
+        for (int a = 0; a < bitsPerSample.length; a++) {
+            totalBitsPerSample += bitsPerSample[a];
+        }
+        return totalBitsPerSample; //findTag(Tag.BitsPerSample).value[0];
     }
 
     public int getSampleFormat() {
         return findTag(Tag.SampleFormat).value[0];
+    }
+    
+    public String getFileName() {
+        return filename;
     }
 
 //    public String getProjectionInfo() {
@@ -536,6 +559,10 @@ public class GeoTiff {
             return -32768;
         }
     }
+    
+    public boolean hasNoDataTag() {
+        return (findTag(Tag.GDALNoData) != null);
+    }
 
     public int getPhotometricInterpretation() {
         if (findTag(Tag.PhotometricInterpretation) != null) {
@@ -544,131 +571,213 @@ public class GeoTiff {
             return -9999;
         }
     }
+    
+    public int getCompressionType() {
+        return findTag(Tag.Compression).value[0];
+    }
 
-    public double[] getRowData(int row) {
-        int nCols = getNumberColumns();
-        double[] data = new double[nCols];
-        int offset = 0;
-        int size = 0;
-        int compressionType = findTag(Tag.Compression).value[0];
-        int[] bitsPerSample = findTag(Tag.BitsPerSample).value;
-        int sampleFormat = 1; //findTag(Tag.SampleFormat).value[0];
+    double[] tileOrStripData;
+    boolean tiledFormat = false;
+    int currentTile = -1;
+    int currentStrip = -1;
+    int nRows = -1;
+    int nCols = -1;
+    int rowsPerStrip = -1;
+    int tileWidth = -1;
+    int tileLength = -1;
+    int nTilesX = -1;
+    int nTilesY = -1;
+    double nodata = -32768;
 
-        if (findTag(Tag.SampleFormat) != null) {
-            sampleFormat = findTag(Tag.SampleFormat).value[0];
+    public double getValue(int row, int col) throws Exception {
+        if (!tiledFormat) { // strip oriented
+            // figure out which strip the pixel is in
+            int stripNum = row / rowsPerStrip;
+            if (currentStrip != stripNum) {
+                tileOrStripData = getStripData(stripNum);
+                if (tileOrStripData == null) {
+                    throw new Exception("Error reading data. It is likely that the TIFF file is of an unsupported type, possibly due to data compression.");
+                }
+                currentStrip = stripNum;
+            }
+            int stripRow = row % rowsPerStrip;
+            int stripPixelNum = stripRow * nCols + col;
+            return tileOrStripData[stripPixelNum];
+        } else { // tile oriented
+            // figure out which tile the pixel is in
+            int tileNum = row / tileLength * nTilesX + col / tileWidth;
+            if (currentTile != tileNum) {
+                tileOrStripData = getTileData(tileNum);
+                if (tileOrStripData == null) {
+                    throw new Exception("Error reading data. It is likely that the TIFF file is of an unsupported type, possibly due to data compression.");
+                }
+                currentTile = tileNum;
+            }
+            int tileRow = row % tileLength;
+            int tileCol = col % tileWidth;
+            int tilePixelNum = tileRow * tileLength + tileCol;
+            return tileOrStripData[tilePixelNum];
         }
-        boolean tiledFormat = false;
-        if (findTag(Tag.TileOffsets) != null) {
-            tiledFormat = true;
-//            System.out.println(findTag(Tag.TileOffsets));
-//            System.out.println(findTag(Tag.TileWidth) + "\t" + findTag(Tag.TileLength) + "\t" + findTag(Tag.TileByteCounts));
+    }
 
-            return null; // can't handle this type of tiff.
-        }
-
-        if (getPhotometricInterpretation() != 2) {
-
+    private double[] getTileData(int tile) {
+        try {
             if (!tiledFormat) {
-                // how many rows per strip?
-                int rowsPerStrip = findTag(Tag.RowsPerStrip).value[0];
-                // which strip will contain row?
-                int stripNum = (int) row / rowsPerStrip;
+                return null;
+            }
+            
+            double[] data;
+                    
+            int compressionType = findTag(Tag.Compression).value[0];
+            int sampleFormat = 1; //findTag(Tag.SampleFormat).value[0];
 
-                int stripOffset = findTag(Tag.StripOffsets).value[stripNum];
-                //int stripSize = findTag(Tag.StripByteCounts).value[0];
-                offset = stripOffset + (row % rowsPerStrip * nCols * (bitsPerSample[0] / 8));
-                size = nCols * (bitsPerSample[0] / 8); //stripSize;
+            if (findTag(Tag.SampleFormat) != null) {
+                sampleFormat = findTag(Tag.SampleFormat).value[0];
+            }
 
+            if (getPhotometricInterpretation() != 2) {
+                int tileOffset = findTag(Tag.TileOffsets).value[tile];
+                int tileByteCount = findTag(Tag.TileByteCounts).value[tile];
+                int[] bitsPerSample = findTag(Tag.BitsPerSample).value;
+                int numPixelsInTile = tileByteCount / (bitsPerSample[0] / 8);
+                data = new double[numPixelsInTile];
 
+                channel.position(tileOffset);
+                int size = tileByteCount / 8;
+                ByteBuffer buffer = ByteBuffer.allocate(tileByteCount);
+                buffer.order(byteOrder);
+                
+                if (compressionType == 1) {
+
+                    channel.read(buffer);
+                    buffer.flip();
+
+                    if (sampleFormat == 1 && bitsPerSample[0] == 8) { // unsigned byte
+                        byte b;
+                        for (int i = 0; i < size; i++) {
+                            b = buffer.get();
+                            data[i] = (short) (0x000000FF & ((int) b));
+                        }
+                    } else if (sampleFormat == 2 && bitsPerSample[0] == 8) { // signed byte
+                        byte b;
+                        for (int i = 0; i < size; i++) {
+                            b = buffer.get();
+                            data[i] = b;
+                        }
+                    } else if (sampleFormat == 1 && bitsPerSample[0] == 16) { // unsigned 16-bit short
+                        int b1;
+                        int b2;
+                        for (int i = 0; i < numPixelsInTile; i++) {
+                            b1 = (0x000000FF & ((int) buffer.get()));
+                            b2 = (0x000000FF & ((int) buffer.get()));
+                            data[i] = (b2 << 8 | b1);
+                        }
+                    } else if (sampleFormat == 2 && bitsPerSample[0] == 16) { // signed 16-bit short
+                        ShortBuffer sb = buffer.asShortBuffer();
+                        short[] sa = new short[numPixelsInTile];
+                        sb.get(sa);
+                        sb = null;
+                        for (int j = 0; j < numPixelsInTile; j++) {
+                            data[j] = sa[j];
+                        }
+                        sa = null;
+                    } else if (sampleFormat == 1 && bitsPerSample[0] == 32) { // unsigned 32-bit int
+                        int b1, b2, b3, b4;
+                        for (int i = 0; i < numPixelsInTile; i++) {
+                            b1 = (0x000000FF & ((int) buffer.get()));
+                            b2 = (0x000000FF & ((int) buffer.get()));
+                            b3 = (0x000000FF & ((int) buffer.get()));
+                            b4 = (0x000000FF & ((int) buffer.get()));
+                            data[i] = ((long) (b1 << 24 | b2 << 16 | b3 << 8 | b4)) & 0xFFFFFFFFL;
+                        }
+
+                    } else if (sampleFormat == 2 && bitsPerSample[0] == 32) { // signed 32-bit int
+                        IntBuffer ib = buffer.asIntBuffer();
+                        int[] ia = new int[numPixelsInTile];
+                        ib.get(ia);
+                        ib = null;
+                        for (int j = 0; j < numPixelsInTile; j++) {
+                            data[j] = ia[j];
+                        }
+                        ia = null;
+                    } else if (sampleFormat == 1 && bitsPerSample[0] == 64) { // unsigned 64-bit long
+                        // I don't know what data type you could cast an unsigned long into. Perhaps a BigInteger.
+                        return null;
+                    } else if (sampleFormat == 2 && bitsPerSample[0] == 64) { // signed 64-bit long
+                        LongBuffer lb = buffer.asLongBuffer();
+                        long[] la = new long[numPixelsInTile];
+                        lb.get(la);
+                        lb = null;
+                        for (int j = 0; j < numPixelsInTile; j++) {
+                            data[j] = la[j];
+                        }
+                        la = null;
+                    } else if (sampleFormat == 3 && bitsPerSample[0] == 32) { // 32-bit single-precision float
+                        FloatBuffer fb = buffer.asFloatBuffer();
+                        float[] fa = new float[numPixelsInTile];
+                        fb.get(fa);
+                        fb = null;
+                        for (int j = 0; j < numPixelsInTile; j++) {
+                            data[j] = fa[j];
+                        }
+                        fa = null;
+                    } else if (sampleFormat == 3 && bitsPerSample[0] == 64) { // 64-bit double-precision float
+                        DoubleBuffer db = buffer.asDoubleBuffer();
+                        double[] da = new double[numPixelsInTile];
+                        db.get(da);
+                        db = null;
+                        data = da.clone();
+                        da = null;
+                    } else {
+                        return null;
+                    }
+                } else if (compressionType == 32773) {
+                    return null;
+                } else {
+                    return null;
+                }
+
+            } else {
+                int tileOffset = findTag(Tag.TileOffsets).value[tile];
+                int tileByteCount = findTag(Tag.TileByteCounts).value[tile];
+                int[] bitsPerSample = findTag(Tag.BitsPerSample).value;
+                int totalBitsPerSample = 0;
+                for (int a = 0; a < bitsPerSample.length; a++) {
+                    totalBitsPerSample += bitsPerSample[a];
+                }
+                int numPixelsInTile = tileByteCount / (totalBitsPerSample / 8);
+                data = new double[numPixelsInTile];
+
+                channel.position(tileOffset);
+                ByteBuffer buffer = ByteBuffer.allocate(tileByteCount);
+                buffer.order(byteOrder);
+                
                 try {
-                    channel.position(offset);
-                    ByteBuffer buffer = ByteBuffer.allocate(size);
-                    buffer.order(byteOrder);
-
                     if (compressionType == 1) {
-
                         channel.read(buffer);
                         buffer.flip();
 
-                        if (sampleFormat == 1 && bitsPerSample[0] == 8) { // unsigned byte
-                            byte b;
-                            for (int i = 0; i < size; i++) {
-                                b = buffer.get();
-                                data[i] = (short) (0x000000FF & ((int) b));
-                            }
-                        } else if (sampleFormat == 2 && bitsPerSample[0] == 8) { // signed byte
-                            byte b;
-                            for (int i = 0; i < size; i++) {
-                                b = buffer.get();
-                                data[i] = b;
-                            }
-                        } else if (sampleFormat == 1 && bitsPerSample[0] == 16) { // unsigned 16-bit short
-                            int b1;
-                            int b2;
+                        if (totalBitsPerSample == 24 && bitsPerSample.length == 3) {
+                            int r, g, b;
                             for (int i = 0; i < nCols; i++) {
-                                b1 = (0x000000FF & ((int) buffer.get()));
-                                b2 = (0x000000FF & ((int) buffer.get()));
-                                data[i] = (b2 << 8 | b1);
+                                r = (0x000000FF & ((int) buffer.get()));
+                                g = (0x000000FF & ((int) buffer.get()));
+                                b = (0x000000FF & ((int) buffer.get()));
+                                data[i] = (double) ((255 << 24) | (b << 16) | (g << 8) | r);
                             }
-                        } else if (sampleFormat == 2 && bitsPerSample[0] == 16) { // signed 16-bit short
-                            ShortBuffer sb = buffer.asShortBuffer();
-                            short[] sa = new short[nCols];
-                            sb.get(sa);
-                            sb = null;
-                            for (int j = 0; j < nCols; j++) {
-                                data[j] = sa[j];
-                            }
-                            sa = null;
-                        } else if (sampleFormat == 1 && bitsPerSample[0] == 32) { // unsigned 32-bit int
-                            int b1, b2, b3, b4;
+                        } else if (totalBitsPerSample == 32 && bitsPerSample.length == 4) {
+                            int r, g, b, a;
                             for (int i = 0; i < nCols; i++) {
-                                b1 = (0x000000FF & ((int) buffer.get()));
-                                b2 = (0x000000FF & ((int) buffer.get()));
-                                b3 = (0x000000FF & ((int) buffer.get()));
-                                b4 = (0x000000FF & ((int) buffer.get()));
-                                data[i] = ((long) (b1 << 24 | b2 << 16 | b3 << 8 | b4)) & 0xFFFFFFFFL;
+                                r = (0x000000FF & ((int) buffer.get()));
+                                g = (0x000000FF & ((int) buffer.get()));
+                                b = (0x000000FF & ((int) buffer.get()));
+                                a = (0x000000FF & ((int) buffer.get()));
+                                data[i] = (double) ((a << 24) | (b << 16) | (g << 8) | r);
                             }
-
-                        } else if (sampleFormat == 2 && bitsPerSample[0] == 32) { // signed 32-bit int
-                            IntBuffer ib = buffer.asIntBuffer();
-                            int[] ia = new int[nCols];
-                            ib.get(ia);
-                            ib = null;
-                            for (int j = 0; j < nCols; j++) {
-                                data[j] = ia[j];
-                            }
-                            ia = null;
-                        } else if (sampleFormat == 1 && bitsPerSample[0] == 64) { // unsigned 64-bit long
-                            // I don't know what data type you could cast an unsigned long into. Perhaps a BigInteger.
-                            return null;
-                        } else if (sampleFormat == 2 && bitsPerSample[0] == 64) { // signed 64-bit long
-                            LongBuffer lb = buffer.asLongBuffer();
-                            long[] la = new long[nCols];
-                            lb.get(la);
-                            lb = null;
-                            for (int j = 0; j < nCols; j++) {
-                                data[j] = la[j];
-                            }
-                            la = null;
-                        } else if (sampleFormat == 3 && bitsPerSample[0] == 32) { // 32-bit single-precision float
-                            FloatBuffer fb = buffer.asFloatBuffer();
-                            float[] fa = new float[nCols];
-                            fb.get(fa);
-                            fb = null;
-                            for (int j = 0; j < nCols; j++) {
-                                data[j] = fa[j];
-                            }
-                            fa = null;
-                        } else if (sampleFormat == 3 && bitsPerSample[0] == 64) { // 64-bit double-precision float
-                            DoubleBuffer db = buffer.asDoubleBuffer();
-                            double[] da = new double[nCols];
-                            db.get(da);
-                            db = null;
-                            data = da.clone();
-                            da = null;
                         } else {
                             return null;
                         }
+
                     } else if (compressionType == 32773) {
                         return null;
                     } else {
@@ -678,150 +787,141 @@ public class GeoTiff {
                 } catch (IOException e) {
                     // do nothing
                 }
-            } else { // tiled format
-                // how many rows per strip?
-                //int rowsPerStrip = findTag(Tag.RowsPerStrip).value[0];
-                int tileWidth = findTag(Tag.TileWidth).value[0];
-                int tileLength = findTag(Tag.TileLength).value[0];
-                
-                int widthInTiles = (int)(nCols / tileWidth);
-                int nRows = getNumberRows();
-                int heightInTiles = (int)(nRows / tileLength);
-                
-                int tileRow = (int)(row / tileLength);
-                int tileRowRow = (int)(row % tileLength);
-                
-                int a = 9;
-                
-                // which strip will contain row?
-//                int tileNum = (int) row / rowsPerStrip;
-
-//                int tileOffset = findTag(Tag.StripOffsets).value[stripNum];
-//                //int stripSize = findTag(Tag.StripByteCounts).value[0];
-//                offset = stripOffset + (row % rowsPerStrip * nCols * (bitsPerSample[0] / 8));
-//                size = nCols * (bitsPerSample[0] / 8); //stripSize;
-
-
-//                try {
-//                    channel.position(offset);
-//                    ByteBuffer buffer = ByteBuffer.allocate(size);
-//                    buffer.order(byteOrder);
-//
-//                    if (compressionType == 1) {
-//
-//                        channel.read(buffer);
-//                        buffer.flip();
-//
-//                        if (sampleFormat == 1 && bitsPerSample[0] == 8) { // unsigned byte
-//                            byte b;
-//                            for (int i = 0; i < size; i++) {
-//                                b = buffer.get();
-//                                data[i] = (short) (0x000000FF & ((int) b));
-//                            }
-//                        } else if (sampleFormat == 2 && bitsPerSample[0] == 8) { // signed byte
-//                            byte b;
-//                            for (int i = 0; i < size; i++) {
-//                                b = buffer.get();
-//                                data[i] = b;
-//                            }
-//                        } else if (sampleFormat == 1 && bitsPerSample[0] == 16) { // unsigned 16-bit short
-//                            int b1;
-//                            int b2;
-//                            for (int i = 0; i < nCols; i++) {
-//                                b1 = (0x000000FF & ((int) buffer.get()));
-//                                b2 = (0x000000FF & ((int) buffer.get()));
-//                                data[i] = (b2 << 8 | b1);
-//                            }
-//                        } else if (sampleFormat == 2 && bitsPerSample[0] == 16) { // signed 16-bit short
-//                            ShortBuffer sb = buffer.asShortBuffer();
-//                            short[] sa = new short[nCols];
-//                            sb.get(sa);
-//                            sb = null;
-//                            for (int j = 0; j < nCols; j++) {
-//                                data[j] = sa[j];
-//                            }
-//                            sa = null;
-//                        } else if (sampleFormat == 1 && bitsPerSample[0] == 32) { // unsigned 32-bit int
-//                            int b1, b2, b3, b4;
-//                            for (int i = 0; i < nCols; i++) {
-//                                b1 = (0x000000FF & ((int) buffer.get()));
-//                                b2 = (0x000000FF & ((int) buffer.get()));
-//                                b3 = (0x000000FF & ((int) buffer.get()));
-//                                b4 = (0x000000FF & ((int) buffer.get()));
-//                                data[i] = ((long) (b1 << 24 | b2 << 16 | b3 << 8 | b4)) & 0xFFFFFFFFL;
-//                            }
-//
-//                        } else if (sampleFormat == 2 && bitsPerSample[0] == 32) { // signed 32-bit int
-//                            IntBuffer ib = buffer.asIntBuffer();
-//                            int[] ia = new int[nCols];
-//                            ib.get(ia);
-//                            ib = null;
-//                            for (int j = 0; j < nCols; j++) {
-//                                data[j] = ia[j];
-//                            }
-//                            ia = null;
-//                        } else if (sampleFormat == 1 && bitsPerSample[0] == 64) { // unsigned 64-bit long
-//                            // I don't know what data type your could cast an unsigned long into. Perhaps a BigInteger.
-//                            return null;
-//                        } else if (sampleFormat == 2 && bitsPerSample[0] == 64) { // signed 64-bit long
-//                            LongBuffer lb = buffer.asLongBuffer();
-//                            long[] la = new long[nCols];
-//                            lb.get(la);
-//                            lb = null;
-//                            for (int j = 0; j < nCols; j++) {
-//                                data[j] = la[j];
-//                            }
-//                            la = null;
-//                        } else if (sampleFormat == 3 && bitsPerSample[0] == 32) { // 32-bit single-precision float
-//                            FloatBuffer fb = buffer.asFloatBuffer();
-//                            float[] fa = new float[nCols];
-//                            fb.get(fa);
-//                            fb = null;
-//                            for (int j = 0; j < nCols; j++) {
-//                                data[j] = fa[j];
-//                            }
-//                            fa = null;
-//                        } else if (sampleFormat == 3 && bitsPerSample[0] == 64) { // 64-bit double-precision float
-//                            DoubleBuffer db = buffer.asDoubleBuffer();
-//                            double[] da = new double[nCols];
-//                            db.get(da);
-//                            db = null;
-//                            data = da.clone();
-//                            da = null;
-//                        } else {
-//                            return null;
-//                        }
-//                    } else if (compressionType == 32773) {
-//                        return null;
-//                    } else {
-//                        return null;
-//                    }
-//
-//                } catch (IOException e) {
-//                    // do nothing
-//                }
             }
             return data;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private double[] getStripData(int stripNum) {
+        double[] data;
+        int compressionType = findTag(Tag.Compression).value[0];
+        int[] bitsPerSample = findTag(Tag.BitsPerSample).value;
+        int sampleFormat = 1; //findTag(Tag.SampleFormat).value[0];
+
+        if (findTag(Tag.SampleFormat) != null) {
+            sampleFormat = findTag(Tag.SampleFormat).value[0];
+        }
+        if (tiledFormat) {
+            return null; // can't handle this type of tiff.
+        }
+        int stripOffset = findTag(Tag.StripOffsets).value[stripNum];
+        int stripByteSize = findTag(Tag.StripByteCounts).value[stripNum];
+        
+        if (getPhotometricInterpretation() != 2) {
+            int numPixelsInStrip = stripByteSize / (bitsPerSample[0] / 8);
+            data = new double[numPixelsInStrip];
+            try {
+                channel.position(stripOffset);
+                ByteBuffer buffer = ByteBuffer.allocate(stripByteSize);
+                buffer.order(byteOrder);
+
+                if (compressionType == 1) {
+
+                    channel.read(buffer);
+                    buffer.flip();
+
+                    if (sampleFormat == 1 && bitsPerSample[0] == 8) { // unsigned byte
+                        byte b;
+                        for (int i = 0; i < numPixelsInStrip; i++) {
+                            b = buffer.get();
+                            data[i] = (short) (0x000000FF & ((int) b));
+                        }
+                    } else if (sampleFormat == 2 && bitsPerSample[0] == 8) { // signed byte
+                        byte b;
+                        for (int i = 0; i < numPixelsInStrip; i++) {
+                            b = buffer.get();
+                            data[i] = b;
+                        }
+                    } else if (sampleFormat == 1 && bitsPerSample[0] == 16) { // unsigned 16-bit short
+                        int b1;
+                        int b2;
+                        for (int i = 0; i < numPixelsInStrip; i++) {
+                            b1 = (0x000000FF & ((int) buffer.get()));
+                            b2 = (0x000000FF & ((int) buffer.get()));
+                            data[i] = (b2 << 8 | b1);
+                        }
+                    } else if (sampleFormat == 2 && bitsPerSample[0] == 16) { // signed 16-bit short
+                        ShortBuffer sb = buffer.asShortBuffer();
+                        short[] sa = new short[numPixelsInStrip];
+                        sb.get(sa);
+                        sb = null;
+                        for (int j = 0; j < numPixelsInStrip; j++) {
+                            data[j] = sa[j];
+                        }
+                        sa = null;
+                    } else if (sampleFormat == 1 && bitsPerSample[0] == 32) { // unsigned 32-bit int
+                        int b1, b2, b3, b4;
+                        for (int i = 0; i < numPixelsInStrip; i++) {
+                            b1 = (0x000000FF & ((int) buffer.get()));
+                            b2 = (0x000000FF & ((int) buffer.get()));
+                            b3 = (0x000000FF & ((int) buffer.get()));
+                            b4 = (0x000000FF & ((int) buffer.get()));
+                            data[i] = ((long) (b1 << 24 | b2 << 16 | b3 << 8 | b4)) & 0xFFFFFFFFL;
+                        }
+
+                    } else if (sampleFormat == 2 && bitsPerSample[0] == 32) { // signed 32-bit int
+                        IntBuffer ib = buffer.asIntBuffer();
+                        int[] ia = new int[numPixelsInStrip];
+                        ib.get(ia);
+                        ib = null;
+                        for (int j = 0; j < numPixelsInStrip; j++) {
+                            data[j] = ia[j];
+                        }
+                        ia = null;
+                    } else if (sampleFormat == 1 && bitsPerSample[0] == 64) { // unsigned 64-bit long
+                        // I don't know what data type you could cast an unsigned long into. Perhaps a BigInteger.
+                        return null;
+                    } else if (sampleFormat == 2 && bitsPerSample[0] == 64) { // signed 64-bit long
+                        LongBuffer lb = buffer.asLongBuffer();
+                        long[] la = new long[numPixelsInStrip];
+                        lb.get(la);
+                        lb = null;
+                        for (int j = 0; j < numPixelsInStrip; j++) {
+                            data[j] = la[j];
+                        }
+                        la = null;
+                    } else if (sampleFormat == 3 && bitsPerSample[0] == 32) { // 32-bit single-precision float
+                        FloatBuffer fb = buffer.asFloatBuffer();
+                        float[] fa = new float[numPixelsInStrip];
+                        fb.get(fa);
+                        fb = null;
+                        for (int j = 0; j < numPixelsInStrip; j++) {
+                            data[j] = fa[j];
+                        }
+                        fa = null;
+                    } else if (sampleFormat == 3 && bitsPerSample[0] == 64) { // 64-bit double-precision float
+                        DoubleBuffer db = buffer.asDoubleBuffer();
+                        double[] da = new double[numPixelsInStrip];
+                        db.get(da);
+                        db = null;
+                        data = da.clone();
+                        da = null;
+                    } else {
+                        return null;
+                    }
+                } else if (compressionType == 32773) {
+                    return null;
+                } else {
+                    return null;
+                }
+
+            } catch (IOException e) {
+                // do nothing
+            }
+
         } else {
-            // how many rows per strip?
-            int rowsPerStrip = findTag(Tag.RowsPerStrip).value[0];
-            // which strip will contain row?
-            int stripNum = (int) row / rowsPerStrip;
-
-            int stripOffset = findTag(Tag.StripOffsets).value[stripNum];
-            //int stripSize = findTag(Tag.StripByteCounts).value[0];
-
             int totalBitsPerSample = 0;
             for (int a = 0; a < bitsPerSample.length; a++) {
                 totalBitsPerSample += bitsPerSample[a];
             }
-            offset = stripOffset + (row % rowsPerStrip * nCols * (totalBitsPerSample / 8));
-            size = nCols * (totalBitsPerSample / 8); //stripSize;
-
-
+            int numPixelsInStrip = stripByteSize / (totalBitsPerSample / 8);
+            data = new double[numPixelsInStrip];
+            
             try {
-                channel.position(offset);
-                ByteBuffer buffer = ByteBuffer.allocate(size);
+                channel.position(stripOffset);
+                ByteBuffer buffer = ByteBuffer.allocate(stripByteSize);
                 buffer.order(byteOrder);
 
                 if (compressionType == 1) {
@@ -857,12 +957,199 @@ public class GeoTiff {
                 }
 
             } catch (IOException e) {
-                // do nothing
+                return null;
             }
-            return data;
-//            return null;
         }
+        return data;
     }
+
+//    public double[] getRowData(int row) {
+//        double[] data = new double[nCols];
+//        int offset = 0;
+//        int size = 0;
+//        int compressionType = findTag(Tag.Compression).value[0];
+//        int[] bitsPerSample = findTag(Tag.BitsPerSample).value;
+//        int sampleFormat = 1; //findTag(Tag.SampleFormat).value[0];
+//
+//        if (findTag(Tag.SampleFormat) != null) {
+//            sampleFormat = findTag(Tag.SampleFormat).value[0];
+//        }
+//        if (tiledFormat) {
+//            return null; // can't handle this type of tiff.
+//        }
+//
+//        if (getPhotometricInterpretation() != 2) {
+//
+//            // how many rows per strip?
+////                rowsPerStrip = findTag(Tag.RowsPerStrip).value[0];
+//            // which strip will contain row?
+//            int stripNum = (int) row / rowsPerStrip;
+//
+//            int stripOffset = findTag(Tag.StripOffsets).value[stripNum];
+//            //int stripSize = findTag(Tag.StripByteCounts).value[0];
+//            offset = stripOffset + (row % rowsPerStrip * nCols * (bitsPerSample[0] / 8));
+//            size = nCols * (bitsPerSample[0] / 8); //stripSize;
+//
+//            try {
+//                channel.position(offset);
+//                ByteBuffer buffer = ByteBuffer.allocate(size);
+//                buffer.order(byteOrder);
+//
+//                if (compressionType == 1) {
+//
+//                    channel.read(buffer);
+//                    buffer.flip();
+//
+//                    if (sampleFormat == 1 && bitsPerSample[0] == 8) { // unsigned byte
+//                        byte b;
+//                        for (int i = 0; i < size; i++) {
+//                            b = buffer.get();
+//                            data[i] = (short) (0x000000FF & ((int) b));
+//                        }
+//                    } else if (sampleFormat == 2 && bitsPerSample[0] == 8) { // signed byte
+//                        byte b;
+//                        for (int i = 0; i < size; i++) {
+//                            b = buffer.get();
+//                            data[i] = b;
+//                        }
+//                    } else if (sampleFormat == 1 && bitsPerSample[0] == 16) { // unsigned 16-bit short
+//                        int b1;
+//                        int b2;
+//                        for (int i = 0; i < nCols; i++) {
+//                            b1 = (0x000000FF & ((int) buffer.get()));
+//                            b2 = (0x000000FF & ((int) buffer.get()));
+//                            data[i] = (b2 << 8 | b1);
+//                        }
+//                    } else if (sampleFormat == 2 && bitsPerSample[0] == 16) { // signed 16-bit short
+//                        ShortBuffer sb = buffer.asShortBuffer();
+//                        short[] sa = new short[nCols];
+//                        sb.get(sa);
+//                        sb = null;
+//                        for (int j = 0; j < nCols; j++) {
+//                            data[j] = sa[j];
+//                        }
+//                        sa = null;
+//                    } else if (sampleFormat == 1 && bitsPerSample[0] == 32) { // unsigned 32-bit int
+//                        int b1, b2, b3, b4;
+//                        for (int i = 0; i < nCols; i++) {
+//                            b1 = (0x000000FF & ((int) buffer.get()));
+//                            b2 = (0x000000FF & ((int) buffer.get()));
+//                            b3 = (0x000000FF & ((int) buffer.get()));
+//                            b4 = (0x000000FF & ((int) buffer.get()));
+//                            data[i] = ((long) (b1 << 24 | b2 << 16 | b3 << 8 | b4)) & 0xFFFFFFFFL;
+//                        }
+//
+//                    } else if (sampleFormat == 2 && bitsPerSample[0] == 32) { // signed 32-bit int
+//                        IntBuffer ib = buffer.asIntBuffer();
+//                        int[] ia = new int[nCols];
+//                        ib.get(ia);
+//                        ib = null;
+//                        for (int j = 0; j < nCols; j++) {
+//                            data[j] = ia[j];
+//                        }
+//                        ia = null;
+//                    } else if (sampleFormat == 1 && bitsPerSample[0] == 64) { // unsigned 64-bit long
+//                        // I don't know what data type you could cast an unsigned long into. Perhaps a BigInteger.
+//                        return null;
+//                    } else if (sampleFormat == 2 && bitsPerSample[0] == 64) { // signed 64-bit long
+//                        LongBuffer lb = buffer.asLongBuffer();
+//                        long[] la = new long[nCols];
+//                        lb.get(la);
+//                        lb = null;
+//                        for (int j = 0; j < nCols; j++) {
+//                            data[j] = la[j];
+//                        }
+//                        la = null;
+//                    } else if (sampleFormat == 3 && bitsPerSample[0] == 32) { // 32-bit single-precision float
+//                        FloatBuffer fb = buffer.asFloatBuffer();
+//                        float[] fa = new float[nCols];
+//                        fb.get(fa);
+//                        fb = null;
+//                        for (int j = 0; j < nCols; j++) {
+//                            data[j] = fa[j];
+//                        }
+//                        fa = null;
+//                    } else if (sampleFormat == 3 && bitsPerSample[0] == 64) { // 64-bit double-precision float
+//                        DoubleBuffer db = buffer.asDoubleBuffer();
+//                        double[] da = new double[nCols];
+//                        db.get(da);
+//                        db = null;
+//                        data = da.clone();
+//                        da = null;
+//                    } else {
+//                        return null;
+//                    }
+//                } else if (compressionType == 32773) {
+//                    return null;
+//                } else {
+//                    return null;
+//                }
+//
+//            } catch (IOException e) {
+//                // do nothing
+//            }
+//
+//            return data;
+//        } else {
+//            // how many rows per strip?
+//            int rowsPerStrip = findTag(Tag.RowsPerStrip).value[0];
+//            // which strip will contain row?
+//            int stripNum = (int) row / rowsPerStrip;
+//
+//            int stripOffset = findTag(Tag.StripOffsets).value[stripNum];
+//            //int stripSize = findTag(Tag.StripByteCounts).value[0];
+//
+//            int totalBitsPerSample = 0;
+//            for (int a = 0; a < bitsPerSample.length; a++) {
+//                totalBitsPerSample += bitsPerSample[a];
+//            }
+//            offset = stripOffset + (row % rowsPerStrip * nCols * (totalBitsPerSample / 8));
+//            size = nCols * (totalBitsPerSample / 8); //stripSize;
+//
+//            try {
+//                channel.position(offset);
+//                ByteBuffer buffer = ByteBuffer.allocate(size);
+//                buffer.order(byteOrder);
+//
+//                if (compressionType == 1) {
+//
+//                    channel.read(buffer);
+//                    buffer.flip();
+//
+//                    if (totalBitsPerSample == 24 && bitsPerSample.length == 3) {
+//                        int r, g, b;
+//                        for (int i = 0; i < nCols; i++) {
+//                            r = (0x000000FF & ((int) buffer.get()));
+//                            g = (0x000000FF & ((int) buffer.get()));
+//                            b = (0x000000FF & ((int) buffer.get()));
+//                            data[i] = (double) ((255 << 24) | (b << 16) | (g << 8) | r);
+//                        }
+//                    } else if (totalBitsPerSample == 32 && bitsPerSample.length == 4) {
+//                        int r, g, b, a;
+//                        for (int i = 0; i < nCols; i++) {
+//                            r = (0x000000FF & ((int) buffer.get()));
+//                            g = (0x000000FF & ((int) buffer.get()));
+//                            b = (0x000000FF & ((int) buffer.get()));
+//                            a = (0x000000FF & ((int) buffer.get()));
+//                            data[i] = (double) ((a << 24) | (b << 16) | (g << 8) | r);
+//                        }
+//                    } else {
+//                        return null;
+//                    }
+//
+//                } else if (compressionType == 32773) {
+//                    return null;
+//                } else {
+//                    return null;
+//                }
+//
+//            } catch (IOException e) {
+//                // do nothing
+//            }
+//            return data;
+////            return null;
+//        }
+//    }
 
     private int readHeader(FileChannel channel) throws IOException {
         channel.position(0);
@@ -1173,5 +1460,64 @@ public class GeoTiff {
             ret[i + 1] = ifd.toString();
         }
         return ret;
+    }
+
+    // this is only used for debugging the tool
+    public static void main(String[] args) {
+        try {
+            //String fileName = "/Users/johnlindsay/Documents/Data/Highwood_Wetlands/HW_DEM_UTM11.tif";
+            //String fileName = "/Users/johnlindsay/Documents/Data/Highwood_Wetlands/DEM.tif";
+            String fileName = "/Users/johnlindsay/Documents/Data/GeoTIFFs/RGB/75GC.tif";
+            GeoTiff gt = new GeoTiff(fileName);
+            gt.read();
+            int nRows = gt.getNumberRows();
+            int nCols = gt.getNumberColumns();
+            double inNodata = -3.4028234663852886E38;
+            double outNoData = -3.4028234663852886E38;
+
+//            String whiteboxHeaderFile = "/Users/johnlindsay/Documents/Data/Highwood_Wetlands/HW_DEM_UTM11.dep";
+//            String whiteboxDataFile = "/Users/johnlindsay/Documents/Data/Highwood_Wetlands/HW_DEM_UTM11.tas";
+            //String whiteboxHeaderFile = "/Users/johnlindsay/Documents/Data/Highwood_Wetlands/HW_DEM_UTM11 2.dep";
+            //String whiteboxDataFile = "/Users/johnlindsay/Documents/Data/Highwood_Wetlands/HW_DEM_UTM11 2.tas";
+            String whiteboxHeaderFile = "/Users/johnlindsay/Documents/Data/GeoTIFFs/RGB/75GC.dep";
+            String whiteboxDataFile = "/Users/johnlindsay/Documents/Data/GeoTIFFs/RGB/75GC.tas";
+            
+            // see if they exist, and if so, delete them.
+            (new File(whiteboxHeaderFile)).delete();
+            (new File(whiteboxDataFile)).delete();
+
+            ByteOrder byteOrder = gt.getByteOrder();
+            
+            WhiteboxRasterBase.DataScale myDataScale;
+            if (gt.getPhotometricInterpretation() != 2) {
+                myDataScale = WhiteboxRasterBase.DataScale.CONTINUOUS;
+            } else {
+                myDataScale = WhiteboxRasterBase.DataScale.RGB;
+            }
+            WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, gt.getNorth(), gt.getSouth(), gt.getEast(),
+                    gt.getWest(), nRows, nCols, myDataScale,
+                    WhiteboxRasterBase.DataType.FLOAT, outNoData, outNoData);
+
+            wbr.setByteOrder(byteOrder.toString());
+
+            double z;
+            for (int row = 0; row < nRows; row++) {
+                for (int col = 0; col < nCols; col++) {
+                    z = gt.getValue(row, col);
+                    if (z != inNodata) {
+                        wbr.setValue(row, col, z);
+                    }
+                }
+//                int progress = (int)(100f * row / (nRows - 1));
+
+            }
+
+            wbr.close();
+
+            System.out.println("done");
+
+        } catch (Exception e) {
+            System.out.println("Error");
+        }
     }
 }

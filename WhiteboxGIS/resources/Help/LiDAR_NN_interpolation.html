@@ -48,10 +48,11 @@
                 # be separated by semicolons in the string.<br>
                 inputs = wd + "input1.las" + ";" + wd + "input2.las" + ";" + wd + "input3.las"<br>
                 suffix = "NN"<br>
-                interpParameter = "z (elevation"<br>
+                interpParameter = "z (elevation)"<br>
                 ptReturn = "all points"<br>
                 maxSearchDist = "5.0"<br>
                 gridRes = "1.0"<br>
+                maxScanAngle = "25.0"<br>
                 # excluded points...
                 neverClassified = "false"<br>
                 unclassified = "false"<br>
@@ -64,7 +65,7 @@
                 keyPoints = "false"<br>
                 water = "false"<br>
                 args = [inputs, suffix, interpParameter, ptReturn, maxSearchDist, gridRes, <br>
-                neverClassified, unclassified, bareGround, lowVeg, mediumVeg, <br>
+                maxScanAngle, neverClassified, unclassified, bareGround, lowVeg, mediumVeg, <br>
                 highVeg, buildings, lowPoints, keyPoints, water]<br>
                 pluginHost.runPlugin("LiDAR_NN_interpolation", args, False)<br>
             </code>
@@ -81,6 +82,7 @@
                 def ptReturn = "last return"<br>
                 def maxSearchDist = "5.0"<br>
                 def gridRes = "1.0"<br>
+                def maxScanAngle = "15.0"<br>
                 // excluded points...
                 def neverClassified = "false"<br>
                 def unclassified = "false"<br>
@@ -93,7 +95,7 @@
                 def keyPoints = "false"<br>
                 def water = "false"<br>
                 String[] args = [inputs, suffix, interpParameter, ptReturn, maxSearchDist, gridRes, <br>
-                neverClassified, unclassified, bareGround, lowVeg, mediumVeg, <br>
+                maxScanAngle, neverClassified, unclassified, bareGround, lowVeg, mediumVeg, <br>
                 highVeg, buildings, lowPoints, keyPoints, water]<br>
                 pluginHost.runPlugin("LiDAR_NN_interpolation", args, false)<br>
             </code>

@@ -231,7 +231,8 @@ public class LayersPopupMenu extends JPopupMenu {
 
         } else if (myLayer.getLayerType() == MapLayer.MapLayerType.RASTER) {
 
-            JMenuItem mi = new JMenuItem(bundle.getString("LayerProperties"));
+            JMenuItem mi = new JMenuItem(bundle.getString("LayerProperties"), 
+                    new ImageIcon(graphicsDirectory + "LayerProperties.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerProperties");
             this.add(mi);

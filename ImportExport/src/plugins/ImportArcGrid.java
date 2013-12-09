@@ -32,12 +32,13 @@ import java.io.OutputStream;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.interfaces.InteropPlugin;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImportArcGrid implements WhiteboxPlugin {
+public class ImportArcGrid implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -410,5 +411,20 @@ public class ImportArcGrid implements WhiteboxPlugin {
 
         }
 
+    }
+
+    @Override
+    public String[] getExtensions() {
+        return new String[]{ "flt" };
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "ArcGIS Binary Raster";
+    }
+    
+    @Override 
+    public boolean isRasterFormat() {
+        return true;
     }
 }

@@ -91,6 +91,7 @@ import whiteboxgis.user_interfaces.RecentMenu;
 import whiteboxgis.user_interfaces.CartographicToolbar;
 import whiteboxgis.user_interfaces.LayersPopupMenu;
 import whitebox.internationalization.WhiteboxInternationalizationTools;
+import whitebox.structures.InteroperableGeospatialDataFormat;
 
 /**
  *
@@ -738,10 +739,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         return false;
     }
 
+    private ArrayList<InteroperableGeospatialDataFormat> interopGeospatialDataFormat;
+
     private void loadPlugins() {
         pluginService = PluginServiceFactory.createPluginService(pluginDirectory);
         pluginService.initPlugins();
         plugInfo = pluginService.getPluginList();
+        interopGeospatialDataFormat = pluginService.getInteroperableDataFormats();
 
         loadScripts();
     }
@@ -768,10 +772,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 String descriptiveName = "";
                 String description = "";
                 String[] toolboxes = null;
+                boolean containsExtensions = false;
+                boolean containsFileTypeName = false;
+                boolean containsIsRasterFormat = false;
+                String[] extensions = null;
+                String fileTypeName = "";
+                boolean isRasterFormat = false;
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
                         || !containsDescription || !containsToolboxes)) {
-                    if (strLine.startsWith("name = \"")) {
+                    if (strLine.startsWith("name = \"")
+                            && !strLine.toLowerCase().contains("descriptivename")
+                            && !strLine.toLowerCase().contains("filetypename")) {
                         containsName = true;
                         // now retreive the name
                         String[] str2 = strLine.split("=");
@@ -791,6 +803,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         for (int i = 0; i < toolboxes.length; i++) {
                             toolboxes[i] = toolboxes[i].trim();
                         }
+                    } else if (strLine.startsWith("extensions = [")) {
+                        containsExtensions = true;
+                        String[] str2 = strLine.split("=");
+                        extensions = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                        for (int i = 0; i < extensions.length; i++) {
+                            extensions[i] = extensions[i].trim();
+                        }
+                    } else if (strLine.startsWith("fileTypeName = \"")) {
+                        containsFileTypeName = true;
+                        String[] str2 = strLine.split("=");
+                        fileTypeName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.startsWith("isRasterFormat = ")) {
+                        containsIsRasterFormat = true;
+                        String[] str2 = strLine.split("=");
+                        isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
                     }
                 }
 
@@ -806,6 +833,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     pi.setScriptFile(str);
                     plugInfo.add(pi);
                     //scriptPlugins.add(pi);
+                }
+                
+                if (containsExtensions && containsFileTypeName && containsIsRasterFormat) {
+                    interopGeospatialDataFormat.add(new InteroperableGeospatialDataFormat(fileTypeName, 
+                        extensions, name, isRasterFormat));
                 }
             } catch (IOException ioe) {
                 System.out.println(ioe.getStackTrace());
@@ -891,11 +923,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 String descriptiveName = "";
                 String description = "";
                 String[] toolboxes = null;
+                
+                boolean containsExtensions = false;
+                boolean containsFileTypeName = false;
+                boolean containsIsRasterFormat = false;
+                String[] extensions = null;
+                String fileTypeName = "";
+                boolean isRasterFormat = false;
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
-                        || !containsDescription || !containsToolboxes)) {
+                        || !containsDescription || !containsToolboxes 
+                        || !containsExtensions || !containsFileTypeName 
+                        || !containsIsRasterFormat)) {
                     if (strLine.toLowerCase().contains("name = \"")
-                            && !strLine.toLowerCase().contains("descriptivename")) {
+                            && !strLine.toLowerCase().contains("descriptivename")
+                            && !strLine.toLowerCase().contains("filetypename")) {
                         containsName = true;
                         // now retreive the name
                         String[] str2 = strLine.split("=");
@@ -915,6 +957,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         for (int i = 0; i < toolboxes.length; i++) {
                             toolboxes[i] = toolboxes[i].trim();
                         }
+                    } else if (strLine.toLowerCase().contains("extensions = [")) {
+                        containsExtensions = true;
+                        String[] str2 = strLine.split("=");
+                        extensions = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                        for (int i = 0; i < extensions.length; i++) {
+                            extensions[i] = extensions[i].trim();
+                        }
+                    } else if (strLine.toLowerCase().contains("filetypename = \"")) {
+                        containsFileTypeName = true;
+                        String[] str2 = strLine.split("=");
+                        fileTypeName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("israsterformat = ")) {
+                        containsIsRasterFormat = true;
+                        String[] str2 = strLine.split("=");
+                        isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
                     }
                 }
 
@@ -930,6 +987,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     pi.setScriptFile(str);
                     plugInfo.add(pi);
                     //scriptPlugins.add(pi);
+                }
+                
+                if (containsExtensions && containsFileTypeName && containsIsRasterFormat) {
+                    interopGeospatialDataFormat.add(new InteroperableGeospatialDataFormat(fileTypeName, 
+                        extensions, name, isRasterFormat));
                 }
             } catch (IOException ioe) {
                 System.out.println(ioe.getStackTrace());
@@ -2113,41 +2175,41 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // File menu
             JMenu FileMenu = new JMenu(bundle.getString("File"));
-            FileMenu.add(newMap);
-            newMap.setActionCommand("newMap");
-            newMap.addActionListener(this);
-            newMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            FileMenu.add(openMap);
-            openMap.setActionCommand("openMap");
-            openMap.addActionListener(this);
-            openMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            FileMenu.add(saveMap);
-            saveMap.addActionListener(this);
-            saveMap.addActionListener(this);
-            saveMap.setActionCommand("saveMap");
-            saveMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            FileMenu.add(closeMap);
-            closeMap.setActionCommand("closeMap");
-            //closeMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            closeMap.addActionListener(this);
-            FileMenu.addSeparator();
-            JMenuItem printMap = new JMenuItem(bundle.getString("PrintMap"), new ImageIcon(graphicsDirectory + "Print.png"));
-            FileMenu.add(printMap);
-            printMap.addActionListener(this);
-            printMap.setActionCommand("printMap");
-            printMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            JMenuItem exportMap = new JMenuItem(bundle.getString("ExportMapAsImage"));
-            FileMenu.add(exportMap);
-            exportMap.addActionListener(this);
-            exportMap.setActionCommand("exportMapAsImage");
-            if (System.getProperty("os.name").contains("Mac") == false) {
-                FileMenu.addSeparator();
-                FileMenu.add(close);
-                close.setActionCommand("close");
-                close.addActionListener(this);
-            }
+//            FileMenu.add(newMap);
+//            newMap.setActionCommand("newMap");
+//            newMap.addActionListener(this);
+//            newMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+//            FileMenu.add(openMap);
+//            openMap.setActionCommand("openMap");
+//            openMap.addActionListener(this);
+//            openMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+//            FileMenu.add(saveMap);
+//            saveMap.addActionListener(this);
+//            saveMap.addActionListener(this);
+//            saveMap.setActionCommand("saveMap");
+//            saveMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+//            FileMenu.add(closeMap);
+//            closeMap.setActionCommand("closeMap");
+//            //closeMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+//            closeMap.addActionListener(this);
+//            FileMenu.addSeparator();
+//            JMenuItem printMap = new JMenuItem(bundle.getString("PrintMap"), new ImageIcon(graphicsDirectory + "Print.png"));
+//            FileMenu.add(printMap);
+//            printMap.addActionListener(this);
+//            printMap.setActionCommand("printMap");
+//            printMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+//            JMenuItem exportMap = new JMenuItem(bundle.getString("ExportMapAsImage"));
+//            FileMenu.add(exportMap);
+//            exportMap.addActionListener(this);
+//            exportMap.setActionCommand("exportMapAsImage");
+//            if (System.getProperty("os.name").contains("Mac") == false) {
+//                FileMenu.addSeparator();
+//                FileMenu.add(close);
+//                close.setActionCommand("close");
+//                close.addActionListener(this);
+//            }
 
-            FileMenu.addSeparator();
+//            FileMenu.addSeparator();
 
             recentFilesMenu.setNumItemsToStore(numberOfRecentItemsToStore);
             recentFilesMenu.setText(bundle.getString("RecentDataLayers"));
@@ -2178,6 +2240,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             });
             FileMenu.add(recentDirectoriesMenu);
+            
+            
+            if (System.getProperty("os.name").contains("Mac") == false) {
+                FileMenu.addSeparator();
+                FileMenu.add(close);
+                close.setActionCommand("close");
+                close.addActionListener(this);
+            }
 
             menubar.add(FileMenu);
 
@@ -2402,6 +2472,36 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // Cartographic menu
             JMenu cartoMenu = new JMenu(bundle.getString("Cartographic"));
+            
+            cartoMenu.add(newMap);
+            newMap.setActionCommand("newMap");
+            newMap.addActionListener(this);
+            newMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            cartoMenu.add(openMap);
+            openMap.setActionCommand("openMap");
+            openMap.addActionListener(this);
+            openMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            cartoMenu.add(saveMap);
+            saveMap.addActionListener(this);
+            saveMap.addActionListener(this);
+            saveMap.setActionCommand("saveMap");
+            saveMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            cartoMenu.add(closeMap);
+            closeMap.setActionCommand("closeMap");
+            //closeMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            closeMap.addActionListener(this);
+//            cartoMenu.addSeparator();
+            JMenuItem printMap = new JMenuItem(bundle.getString("PrintMap"), new ImageIcon(graphicsDirectory + "Print.png"));
+            cartoMenu.add(printMap);
+            printMap.addActionListener(this);
+            printMap.setActionCommand("printMap");
+            printMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            JMenuItem exportMap = new JMenuItem(bundle.getString("ExportMapAsImage"));
+            cartoMenu.add(exportMap);
+            exportMap.addActionListener(this);
+            exportMap.setActionCommand("exportMapAsImage");
+            
+            cartoMenu.addSeparator();
 
             JMenuItem insertTitle = new JMenuItem(bundle.getString("InsertMapTitle"));
             cartoMenu.add(insertTitle);
@@ -2909,20 +3009,20 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         try {
             JToolBar toolbar = new JToolBar();
 //            toolbar.setBackground(backgroundColour);
-            JButton newMap = makeToolBarButton("map.png", "newMap",
-                    bundle.getString("NewMap"), "New");
-
-            toolbar.add(newMap);
-            JButton openMap = makeToolBarButton("open.png", "openMap",
-                    bundle.getString("OpenMap"), "Open");
-            toolbar.add(openMap);
-            JButton saveMap = makeToolBarButton("SaveMap.png", "saveMap",
-                    bundle.getString("SaveMap"), "Save");
-            toolbar.add(saveMap);
-            JButton printMap = makeToolBarButton("Print.png", "printMap",
-                    bundle.getString("PrintMap"), "Print");
-            toolbar.add(printMap);
-            toolbar.addSeparator();
+//            JButton newMap = makeToolBarButton("map.png", "newMap",
+//                    bundle.getString("NewMap"), "New");
+//
+//            toolbar.add(newMap);
+//            JButton openMap = makeToolBarButton("open.png", "openMap",
+//                    bundle.getString("OpenMap"), "Open");
+//            toolbar.add(openMap);
+//            JButton saveMap = makeToolBarButton("SaveMap.png", "saveMap",
+//                    bundle.getString("SaveMap"), "Save");
+//            toolbar.add(saveMap);
+//            JButton printMap = makeToolBarButton("Print.png", "printMap",
+//                    bundle.getString("PrintMap"), "Print");
+//            toolbar.add(printMap);
+//            toolbar.addSeparator();
             JButton addLayer = makeToolBarButton("AddLayer.png", "addLayer",
                     bundle.getString("AddLayer"), "Add Layer");
             toolbar.add(addLayer);
@@ -2989,6 +3089,26 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     bundle.getString("NextExtent"), "Next Extent");
             nextExtent.setActionCommand("nextExtent");
             toolbar.add(nextExtent);
+            
+            
+            toolbar.addSeparator();
+            
+            JButton newMap = makeToolBarButton("map.png", "newMap",
+                    bundle.getString("NewMap"), "New");
+
+            toolbar.add(newMap);
+            JButton openMap = makeToolBarButton("open.png", "openMap",
+                    bundle.getString("OpenMap"), "Open");
+            toolbar.add(openMap);
+            JButton saveMap = makeToolBarButton("SaveMap.png", "saveMap",
+                    bundle.getString("SaveMap"), "Save");
+            toolbar.add(saveMap);
+            JButton printMap = makeToolBarButton("Print.png", "printMap",
+                    bundle.getString("PrintMap"), "Print");
+            toolbar.add(printMap);
+            
+            
+            
             toolbar.addSeparator();
             JButton rasterCalculator = makeToolBarButton("RasterCalculator.png", "rasterCalculator",
                     bundle.getString("RasterCalculator"), "Raster Calc");
@@ -3012,7 +3132,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             toolbar.add(modifyPixelVals);
             modifyPixelVals.setVisible(false);
 
-            toolbar.addSeparator();
+//            toolbar.addSeparator();
 
             editVectorButton = makeToggleToolBarButton("Digitize.png", "editVector",
                     bundle.getString("EditVector"), "Edit Vector");
@@ -3950,7 +4070,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         if (suppressReturnedData) {
             return - 1; // returns can be disruptive for scripts
         }
-        Object[] options = {"Yes", "No"};
+        Object[] options;
+        if (optionType == JOptionPane.YES_NO_CANCEL_OPTION) {
+            options = new Object[]{"Yes", "No", "Cancel"};
+        } else if (optionType == JOptionPane.YES_NO_OPTION) {
+            options = new Object[]{"Yes", "No"};
+        } else {
+            options = new Object[]{"OK"};
+        }
         int n = JOptionPane.showOptionDialog(this,
                 message,
                 "Whitebox GAT Message",
@@ -4047,25 +4174,109 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private void addLayer() {
-        int mapNum;
-        int mapAreaNum;
-        if (selectedMapAndLayer[0] != -1) {
-            mapNum = selectedMapAndLayer[0];
-            mapAreaNum = selectedMapAndLayer[2];
-        } else if (openMaps.isEmpty()) {
-            mapNum = 0;
-            mapAreaNum = 0;
-        } else {
-            mapNum = activeMap;
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
+        try {
+            // set the filter.
+            ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
+            String filterDescription = "Shapefiles (*.shp)";
+            String[] extensions = {"SHP"};
+            ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
+            filters.add(eff);
+
+            filterDescription = "Whitebox Raster Files (*.dep)";
+            extensions = new String[]{"DEP"};
+            eff = new ExtensionFileFilter(filterDescription, extensions);
+            filters.add(eff);
+
+            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                filterDescription = igdf.getName() + " Files (";
+                extensions = new String[igdf.getSupportedExtensions().length];
+                int i = 0;
+                for (String ext : igdf.getSupportedExtensions()) {
+                    if (i == 0) {
+                        filterDescription += "*." + ext.toLowerCase();
+                    } else {
+                        filterDescription += ", *." + ext.toLowerCase();
+                    }
+                    extensions[i] = ext.toUpperCase();
+                    i++;
+                }
+                filterDescription += ")";
+                eff = new ExtensionFileFilter(filterDescription, extensions);
+                filters.add(eff);
+            }
+
+            // how many supported file formats are there?
+            int numSupportedFileFormats = 0;
+            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                numSupportedFileFormats += igdf.getSupportedExtensions().length;
+            }
+
+            //filterDescription = "Whitebox Layer Files (*.dep, *.shp";
+            filterDescription = "All Supported Files";
+            extensions = new String[numSupportedFileFormats + 2];
+            extensions[0] = "DEP";
+            extensions[1] = "SHP";
+            int i = 2;
+            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                for (String ext : igdf.getSupportedExtensions()) {
+                    //filterDescription += ", *." + ext.toLowerCase();
+                    extensions[i] = ext.toUpperCase();
+                    i++;
+                }
+            }
+            //filterDescription += ")";
+            eff = new ExtensionFileFilter(filterDescription, extensions);
+            filters.add(eff);
+
+            JFileChooser fc = new JFileChooser();
+
+            fc.setCurrentDirectory(new File(workingDirectory));
+            fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+            fc.setMultiSelectionEnabled(true);
+            fc.setAcceptAllFileFilterUsed(false);
+
+            for (i = 0; i < filters.size(); i++) {
+                fc.setFileFilter(filters.get(i));
+            }
+
+            int result = fc.showOpenDialog(this);
+            File[] files = null;
+            if (result == JFileChooser.APPROVE_OPTION) {
+                files = fc.getSelectedFiles();
+                String fileDirectory = files[0].getParentFile() + pathSep;
+                if (!fileDirectory.equals(workingDirectory)) {
+                    setWorkingDirectory(fileDirectory);
+                }
+                for (File file : files) {
+                    addLayer(file.toString());
+                }
+            }
+        } catch (Exception e) {
+            logException("WhiteboxGIS.addLayer", e);
         }
-        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+    }
+
+    private void addLayer(String fileName) {
+        try {
+            int mapNum;
+            int mapAreaNum;
+            if (selectedMapAndLayer[0] != -1) {
+                mapNum = selectedMapAndLayer[0];
+                mapAreaNum = selectedMapAndLayer[2];
+            } else if (openMaps.isEmpty()) {
+                mapNum = 0;
+                mapAreaNum = 0;
+            } else {
+                mapNum = activeMap;
+                mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
+            }
+
             if (openMaps.isEmpty()) {
                 // create a new map to overlay the layer onto.
                 numOpenMaps = 1;
                 MapInfo mapinfo = new MapInfo("Map1");
-                mapinfo.setMapName("Map1");
                 mapinfo.setMargin(defaultMapMargin);
+                mapinfo.setMapName("Map1");
                 MapArea ma = new MapArea("MapArea1");
                 ma.setUpperLeftX(-32768);
                 ma.setUpperLeftY(-32768);
@@ -4075,7 +4286,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 drawingArea.setMapInfo(openMaps.get(0));
                 activeMap = 0;
                 mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
-            } else {
+            }
+            if (mapAreaNum < 0) { // there is no mapArea or the only mapArea is part of a CartographicElementGroup.
                 MapArea ma = new MapArea("MapArea1");
                 ma.setUpperLeftX(-32768);
                 ma.setUpperLeftY(-32768);
@@ -4083,45 +4295,129 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 openMaps.get(activeMap).addNewCartographicElement(ma);
                 mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
             }
+            File file = new File(fileName);
+            if (!file.exists()) {
+                showFeedback(messages.getString("NoDataLayer"));
+                return;
+            }
+            String fileDirectory = file.getParentFile() + pathSep;
+            if (!fileDirectory.equals(workingDirectory)) {
+                setWorkingDirectory(fileDirectory);
+            }
+            String[] defaultPalettes = {defaultQuantPalette, defaultQualPalette, "rgb.pal"};
+            MapArea activeMapArea = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+            // get the file extension.
+            int dot = fileName.lastIndexOf(".");
+            String extension = fileName.substring(dot + 1).toLowerCase();
+
+            if (extension.equals("dep")) {
+                RasterLayerInfo newLayer = new RasterLayerInfo(file.toString(), paletteDirectory,
+                        defaultPalettes, 255, activeMapArea.getNumLayers());
+                activeMapArea.addLayer(newLayer);
+                newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
+            } else if (extension.equals("shp")) {
+                VectorLayerInfo newLayer = new VectorLayerInfo(file.toString(), paletteDirectory,
+                        255, activeMapArea.getNumLayers());
+                activeMapArea.addLayer(newLayer);
+                newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
+            } else {
+                // see if the extension is in the list of supported extensions
+                for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                    for (String ext : igdf.getSupportedExtensions()) {
+                        if (ext.toLowerCase().equals(extension)) {
+                            String myExtension = fileName.substring(fileName.lastIndexOf(".") + 1); // either .tif or .tiff
+                            
+                            String fileType = igdf.getName();
+                            if (igdf.isIsRasterFormat()) {
+                                String whiteboxHeaderFile = fileName.replace(myExtension, "dep");
+                                File file2 = new File(whiteboxHeaderFile);
+                                // see if the file exists already, and if so, should it be overwritten?
+                                if (file2.exists()) {
+                                    int n = showFeedback("You are importing a " + fileType + " file by converting it to "
+                                            + "a Whitebox Raster format. \nThe Whitebox Raster file already exists. "
+                                            + "Would you like to display the existing file instead?", JOptionPane.YES_NO_CANCEL_OPTION,
+                                            JOptionPane.QUESTION_MESSAGE);
+
+                                    if (n == JOptionPane.YES_OPTION) {
+                                        addLayer(whiteboxHeaderFile);
+                                        return;
+                                    } else if (n == JOptionPane.CANCEL_OPTION) {
+                                        return;
+                                    }
+                                } else {
+                                    showFeedback("You are importing a " + fileType + " file by converting it to \n"
+                                            + "a Whitebox Raster format. The newly created Whitebox \n"
+                                            + "Raster will be added to the map.");
+                                }
+                                String[] args = {fileName};
+                                runPlugin(igdf.getInteropClass(), args);
+                                return;
+                            } else {
+                                String shapefile = fileName.replace(myExtension, "shp");
+                                File file2 = new File(shapefile);
+                                // see if the file exists already, and if so, should it be overwritten?
+                                if (file2.exists()) {
+                                    int n = showFeedback("You are importing a " + fileType + " file by converting it to "
+                                            + "a Shapefile format. \nThe Shapefile already exists. "
+                                            + "Would you like to display the existing file instead?", JOptionPane.YES_NO_CANCEL_OPTION,
+                                            JOptionPane.QUESTION_MESSAGE);
+
+                                    if (n == JOptionPane.YES_OPTION) {
+                                        addLayer(shapefile);
+                                        return;
+                                    } else if (n == JOptionPane.CANCEL_OPTION) {
+                                        return;
+                                    }
+                                } else {
+                                    showFeedback("You are importing a " + fileType + " file by converting it to \n"
+                                            + "a Shapefile format. The newly created Whitebox \n"
+                                            + "Shapefile will be added to the map.");
+                                }
+                                String[] args = {fileName};
+                                runPlugin(igdf.getInteropClass(), args);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
+
+            recentFilesMenu.addMenuItem(fileName);
+            recentFilesMenu2.addMenuItem(fileName);
+            recentFilesPopupMenu.addMenuItem(fileName);
+
+            refreshMap(true);
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } catch (Exception e) {
+            logException("WhiteboxGIS.addLayer", e);
         }
+    }
 
-        // set the filter.
-        ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
-        String filterDescription = "Shapefiles (*.shp)";
-        String[] extensions = {"SHP"};
-        ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
-        filters.add(eff);
+    private void addLayer(MapLayer mapLayer) {
+        try {
+            int mapNum;
+            int mapAreaNum;
+            if (selectedMapAndLayer[0] != -1) {
+                mapNum = selectedMapAndLayer[0];
+                mapAreaNum = selectedMapAndLayer[2];
+            } else if (openMaps.isEmpty()) {
+                mapNum = 0;
+                mapAreaNum = 0;
+            } else {
+                mapNum = activeMap;
+                mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
+            }
 
-        filterDescription = "Whitebox Raster Files (*.dep)";
-        extensions = new String[]{"DEP"};
-        eff = new ExtensionFileFilter(filterDescription, extensions);
-        filters.add(eff);
-
-        filterDescription = "Whitebox Layer Files (*.dep, *.shp)";
-        extensions = new String[]{"DEP", "SHP"};
-        eff = new ExtensionFileFilter(filterDescription, extensions);
-        filters.add(eff);
-
-        JFileChooser fc = new JFileChooser();
-
-        fc.setCurrentDirectory(new File(workingDirectory));
-        fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        fc.setMultiSelectionEnabled(true);
-        fc.setAcceptAllFileFilterUsed(false);
-
-        for (int i = 0; i < filters.size(); i++) {
-            fc.setFileFilter(filters.get(i));
-        }
-
-        int result = fc.showOpenDialog(this);
-        File[] files = null;
-        if (result == JFileChooser.APPROVE_OPTION) {
             if (openMaps.isEmpty()) {
                 // create a new map to overlay the layer onto.
                 numOpenMaps = 1;
                 MapInfo mapinfo = new MapInfo("Map1");
-                mapinfo.setMapName("Map1");
                 mapinfo.setMargin(defaultMapMargin);
+                mapinfo.setMapName("Map1");
                 MapArea ma = new MapArea("MapArea1");
                 ma.setUpperLeftX(-32768);
                 ma.setUpperLeftY(-32768);
@@ -4130,181 +4426,42 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 openMaps.add(mapinfo);
                 drawingArea.setMapInfo(openMaps.get(0));
                 activeMap = 0;
+                mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
             }
-            files = fc.getSelectedFiles();
-            String fileDirectory = files[0].getParentFile() + pathSep;
-            if (!fileDirectory.equals(workingDirectory)) {
-                setWorkingDirectory(fileDirectory);
+            if (mapAreaNum < 0) { // there is no mapArea or the only mapArea is part of a CartographicElementGroup.
+                MapArea ma = new MapArea("MapArea1");
+                ma.setUpperLeftX(-32768);
+                ma.setUpperLeftY(-32768);
+                ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
+                openMaps.get(activeMap).addNewCartographicElement(ma);
+                mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
             }
-            String[] defaultPalettes = {defaultQuantPalette, defaultQualPalette, "rgb.pal"};
             MapArea activeMapArea = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
-            for (int i = 0; i < files.length; i++) {
-                // get the file extension.
-                if (files[i].toString().toLowerCase().contains(".dep")) {
-                    RasterLayerInfo newLayer = new RasterLayerInfo(files[i].toString(), paletteDirectory,
-                            defaultPalettes, 255, activeMapArea.getNumLayers());
-                    activeMapArea.addLayer(newLayer);
-                    newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
-                } else if (files[i].toString().toLowerCase().contains(".shp")) {
-                    VectorLayerInfo newLayer = new VectorLayerInfo(files[i].toString(), paletteDirectory,
-                            255, activeMapArea.getNumLayers());
-                    activeMapArea.addLayer(newLayer);
-                    newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
-                }
-                recentFilesMenu.addMenuItem(files[i].toString());
-                recentFilesMenu2.addMenuItem(files[i].toString());
-                recentFilesPopupMenu.addMenuItem(files[i].toString());
-            }
-            if (files.length > 1) {
-                // zoom to full extent
-                BoundingBox db = activeMapArea.getFullExtent();
-                activeMapArea.setCurrentExtent(db.clone());
-            }
+
+            activeMapArea.addLayer(mapLayer);
+            mapLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
+
             activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
+
+            String fileName = "";
+            if (mapLayer instanceof RasterLayerInfo) {
+                RasterLayerInfo rli = (RasterLayerInfo) mapLayer;
+                fileName = rli.getHeaderFile();
+            } else if (mapLayer instanceof VectorLayerInfo) {
+                VectorLayerInfo vli = (VectorLayerInfo) mapLayer;
+                fileName = vli.getFileName();
+            }
+            recentFilesMenu.addMenuItem(fileName);
+            recentFilesMenu2.addMenuItem(fileName);
+            recentFilesPopupMenu.addMenuItem(fileName);
+
+            refreshMap(true);
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } catch (Exception e) {
+            logException("WhiteboxGIS.addLayer", e);
         }
-        refreshMap(true);
-        selectedMapAndLayer[0] = -1;
-        selectedMapAndLayer[1] = -1;
-        selectedMapAndLayer[2] = -1;
-
-    }
-
-    private void addLayer(String fileName) {
-
-        int mapNum;
-        int mapAreaNum;
-        if (selectedMapAndLayer[0] != -1) {
-            mapNum = selectedMapAndLayer[0];
-            mapAreaNum = selectedMapAndLayer[2];
-        } else if (openMaps.isEmpty()) {
-            mapNum = 0;
-            mapAreaNum = 0;
-        } else {
-            mapNum = activeMap;
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
-        }
-
-        if (openMaps.isEmpty()) {
-            // create a new map to overlay the layer onto.
-            numOpenMaps = 1;
-            MapInfo mapinfo = new MapInfo("Map1");
-            mapinfo.setMargin(defaultMapMargin);
-            mapinfo.setMapName("Map1");
-            MapArea ma = new MapArea("MapArea1");
-            ma.setUpperLeftX(-32768);
-            ma.setUpperLeftY(-32768);
-            ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
-            mapinfo.addNewCartographicElement(ma);
-            openMaps.add(mapinfo);
-            drawingArea.setMapInfo(openMaps.get(0));
-            activeMap = 0;
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
-        }
-        if (mapAreaNum < 0) { // there is no mapArea or the only mapArea is part of a CartographicElementGroup.
-            MapArea ma = new MapArea("MapArea1");
-            ma.setUpperLeftX(-32768);
-            ma.setUpperLeftY(-32768);
-            ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
-            openMaps.get(activeMap).addNewCartographicElement(ma);
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
-        }
-        File file = new File(fileName);
-        if (!file.exists()) {
-            showFeedback(messages.getString("NoDataLayer"));
-            return;
-        }
-        String fileDirectory = file.getParentFile() + pathSep;
-        if (!fileDirectory.equals(workingDirectory)) {
-            setWorkingDirectory(fileDirectory);
-        }
-        String[] defaultPalettes = {defaultQuantPalette, defaultQualPalette, "rgb.pal"};
-        MapArea activeMapArea = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
-        // get the file extension.
-        if (file.toString().toLowerCase().contains(".dep")) {
-            RasterLayerInfo newLayer = new RasterLayerInfo(file.toString(), paletteDirectory,
-                    defaultPalettes, 255, activeMapArea.getNumLayers());
-            activeMapArea.addLayer(newLayer);
-            newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
-        } else if (file.toString().toLowerCase().contains(".shp")) {
-            VectorLayerInfo newLayer = new VectorLayerInfo(file.toString(), paletteDirectory,
-                    255, activeMapArea.getNumLayers());
-            activeMapArea.addLayer(newLayer);
-            newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
-        }
-
-        activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
-
-        recentFilesMenu.addMenuItem(fileName);
-        recentFilesMenu2.addMenuItem(fileName);
-        recentFilesPopupMenu.addMenuItem(fileName);
-
-        refreshMap(true);
-        selectedMapAndLayer[0] = -1;
-        selectedMapAndLayer[1] = -1;
-        selectedMapAndLayer[2] = -1;
-    }
-
-    private void addLayer(MapLayer mapLayer) {
-        int mapNum;
-        int mapAreaNum;
-        if (selectedMapAndLayer[0] != -1) {
-            mapNum = selectedMapAndLayer[0];
-            mapAreaNum = selectedMapAndLayer[2];
-        } else if (openMaps.isEmpty()) {
-            mapNum = 0;
-            mapAreaNum = 0;
-        } else {
-            mapNum = activeMap;
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
-        }
-
-        if (openMaps.isEmpty()) {
-            // create a new map to overlay the layer onto.
-            numOpenMaps = 1;
-            MapInfo mapinfo = new MapInfo("Map1");
-            mapinfo.setMargin(defaultMapMargin);
-            mapinfo.setMapName("Map1");
-            MapArea ma = new MapArea("MapArea1");
-            ma.setUpperLeftX(-32768);
-            ma.setUpperLeftY(-32768);
-            ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
-            mapinfo.addNewCartographicElement(ma);
-            openMaps.add(mapinfo);
-            drawingArea.setMapInfo(openMaps.get(0));
-            activeMap = 0;
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
-        }
-        if (mapAreaNum < 0) { // there is no mapArea or the only mapArea is part of a CartographicElementGroup.
-            MapArea ma = new MapArea("MapArea1");
-            ma.setUpperLeftX(-32768);
-            ma.setUpperLeftY(-32768);
-            ma.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
-            openMaps.get(activeMap).addNewCartographicElement(ma);
-            mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
-        }
-        MapArea activeMapArea = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
-
-        activeMapArea.addLayer(mapLayer);
-        mapLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
-
-        activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
-
-        String fileName = "";
-        if (mapLayer instanceof RasterLayerInfo) {
-            RasterLayerInfo rli = (RasterLayerInfo) mapLayer;
-            fileName = rli.getHeaderFile();
-        } else if (mapLayer instanceof VectorLayerInfo) {
-            VectorLayerInfo vli = (VectorLayerInfo) mapLayer;
-            fileName = vli.getFileName();
-        }
-        recentFilesMenu.addMenuItem(fileName);
-        recentFilesMenu2.addMenuItem(fileName);
-        recentFilesPopupMenu.addMenuItem(fileName);
-
-        refreshMap(true);
-        selectedMapAndLayer[0] = -1;
-        selectedMapAndLayer[1] = -1;
-        selectedMapAndLayer[2] = -1;
     }
 
     private void removeLayer() {

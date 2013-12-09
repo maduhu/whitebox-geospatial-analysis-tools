@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.ResourceBundle;
 import java.util.HashMap;
 import whitebox.internationalization.WhiteboxInternationalizationTools;
+import whitebox.interfaces.InteropPlugin;
+import whitebox.structures.InteroperableGeospatialDataFormat;
 
 /**
  *
@@ -123,6 +125,29 @@ public class StandardPluginService implements PluginService {
     @Override
     public int getNumberOfPlugins() {
         return numberOfPlugins;
+    }
+    
+    @Override
+    public ArrayList<InteroperableGeospatialDataFormat> getInteroperableDataFormats() {
+        ArrayList<InteroperableGeospatialDataFormat> interopPlugins = new ArrayList<>();
+        String className;
+        String fileTypeName;
+        String[] extensions;
+        boolean isRasterFormat;
+        Iterator<WhiteboxPlugin> iterator = getPlugins();
+        while (iterator.hasNext()) {
+            WhiteboxPlugin plugin = iterator.next();
+            if (plugin instanceof InteropPlugin) {
+                className = plugin.getName();
+                fileTypeName = ((InteropPlugin)(plugin)).getFileTypeName();
+                extensions = ((InteropPlugin)(plugin)).getExtensions();
+                isRasterFormat = ((InteropPlugin)(plugin)).isRasterFormat();
+                interopPlugins.add(new InteroperableGeospatialDataFormat(fileTypeName, 
+                        extensions, className, isRasterFormat));
+            }
+        }
+
+        return interopPlugins;
     }
 
     @Override

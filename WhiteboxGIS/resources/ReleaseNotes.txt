@@ -21,6 +21,18 @@ RELEASE NOTES:
 
 Version 3.0.9 ()
 -Added the Create TIN and Rasterize TIN tools.
+-Added support for import of tiled TIFF files.
+-Modified the AddLayer method so that it accepts non-native format geospatial layers
+ and automatically calls the appropriate data import tool.
+-Added ImportSRTM tool to import shuttle radar topography mission DEMs.
+-Moved all of the entries in the File menu that were related to maps to the 
+ Cartographic menu and made the corresponding change to the order of the icons 
+ in the toolbar. This should make it more obvious that when you first launch the 
+ program, you typically need to add data layers rather open a map. Previously
+ people were frequently confusing maps with data layers.
+-Fixed a bug with Nearest Neighbour LiDAR interpolation.
+-A raster's NoData value can now be updated directly from its layer properties.
+-Added ImportSagaRaster tool.
 
 
 Version 3.0.8 (November 27, 2013)

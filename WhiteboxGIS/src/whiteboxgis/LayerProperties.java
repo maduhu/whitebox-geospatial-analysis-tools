@@ -101,6 +101,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private JComboBox valueFieldCombo;
     private JTabbedPane tabs;
     private Color backColour = new Color(225, 245, 255); //210, 230, 255);
+    private JTextField noDataText;
     private JTextField XYUnitsText;
     private JTextField ZUnitsText;
     private boolean updatedFileHeader = false;
@@ -1056,12 +1057,28 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 noDataBox.setBackground(backColour);
                 noDataBox.add(Box.createHorizontalStrut(10));
                 label = new JLabel(bundle.getString("NoDataValue"));
+                label.setPreferredSize(new Dimension(180, 24));
                 noDataBox.add(label);
                 noDataBox.add(Box.createHorizontalGlue());
-                label2 = new JLabel(String.valueOf(wri.getNoDataValue()));
-                noDataBox.add(label2);
+                //label2 = new JLabel(String.valueOf(wri.getXYUnits()));
+                noDataText = new JTextField(String.valueOf(wri.getNoDataValue()), 30);
+                noDataText.setMaximumSize(new Dimension(600, 30));
+                noDataText.setHorizontalAlignment(JTextField.RIGHT);
+                noDataText.addKeyListener(new myKeyListener());
+                noDataBox.add(noDataText); //label2);
                 noDataBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(noDataBox);
+//                JPanel noDataBox = new JPanel();
+//                noDataBox.setLayout(new BoxLayout(noDataBox, BoxLayout.X_AXIS));
+//                noDataBox.setBackground(backColour);
+//                noDataBox.add(Box.createHorizontalStrut(10));
+//                label = new JLabel(bundle.getString("NoDataValue"));
+//                noDataBox.add(label);
+//                noDataBox.add(Box.createHorizontalGlue());
+//                label2 = new JLabel(String.valueOf(wri.getNoDataValue()));
+//                noDataBox.add(label2);
+//                noDataBox.add(Box.createHorizontalStrut(10));
+//                fileMainBox.add(noDataBox);
                 
                 // XYUnits
                 JPanel XYUnitBox = new JPanel();
@@ -1367,16 +1384,26 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     public void updateLayer() {
         if (layer instanceof RasterLayerInfo) {
             RasterLayerInfo rli = (RasterLayerInfo)layer;
+            rli.setDisplayMinVal(Double.parseDouble(minVal.getText()));
+            rli.setDisplayMaxVal(Double.parseDouble(maxVal.getText()));
             // see if the user has modified information in the header.
             if (updatedFileHeader) {
                 WhiteboxRasterInfo wri = rli.getWhiteboxRasterInfo();
+                if (wri.getNoDataValue() != Double.parseDouble(noDataText.getText())) {
+                    wri.setNoDataValue(Double.parseDouble(noDataText.getText()));
+                    wri.findMinAndMaxVals();
+                    wri.setDisplayMinimum(wri.getMinimumValue());
+                    wri.setDisplayMaximum(wri.getMaximumValue());
+//                    rli.setDisplayMinVal(wri.getMinimumValue());
+//                    rli.setDisplayMaxVal(wri.getMaximumValue());
+                }
                 wri.setXYUnits(XYUnitsText.getText());
                 wri.setZUnits(ZUnitsText.getText());
+                wri.writeHeaderFile();
+                rli.resyncWithRasterFile();
             }
             rli.setLayerTitle(titleText.getText());
             rli.setAlpha((Integer) (scrollAlpha.getValue()));
-            rli.setDisplayMinVal(Double.parseDouble(minVal.getText()));
-            rli.setDisplayMaxVal(Double.parseDouble(maxVal.getText()));
             rli.setVisible(checkVisible.isSelected());
             rli.setPaletteFile(paletteFile);
             rli.setNonlinearity(scrollNonlinearity.getValue() / 10d);

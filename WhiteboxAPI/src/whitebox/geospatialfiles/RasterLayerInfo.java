@@ -41,13 +41,13 @@ public class RasterLayerInfo implements MapLayer {
     private String[] defaultPalettes;
     private double[] data = null;
     private boolean visibleInLegend = true;
-
+    
     /* Constructors*/
     public RasterLayerInfo() {
-        
+
     }
-    
-    public RasterLayerInfo(String headerFile, String paletteDirectory, String[] defaultPalettes, int alpha, int overlayNum) {
+
+    public RasterLayerInfo(String headerFile, String paletteDirectory, String[] defaultPalettes, int alpha, int overlayNum) throws Exception {
         // check to see that the file exists.
         File file = new File(headerFile);
         if (!file.exists()) {
@@ -105,13 +105,14 @@ public class RasterLayerInfo implements MapLayer {
             increasesNorthward = false;
         }
 
-        currentExtent = new BoundingBox(source.getWest(), source.getSouth(), 
+        currentExtent = new BoundingBox(source.getWest(), source.getSouth(),
                 source.getEast(), source.getNorth());
 
         fullExtent = currentExtent.clone();
     }
 
-    public RasterLayerInfo(String headerFile, String paletteFile, int alpha, int overlayNum) {
+    public RasterLayerInfo(String headerFile, String paletteFile, int alpha,
+            int overlayNum) {
         // check to see that the file exists.
         File file = new File(headerFile);
         if (!file.exists()) {
@@ -121,12 +122,12 @@ public class RasterLayerInfo implements MapLayer {
         this.layerTitle = file.getName().replace(".dep", "");
         source = new WhiteboxRasterInfo(headerFile);
         // see if the paletteDirectory has been set.
-        if((null != paletteDirectory) && (paletteDirectory.length() == 0)) {
+        if ((null != paletteDirectory) && (paletteDirectory.length() == 0)) {
             // do nothing
-	} else {
+        } else {
             int a = paletteFile.lastIndexOf(File.separator);
             paletteDirectory = paletteFile.substring(0, a + 1);
-	}
+        }
 //        if (paletteDirectory.isEmpty()) {
 //            int a = paletteFile.lastIndexOf(File.separator);
 //            paletteDirectory = paletteFile.substring(a);
@@ -174,19 +175,19 @@ public class RasterLayerInfo implements MapLayer {
     public int getRowFromYCoordinate(double y) {
         return source.getRowFromYCoordinate(y);
     }
-    
+
     public int getColFromXCoordinate(double x) {
         return source.getRowFromYCoordinate(x);
     }
-    
+
     public double getXCoordinateFromColumn(int col) {
         return source.getXCoordinateFromColumn(col);
     }
-    
+
     public double getYCoordinateFromRow(int row) {
         return source.getYCoordinateFromRow(row);
     }
-    
+
     public double getCellSizeX() {
         return source.getCellSizeX();
     }
@@ -194,8 +195,9 @@ public class RasterLayerInfo implements MapLayer {
     public double getCellSizeY() {
         return source.getCellSizeY();
     }
-    
+
     private int alpha = 255;
+
     public int getAlpha() {
         return alpha;
     }
@@ -335,8 +337,12 @@ public class RasterLayerInfo implements MapLayer {
     private WhiteboxRaster.DataScale dataScale = WhiteboxRaster.DataScale.CONTINUOUS;
 
     /**
-     * Retrieves the data scale for this Whitebox grid. Data scale may be <b><i>DATA_SCALE_CONTINUOUS</i></b> (0), 
-     * <i><b>DATA_SCALE_CATEGORICAL</i></b> (1), <i><b>DATA_SCALE_BOOLEAN</i></b> (2), or <i><b>DATA_SCALE_RGB</i></b> (3).
+     * Retrieves the data scale for this Whitebox grid. Data scale may be
+     * <b><i>DATA_SCALE_CONTINUOUS</i></b> (0),
+     * <i><b>DATA_SCALE_CATEGORICAL</i></b> (1),
+     * <i><b>DATA_SCALE_BOOLEAN</i></b> (2), or <i><b>DATA_SCALE_RGB</i></b>
+     * (3).
+     *
      * @return int Data scale.
      */
     public WhiteboxRaster.DataScale getDataScale() {
@@ -344,8 +350,12 @@ public class RasterLayerInfo implements MapLayer {
     }
 
     /**
-     * Sets the data scale for this Whitebox grid. Data scale may be <b><i>DATA_SCALE_CONTINUOUS</i></b> (0), 
-     * <i><b>DATA_SCALE_CATEGORICAL</i></b> (1), <i><b>DATA_SCALE_BOOLEAN</i></b> (2), or <i><b>DATA_SCALE_RGB</i></b> (3).
+     * Sets the data scale for this Whitebox grid. Data scale may be
+     * <b><i>DATA_SCALE_CONTINUOUS</i></b> (0),
+     * <i><b>DATA_SCALE_CATEGORICAL</i></b> (1),
+     * <i><b>DATA_SCALE_BOOLEAN</i></b> (2), or <i><b>DATA_SCALE_RGB</i></b>
+     * (3).
+     *
      * @param DataScale The specified data type.
      */
     public final void setDataScale(WhiteboxRaster.DataScale DataScale) {
@@ -421,16 +431,17 @@ public class RasterLayerInfo implements MapLayer {
     }
 
     /**
-     * Accesses WhiteboxRasterBase's setPixelValue method. This is a lightweight 
-     * method of setting individual pixel values. It writes values directly to 
-     * the file without the use of a buffer. As such it is only useful for 
-     * setting small numbers of pixels. The setValue method of the WhiteboxRaster 
-     * class offers a buffered means of setting individual pixel values and is 
-     * far better suited to setting larger numbers of pixels. This method should 
-     * only be used for existing files.
+     * Accesses WhiteboxRasterBase's setPixelValue method. This is a lightweight
+     * method of setting individual pixel values. It writes values directly to
+     * the file without the use of a buffer. As such it is only useful for
+     * setting small numbers of pixels. The setValue method of the
+     * WhiteboxRaster class offers a buffered means of setting individual pixel
+     * values and is far better suited to setting larger numbers of pixels. This
+     * method should only be used for existing files.
+     *
      * @param row Pixel zero-based row number.
      * @param column Pixel zero-based column number.
-     * @param value Pixel value to set. 
+     * @param value Pixel value to set.
      */
     public void setDataValue(int row, int column, double value) {
         source.setPixelValue(row, column, value);
@@ -443,12 +454,39 @@ public class RasterLayerInfo implements MapLayer {
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
     }
-    
+
     public WhiteboxRasterInfo getWhiteboxRasterInfo() {
         return source;
     }
     
-    
+    public void resyncWithRasterFile() {
+        source = new WhiteboxRasterInfo(headerFile);
+        this.imageWidth = source.getNumberColumns();
+        this.imageHeight = source.getNumberRows();
+        this.noDataValue = source.getNoDataValue();
+        this.rows = source.getNumberRows();
+        this.cols = source.getNumberColumns();
+        this.setDataScale(source.getDataScale());
+        minVal = source.getDisplayMinimum();
+        maxVal = source.getDisplayMaximum();
+
+        if (source.getEast() > source.getWest()) {
+            increasesEastward = true;
+        } else {
+            increasesEastward = false;
+        }
+
+        if (source.getNorth() > source.getSouth()) {
+            increasesNorthward = true;
+        } else {
+            increasesNorthward = false;
+        }
+
+        fullExtent = currentExtent.clone();
+        
+        update();
+    }
+
     int startRow;
     int endRow;
     int startCol;
@@ -479,7 +517,7 @@ public class RasterLayerInfo implements MapLayer {
             for (col = startCol; col <= endCol; col += resolutionFactor) {
                 imageWidth++;
             }
-            
+
             int numCells = imageHeight * imageWidth;
 
             WhiteboxRasterInfo sourceData = new WhiteboxRasterInfo(source.getHeaderFile());
@@ -492,7 +530,6 @@ public class RasterLayerInfo implements MapLayer {
             int numPaletteEntriesLessOne = numPaletteEntries - 1;
 
             //long startTime = System.currentTimeMillis();
-        
             double[] rawData;
             int i = 0;
             if (dataScale == WhiteboxRaster.DataScale.CONTINUOUS) {
@@ -610,7 +647,6 @@ public class RasterLayerInfo implements MapLayer {
                     this.paletteFile = paletteDirectory + defaultPalettes[3];
                 }
             }
-
 
             numPaletteEntries = (int) (file.length() / 4);
 
@@ -742,7 +778,7 @@ public class RasterLayerInfo implements MapLayer {
                     fromCol = toCol;
                     toCol = i;
                 }
-                
+
                 // recalculate top, bottom, left and right to align with the row/col coordinates
                 double gridResY = source.getCellSizeY();
                 double gridResX = source.getCellSizeX();
@@ -759,7 +795,7 @@ public class RasterLayerInfo implements MapLayer {
                     new File(outputFileName).delete();
                     new File(outputFileName.replace(".dep", ".tas")).delete();
                 }
-                
+
                 String dataType = "float";
                 switch (source.getDataType()) {
                     case DOUBLE:
@@ -775,7 +811,7 @@ public class RasterLayerInfo implements MapLayer {
                         dataType = "byte";
                         break;
                 }
-                
+
                 String dataScale = "continuous";
                 switch (source.getDataScale()) {
                     case CONTINUOUS:
@@ -849,13 +885,11 @@ public class RasterLayerInfo implements MapLayer {
                         }
                     }
                 }
-                
+
                 wbr.findMinAndMaxVals();
                 wbr.close();
 
-
                 // 
-
             } else {
                 // the two extents don't overlap.
             }
@@ -863,7 +897,7 @@ public class RasterLayerInfo implements MapLayer {
             System.err.println("Error: " + e.getMessage());
             return;
         } catch (Exception e) {
-            
+
         } finally {
             if (out != null || bw != null) {
                 out.flush();
@@ -899,4 +933,102 @@ public class RasterLayerInfo implements MapLayer {
     public void setVisibleInLegend(boolean value) {
         this.visibleInLegend = value;
     }
+
+//    private boolean importGeoTiff(String fileName) {
+//        try {
+//            final GeoTiff gt = new GeoTiff(fileName);
+//            
+//            gt.read();
+//            int compressionType = gt.getCompressionType();
+//            if (compressionType != 1) {
+//                if (host != null) {
+//                    host.showFeedback("GeoTiff import does not currently support compressed file types.");
+//                    return false;
+//                }
+//            }
+//            final int nRows = gt.getNumberRows();
+//            final int nCols = gt.getNumberColumns();
+//            boolean hasNoDataValue = gt.hasNoDataTag();
+//            double nodata; // = -32768.0;
+//            if (hasNoDataValue) {
+//                nodata = gt.getNoData();
+//            } else {
+//                nodata = -32768;
+//            }
+//
+//            String whiteboxHeaderFile = fileName.replace(".tif", ".dep");
+//            String whiteboxDataFile = fileName.replace(".tif", ".tas");
+//
+//            File file = new File(whiteboxHeaderFile);
+//            // see if the file exists already, and if so, should it be overwritten?
+//            if (file.exists() && host != null) {
+//                int n = host.showFeedback("You are importing a GeoTIFF file by converting it to "
+//                        + "a Whitebox Raster format. \nThe Whitebox Raster file already exists. "
+//                        + "Would you like to overwrite it?", JOptionPane.YES_NO_OPTION,
+//                        JOptionPane.QUESTION_MESSAGE);
+//
+//                if (n == JOptionPane.YES_OPTION) {
+//                    file.delete();
+//                    new File(whiteboxDataFile).delete();
+//                } else if (n == JOptionPane.NO_OPTION) {
+//                    return false;
+//                }
+//            } else if (file.exists()) {
+//                host.showFeedback("You are importing a GeoTIFF file by converting it to \n"
+//                        + "a Whitebox Raster format. The newly created Whitebox \n"
+//                        + "Raster will be added to the map.");
+//                file.delete();
+//                new File(whiteboxDataFile).delete();
+//            } else {
+//                host.showFeedback("You are importing a GeoTIFF file by converting it to \n"
+//                        + "a Whitebox Raster format. The newly created Whitebox \n"
+//                        + "Raster will be added to the map.");
+//            }
+//
+//            ByteOrder byteOrder = gt.getByteOrder();
+//
+//            WhiteboxRasterBase.DataScale myDataScale = WhiteboxRasterBase.DataScale.CONTINUOUS;
+//            if (gt.getPhotometricInterpretation() == 2) {
+//                myDataScale = WhiteboxRasterBase.DataScale.RGB;
+//            }
+//            final WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, gt.getNorth(), gt.getSouth(), gt.getEast(),
+//                    gt.getWest(), nRows, nCols, myDataScale,
+//                    WhiteboxRasterBase.DataType.FLOAT, nodata, nodata);
+//
+//            wbr.setByteOrder(byteOrder.toString());
+//
+//            double z;
+////            int oldProgress = -1;
+////            int progress;
+//            for (int row = 0; row < nRows; row++) {
+//                for (int col = 0; col < nCols; col++) {
+//                    z = gt.getValue(row, col);
+//                    if (!hasNoDataValue && (z == -32768 || z == -Float.MAX_VALUE)) {
+//                        nodata = z;
+//                        hasNoDataValue = true;
+//                        wbr.setNoDataValue(nodata);
+//                    }
+//                    //if (z != nodata) {
+//                    wbr.setValue(row, col, z);
+//                    //}
+//                }
+////                progress = (int)(100f * row / (nRows - 1));
+////                if (progress != oldProgress) {
+////                    oldProgress = progress;
+////                    if (host != null) {
+////                        host.updateProgress("Importing file...", progress);
+////                    }
+////                }
+//            }
+//            wbr.close();
+//
+//            return true;
+//        } catch (Exception e) {
+//            if (host != null) {
+//                host.showFeedback("There was an error import the GeoTiff file.");
+//                host.logException("Error in RasterLayerInfo.importGeoTiff:", e);
+//            }
+//            return false;
+//        }
+//    }
 }

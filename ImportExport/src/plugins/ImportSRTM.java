@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,10 @@
  */
 package plugins;
 
-import java.nio.ByteOrder;
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Date;
-import whitebox.geospatialfiles.GeoTiff;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.interfaces.WhiteboxPlugin;
@@ -31,7 +31,7 @@ import whitebox.interfaces.InteropPlugin;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImportGeoTiff implements WhiteboxPlugin, InteropPlugin {
+public class ImportSRTM implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -44,7 +44,7 @@ public class ImportGeoTiff implements WhiteboxPlugin, InteropPlugin {
      */
     @Override
     public String getName() {
-        return "ImportGeoTiff";
+        return "ImportSRTM";
     }
 
     /**
@@ -55,7 +55,7 @@ public class ImportGeoTiff implements WhiteboxPlugin, InteropPlugin {
      */
     @Override
     public String getDescriptiveName() {
-        return "Import GeoTIFF (.tif)";
+        return "Import SRTM";
     }
 
     /**
@@ -65,7 +65,7 @@ public class ImportGeoTiff implements WhiteboxPlugin, InteropPlugin {
      */
     @Override
     public String getToolDescription() {
-        return "Imports a GeoTIFF.";
+        return "Imports a shuttle radar topography mission (SRTM) raster DEM.";
     }
 
     /**
@@ -191,19 +191,13 @@ public class ImportGeoTiff implements WhiteboxPlugin, InteropPlugin {
         amIActive = true;
 
         String inputFilesString = null;
-        String whiteboxHeaderFile = null;
-        String whiteboxDataFile = null;
-        WhiteboxRaster output = null;
+        String fileName = null;
         int i = 0;
+        int row, col, rows, cols;
         String[] imageFiles;
         int numImages = 0;
         double noData = -32768;
-        int progress = 0;
-
-        String str1 = null;
-        FileWriter fw = null;
-        BufferedWriter bw = null;
-        PrintWriter out = null;
+        String returnHeaderFile = "";
 
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
@@ -222,115 +216,121 @@ public class ImportGeoTiff implements WhiteboxPlugin, InteropPlugin {
         numImages = imageFiles.length;
 
         try {
-            String returnedHeader = "";
+
             for (i = 0; i < numImages; i++) {
-                //int progress = (int) (100f * i / (numImages - 1));
+                int progress = (int) (100f * i / (numImages - 1));
                 if (numImages > 1) {
                     updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
                 }
-                GeoTiff gt = new GeoTiff(imageFiles[i]);
-                gt.read();
+                
+                fileName = imageFiles[i];
+                // check to see if the file exists.
+                if (!((new File(fileName)).exists())) {
+                    showFeedback("Image file does not exist.");
+                    break;
+                }
+                File file = new File(fileName);
+                String fileExtension = whitebox.utilities.FileUtilities.getFileExtension(fileName).toLowerCase();
+                String shortFileName = file.getName().replace("." + fileExtension, "");
+                long fileLength = file.length();
+                file = null;
 
-                int compressionType = gt.getCompressionType();
-                if (compressionType != 1) {
-                    showFeedback("GeoTiff import does not currently support compressed files.");
+                /* First you need to figure out if this is an SRTM-1 or SRTM-3 image.
+                 SRTM-1 has 3601 x 3601 or 12967201 cells and SRTM-3 has 1201 x 1201
+                 or 1442401 cells. Each cell is 2 bytes. 
+                 */
+                String srtmFormat = "SRTM1";
+                if (fileLength == 3601 * 3601 * 2) {
+                    rows = 3601;
+                    cols = 3601;
+                } else if (fileLength == 1201 * 1201 * 2) {
+                    rows = 1201;
+                    cols = 1201;
+                    srtmFormat = "SRTM3";
+                } else {
+                    showFeedback("The input SRTM file does not appear to be supported by the import tool.");
                     return;
                 }
 
-                boolean hasNoDataValue = gt.hasNoDataTag();
-                double nodata; // = -32768.0;
-                if (hasNoDataValue) {
-                    nodata = gt.getNoData();
-                } else {
-                    nodata = -32768;
+                double cellSize = 1.0 / cols;
+
+                // Now get the coordinates of the raster edges by breaking the 
+                // file name into its components.
+                char[] charArray = shortFileName.toCharArray();
+                char[] tmp = new char[2];
+                tmp[0] = charArray[1];
+                tmp[1] = charArray[2];
+                double south = Double.parseDouble(new String(tmp));
+                if (charArray[0] == 'S') {
+                    south = -south;
                 }
+                south = south - (0.5 * cellSize); // coordinate of ll cell edge
 
-                int nRows = gt.getNumberRows();
-                int nCols = gt.getNumberColumns();
+                tmp = new char[3];
+                tmp[0] = charArray[4];
+                tmp[1] = charArray[5];
+                tmp[2] = charArray[6];
+                double west = Double.parseDouble(new String(tmp));
+                if (charArray[3] == 'W') {
+                    west = -west;
+                }
+                west = west - (0.5 * cellSize); // coordinate of ll cell edge
 
-                int dot = imageFiles[i].lastIndexOf(".");
-                String tiffExtension = imageFiles[i].substring(dot + 1); // either .tif or .tiff
-                whiteboxHeaderFile = imageFiles[i].replace(tiffExtension, "dep");
+                double north = south + 1.0 + cellSize; // coordinate of ur cell edge
+                double east = west + 1.0 + cellSize; // coordinate of ur cell edge
+
+                String whiteboxHeaderFile = imageFiles[i].replace(fileExtension, "dep");
                 if (i == 0) {
-                    returnedHeader = whiteboxHeaderFile;
+                    returnHeaderFile = whiteboxHeaderFile;
                 }
-                whiteboxDataFile = imageFiles[i].replace(tiffExtension, "tas");
+                
+                WhiteboxRaster output = new WhiteboxRaster(whiteboxHeaderFile,
+                        north, south, east, west, rows, cols,
+                        WhiteboxRasterBase.DataScale.CONTINUOUS,
+                        WhiteboxRasterBase.DataType.INTEGER, noData, noData);
 
-                // see if they exist, and if so, delete them.
-                (new File(whiteboxHeaderFile)).delete();
-                (new File(whiteboxDataFile)).delete();
+                RandomAccessFile rIn = null;
+                FileChannel inChannel = null;
+                ByteBuffer buf = ByteBuffer.allocate((int) fileLength);
+                rIn = new RandomAccessFile(fileName, "r");
 
-                ByteOrder byteOrder = gt.getByteOrder();
+                inChannel = rIn.getChannel();
 
-                WhiteboxRasterBase.DataScale myDataScale = WhiteboxRasterBase.DataScale.CONTINUOUS;
-                if (gt.getPhotometricInterpretation() == 2) {
-                    myDataScale = WhiteboxRasterBase.DataScale.RGB;
-                }
-                final WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, gt.getNorth(), gt.getSouth(), gt.getEast(),
-                        gt.getWest(), nRows, nCols, myDataScale,
-                        WhiteboxRasterBase.DataType.FLOAT, nodata, nodata);
+                inChannel.position(0);
+                inChannel.read(buf);
 
-                wbr.setByteOrder(byteOrder.toString());
-
+                java.nio.ByteOrder byteorder = java.nio.ByteOrder.BIG_ENDIAN;
+                // Check the byte order.
+                buf.order(byteorder);
+                buf.rewind();
+                byte[] ba = new byte[(int) fileLength];
+                buf.get(ba);
                 double z;
+                row = 0;
+                col = 0;
+                int pos = 0;
                 int oldProgress = -1;
-                for (int row = 0; row < nRows; row++) {
-                    for (int col = 0; col < nCols; col++) {
-                        z = gt.getValue(row, col);
-                        if (!hasNoDataValue && (z == -32768 || z == -Float.MAX_VALUE)) {
-                            nodata = z;
-                            hasNoDataValue = true;
-                            wbr.setNoDataValue(nodata);
-                        }
-                        //if (z != nodata) {
-                        wbr.setValue(row, col, z);
-                        //}
+                for (row = 0; row < rows; row++) {
+                    for (col = 0; col < cols; col++) {
+                        z = (double) buf.getShort(pos);
+                        output.setValue(row, col, z);
+                        pos += 2;
                     }
-                    progress = (int) (100f * row / (nRows - 1));
+                    progress = (int)(100f * row / (rows - 1));
                     if (progress != oldProgress) {
+                        updateProgress("Importing SRTM file...", progress);
                         oldProgress = progress;
-                        updateProgress("Importing GeoTiff file...", progress);
                     }
                 }
+                
+                inChannel.close();
 
-//                WhiteboxRasterBase.DataScale myDataScale = WhiteboxRasterBase.DataScale.CONTINUOUS;
-//                if (gt.getPhotometricInterpretation() == 2) {
-//                    myDataScale = WhiteboxRasterBase.DataScale.RGB;
-//                }
-//                WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, gt.getNorth(), gt.getSouth(), gt.getEast(),
-//                        gt.getWest(), nRows, nCols, myDataScale,
-//                        WhiteboxRasterBase.DataType.FLOAT, gt.getNoData(), gt.getNoData());
-//
-//                wbr.setByteOrder(byteOrder.toString());
-//
-//                double z;
-//                for (int row = 0; row < nRows; row++) {
-//                    for (int col = 0; col < nCols; col++) {
-//                        z = gt.getValue(row, col);
-//                        wbr.setValue(row, col, z);
-//                    }
-//                    progress = (int) (100f * row / (nRows - 1));
-//                    updateProgress(progress);
-//                }
-                //wbr.flush();
-                wbr.addMetadataEntry("Created by the "
-                        + getDescriptiveName() + " tool.");
-                wbr.addMetadataEntry("Created on " + new Date());
-                String[] metaData = gt.showInfo();
-                for (int a = 0; a < metaData.length; a++) {
-                    wbr.addMetadataEntry(metaData[a]);
-                }
-                //wbr.writeHeaderFile();
-                wbr.close();
-
-                gt.close();
+                output.close();
 
             }
-
-//            showFeedback("Operation complete");
-            if (!returnedHeader.isEmpty()) {
-                returnData(returnedHeader);
-            }
+            
+            // returning a header file string displays the image.
+            returnData(returnHeaderFile);
 
         } catch (OutOfMemoryError oe) {
             myHost.showFeedback("An out-of-memory error has occurred during operation.");
@@ -338,11 +338,6 @@ public class ImportGeoTiff implements WhiteboxPlugin, InteropPlugin {
             myHost.showFeedback("An error has occurred during operation. See log file for details.");
             myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
-            if (out != null || bw != null) {
-                out.flush();
-                out.close();
-            }
-
             updateProgress("Progress: ", 0);
             // tells the main application that this process is completed.
             amIActive = false;
@@ -352,16 +347,28 @@ public class ImportGeoTiff implements WhiteboxPlugin, InteropPlugin {
 
     @Override
     public String[] getExtensions() {
-        return new String[]{ "tif", "tiff" };
+        return new String[]{"hgt"};
     }
 
     @Override
     public String getFileTypeName() {
-        return "GeoTiff";
+        return "SRTM DEM";
     }
-    
-    @Override 
+
+    @Override
     public boolean isRasterFormat() {
         return true;
+    }
+
+    // This method is only used during testing.
+    public static void main(String[] args) {
+        args = new String[1];
+        //args[0] = "/Users/johnlindsay/Documents/Data/SRTM/N29W089.hgt";
+        //args[0] = "/Users/johnlindsay/Documents/Data/SRTM/N26W081.hgt";
+        args[0] = "/Users/johnlindsay/Documents/Data/SRTM/S04W063.hgt";
+
+        ImportSRTM isrtm = new ImportSRTM();
+        isrtm.setArgs(args);
+        isrtm.run();
     }
 }

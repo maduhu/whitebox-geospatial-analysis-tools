@@ -40,6 +40,13 @@ def descriptiveName = "Import Well-Known Text"
 def description = "Imports a well-known text file (.wkt) to a vector shapefile."
 def toolboxes = ["IOTools"]
 
+// The following variables tell the plugin host that 
+// this tool should be used as a supported geospatial
+// data format.
+def extensions = ["wkt"]
+def fileTypeName = "Well-Known Text"
+def isRasterFormat = false
+
 public class ImportWellKnownText implements ActionListener {
     private WhiteboxPluginHost pluginHost
     private ScriptDialog sd;
@@ -118,8 +125,9 @@ public class ImportWellKnownText implements ActionListener {
 
             for (i = 0; i < numFiles; i++) {
                 progress = (int) (100f * i / (numFiles - 1));
-                pluginHost.updateProgress("Loop " + (i + 1) + " of " + numFiles + ":", progress);
-
+                if (numFiles > 1) {
+                	pluginHost.updateProgress("Loop " + (i + 1) + " of " + numFiles + ":", progress);
+                }
                 wktFileName = inputFiles[i];
                 if (!((new File(wktFileName)).exists())) {
                     pluginHost.showFeedback("WKT file does not exist.");
@@ -242,16 +250,6 @@ public class ImportWellKnownText implements ActionListener {
 						case "geometrycollection":
 							pluginHost.showFeedback("Currently only simple Point, LineString, and Polygon geometries can be imported.")
 							return
-//							// is the geometrycollection homogenous?
-//							allOneGeomType = true
-//							for (com.vividsolutions.jts.geom.Geometry g : JTSGeometries) {
-//								int numGeometries = g.getNumGeometries();
-//								for (int a = 0; a < numGeometries; a++) {
-//									com.vividsolutions.jts.geom.Geometry gN = g.getGeometryN(a);
-//								}
-//							}
-							
-							break
 					}
 					
 					// display the output image
