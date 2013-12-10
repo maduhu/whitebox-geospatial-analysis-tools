@@ -17,6 +17,8 @@
 
 package whitebox.structures;
 
+import whitebox.interfaces.InteropPlugin.InteropPluginType;
+
 /**
  *
  * @author johnlindsay
@@ -26,13 +28,15 @@ public class InteroperableGeospatialDataFormat {
     String[] supportedExtensions;
     String name;
     boolean isRasterFormat;
+    InteropPluginType interopPluginType;
     
     public InteroperableGeospatialDataFormat(String name, String[] supportedExtensions, 
-            String interopClass, boolean isRasterFormat) {
+            String interopClass, boolean isRasterFormat, InteropPluginType pluginType) {
         this.name = name;
         this.supportedExtensions = supportedExtensions;
         this.interopClass = interopClass;
         this.isRasterFormat = isRasterFormat;
+        this.interopPluginType = pluginType;
     }
 
     public String getInteropClass() {
@@ -65,5 +69,13 @@ public class InteroperableGeospatialDataFormat {
 
     public void setIsRasterFormat(boolean isRasterFormat) {
         this.isRasterFormat = isRasterFormat;
+    }
+
+    public InteropPluginType getInteropPluginType() {
+        return interopPluginType;
+    }
+
+    public void setInteropPluginType(InteropPluginType interopPluginType) {
+        this.interopPluginType = interopPluginType;
     }
 }

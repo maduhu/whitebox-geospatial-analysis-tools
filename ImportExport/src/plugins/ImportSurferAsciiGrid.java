@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 import java.io.PrintWriter;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.interfaces.InteropPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
 
@@ -33,7 +34,7 @@ import whitebox.interfaces.WhiteboxPlugin;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImportSurferAsciiGrid implements WhiteboxPlugin {
+public class ImportSurferAsciiGrid implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -394,5 +395,25 @@ public class ImportSurferAsciiGrid implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+    
+    @Override
+    public String[] getExtensions() {
+        return new String[]{"grd"};
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "Surfer ASCII Grid";
+    }
+
+    @Override
+    public boolean isRasterFormat() {
+        return true;
+    }
+
+    @Override
+    public InteropPlugin.InteropPluginType getInteropPluginType() {
+        return InteropPlugin.InteropPluginType.importPlugin;
     }
 }

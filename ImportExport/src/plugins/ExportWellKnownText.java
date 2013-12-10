@@ -23,13 +23,14 @@ import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.WKTWriter;
+import whitebox.interfaces.InteropPlugin;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ExportWellKnownText implements WhiteboxPlugin {
+public class ExportWellKnownText implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -288,5 +289,26 @@ public class ExportWellKnownText implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+    
+    
+    @Override
+    public String[] getExtensions() {
+        return new String[]{"wkt"};
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "Well-Known Text";
+    }
+
+    @Override
+    public boolean isRasterFormat() {
+        return false;
+    }
+    
+    @Override
+    public InteropPluginType getInteropPluginType() {
+        return InteropPluginType.exportPlugin;
     }
 }

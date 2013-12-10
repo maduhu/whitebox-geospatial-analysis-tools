@@ -92,6 +92,7 @@ import whiteboxgis.user_interfaces.CartographicToolbar;
 import whiteboxgis.user_interfaces.LayersPopupMenu;
 import whitebox.internationalization.WhiteboxInternationalizationTools;
 import whitebox.structures.InteroperableGeospatialDataFormat;
+import whitebox.interfaces.InteropPlugin.InteropPluginType;
 
 /**
  *
@@ -775,12 +776,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 boolean containsExtensions = false;
                 boolean containsFileTypeName = false;
                 boolean containsIsRasterFormat = false;
+                boolean containsPluginType = false;
                 String[] extensions = null;
                 String fileTypeName = "";
                 boolean isRasterFormat = false;
+                InteropPluginType pluginType = InteropPluginType.importPlugin;
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
-                        || !containsDescription || !containsToolboxes)) {
+                        || !containsDescription || !containsToolboxes
+                        || !containsPluginType)) {
                     if (strLine.startsWith("name = \"")
                             && !strLine.toLowerCase().contains("descriptivename")
                             && !strLine.toLowerCase().contains("filetypename")) {
@@ -818,6 +822,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         containsIsRasterFormat = true;
                         String[] str2 = strLine.split("=");
                         isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
+                    } else if (strLine.startsWith("interopPluginType = InteropPluginType")) {
+                        containsPluginType = true;
+                        if (strLine.toLowerCase().contains("importPlugin")) {
+                            pluginType = InteropPluginType.importPlugin;
+                        } else {
+                            pluginType = InteropPluginType.exportPlugin;
+                        }
                     }
                 }
 
@@ -834,10 +845,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     plugInfo.add(pi);
                     //scriptPlugins.add(pi);
                 }
-                
-                if (containsExtensions && containsFileTypeName && containsIsRasterFormat) {
-                    interopGeospatialDataFormat.add(new InteroperableGeospatialDataFormat(fileTypeName, 
-                        extensions, name, isRasterFormat));
+
+                if (containsExtensions && containsFileTypeName && containsIsRasterFormat
+                        && containsPluginType) {
+                    interopGeospatialDataFormat.add(new InteroperableGeospatialDataFormat(fileTypeName,
+                            extensions, name, isRasterFormat, pluginType));
                 }
             } catch (IOException ioe) {
                 System.out.println(ioe.getStackTrace());
@@ -923,18 +935,20 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 String descriptiveName = "";
                 String description = "";
                 String[] toolboxes = null;
-                
+
                 boolean containsExtensions = false;
                 boolean containsFileTypeName = false;
                 boolean containsIsRasterFormat = false;
+                boolean containsPluginType = false;
                 String[] extensions = null;
                 String fileTypeName = "";
                 boolean isRasterFormat = false;
+                InteropPluginType pluginType = InteropPluginType.importPlugin;
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
-                        || !containsDescription || !containsToolboxes 
-                        || !containsExtensions || !containsFileTypeName 
-                        || !containsIsRasterFormat)) {
+                        || !containsDescription || !containsToolboxes
+                        || !containsExtensions || !containsFileTypeName
+                        || !containsIsRasterFormat || !containsPluginType)) {
                     if (strLine.toLowerCase().contains("name = \"")
                             && !strLine.toLowerCase().contains("descriptivename")
                             && !strLine.toLowerCase().contains("filetypename")) {
@@ -972,6 +986,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         containsIsRasterFormat = true;
                         String[] str2 = strLine.split("=");
                         isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
+                    } else if (strLine.toLowerCase().contains("interopplugintype = interopplugintype")) {
+                        containsPluginType = true;
+                        if (strLine.toLowerCase().contains("importPlugin")) {
+                            pluginType = InteropPluginType.importPlugin;
+                        } else {
+                            pluginType = InteropPluginType.exportPlugin;
+                        }
                     }
                 }
 
@@ -988,10 +1009,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     plugInfo.add(pi);
                     //scriptPlugins.add(pi);
                 }
-                
-                if (containsExtensions && containsFileTypeName && containsIsRasterFormat) {
-                    interopGeospatialDataFormat.add(new InteroperableGeospatialDataFormat(fileTypeName, 
-                        extensions, name, isRasterFormat));
+
+                if (containsExtensions && containsFileTypeName && containsIsRasterFormat
+                        && containsPluginType) {
+                    interopGeospatialDataFormat.add(new InteroperableGeospatialDataFormat(fileTypeName,
+                            extensions, name, isRasterFormat, pluginType));
                 }
             } catch (IOException ioe) {
                 System.out.println(ioe.getStackTrace());
@@ -2210,7 +2232,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //            }
 
 //            FileMenu.addSeparator();
-
             recentFilesMenu.setNumItemsToStore(numberOfRecentItemsToStore);
             recentFilesMenu.setText(bundle.getString("RecentDataLayers"));
             recentFilesMenu.addActionListener(new ActionListener() {
@@ -2240,8 +2261,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             });
             FileMenu.add(recentDirectoriesMenu);
-            
-            
+
             if (System.getProperty("os.name").contains("Mac") == false) {
                 FileMenu.addSeparator();
                 FileMenu.add(close);
@@ -2472,7 +2492,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // Cartographic menu
             JMenu cartoMenu = new JMenu(bundle.getString("Cartographic"));
-            
+
             cartoMenu.add(newMap);
             newMap.setActionCommand("newMap");
             newMap.addActionListener(this);
@@ -2500,7 +2520,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             cartoMenu.add(exportMap);
             exportMap.addActionListener(this);
             exportMap.setActionCommand("exportMapAsImage");
-            
+
             cartoMenu.addSeparator();
 
             JMenuItem insertTitle = new JMenuItem(bundle.getString("InsertMapTitle"));
@@ -3089,10 +3109,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     bundle.getString("NextExtent"), "Next Extent");
             nextExtent.setActionCommand("nextExtent");
             toolbar.add(nextExtent);
-            
-            
+
             toolbar.addSeparator();
-            
+
             JButton newMap = makeToolBarButton("map.png", "newMap",
                     bundle.getString("NewMap"), "New");
 
@@ -3106,9 +3125,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JButton printMap = makeToolBarButton("Print.png", "printMap",
                     bundle.getString("PrintMap"), "Print");
             toolbar.add(printMap);
-            
-            
-            
+
             toolbar.addSeparator();
             JButton rasterCalculator = makeToolBarButton("RasterCalculator.png", "rasterCalculator",
                     bundle.getString("RasterCalculator"), "Raster Calc");
@@ -3133,7 +3150,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             modifyPixelVals.setVisible(false);
 
 //            toolbar.addSeparator();
-
             editVectorButton = makeToggleToolBarButton("Digitize.png", "editVector",
                     bundle.getString("EditVector"), "Edit Vector");
             editVectorButton.setEnabled(false);
@@ -4188,21 +4204,23 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             filters.add(eff);
 
             for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
-                filterDescription = igdf.getName() + " Files (";
-                extensions = new String[igdf.getSupportedExtensions().length];
-                int i = 0;
-                for (String ext : igdf.getSupportedExtensions()) {
-                    if (i == 0) {
-                        filterDescription += "*." + ext.toLowerCase();
-                    } else {
-                        filterDescription += ", *." + ext.toLowerCase();
+                if (igdf.getInteropPluginType() == InteropPluginType.importPlugin) {
+                    filterDescription = igdf.getName() + " Files (";
+                    extensions = new String[igdf.getSupportedExtensions().length];
+                    int i = 0;
+                    for (String ext : igdf.getSupportedExtensions()) {
+                        if (i == 0) {
+                            filterDescription += "*." + ext.toLowerCase();
+                        } else {
+                            filterDescription += ", *." + ext.toLowerCase();
+                        }
+                        extensions[i] = ext.toUpperCase();
+                        i++;
                     }
-                    extensions[i] = ext.toUpperCase();
-                    i++;
+                    filterDescription += ")";
+                    eff = new ExtensionFileFilter(filterDescription, extensions);
+                    filters.add(eff);
                 }
-                filterDescription += ")";
-                eff = new ExtensionFileFilter(filterDescription, extensions);
-                filters.add(eff);
             }
 
             // how many supported file formats are there?
@@ -4326,7 +4344,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     for (String ext : igdf.getSupportedExtensions()) {
                         if (ext.toLowerCase().equals(extension)) {
                             String myExtension = fileName.substring(fileName.lastIndexOf(".") + 1); // either .tif or .tiff
-                            
+
                             String fileType = igdf.getName();
                             if (igdf.isIsRasterFormat()) {
                                 String whiteboxHeaderFile = fileName.replace(myExtension, "dep");

@@ -25,6 +25,7 @@ import java.nio.channels.FileChannel;
 import java.util.Date;
 import javax.imageio.ImageIO;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.interfaces.InteropPlugin;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 
@@ -33,7 +34,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImportGenericMultibandData implements WhiteboxPlugin {
+public class ImportGenericMultibandData implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -195,6 +196,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
         String inputFilesString = null;
         String fileName = null;
         String whiteboxHeaderFile = null;
+//        String returnHeaderFile = "";
         String whiteboxDataFile = null;
         WhiteboxRaster output = null;
         int i = 0;
@@ -229,7 +231,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
         double north = 0;
         double east = 0;
         double south = 0;
-        
+
         RandomAccessFile rIn = null;
         FileChannel inChannel = null;
         ByteBuffer buf = null;
@@ -275,23 +277,23 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                     showFeedback("This image file format is not currently supported by this tool.");
                     return;
                 }
-                
+
                 // read the header file.
                 String fileHeader = fileName.replace("." + fileExtension, ".hdr");
-                
-                if (!whitebox.utilities.FileUtilities.fileExists(fileHeader) ||
-                        !fileHeader.contains(".hdr")) {
+
+                if (!whitebox.utilities.FileUtilities.fileExists(fileHeader)
+                        || !fileHeader.contains(".hdr")) {
                     showFeedback("This image header file (.hdr) could not be located.");
                     return;
                 }
-                
+
                 // Open the file that is the first command line parameter
                 FileInputStream fstream = new FileInputStream(fileHeader);
                 // Get the object of DataInputStream
                 in = new DataInputStream(fstream);
 
                 br = new BufferedReader(new InputStreamReader(in));
-                
+
                 String delimiter = ",";
                 String line;
                 String[] str;
@@ -350,8 +352,8 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                         // options include signedint, unsignedint (or simply int), and float
                         if (str[str.length - 1].toLowerCase().contains("float")) {
                             pixelType = "float";
-                        } else if (str[str.length - 1].toLowerCase().contains("signed") && 
-                                !str[str.length - 1].toLowerCase().contains("unsigned")) {
+                        } else if (str[str.length - 1].toLowerCase().contains("signed")
+                                && !str[str.length - 1].toLowerCase().contains("unsigned")) {
                             pixelType = "signedint";
                         } else {
                             pixelType = "unsignedint";
@@ -364,10 +366,8 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                         projection = str[str.length - 1].toLowerCase();
                     } else if (str[0].toLowerCase().contains("nodata")) {
                         noData = Double.parseDouble(str[str.length - 1]);
-                    }
-                    
-                    // handle some envi header info
-                     else if (str[0].toLowerCase().contains("lines")) {
+                    } // handle some envi header info
+                    else if (str[0].toLowerCase().contains("lines")) {
                         rows = Integer.parseInt(str[str.length - 1]);
                     } else if (str[0].toLowerCase().contains("samples")) {
                         cols = Integer.parseInt(str[str.length - 1]);
@@ -411,7 +411,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 showFeedback("Whitebox does not support the import of complex number file formats.");
                                 return;
                             case 12:
-                                nBits = (int)16;
+                                nBits = (int) 16;
                                 pixelType = "unsignedint";
                                 break;
                             case 13:
@@ -425,7 +425,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                         }
                     }
                 }
-                
+
                 // See if there is a world file and if so, read it.
                 char[] extChars = fileExtension.toCharArray();
                 boolean worldFileFound = false;
@@ -486,7 +486,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                         south = D * (cols - 1) + E * (rows - 1) + F;
 
                     } else { // rotated image
-                        showFeedback("Sorry, but Whitebox cannot currently handle the import of rotated images.");
+                        showFeedback("We're sorry but Whitebox cannot currently handle the import of rotated images.");
                         break;
                     }
                 } else {
@@ -495,7 +495,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                     east = ulxmap + cols * xDim;
                     south = ulymap - rows * yDim;
                 }
-                
+
                 // decide on a data type
                 if (nBits <= 32 && pixelType.toLowerCase().contains("int")) {
                     dataType = "integer";
@@ -504,7 +504,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                 } else {
                     dataType = "double";
                 }
-                
+
                 for (int a = 0; a < nBands; a++) {
                     // create a whitebox raster to hold the data.
                     if (nBands > 1) {
@@ -517,6 +517,10 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                     // see if they exist, and if so, delete them.
                     (new File(whiteboxHeaderFile)).delete();
                     (new File(whiteboxDataFile)).delete();
+                    
+//                    if (i == 0 && a == 0) {
+//                        returnHeaderFile = whiteboxHeaderFile;
+//                    }
 
                     // create the whitebox header file.
                     fw = new FileWriter(whiteboxHeaderFile, false);
@@ -565,13 +569,11 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
 
                     // now create the data file
                     output = new WhiteboxRaster(whiteboxHeaderFile, "rw");
-                    
-                    //int readLengthInCells = 0;
+
                     int numBytes = nBits / 8;
                     int pos;
-                    
+
                     if (layout.equals("bil") || fileExtension.equals("bil")) {
-                        //readLengthInCells = cols;
                         int readLengthInBytes = cols * numBytes;
                         int rowLength = cols * numBytes * nBands;
                         buf = ByteBuffer.allocate(readLengthInBytes);
@@ -582,7 +584,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                         }
                         rIn = new RandomAccessFile(fileName, "r");
                         inChannel = rIn.getChannel();
-                       
+
                         // read the data into the file(s)
                         if (nBits == 8 && pixelType.equals("unsignedint")) {
                             double z;
@@ -598,7 +600,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 8 && pixelType.equals("signedint")) {
                             int outputRow = rows - 1;
                             for (row = 0; row < rows; row++) {
@@ -611,7 +613,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 16 && pixelType.equals("unsignedint")) {
                             double z;
                             int outputRow = rows - 1;
@@ -626,7 +628,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 16 && pixelType.equals("signedint")) {
                             int outputRow = rows - 1;
                             for (row = 0; row < rows; row++) {
@@ -639,7 +641,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 32 && pixelType.equals("unsignedint")) {
                             double z;
                             int outputRow = rows - 1;
@@ -654,7 +656,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 32 && pixelType.equals("signedint")) {
                             int outputRow = rows - 1;
                             for (row = 0; row < rows; row++) {
@@ -667,7 +669,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 32 && pixelType.equals("float")) {
                             int outputRow = rows - 1;
                             for (row = 0; row < rows; row++) {
@@ -680,10 +682,10 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 64 && pixelType.equals("unsignedint")) {
                             // java doesn't have a native data type that can hold this.
-                            showFeedback("Sorry, but this data type is not supported for import to Whitebox.");
+                            showFeedback("We're sorry but this data type is not supported for import to Whitebox.");
                             break;
                         } else if (nBits == 64 && pixelType.equals("signedint")) {
                             int outputRow = rows - 1;
@@ -710,9 +712,13 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 outputRow--;
                             }
                         }
-                        
+
+                        output.addMetadataEntry("Created by the "
+                                + getDescriptiveName() + " tool.");
+                        output.addMetadataEntry("Created on " + new Date());
+                        output.writeHeaderFile();
                         output.close();
-                        
+
                     } else if (layout.equals("bsq") || fileExtension.equals("bsq")) {
                         int rowLength = cols * numBytes;
                         int bandLength = rows * cols * numBytes;
@@ -724,7 +730,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                         }
                         rIn = new RandomAccessFile(fileName, "r");
                         inChannel = rIn.getChannel();
-                        
+
                         // read the data into the file(s)
                         if (nBits == 8 && pixelType.equals("unsignedint")) {
                             double z;
@@ -740,7 +746,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 8 && pixelType.equals("signedint")) {
                             int outputRow = rows - 1;
                             for (row = 0; row < rows; row++) {
@@ -753,7 +759,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 16 && pixelType.equals("unsignedint")) {
                             double z;
                             int outputRow = rows - 1;
@@ -768,7 +774,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 16 && pixelType.equals("signedint")) {
                             int outputRow = rows - 1;
                             for (row = 0; row < rows; row++) {
@@ -781,7 +787,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 32 && pixelType.equals("unsignedint")) {
                             double z;
                             int outputRow = rows - 1;
@@ -796,7 +802,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 32 && pixelType.equals("signedint")) {
                             int outputRow = rows - 1;
                             for (row = 0; row < rows; row++) {
@@ -809,7 +815,7 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 32 && pixelType.equals("float")) {
                             int outputRow = rows - 1;
                             for (row = 0; row < rows; row++) {
@@ -822,10 +828,10 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 }
                                 outputRow--;
                             }
-                            
+
                         } else if (nBits == 64 && pixelType.equals("unsignedint")) {
                             // java doesn't have a native data type that can hold this.
-                            showFeedback("Sorry, but this data type is not supported for import to Whitebox.");
+                            showFeedback("We're sorry but this data type is not supported for import to Whitebox.");
                             break;
                         } else if (nBits == 64 && pixelType.equals("signedint")) {
                             int outputRow = rows - 1;
@@ -852,16 +858,165 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
                                 outputRow--;
                             }
                         }
-                        
+
+                        output.addMetadataEntry("Created by the "
+                                + getDescriptiveName() + " tool.");
+                        output.addMetadataEntry("Created on " + new Date());
+                        output.writeHeaderFile();
                         output.close();
                     } else if (layout.equals("bip") || fileExtension.equals("bip")) {
-                        
+                        //int readLengthInBytes = cols * numBytes * nBands;
+                        int rowLength = cols * numBytes * nBands;
+                        buf = ByteBuffer.allocate(rowLength);
+                        if (byteOrder.toLowerCase().contains("little")) {
+                            buf.order(ByteOrder.LITTLE_ENDIAN);
+                        } else {
+                            buf.order(ByteOrder.BIG_ENDIAN);
+                        }
+                        rIn = new RandomAccessFile(fileName, "r");
+                        inChannel = rIn.getChannel();
+
+                        // read the data into the file(s)
+                        if (nBits == 8 && pixelType.equals("unsignedint")) {
+                            double z;
+                            int outputRow = rows - 1;
+                            for (row = 0; row < rows; row++) {
+                                pos = skipBytes + row * rowLength;
+                                inChannel.position(pos);
+                                buf.clear();
+                                inChannel.read(buf);
+                                for (col = 0; col < cols; col++) {
+                                    z = whitebox.utilities.Unsigned.getUnsignedByte(buf, col * numBytes * a);
+                                    output.setValue(outputRow, col, z);
+                                }
+                                outputRow--;
+                            }
+
+                        } else if (nBits == 8 && pixelType.equals("signedint")) {
+                            int outputRow = rows - 1;
+                            for (row = 0; row < rows; row++) {
+                                pos = skipBytes + row * rowLength;
+                                inChannel.position(pos);
+                                buf.clear();
+                                inChannel.read(buf);
+                                for (col = 0; col < cols; col++) {
+                                    output.setValue(outputRow, col, buf.get(col * numBytes * a));
+                                }
+                                outputRow--;
+                            }
+
+                        } else if (nBits == 16 && pixelType.equals("unsignedint")) {
+                            double z;
+                            int outputRow = rows - 1;
+                            for (row = 0; row < rows; row++) {
+                                pos = skipBytes + row * rowLength;
+                                inChannel.position(pos);
+                                buf.clear();
+                                inChannel.read(buf);
+                                for (col = 0; col < cols; col++) {
+                                    z = whitebox.utilities.Unsigned.getUnsignedShort(buf, col * numBytes * a);
+                                    output.setValue(outputRow, col, z);
+                                }
+                                outputRow--;
+                            }
+
+                        } else if (nBits == 16 && pixelType.equals("signedint")) {
+                            int outputRow = rows - 1;
+                            for (row = 0; row < rows; row++) {
+                                pos = skipBytes + row * rowLength;
+                                inChannel.position(pos);
+                                buf.clear();
+                                inChannel.read(buf);
+                                for (col = 0; col < cols; col++) {
+                                    output.setValue(outputRow, col, buf.getShort(col * numBytes * a));
+                                }
+                                outputRow--;
+                            }
+
+                        } else if (nBits == 32 && pixelType.equals("unsignedint")) {
+                            double z;
+                            int outputRow = rows - 1;
+                            for (row = 0; row < rows; row++) {
+                                pos = skipBytes + row * rowLength;
+                                inChannel.position(pos);
+                                buf.clear();
+                                inChannel.read(buf);
+                                for (col = 0; col < cols; col++) {
+                                    z = whitebox.utilities.Unsigned.getUnsignedInt(buf, col * numBytes * a);
+                                    output.setValue(outputRow, col, z);
+                                }
+                                outputRow--;
+                            }
+
+                        } else if (nBits == 32 && pixelType.equals("signedint")) {
+                            int outputRow = rows - 1;
+                            for (row = 0; row < rows; row++) {
+                                pos = skipBytes + row * rowLength;
+                                inChannel.position(pos);
+                                buf.clear();
+                                inChannel.read(buf);
+                                for (col = 0; col < cols; col++) {
+                                    output.setValue(outputRow, col, buf.getInt(col * numBytes * a));
+                                }
+                                outputRow--;
+                            }
+
+                        } else if (nBits == 32 && pixelType.equals("float")) {
+                            int outputRow = rows - 1;
+                            for (row = 0; row < rows; row++) {
+                                pos = skipBytes + row * rowLength;
+                                inChannel.position(pos);
+                                buf.clear();
+                                inChannel.read(buf);
+                                for (col = 0; col < cols; col++) {
+                                    output.setValue(outputRow, col, buf.getFloat(col * numBytes * a));
+                                }
+                                outputRow--;
+                            }
+
+                        } else if (nBits == 64 && pixelType.equals("unsignedint")) {
+                            // java doesn't have a native data type that can hold this.
+                            showFeedback("We're sorry but this data type is not supported for import to Whitebox.");
+                            break;
+                        } else if (nBits == 64 && pixelType.equals("signedint")) {
+                            int outputRow = rows - 1;
+                            for (row = 0; row < rows; row++) {
+                                pos = skipBytes + row * rowLength;
+                                inChannel.position(pos);
+                                buf.clear();
+                                inChannel.read(buf);
+                                for (col = 0; col < cols; col++) {
+                                    output.setValue(outputRow, col, buf.getLong(col * numBytes * a));
+                                }
+                                outputRow--;
+                            }
+                        } else if (nBits == 64 && pixelType.equals("float")) {
+                            int outputRow = rows - 1;
+                            for (row = 0; row < rows; row++) {
+                                pos = skipBytes + row * rowLength;
+                                inChannel.position(pos);
+                                buf.clear();
+                                inChannel.read(buf);
+                                for (col = 0; col < cols; col++) {
+                                    output.setValue(outputRow, col, buf.getDouble(col * numBytes * a));
+                                }
+                                outputRow--;
+                            }
+                        }
+
+                        output.addMetadataEntry("Created by the "
+                                + getDescriptiveName() + " tool.");
+                        output.addMetadataEntry("Created on " + new Date());
+                        output.writeHeaderFile();
+                        output.close();
+
+                    }
+                    if (a < 10) { // you probably don't want to display all the images in a hyperspectral dataset.
+                        returnData(whiteboxHeaderFile);
                     }
                 }
                 
-                System.out.println("I'm Done!");
             }
-               
 
         } catch (OutOfMemoryError oe) {
             myHost.showFeedback("An out-of-memory error has occurred during operation.");
@@ -876,11 +1031,30 @@ public class ImportGenericMultibandData implements WhiteboxPlugin {
         }
     }
 
+    @Override
+    public String[] getExtensions() {
+        return new String[]{"bil", "bsq", "bip"};
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "Generic Multiband Data";
+    }
+
+    @Override
+    public boolean isRasterFormat() {
+        return true;
+    }
+
+    @Override
+    public InteropPluginType getInteropPluginType() {
+        return InteropPluginType.importPlugin;
+    }
+
     // This method is only used during testing.
     public static void main(String[] args) {
         args = new String[1];
-        //args[0] = "/Users/johnlindsay/Documents/Data/Sample_BIL/DEM.bil";
-        args[0] = "/Users/johnlindsay/Documents/Data/Sample_BIL/IKONOS_CFBPetawawa_MSI_AOI_1.bsq";
+        args[0] = "/Users/johnlindsay/Documents/Data/MultibandImage/IKONOS_CFBWainwright_MSI_AOI_1.bsq";
         ImportGenericMultibandData igmd = new ImportGenericMultibandData();
         igmd.setArgs(args);
         igmd.run();

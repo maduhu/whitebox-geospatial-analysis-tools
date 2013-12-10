@@ -427,4 +427,9 @@ public class ImportArcGrid implements WhiteboxPlugin, InteropPlugin {
     public boolean isRasterFormat() {
         return true;
     }
+    
+    @Override
+    public InteropPluginType getInteropPluginType() {
+        return InteropPluginType.importPlugin;
+    }
 }

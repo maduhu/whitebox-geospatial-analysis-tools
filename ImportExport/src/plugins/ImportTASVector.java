@@ -373,6 +373,11 @@ public class ImportTASVector implements WhiteboxPlugin, InteropPlugin {
     public boolean isRasterFormat() {
         return false;
     }
+    
+    @Override
+    public InteropPluginType getInteropPluginType() {
+        return InteropPluginType.importPlugin;
+    }
 
 //    // this is only used for debugging the tool
 //    public static void main(String[] args) {

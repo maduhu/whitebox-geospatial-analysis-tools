@@ -324,9 +324,13 @@ public class ImportSRTM implements WhiteboxPlugin, InteropPlugin {
                 }
                 
                 inChannel.close();
-
+                
+                output.addMetadataEntry("Created by the "
+                        + getDescriptiveName() + " tool.");
+                output.addMetadataEntry("Created on " + new Date());
+                output.writeHeaderFile();
                 output.close();
-
+                
             }
             
             // returning a header file string displays the image.
@@ -359,7 +363,12 @@ public class ImportSRTM implements WhiteboxPlugin, InteropPlugin {
     public boolean isRasterFormat() {
         return true;
     }
-
+    
+    @Override
+    public InteropPluginType getInteropPluginType() {
+        return InteropPluginType.importPlugin;
+    }
+    
     // This method is only used during testing.
     public static void main(String[] args) {
         args = new String[1];

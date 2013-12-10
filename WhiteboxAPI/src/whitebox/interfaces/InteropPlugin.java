@@ -24,9 +24,15 @@ package whitebox.interfaces;
  */
 public interface InteropPlugin {
     
+    public enum InteropPluginType {
+       importPlugin, exportPlugin;   
+   }
+    
     public String[] getExtensions();
     
     public String getFileTypeName();
     
     public boolean isRasterFormat();
+    
+    public InteropPluginType getInteropPluginType();
 }

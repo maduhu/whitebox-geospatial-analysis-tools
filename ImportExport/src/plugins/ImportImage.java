@@ -511,6 +511,11 @@ public class ImportImage implements WhiteboxPlugin, InteropPlugin {
     public boolean isRasterFormat() {
         return true;
     }
+    
+    @Override
+    public InteropPluginType getInteropPluginType() {
+        return InteropPluginType.importPlugin;
+    }
 //    // This method is only used during testing.
 //    public static void main(String[] args) {
 //        args = new String[1];

@@ -555,7 +555,11 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                 }
 
                 inChannel.close();
-
+                
+                output.addMetadataEntry("Created by the "
+                        + getDescriptiveName() + " tool.");
+                output.addMetadataEntry("Created on " + new Date());
+                output.writeHeaderFile();
                 output.close();
 
             }
@@ -589,6 +593,11 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
     @Override
     public boolean isRasterFormat() {
         return true;
+    }
+    
+    @Override
+    public InteropPluginType getInteropPluginType() {
+        return InteropPluginType.importPlugin;
     }
 
     // This method is only used during testing.

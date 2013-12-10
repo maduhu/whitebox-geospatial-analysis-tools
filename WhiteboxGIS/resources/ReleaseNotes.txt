@@ -33,6 +33,8 @@ Version 3.0.9 ()
 -Fixed a bug with Nearest Neighbour LiDAR interpolation.
 -A raster's NoData value can now be updated directly from its layer properties.
 -Added ImportSagaRaster tool.
+-Added ImportGenericMultibandData tool to convert ENVI style BIL, BSQ and BIP 
+ raster files.
 
 
 Version 3.0.8 (November 27, 2013)

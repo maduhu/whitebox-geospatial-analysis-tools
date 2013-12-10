@@ -134,6 +134,7 @@ public class StandardPluginService implements PluginService {
         String fileTypeName;
         String[] extensions;
         boolean isRasterFormat;
+        InteropPlugin.InteropPluginType pluginType;
         Iterator<WhiteboxPlugin> iterator = getPlugins();
         while (iterator.hasNext()) {
             WhiteboxPlugin plugin = iterator.next();
@@ -142,8 +143,9 @@ public class StandardPluginService implements PluginService {
                 fileTypeName = ((InteropPlugin)(plugin)).getFileTypeName();
                 extensions = ((InteropPlugin)(plugin)).getExtensions();
                 isRasterFormat = ((InteropPlugin)(plugin)).isRasterFormat();
+                pluginType = ((InteropPlugin)(plugin)).getInteropPluginType();
                 interopPlugins.add(new InteroperableGeospatialDataFormat(fileTypeName, 
-                        extensions, className, isRasterFormat));
+                        extensions, className, isRasterFormat, pluginType));
             }
         }
 
