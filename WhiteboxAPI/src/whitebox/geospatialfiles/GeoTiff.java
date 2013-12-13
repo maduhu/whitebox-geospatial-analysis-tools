@@ -1,4 +1,9 @@
 /*
+* Numerous modifications by John Lindsay (2013) including support for additional 
+* types of geotiff files.
+*/
+
+/*
  * Copyright 1998-2009 University Corporation for Atmospheric Research/Unidata
  *
  * Portions of this software were developed by the Unidata Program at the
@@ -456,8 +461,6 @@ public class GeoTiff {
         } else {
             rowsPerStrip = findTag(Tag.RowsPerStrip).value[0];
         }
-
-        //parseGeoInfo();
     }
 
     private IFDEntry findTag(Tag tag) {

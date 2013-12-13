@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 import java.io.PrintWriter;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.interfaces.InteropPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
 
@@ -33,7 +34,7 @@ import whitebox.interfaces.WhiteboxPlugin;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImportGRASSAsciiGrid implements WhiteboxPlugin {
+public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -209,8 +210,10 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin {
         try {
 
             for (i = 0; i < numImages; i++) {
-                progress = (int) (100f * i / (numImages - 1));
-                updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                if (numImages > 1) {
+                    progress = (int) (100f * i / (numImages - 1));
+                    updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                }
 
                 grassFile = imageFiles[i];
                 // check to see if the file exists.
@@ -267,6 +270,8 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin {
                             rows = Integer.parseInt(str[str.length - 1]);
                         } else if (str[0].toLowerCase().contains("cols")) {
                             cols = Integer.parseInt(str[str.length - 1]);
+                        } else if (str[0].toLowerCase().contains("nodata")) {
+                            arcNoData = Double.parseDouble(str[str.length - 1]);
                         } else {
                             break;
                         }
@@ -305,7 +310,7 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin {
                     out.println(str1);
                     str1 = "Preferred Palette:\t" + "spectrum.pal";
                     out.println(str1);
-                    str1 = "NoData:\t-32768";
+                    str1 = "NoData:\t" + whiteboxNoData;
                     out.println(str1);
                     if (java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN) {
                         str1 = "Byte Order:\t" + "LITTLE_ENDIAN";
@@ -348,16 +353,24 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin {
                             // do nothing
                         } else if (str[0].toLowerCase().contains("cols")) {
                             // do nothing
+                        } else if (str[0].toLowerCase().contains("nodata")) {
+                            // do nothing
                         } else {
                             // read the data
                             for (i = 0; i < str.length; i++) {
                                 z = Double.parseDouble(str[i]);
-                                wbr.setValue(row, col, z);
+                                if (z != arcNoData) {
+                                    wbr.setValue(row, col, z);
+                                } else {
+                                    wbr.setValue(row, col, whiteboxNoData);
+                                }
                                 
                                 col++;
                                 if (col == cols) {
                                     col = 0;
                                     row++;
+                                    progress = (int)(100f * row / (rows - 1));
+                                    updateProgress(progress);
                                 }
                             }
                         }
@@ -370,8 +383,8 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin {
                     wbr.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
                     wbr.addMetadataEntry("Created on " + new Date());
-                    //wbr.findMinAndMaxVals();
-                    //wbr.writeHeaderFile();
+                    wbr.flush();
+                    wbr.findMinAndMaxVals();
                     wbr.close();
 
                     returnData(whiteboxHeaderFile);
@@ -394,5 +407,25 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+    
+    @Override
+    public String[] getExtensions() {
+        return new String[]{ "txt", "asc" };
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "GRASS ASCII Grid";
+    }
+    
+    @Override 
+    public boolean isRasterFormat() {
+        return true;
+    }
+    
+    @Override
+    public InteropPlugin.InteropPluginType getInteropPluginType() {
+        return InteropPlugin.InteropPluginType.importPlugin;
     }
 }

@@ -19,6 +19,7 @@ package plugins;
 import java.io.*;
 import java.util.Date;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.interfaces.InteropPlugin;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 
@@ -26,7 +27,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ImportArcAsciiGrid implements WhiteboxPlugin {
+public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -415,5 +416,25 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+    
+    @Override
+    public String[] getExtensions() {
+        return new String[]{ "txt", "asc" };
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "ArcGIS ASCII Grid";
+    }
+    
+    @Override 
+    public boolean isRasterFormat() {
+        return true;
+    }
+    
+    @Override
+    public InteropPlugin.InteropPluginType getInteropPluginType() {
+        return InteropPlugin.InteropPluginType.importPlugin;
     }
 }

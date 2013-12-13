@@ -193,9 +193,11 @@ public class ExportSurferAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         try {
 
             for (i = 0; i < numImages; i++) {
-                progress = (int)(100f * i / (numImages - 1));
-                updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
-                
+                if (numImages > 1) {
+                    progress = (int) (100f * i / (numImages - 1));
+                    updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                }
+
                 whiteboxHeaderFile = imageFiles[i];
                 // check to see if the file exists.
                 if (!((new File(whiteboxHeaderFile)).exists())) {
@@ -261,7 +263,7 @@ public class ExportSurferAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                             return;
                         }
                         progress = (int) (100f * (rows - 1 - row) / (rows - 1));
-                        updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                        updateProgress(progress);
                     }
                 } else {
                     for (row = rows - 1; row >= 0; row--) {
@@ -285,7 +287,7 @@ public class ExportSurferAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                             return;
                         }
                         progress = (int) (100f * (rows - 1 - row) / (rows - 1));
-                        updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                        updateProgress(progress);
                     }
                 }
                 

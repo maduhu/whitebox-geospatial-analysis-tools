@@ -26,39 +26,50 @@ import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
 
 /**
- * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ * Exports a Whitebox Raster to an Idrisi Raster format.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "ExportIDRISIRaster";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
         return "Export IDRISI Raster (.rst)";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
         return "Exports an IDRISI raster file (.rst).";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
@@ -66,17 +77,23 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
         String[] ret = {"IOTools"};
         return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -86,8 +103,11 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -97,8 +117,11 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
     }
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
@@ -110,8 +133,11 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -120,17 +146,21 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
@@ -143,9 +173,12 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
         updateProgress("Progress: ", 0);
     }
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -155,46 +188,43 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
     @Override
     public void run() {
         amIActive = true;
-
-        String inputFilesString = null;
-        String idrisiHeaderFile = null;
-        String idrisiDataFile = null;
-        String whiteboxHeaderFile = null;
-        String whiteboxDataFile = null;
-        WhiteboxRaster output = null;
-        int i = 0;
-        int row, col, rows, cols;
-        String[] imageFiles;
-        int numImages = 0;
-        double noData = -32768;
-        int progress = 0;
-
-        if (args.length <= 0) {
-            showFeedback("Plugin parameters have not been set.");
-            return;
-        }
-
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputFilesString = args[i];
-            }
-        }
-
-        // check to see that the inputHeader and outputHeader are not null.
-        if ((inputFilesString == null)) {
-            showFeedback("One or more of the input parameters have not been set properly.");
-            return;
-        }
-
-        imageFiles = inputFilesString.split(";");
-        numImages = imageFiles.length;
-
         try {
 
+            String inputFilesString = null;
+            String idrisiHeaderFile = null;
+            String idrisiDataFile = null;
+            String whiteboxHeaderFile = null;
+            String whiteboxDataFile = null;
+            WhiteboxRaster output = null;
+            int i = 0;
+            int row, col, rows, cols;
+            String[] imageFiles;
+            int numImages = 0;
+            double noData = -32768;
+            int progress = 0;
+
+            if (args.length <= 0) {
+                showFeedback("Plugin parameters have not been set.");
+                return;
+            }
+
+            inputFilesString = args[0];
+
+            // check to see that the inputHeader and outputHeader are not null.
+            if ((inputFilesString == null)) {
+                showFeedback("One or more of the input parameters have not been set properly.");
+                return;
+            }
+
+            imageFiles = inputFilesString.split(";");
+            numImages = imageFiles.length;
+
             for (i = 0; i < numImages; i++) {
-                progress = (int)(100f * i / (numImages - 1));
-                updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
-                
+                if (numImages > 1) {
+                    progress = (int) (100f * i / (numImages - 1));
+                    updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                }
+
                 whiteboxHeaderFile = imageFiles[i];
                 // check to see if the file exists.
                 if (!((new File(whiteboxHeaderFile)).exists())) {
@@ -205,11 +235,11 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
                 rows = wbr.getNumberRows();
                 cols = wbr.getNumberColumns();
                 noData = wbr.getNoDataValue();
-                
+
                 // arc file names.
                 idrisiHeaderFile = whiteboxHeaderFile.replace(".dep", ".rdc");
                 idrisiDataFile = whiteboxHeaderFile.replace(".dep", ".rst");
-                
+
                 // see if they exist, and if so, delete them.
                 (new File(idrisiHeaderFile)).delete();
                 (new File(idrisiDataFile)).delete();
@@ -221,7 +251,7 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
                     dataType = WhiteboxRaster.DataType.INTEGER;
                 }
                 // copy the data file.
-                output = new WhiteboxRaster(whiteboxHeaderFile.replace(".dep", "_temp.dep"), 
+                output = new WhiteboxRaster(whiteboxHeaderFile.replace(".dep", "_temp.dep"),
                         "rw", whiteboxHeaderFile, dataType, -9999);
                 output.setNoDataValue(-9999);
                 whiteboxDataFile = whiteboxHeaderFile.replace(".dep", "_temp.tas");
@@ -241,28 +271,29 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
                         return;
                     }
                     progress = (int) (100f * row / (rows - 1));
-                    updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                    updateProgress(progress);
                 }
 
                 output.close();
-                
+
                 File dataFile = new File(whiteboxDataFile);
                 File idrisiFile = new File(idrisiDataFile);
                 dataFile.renameTo(idrisiFile);
-                
+
                 boolean success = createHeaderFile(wbr, idrisiHeaderFile);
                 if (!success) {
                     showFeedback("IDRISI header file was not written properly. "
                             + "Tool failed to export");
                     return;
                 }
-                
+
                 wbr.close();
-                
+
                 // delete the temp file's header file (data file has already been renamed).
                 (new File(whiteboxHeaderFile.replace(".dep", "_temp.dep"))).delete();
             }
-
+            
+            showFeedback("Operation complete!");
 
         } catch (OutOfMemoryError oe) {
             myHost.showFeedback("An out-of-memory error has occurred during operation.");
@@ -283,28 +314,33 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
         BufferedWriter bw = null;
         PrintWriter out = null;
         String dataType = null;
-        
+
         try {
             if (wbr != null) {
                 fw = new FileWriter(idrisiHeaderFile, false);
                 bw = new BufferedWriter(fw);
                 out = new PrintWriter(bw, true);
-                
-                if (wbr.getDataType() == WhiteboxRaster.DataType.INTEGER) {
-                    dataType = "integer";
-                } else if (wbr.getDataType() == WhiteboxRaster.DataType.FLOAT) {
+
+                if (wbr.getDataType() == WhiteboxRaster.DataType.FLOAT
+                        || wbr.getDataType() == WhiteboxRaster.DataType.DOUBLE) {
                     if (wbr.getDataScale() != WhiteboxRaster.DataScale.RGB) {
                         dataType = "real";
                     } else {
                         dataType = "rgb24";
                     }
+                } else {
+                    dataType = "integer";
                 }
-                
+
                 double minVal = wbr.getMinimumValue();
                 double maxVal = wbr.getMaximumValue();
-                if (wbr.getNoDataValue() < minVal) { minVal = wbr.getNoDataValue(); }
-                if (wbr.getNoDataValue() > maxVal) { maxVal = wbr.getNoDataValue(); }
-                
+                if (wbr.getNoDataValue() < minVal) {
+                    minVal = wbr.getNoDataValue();
+                }
+                if (wbr.getNoDataValue() > maxVal) {
+                    maxVal = wbr.getNoDataValue();
+                }
+
                 str = "file format : IDRISI Raster A.1";
                 out.println(str);
                 str = "file Title  : ";
@@ -367,7 +403,7 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
             myHost.logException("Error in " + getDescriptiveName(), e);
             return false;
         } finally {
-            
+
             if (out != null || bw != null) {
                 out.flush();
                 out.close();
@@ -375,7 +411,7 @@ public class ExportIDRISIRaster implements WhiteboxPlugin, InteropPlugin {
         }
 
     }
-    
+
     @Override
     public String[] getExtensions() {
         return new String[]{"rst"};

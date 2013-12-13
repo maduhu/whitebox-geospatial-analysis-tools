@@ -16,14 +16,11 @@
  */
 package plugins;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Date;
-import javax.imageio.ImageIO;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.InteropPlugin;
 import whitebox.interfaces.WhiteboxPlugin;

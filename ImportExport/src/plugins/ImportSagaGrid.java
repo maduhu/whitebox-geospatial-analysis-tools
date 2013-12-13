@@ -334,19 +334,24 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                     case "byte":
                     case "shortint_unsigned":
                     case "shortint":
-                    case "integer":
                         // Notice, although there is support for a byte data type, 
                         // it is not used because of the major limitation of Java's
                         // signed byte.
                         outputDataType = WhiteboxRasterBase.DataType.INTEGER;
                         break;
-                    case "integer_unsigned":
                     case "float":
                         outputDataType = WhiteboxRasterBase.DataType.FLOAT;
                         break;
+                    //case "integer":
+                    //case "integer_unsigned":
+                    //case "double":
                     default:
                         outputDataType = WhiteboxRasterBase.DataType.DOUBLE;
                         break;
+                }
+                
+                if (zFactor < 1.0 && outputDataType == WhiteboxRasterBase.DataType.INTEGER) {
+                    outputDataType = WhiteboxRasterBase.DataType.FLOAT;
                 }
 
                 String whiteboxHeaderFile = imageFiles[i].replace(fileExtension, "dep");
@@ -358,6 +363,7 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                         north, south, east, west, rows, cols,
                         WhiteboxRasterBase.DataScale.CONTINUOUS,
                         outputDataType, noData, noData);
+                
 
                 file = new File(sagaDataFile);
                 int fileLength = (int) file.length();
@@ -416,7 +422,7 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                     case "byte_unsigned":
                         while (flag) {
                             for (col = 0; col < cols; col++) {
-                                z = (double) (Unsigned.getUnsignedByte(buf, pos));
+                                z = (double) (Unsigned.getUnsignedByte(buf, pos)) * zFactor;
                                 output.setValue(row, col, z);
                                 pos += 1;
                             }
@@ -433,7 +439,7 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                     case "byte":
                         while (flag) {
                             for (col = 0; col < cols; col++) {
-                                z = (double) buf.get(pos);
+                                z = (double) buf.get(pos) * zFactor;
                                 output.setValue(row, col, z);
                                 pos += 1;
                             }
@@ -450,7 +456,7 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                     case "shortint_unsigned":
                         while (flag) {
                             for (col = 0; col < cols; col++) {
-                                z = (double) (Unsigned.getUnsignedShort(buf, pos));
+                                z = (double) (Unsigned.getUnsignedShort(buf, pos)) * zFactor;
                                 output.setValue(row, col, z);
                                 pos += 2;
                             }
@@ -467,7 +473,7 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                     case "shortint":
                         while (flag) {
                             for (col = 0; col < cols; col++) {
-                                z = (double) buf.getShort(pos);
+                                z = (double) buf.getShort(pos) * zFactor;
                                 output.setValue(row, col, z);
                                 pos += 2;
                             }
@@ -484,7 +490,7 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                     case "integer":
                         while (flag) {
                             for (col = 0; col < cols; col++) {
-                                z = (double) buf.getInt(pos);
+                                z = (double) buf.getInt(pos) * zFactor;
                                 output.setValue(row, col, z);
                                 pos += 4;
                             }
@@ -502,7 +508,7 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                     case "integer_unsigned":
                         while (flag) {
                             for (col = 0; col < cols; col++) {
-                                z = (double) (Unsigned.getUnsignedInt(buf, pos));
+                                z = (double) (Unsigned.getUnsignedInt(buf, pos)) * zFactor;
                                 output.setValue(row, col, z);
                                 pos += 4;
                             }
@@ -519,7 +525,7 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                     case "float":
                         while (flag) {
                             for (col = 0; col < cols; col++) {
-                                z = (double) buf.getFloat(pos);
+                                z = (double) buf.getFloat(pos) * zFactor;
                                 output.setValue(row, col, z);
                                 pos += 4;
                             }
@@ -537,7 +543,7 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                     default: // 64-bit double
                         while (flag) {
                             for (col = 0; col < cols; col++) {
-                                z = buf.getDouble(pos);
+                                z = buf.getDouble(pos) * zFactor;
                                 output.setValue(row, col, z);
                                 pos += 8;
                             }
@@ -559,6 +565,8 @@ public class ImportSagaGrid implements WhiteboxPlugin, InteropPlugin {
                 output.addMetadataEntry("Created by the "
                         + getDescriptiveName() + " tool.");
                 output.addMetadataEntry("Created on " + new Date());
+                output.flush();
+                output.findMinAndMaxVals();
                 output.writeHeaderFile();
                 output.close();
 

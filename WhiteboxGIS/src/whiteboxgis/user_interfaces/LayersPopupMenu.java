@@ -39,7 +39,7 @@ public class LayersPopupMenu extends JPopupMenu {
         // no-arg constructor
     }
 
-    public LayersPopupMenu(MapLayer layer, ActionListener listener, 
+    public LayersPopupMenu(MapLayer layer, ActionListener listener,
             String graphicsDirectory, ResourceBundle bundle) {
         this.myLayer = layer;
         this.graphicsDirectory = graphicsDirectory;
@@ -80,12 +80,10 @@ public class LayersPopupMenu extends JPopupMenu {
     public void setBundle(ResourceBundle bundle) {
         this.bundle = bundle;
     }
-    
-    
-    
+
     // methods
     public final void initialize() {
-        if (myLayer == null || graphicsDirectory == null || listener == null 
+        if (myLayer == null || graphicsDirectory == null || listener == null
                 || bundle == null) {
             System.err.println("LayersPopupMenu has not been properly initialized");
         }
@@ -99,7 +97,7 @@ public class LayersPopupMenu extends JPopupMenu {
             this.add(mi);
 
             JMenuItem menuItemAttributeTable = new JMenuItem(
-                    bundle.getString("ViewAttributeTable"), 
+                    bundle.getString("ViewAttributeTable"),
                     new ImageIcon(graphicsDirectory + "AttributeTable.png"));
             menuItemAttributeTable.addActionListener(listener);
             menuItemAttributeTable.setActionCommand("viewAttributeTable");
@@ -129,13 +127,13 @@ public class LayersPopupMenu extends JPopupMenu {
 
             this.addSeparator();
 
-            mi = new JMenuItem(bundle.getString("AddLayer"), 
+            mi = new JMenuItem(bundle.getString("AddLayer"),
                     new ImageIcon(graphicsDirectory + "AddLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("addLayer");
             this.add(mi);
 
-            mi = new JMenuItem(bundle.getString("RemoveLayer"), 
+            mi = new JMenuItem(bundle.getString("RemoveLayer"),
                     new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("removeLayer");
@@ -143,32 +141,32 @@ public class LayersPopupMenu extends JPopupMenu {
 
             this.addSeparator();
 
-            mi = new JMenuItem(bundle.getString("RaiseLayer"), 
+            mi = new JMenuItem(bundle.getString("RaiseLayer"),
                     new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("raiseLayer");
             this.add(mi);
 
-            mi = new JMenuItem(bundle.getString("LowerLayer"), 
+            mi = new JMenuItem(bundle.getString("LowerLayer"),
                     new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("lowerLayer");
             this.add(mi);
 
-            mi = new JMenuItem(bundle.getString("LayerToTop"), 
+            mi = new JMenuItem(bundle.getString("LayerToTop"),
                     new ImageIcon(graphicsDirectory + "LayerToTop.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerToTop");
             this.add(mi);
 
-            mi = new JMenuItem(bundle.getString("LayerToBottom"), 
+            mi = new JMenuItem(bundle.getString("LayerToBottom"),
                     new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerToBottom");
             this.add(mi);
 
             this.addSeparator();
-            
+
             mi = new JMenuItem(bundle.getString("clearAllSelectedFeatures"));
             mi.addActionListener(listener);
             mi.setActionCommand("clearAllSelectedFeatures");
@@ -178,25 +176,23 @@ public class LayersPopupMenu extends JPopupMenu {
             mi.addActionListener(listener);
             mi.setActionCommand("saveSelection");
             this.add(mi);
-            
+
             this.addSeparator();
 
-            mi = new JMenuItem(bundle.getString("ZoomToLayer"), 
+            mi = new JMenuItem(bundle.getString("ZoomToLayer"),
                     new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("zoomToLayer");
             this.add(mi);
-            
-            
+
             // THIS FEATURE SHOULD BE ADDED IN FUTURE
 //            mi = new JMenuItem(bundle.getString("ClipLayerToCurrentExtent"));
 //            mi.addActionListener(listener);
 //            mi.setActionCommand("clipLayerToExtent");
 //            this.add(mi);
-
             this.addSeparator();
 
-            JCheckBoxMenuItem editLayerMenuItem = new JCheckBoxMenuItem(bundle.getString("EditVector"), 
+            JCheckBoxMenuItem editLayerMenuItem = new JCheckBoxMenuItem(bundle.getString("EditVector"),
                     new ImageIcon(graphicsDirectory + "Digitize.png"));
             editLayerMenuItem.addActionListener(listener);
             editLayerMenuItem.setActionCommand("editVector");
@@ -212,7 +208,7 @@ public class LayersPopupMenu extends JPopupMenu {
                 mi.setActionCommand("digitizeNewFeature");
                 this.add(mi);
 
-                mi = new JMenuItem(bundle.getString("MoveNodes"), 
+                mi = new JMenuItem(bundle.getString("MoveNodes"),
                         new ImageIcon(graphicsDirectory + "MoveNodes.png"));
                 mi.addActionListener(listener);
                 mi.setActionCommand("moveNodes");
@@ -228,10 +224,16 @@ public class LayersPopupMenu extends JPopupMenu {
                 editLayerMenuItem.setState(false);
             }
 
+            this.addSeparator();
+            
+            mi = new JMenuItem(bundle.getString("ExportLayer"));
+            mi.addActionListener(listener);
+            mi.setActionCommand("exportLayer");
+            this.add(mi);
 
         } else if (myLayer.getLayerType() == MapLayer.MapLayerType.RASTER) {
 
-            JMenuItem mi = new JMenuItem(bundle.getString("LayerProperties"), 
+            JMenuItem mi = new JMenuItem(bundle.getString("LayerProperties"),
                     new ImageIcon(graphicsDirectory + "LayerProperties.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerProperties");
@@ -276,13 +278,13 @@ public class LayersPopupMenu extends JPopupMenu {
 
             this.addSeparator();
 
-            mi = new JMenuItem(bundle.getString("AddLayer"), 
+            mi = new JMenuItem(bundle.getString("AddLayer"),
                     new ImageIcon(graphicsDirectory + "AddLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("addLayer");
             this.add(mi);
 
-            mi = new JMenuItem(bundle.getString("RemoveLayer"), 
+            mi = new JMenuItem(bundle.getString("RemoveLayer"),
                     new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("removeLayer");
@@ -290,25 +292,25 @@ public class LayersPopupMenu extends JPopupMenu {
 
             this.addSeparator();
 
-            mi = new JMenuItem(bundle.getString("RaiseLayer"), 
+            mi = new JMenuItem(bundle.getString("RaiseLayer"),
                     new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("raiseLayer");
             this.add(mi);
 
-            mi = new JMenuItem(bundle.getString("LowerLayer"), 
+            mi = new JMenuItem(bundle.getString("LowerLayer"),
                     new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("lowerLayer");
             this.add(mi);
 
-            mi = new JMenuItem(bundle.getString("LayerToTop"), 
+            mi = new JMenuItem(bundle.getString("LayerToTop"),
                     new ImageIcon(graphicsDirectory + "LayerToTop.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerToTop");
             this.add(mi);
 
-            mi = new JMenuItem(bundle.getString("LayerToBottom"), 
+            mi = new JMenuItem(bundle.getString("LayerToBottom"),
                     new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("layerToBottom");
@@ -316,7 +318,7 @@ public class LayersPopupMenu extends JPopupMenu {
 
             this.addSeparator();
 
-            mi = new JMenuItem(bundle.getString("ZoomToLayer"), 
+            mi = new JMenuItem(bundle.getString("ZoomToLayer"),
                     new ImageIcon(graphicsDirectory + "ZoomToActiveLayer.png"));
             mi.addActionListener(listener);
             mi.setActionCommand("zoomToLayer");
@@ -325,6 +327,13 @@ public class LayersPopupMenu extends JPopupMenu {
             mi = new JMenuItem(bundle.getString("ClipLayerToCurrentExtent"));
             mi.addActionListener(listener);
             mi.setActionCommand("clipLayerToExtent");
+            this.add(mi);
+            
+            this.addSeparator();
+            
+            mi = new JMenuItem(bundle.getString("ExportLayer"));
+            mi.addActionListener(listener);
+            mi.setActionCommand("exportLayer");
             this.add(mi);
         }
 

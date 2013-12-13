@@ -3,16 +3,17 @@ Whitebox Geospatial Analysis Tools 3.0 - Iguazu
 
 GENERAL DESCRIPTION: 
 
-Welcome to Whitebox GAT! Whitebox is a desktop Geographical Information System (GIS) and 
-remote sensing software package for advanced analysis and visualization of geospatial data. 
+Welcome to Whitebox GAT! Whitebox is a desktop Geographical Information System 
+(GIS) and remote sensing software package for advanced analysis and visualization 
+of geospatial data. 
 
 SYSTEM REQUIREMENTS:
 
 Whitebox GAT requires a minimum of 2 GB of system memory (RAM) to operate, although 
-8 GB is preferable. Depending on the size of the data being analyzed, however, 
-more memory may be required. In addition, the Java Runtime Environment (JRE) 7 or 
-higher must be installed and properly configured for Whitebox GAT to operate. 
-Whitebox will run on any computer running the Java Runtime Environment (JRE) 7.0 or higher, 
+8 GB is preferable. Depending on the size of the data being analyzed more memory 
+may be required. In addition, the Java Runtime Environment (JRE) 7 or higher must 
+be installed and properly configured for Whitebox GAT to operate. Whitebox will
+run on any computer running the Java Runtime Environment (JRE) 7.0 or higher, 
 including computers running MS Windows, MacOS, and Linux operating systems. A solid 
 state drive (SSD) is recommended for those working on massive data files, as it 
 greatly increased performance.
@@ -21,9 +22,11 @@ RELEASE NOTES:
 
 Version 3.0.9 ()
 -Added the Create TIN and Rasterize TIN tools.
--Added support for import of tiled TIFF files.
--Modified the AddLayer method so that it accepts non-native format geospatial layers
- and automatically calls the appropriate data import tool.
+-Added support for import of tiled GeoTIFF files.
+-Modified the AddLayer method so that it accepts non-native format geospatial 
+ layers and automatically calls the appropriate data import tool.
+-Added an 'Export Layer' quick link to the various export data tools from 
+ the Layers menu and pop-up menu.
 -Added ImportSRTM tool to import shuttle radar topography mission DEMs.
 -Moved all of the entries in the File menu that were related to maps to the 
  Cartographic menu and made the corresponding change to the order of the icons 
@@ -31,10 +34,15 @@ Version 3.0.9 ()
  program, you typically need to add data layers rather open a map. Previously
  people were frequently confusing maps with data layers.
 -Fixed a bug with Nearest Neighbour LiDAR interpolation.
+-Modified the LiDAR IDW interpolation tool so that the maximum scan angle  
+ deviation can be specified by the user.
 -A raster's NoData value can now be updated directly from its layer properties.
--Added ImportSagaRaster tool.
+-Added ImportSagaGrid and ExportSagaGrid tools.
 -Added ImportGenericMultibandData tool to convert ENVI style BIL, BSQ and BIP 
- raster files.
+ raster files. I was only able to get a .bsq file for testing so if you have  
+ access to a small .bip and/or .bil file please forward them to me.
+-Fixed a bug with the Depression Filling (Planchon and Darboux) tool that  
+ affected DEMs with irregular shapes (i.e. areas of NoData around the edges).
 
 
 Version 3.0.8 (November 27, 2013)

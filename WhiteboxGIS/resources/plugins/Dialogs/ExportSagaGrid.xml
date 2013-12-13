@@ -1,4 +1,4 @@
-<Dialog Name="ExportIDRISIRaster" HelpFile="ExportIDRISIRaster.html">
+<Dialog Name="ExportSagaGrid" HelpFile="ExportSagaGrid.html">
     <DialogComponent type="DialogMultiFile">
         <Name>inputFiles</Name>
         <Description>Enter the name of the input Whitebox raster files here</Description>

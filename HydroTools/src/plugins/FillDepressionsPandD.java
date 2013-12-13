@@ -23,56 +23,73 @@ import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class FillDepressionsPandD implements WhiteboxPlugin {
-    
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "FillDepressionsPandD";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "Fill Depressions (Planchon and Darboux)";
+        return "Fill Depressions (Planchon and Darboux)";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "Fills depressions in a DEM using the Planchon and Darboux (2001) method.";
+        return "Fills depressions in a DEM using the Planchon and Darboux (2001) method.";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "DEMPreprocessing" };
-    	return ret;
+        String[] ret = {"DEMPreprocessing"};
+        return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -82,8 +99,11 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -94,21 +114,27 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
 
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -117,9 +143,11 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
@@ -127,23 +155,28 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
     }
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     private boolean cancelOp = false;
+
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
+
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -153,7 +186,7 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
+
         String inputHeader;
         String outputHeader;
         int row, col;
@@ -166,12 +199,12 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
         double smallValue = 0.0001;
         boolean somethingDone;
         int loopNum = 1;
-        
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
+
         inputHeader = args[0];
         outputHeader = args[1];
         smallValue = Double.parseDouble(args[2]);
@@ -193,21 +226,21 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
             double noDataOutput = -32768.0;
 
             WhiteboxRaster output;
-            if (smallValue < 0.01 && smallValue > 0) { 
+            if (smallValue < 0.01 && smallValue > 0) {
                 output = new WhiteboxRaster(outputHeader, "rw",
-                    inputHeader, WhiteboxRaster.DataType.DOUBLE, largeValue);
+                        inputHeader, WhiteboxRaster.DataType.DOUBLE, largeValue);
             } else {
                 output = new WhiteboxRaster(outputHeader, "rw",
-                    inputHeader, WhiteboxRaster.DataType.FLOAT, largeValue);
+                        inputHeader, WhiteboxRaster.DataType.FLOAT, largeValue);
             }
-            
+
             output.setNoDataValue(noDataOutput);
 
             // copy the data into the output file.
             double[] data = null;
             for (row = 0; row < rows; row++) {
                 data = DEM.getRowValues(row);
-                if (row == 0 || row == (rows  - 1)) {
+                if (row == 0 || row == (rows - 1)) {
                     for (col = 0; col < cols; col++) {
                         if (data[col] != noData) {
                             output.setValue(row, col, data[col]);
@@ -242,7 +275,7 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
                 progress = (int) (100f * row / (rows - 1));
                 updateProgress("Loop 1:", progress);
             }
-            
+
             i = 0; // 'i' will control the order of the scan directions.
             do {
                 loopNum++;
@@ -310,7 +343,7 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
                                 cancelOperation();
                                 return;
                             }
-                            progress = (int) (100f * row / (rows - 1));
+                            progress = (int) (100f * (rows - row) / (rows - 1));
                             updateProgress("Loop " + loopNum + ":", progress);
                         }
                         break;
@@ -376,20 +409,98 @@ public class FillDepressionsPandD implements WhiteboxPlugin {
                                 cancelOperation();
                                 return;
                             }
-                            progress = (int) (100f * row / (rows - 1));
+                            progress = (int) (100f * (rows - row)  / (rows - 1));
                             updateProgress("Loop " + loopNum + ":", progress);
                         }
                         break;
                 }
                 i++;
-                if (i > 3) { i = 0; }
+                if (i > 3) {
+                    i = 0;
+                }
             } while (somethingDone);
+
+            loopNum++;
+            double zN;
+            dX = new int[]{-1, 0, 1, 1, -1};
+            dY = new int[]{-1, -1, -1, 0, 0};
+            for (row = 0; row < rows; row++) {
+                for (col = 0; col < cols; col++) {
+                    z = DEM.getValue(row, col);
+                    if (z == noData && output.getValue(row, col) != noDataOutput) {
+                        for (i = 0; i < 5; i++) {
+                            zN = output.getValue(row + dY[i], col + dX[i]);
+                            if (zN == noDataOutput) {
+                                output.setValue(row, col, noDataOutput);
+                                break;
+                            }
+                        }
+                    }
+                }
+                for (col = cols - 1; col >= 0; col--) {
+                    z = DEM.getValue(row, col);
+                    if (z == noData && output.getValue(row, col) != noDataOutput) {
+                        for (i = 0; i < 5; i++) {
+                            zN = output.getValue(row + dY[i], col + dX[i]);
+                            if (zN == noDataOutput) {
+                                output.setValue(row, col, noDataOutput);
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (100f * row / (rows - 1));
+                updateProgress("Loop " + loopNum + ":", progress);
+            }
             
+            loopNum++;
+            
+            dX = new int[]{-1, 0, 1, 1, -1};
+            dY = new int[]{1, 1, 1, 0, 0};
+            for (row = rows - 1; row >= 0; row--) {
+                for (col = 0; col < cols; col++) {
+                    z = DEM.getValue(row, col);
+                    if (z == noData && output.getValue(row, col) != noDataOutput) {
+                        for (i = 0; i < 5; i++) {
+                            zN = output.getValue(row + dY[i], col + dX[i]);
+                            if (zN == noDataOutput) {
+                                output.setValue(row, col, noDataOutput);
+                                break;
+                            }
+                        }
+                    }
+                }
+                for (col = cols - 1; col >= 0; col--) {
+                    z = DEM.getValue(row, col);
+                    if (z == noData && output.getValue(row, col) != noDataOutput) {
+                        for (i = 0; i < 5; i++) {
+                            zN = output.getValue(row + dY[i], col + dX[i]);
+                            if (zN == noDataOutput) {
+                                output.setValue(row, col, noDataOutput);
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (cancelOp) {
+                    cancelOperation();
+                    return;
+                }
+                progress = (int) (100f * (rows - row) / (rows - 1));
+                updateProgress("Loop " + loopNum + ":", progress);
+            }
+
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
-            
+
             DEM.close();
+            output.flush();
+            output.findMinAndMaxVals();
             output.close();
 
             // returning a header file string displays the image.

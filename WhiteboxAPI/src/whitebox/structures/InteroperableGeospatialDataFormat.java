@@ -63,11 +63,11 @@ public class InteroperableGeospatialDataFormat {
         this.name = name;
     }
 
-    public boolean isIsRasterFormat() {
+    public boolean isRasterFormat() {
         return isRasterFormat;
     }
 
-    public void setIsRasterFormat(boolean isRasterFormat) {
+    public void setRasterFormat(boolean isRasterFormat) {
         this.isRasterFormat = isRasterFormat;
     }
 

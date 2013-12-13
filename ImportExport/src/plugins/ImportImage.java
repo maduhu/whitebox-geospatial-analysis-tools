@@ -504,7 +504,7 @@ public class ImportImage implements WhiteboxPlugin, InteropPlugin {
 
     @Override
     public String getFileTypeName() {
-        return "Generic Image";
+        return "Image";
     }
     
     @Override 

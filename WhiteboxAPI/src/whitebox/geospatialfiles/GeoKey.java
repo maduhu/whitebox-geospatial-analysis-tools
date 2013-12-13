@@ -143,15 +143,16 @@ class GeoKey  {
     }
   }
  
+  @Override
   public String toString() {
     StringBuilder sbuf  = new StringBuilder();
     if (tag != null)
-      sbuf.append(" geoKey = "+tag);
+      sbuf.append(" geoKey = ").append(tag);
     else
-      sbuf.append(" geoKey = "+id);
+      sbuf.append(" geoKey = ").append(id);
  
     if (tagValue != null)
-      sbuf.append(" value = "+tagValue);
+      sbuf.append(" value = ").append(tagValue);
     else {
  
       sbuf.append(" values = ");
@@ -160,10 +161,10 @@ class GeoKey  {
         sbuf.append(valueS);
       else if (isDouble)
         for (int i=0; i<count; i++)
-          sbuf.append(dvalue[i]+" ");
+          sbuf.append(dvalue[i]).append(" ");
       else
         for (int i=0; i<count; i++)
-          sbuf.append(value[i]+" ");
+          sbuf.append(value[i]).append(" ");
     }
  
     return sbuf.toString();

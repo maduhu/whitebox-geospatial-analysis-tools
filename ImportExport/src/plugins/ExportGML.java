@@ -23,13 +23,14 @@ import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.gml2.*;
+import whitebox.interfaces.InteropPlugin;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ExportGML implements WhiteboxPlugin {
+public class ExportGML implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -221,9 +222,11 @@ public class ExportGML implements WhiteboxPlugin {
         try {
 
             for (i = 0; i < numFiles; i++) {
-                progress = (int) (100f * i / (numFiles - 1));
-                updateProgress("Loop " + (i + 1) + " of " + numFiles + ":", progress);
-
+                if (numFiles > 1) {
+                    progress = (int) (100f * i / (numFiles - 1));
+                    updateProgress("Loop " + (i + 1) + " of " + numFiles + ":", progress);
+                }
+                
                 shapefileName = imageFiles[i];
                 if (!((new File(shapefileName)).exists())) {
                     showFeedback("Vector file does not exist.");
@@ -268,10 +271,10 @@ public class ExportGML implements WhiteboxPlugin {
                     }
                 }
 
-                showFeedback("Operation complete!");
             }
 
-
+            showFeedback("Operation complete!");
+            
         } catch (OutOfMemoryError oe) {
             myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
@@ -288,5 +291,25 @@ public class ExportGML implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+    
+    @Override
+    public String[] getExtensions() {
+        return new String[]{ "gml" };
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "Geography Markup Language (GML)";
+    }
+    
+    @Override 
+    public boolean isRasterFormat() {
+        return false;
+    }
+    
+    @Override
+    public InteropPlugin.InteropPluginType getInteropPluginType() {
+        return InteropPlugin.InteropPluginType.exportPlugin;
     }
 }

@@ -222,8 +222,10 @@ public class ExportWellKnownText implements WhiteboxPlugin, InteropPlugin {
         try {
 
             for (i = 0; i < numFiles; i++) {
-                progress = (int) (100f * i / (numFiles - 1));
-                updateProgress("Loop " + (i + 1) + " of " + numFiles + ":", progress);
+                if (numFiles > 1) {
+                    progress = (int) (100f * i / (numFiles - 1));
+                    updateProgress("Loop " + (i + 1) + " of " + numFiles + ":", progress);
+                }
 
                 shapefileName = imageFiles[i];
                 if (!((new File(shapefileName)).exists())) {

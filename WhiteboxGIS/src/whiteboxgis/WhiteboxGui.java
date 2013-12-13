@@ -93,6 +93,7 @@ import whiteboxgis.user_interfaces.LayersPopupMenu;
 import whitebox.internationalization.WhiteboxInternationalizationTools;
 import whitebox.structures.InteroperableGeospatialDataFormat;
 import whitebox.interfaces.InteropPlugin.InteropPluginType;
+import whitebox.utilities.StringUtilities;
 
 /**
  *
@@ -824,7 +825,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
                     } else if (strLine.startsWith("interopPluginType = InteropPluginType")) {
                         containsPluginType = true;
-                        if (strLine.toLowerCase().contains("importPlugin")) {
+                        if (strLine.toLowerCase().contains("import")) {
                             pluginType = InteropPluginType.importPlugin;
                         } else {
                             pluginType = InteropPluginType.exportPlugin;
@@ -988,7 +989,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
                     } else if (strLine.toLowerCase().contains("interopplugintype = interopplugintype")) {
                         containsPluginType = true;
-                        if (strLine.toLowerCase().contains("importPlugin")) {
+                        if (strLine.toLowerCase().contains("import")) {
                             pluginType = InteropPluginType.importPlugin;
                         } else {
                             pluginType = InteropPluginType.exportPlugin;
@@ -2369,6 +2370,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             clipLayerToExtent.addActionListener(this);
             clipLayerToExtent.setActionCommand("clipLayerToExtent");
             LayersMenu.add(clipLayerToExtent);
+
+            LayersMenu.addSeparator();
+
+            JMenuItem mi = new JMenuItem(bundle.getString("ExportLayer"));
+            mi.addActionListener(this);
+            mi.setActionCommand("exportLayer");
+            LayersMenu.add(mi);
+
             menubar.add(LayersMenu);
 
             // View menu
@@ -4189,13 +4198,140 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         populateToolTabs();
     }
 
+    private void exportLayer() {
+        try {
+            // which layer is being exported?
+            String fileName = "";
+            MapLayer layer;
+            if (selectedMapAndLayer[1] != -1) {
+                // a layer has been selected for removal.
+                layer = openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]).getLayer(selectedMapAndLayer[1]);
+            } else if (selectedMapAndLayer[2] != -1) {
+                // a mapArea has been selected. remove it's active layer.
+                MapArea ma = openMaps.get(selectedMapAndLayer[0]).getMapAreaByElementNum(selectedMapAndLayer[2]);
+                if (ma == null) {
+                    return;
+                }
+                layer = ma.getLayer(ma.getActiveLayerOverlayNumber());
+            } else {
+                // remove the active layer
+                int activeLayer = openMaps.get(activeMap).getActiveMapArea().getActiveLayerOverlayNumber();
+                layer = openMaps.get(activeMap).getActiveMapArea().getLayer(activeLayer);
+            }
+
+            MapLayerType layerType = layer.getLayerType();
+            boolean isRasterLayerType = true;
+            if (layerType == MapLayerType.VECTOR) {
+                isRasterLayerType = false;
+                VectorLayerInfo vli = (VectorLayerInfo) layer;
+                fileName = vli.getFileName();
+            } else {
+                RasterLayerInfo rli = (RasterLayerInfo) layer;
+                fileName = rli.getHeaderFile();
+            }
+
+            ArrayList<String> listItems = new ArrayList<>();
+            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                if (igdf.getInteropPluginType() == InteropPluginType.exportPlugin
+                        && igdf.isRasterFormat() == isRasterLayerType) {
+                    String listEntry = igdf.getName() + " Files (";
+                    for (String ext : igdf.getSupportedExtensions()) {
+                        listItems.add(listEntry + "*." + ext.toLowerCase() + ")");
+                    }
+                }
+            }
+
+            Object[] objectList = new Object[listItems.size()];
+            int i = 0;
+            for (String str : listItems) {
+                objectList[i] = str;
+                i++;
+            }
+            Object defaultObject = objectList[0];
+            if (isRasterLayerType) {
+                defaultObject = objectList[1]; // the second entry will be the ArcGIS float 
+            }
+            String returnString = (String) JOptionPane.showInputDialog(this,
+                    "Select an export data type:", "Export Data Type",
+                    JOptionPane.OK_CANCEL_OPTION, null, objectList,
+                    defaultObject); 
+
+            if (returnString == null) {
+                return;
+            }
+            String[] tmp = returnString.split("\\.");
+            String extension = tmp[1].replace(")", "");
+
+            // see if the extension is in the list of supported extensions
+            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                if (igdf.getInteropPluginType() == InteropPluginType.exportPlugin) {
+                    for (String ext : igdf.getSupportedExtensions()) {
+                        if (ext.toLowerCase().equals(extension)
+                                && returnString.contains(igdf.getName())) {
+                            String myExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
+
+                            String fileType = igdf.getName();
+                            String outputFile = StringUtilities.replaceLast(fileName, myExtension, extension);
+                            File file2 = new File(outputFile);
+                            // see if the file exists already, and if so, should it be overwritten?
+                            if (file2.exists()) {
+                                int n = showFeedback("You are exporting a " + fileType + " file. The "
+                                        + fileType + " file already exists.\n"
+                                        + "Would you like to delete it?", JOptionPane.YES_NO_OPTION,
+                                        JOptionPane.QUESTION_MESSAGE);
+
+                                if (n == JOptionPane.YES_OPTION) {
+                                    file2.delete();
+                                } else if (n == JOptionPane.NO_OPTION) {
+                                    return;
+                                }
+                            }
+                            String[] args = {fileName};
+                            runPlugin(igdf.getInteropClass(), args);
+                            return;
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            logException("WhiteboxGIS.addLayer", e);
+        }
+    }
+
     private void addLayer() {
         try {
             // set the filter.
             ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
-            String filterDescription = "Shapefiles (*.shp)";
-            String[] extensions = {"SHP"};
+
+            // how many supported file formats are there?
+            int numSupportedFileFormats = 0;
+            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                if (igdf.getInteropPluginType() == InteropPluginType.importPlugin) {
+                    numSupportedFileFormats += igdf.getSupportedExtensions().length;
+                }
+            }
+
+            String filterDescription = "All Supported Files";
+            String[] extensions = new String[numSupportedFileFormats + 2];
+            extensions[0] = "DEP";
+            extensions[1] = "SHP";
+            int i = 2;
+            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                for (String ext : igdf.getSupportedExtensions()) {
+                    if (igdf.getInteropPluginType() == InteropPluginType.importPlugin) {
+                        extensions[i] = ext.toUpperCase();
+                        i++;
+                    }
+                }
+            }
+
             ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
+            filters.add(eff);
+
+            filterDescription = "Shapefiles (*.shp)";
+            extensions = new String[]{"SHP"};
+            eff = new ExtensionFileFilter(filterDescription, extensions);
             filters.add(eff);
 
             filterDescription = "Whitebox Raster Files (*.dep)";
@@ -4207,7 +4343,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (igdf.getInteropPluginType() == InteropPluginType.importPlugin) {
                     filterDescription = igdf.getName() + " Files (";
                     extensions = new String[igdf.getSupportedExtensions().length];
-                    int i = 0;
+                    i = 0;
                     for (String ext : igdf.getSupportedExtensions()) {
                         if (i == 0) {
                             filterDescription += "*." + ext.toLowerCase();
@@ -4223,29 +4359,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             }
 
-            // how many supported file formats are there?
-            int numSupportedFileFormats = 0;
-            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
-                numSupportedFileFormats += igdf.getSupportedExtensions().length;
-            }
-
-            //filterDescription = "Whitebox Layer Files (*.dep, *.shp";
-            filterDescription = "All Supported Files";
-            extensions = new String[numSupportedFileFormats + 2];
-            extensions[0] = "DEP";
-            extensions[1] = "SHP";
-            int i = 2;
-            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
-                for (String ext : igdf.getSupportedExtensions()) {
-                    //filterDescription += ", *." + ext.toLowerCase();
-                    extensions[i] = ext.toUpperCase();
-                    i++;
-                }
-            }
-            //filterDescription += ")";
-            eff = new ExtensionFileFilter(filterDescription, extensions);
-            filters.add(eff);
-
             JFileChooser fc = new JFileChooser();
 
             fc.setCurrentDirectory(new File(workingDirectory));
@@ -4254,10 +4367,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             fc.setAcceptAllFileFilterUsed(false);
 
             for (i = 0; i < filters.size(); i++) {
-                fc.setFileFilter(filters.get(i));
+                fc.addChoosableFileFilter(filters.get(i));
             }
 
+            fc.setFileFilter(filters.get(0));
+
             int result = fc.showOpenDialog(this);
+
+            String selectedFilterDescription = fc.getFileFilter().getDescription();
+
             File[] files = null;
             if (result == JFileChooser.APPROVE_OPTION) {
                 files = fc.getSelectedFiles();
@@ -4266,7 +4384,117 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     setWorkingDirectory(fileDirectory);
                 }
                 for (File file : files) {
-                    addLayer(file.toString());
+                    //addLayer(file.toString());
+
+                    String fileName = file.toString();
+
+                    int dot = fileName.lastIndexOf(".");
+                    String extension = fileName.substring(dot + 1).toLowerCase();
+
+                    if (extension.equals("dep") || extension.equals("shp")) {
+                        addLayer(file.toString());
+                    } else {
+                        // see if the selectedFilterDescription is ambiguous and if so
+                        // ask the user for clarification
+                        if (selectedFilterDescription.equals("All Supported Files")) {
+                            ArrayList<String> possibleFilters = new ArrayList<>();
+                            for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                                if (igdf.getInteropPluginType() == InteropPluginType.importPlugin) {
+                                    String listEntry = igdf.getName() + " Files (";
+                                    for (String ext : igdf.getSupportedExtensions()) {
+                                        if (ext.toLowerCase().equals(extension)) {
+                                            possibleFilters.add(listEntry + "*." + ext.toLowerCase() + ")");
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (possibleFilters.size() > 1) {
+                                Object[] objectList = new Object[possibleFilters.size()];
+                                i = 0;
+                                for (String str : possibleFilters) {
+                                    objectList[i] = str;
+                                    i++;
+                                }
+
+                                String returnString = (String) JOptionPane.showInputDialog(this,
+                                        "Select an import data type:", "Ambiguous Import Data Type",
+                                        JOptionPane.OK_CANCEL_OPTION, null, objectList,
+                                        objectList[0]);
+
+                                if (returnString == null) {
+                                    return;
+                                }
+                                
+                                selectedFilterDescription = returnString;
+                            } else {
+                                selectedFilterDescription = possibleFilters.get(0);
+                            }
+                        }
+
+                        // see if the extension is in the list of supported extensions
+                        for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
+                            if (igdf.getInteropPluginType() == InteropPluginType.importPlugin) {
+                                for (String ext : igdf.getSupportedExtensions()) {
+                                    if (ext.toLowerCase().equals(extension)
+                                            && selectedFilterDescription.contains(igdf.getName())) {
+                                        String myExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
+
+                                        String fileType = igdf.getName();
+                                        if (igdf.isRasterFormat()) {
+                                            String whiteboxHeaderFile = StringUtilities.replaceLast(fileName, myExtension, "dep");
+                                            File file2 = new File(whiteboxHeaderFile);
+                                            // see if the file exists already, and if so, should it be overwritten?
+                                            if (file2.exists()) {
+                                                int n = showFeedback("You are importing a " + fileType + " file by converting it to "
+                                                        + "a Whitebox Raster format. \nThe Whitebox Raster file already exists. "
+                                                        + "Would you like to display the existing file instead?", JOptionPane.YES_NO_CANCEL_OPTION,
+                                                        JOptionPane.QUESTION_MESSAGE);
+
+                                                if (n == JOptionPane.YES_OPTION) {
+                                                    addLayer(whiteboxHeaderFile);
+                                                    return;
+                                                } else if (n == JOptionPane.CANCEL_OPTION) {
+                                                    return;
+                                                }
+                                            } else {
+                                                showFeedback("You are importing a " + fileType + " file by converting it to \n"
+                                                        + "a Whitebox Raster format. The newly created Whitebox \n"
+                                                        + "Raster will be added to the map.");
+                                            }
+                                            String[] args = {fileName};
+                                            runPlugin(igdf.getInteropClass(), args);
+                                            return;
+                                        } else {
+                                            String shapefile = StringUtilities.replaceLast(fileName, myExtension, "shp");
+                                            File file2 = new File(shapefile);
+                                            // see if the file exists already, and if so, should it be overwritten?
+                                            if (file2.exists()) {
+                                                int n = showFeedback("You are importing a " + fileType + " file by converting it to "
+                                                        + "a Shapefile format. \nThe Shapefile already exists. "
+                                                        + "Would you like to display the existing file instead?", JOptionPane.YES_NO_CANCEL_OPTION,
+                                                        JOptionPane.QUESTION_MESSAGE);
+
+                                                if (n == JOptionPane.YES_OPTION) {
+                                                    addLayer(shapefile);
+                                                    return;
+                                                } else if (n == JOptionPane.CANCEL_OPTION) {
+                                                    return;
+                                                }
+                                            } else {
+                                                showFeedback("You are importing a " + fileType + " file by converting it to \n"
+                                                        + "a Shapefile format. The newly created Whitebox \n"
+                                                        + "Shapefile will be added to the map.");
+                                            }
+                                            String[] args = {fileName};
+                                            runPlugin(igdf.getInteropClass(), args);
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
@@ -4341,59 +4569,61 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             } else {
                 // see if the extension is in the list of supported extensions
                 for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
-                    for (String ext : igdf.getSupportedExtensions()) {
-                        if (ext.toLowerCase().equals(extension)) {
-                            String myExtension = fileName.substring(fileName.lastIndexOf(".") + 1); // either .tif or .tiff
+                    if (igdf.getInteropPluginType() == InteropPluginType.importPlugin) {
+                        for (String ext : igdf.getSupportedExtensions()) {
+                            if (ext.toLowerCase().equals(extension)) {
+                                String myExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
 
-                            String fileType = igdf.getName();
-                            if (igdf.isIsRasterFormat()) {
-                                String whiteboxHeaderFile = fileName.replace(myExtension, "dep");
-                                File file2 = new File(whiteboxHeaderFile);
-                                // see if the file exists already, and if so, should it be overwritten?
-                                if (file2.exists()) {
-                                    int n = showFeedback("You are importing a " + fileType + " file by converting it to "
-                                            + "a Whitebox Raster format. \nThe Whitebox Raster file already exists. "
-                                            + "Would you like to display the existing file instead?", JOptionPane.YES_NO_CANCEL_OPTION,
-                                            JOptionPane.QUESTION_MESSAGE);
+                                String fileType = igdf.getName();
+                                if (igdf.isRasterFormat()) {
+                                    String whiteboxHeaderFile = StringUtilities.replaceLast(fileName, myExtension, "dep");
+                                    File file2 = new File(whiteboxHeaderFile);
+                                    // see if the file exists already, and if so, should it be overwritten?
+                                    if (file2.exists()) {
+                                        int n = showFeedback("You are importing a " + fileType + " file by converting it to "
+                                                + "a Whitebox Raster format. \nThe Whitebox Raster file already exists. "
+                                                + "Would you like to display the existing file instead?", JOptionPane.YES_NO_CANCEL_OPTION,
+                                                JOptionPane.QUESTION_MESSAGE);
 
-                                    if (n == JOptionPane.YES_OPTION) {
-                                        addLayer(whiteboxHeaderFile);
-                                        return;
-                                    } else if (n == JOptionPane.CANCEL_OPTION) {
-                                        return;
+                                        if (n == JOptionPane.YES_OPTION) {
+                                            addLayer(whiteboxHeaderFile);
+                                            return;
+                                        } else if (n == JOptionPane.CANCEL_OPTION) {
+                                            return;
+                                        }
+                                    } else {
+                                        showFeedback("You are importing a " + fileType + " file by converting it to \n"
+                                                + "a Whitebox Raster format. The newly created Whitebox \n"
+                                                + "Raster will be added to the map.");
                                     }
+                                    String[] args = {fileName};
+                                    runPlugin(igdf.getInteropClass(), args);
+                                    return;
                                 } else {
-                                    showFeedback("You are importing a " + fileType + " file by converting it to \n"
-                                            + "a Whitebox Raster format. The newly created Whitebox \n"
-                                            + "Raster will be added to the map.");
-                                }
-                                String[] args = {fileName};
-                                runPlugin(igdf.getInteropClass(), args);
-                                return;
-                            } else {
-                                String shapefile = fileName.replace(myExtension, "shp");
-                                File file2 = new File(shapefile);
-                                // see if the file exists already, and if so, should it be overwritten?
-                                if (file2.exists()) {
-                                    int n = showFeedback("You are importing a " + fileType + " file by converting it to "
-                                            + "a Shapefile format. \nThe Shapefile already exists. "
-                                            + "Would you like to display the existing file instead?", JOptionPane.YES_NO_CANCEL_OPTION,
-                                            JOptionPane.QUESTION_MESSAGE);
+                                    String shapefile = StringUtilities.replaceLast(fileName, myExtension, "shp");
+                                    File file2 = new File(shapefile);
+                                    // see if the file exists already, and if so, should it be overwritten?
+                                    if (file2.exists()) {
+                                        int n = showFeedback("You are importing a " + fileType + " file by converting it to "
+                                                + "a Shapefile format. \nThe Shapefile already exists. "
+                                                + "Would you like to display the existing file instead?", JOptionPane.YES_NO_CANCEL_OPTION,
+                                                JOptionPane.QUESTION_MESSAGE);
 
-                                    if (n == JOptionPane.YES_OPTION) {
-                                        addLayer(shapefile);
-                                        return;
-                                    } else if (n == JOptionPane.CANCEL_OPTION) {
-                                        return;
+                                        if (n == JOptionPane.YES_OPTION) {
+                                            addLayer(shapefile);
+                                            return;
+                                        } else if (n == JOptionPane.CANCEL_OPTION) {
+                                            return;
+                                        }
+                                    } else {
+                                        showFeedback("You are importing a " + fileType + " file by converting it to \n"
+                                                + "a Shapefile format. The newly created Whitebox \n"
+                                                + "Shapefile will be added to the map.");
                                     }
-                                } else {
-                                    showFeedback("You are importing a " + fileType + " file by converting it to \n"
-                                            + "a Shapefile format. The newly created Whitebox \n"
-                                            + "Shapefile will be added to the map.");
+                                    String[] args = {fileName};
+                                    runPlugin(igdf.getInteropClass(), args);
+                                    return;
                                 }
-                                String[] args = {fileName};
-                                runPlugin(igdf.getInteropClass(), args);
-                                return;
                             }
                         }
                     }
@@ -6720,6 +6950,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             case "close":
                 close();
+                break;
+            case "exportLayer":
+                exportLayer();
                 break;
             case "linkMap":
                 linkAllOpenMaps = !linkAllOpenMaps;

@@ -18,6 +18,7 @@ package plugins;
 
 import java.io.*;
 import whitebox.geospatialfiles.WhiteboxRaster;
+import whitebox.interfaces.InteropPlugin;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 
@@ -25,7 +26,7 @@ import whitebox.interfaces.WhiteboxPluginHost;
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ExportGRASSAsciiGrid implements WhiteboxPlugin {
+public class ExportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
@@ -192,9 +193,11 @@ public class ExportGRASSAsciiGrid implements WhiteboxPlugin {
         try {
 
             for (i = 0; i < numImages; i++) {
-                progress = (int)(100f * i / (numImages - 1));
-                updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
-                
+                if (numImages > 1) {
+                    progress = (int) (100f * i / (numImages - 1));
+                    updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                }
+
                 whiteboxHeaderFile = imageFiles[i];
                 // check to see if the file exists.
                 if (!((new File(whiteboxHeaderFile)).exists())) {
@@ -255,7 +258,7 @@ public class ExportGRASSAsciiGrid implements WhiteboxPlugin {
                             return;
                         }
                         progress = (int) (100f * row / (rows - 1));
-                        updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                        updateProgress(progress);
                     }
                 } else {
                     for (row = 0; row < rows; row++) {
@@ -279,7 +282,7 @@ public class ExportGRASSAsciiGrid implements WhiteboxPlugin {
                             return;
                         }
                         progress = (int) (100f * row / (rows - 1));
-                        updateProgress("Loop " + (i + 1) + " of " + numImages + ":", progress);
+                        updateProgress(progress);
                     }
                 }
                 
@@ -288,7 +291,8 @@ public class ExportGRASSAsciiGrid implements WhiteboxPlugin {
                 // delete the temp file's header file (data file has already been renamed).
                 (new File(whiteboxHeaderFile.replace(".dep", "_temp.dep"))).delete();
             }
-
+            
+            showFeedback("Operation complete!");
 
         } catch (OutOfMemoryError oe) {
             myHost.showFeedback("An out-of-memory error has occurred during operation.");
@@ -306,5 +310,25 @@ public class ExportGRASSAsciiGrid implements WhiteboxPlugin {
             amIActive = false;
             myHost.pluginComplete();
         }
+    }
+    
+    @Override
+    public String[] getExtensions() {
+        return new String[]{ "txt" };
+    }
+
+    @Override
+    public String getFileTypeName() {
+        return "GRASS ASCII Grid";
+    }
+    
+    @Override 
+    public boolean isRasterFormat() {
+        return true;
+    }
+    
+    @Override
+    public InteropPlugin.InteropPluginType getInteropPluginType() {
+        return InteropPlugin.InteropPluginType.exportPlugin;
     }
 }
