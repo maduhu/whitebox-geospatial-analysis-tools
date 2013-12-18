@@ -107,7 +107,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private StatusBar status;
     // common variables
     private static final String versionName = "3.0 'Iguazu'";
-    private static final String versionNumber = "3.0.9";
+    private static final String versionNumber = "3.1.0";
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
     private String applicationDirectory;
@@ -4464,7 +4464,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                             }
                                             String[] args = {fileName};
                                             runPlugin(igdf.getInteropClass(), args);
-                                            return;
+//                                            return;
                                         } else {
                                             String shapefile = StringUtilities.replaceLast(fileName, myExtension, "shp");
                                             File file2 = new File(shapefile);
@@ -4488,7 +4488,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                             }
                                             String[] args = {fileName};
                                             runPlugin(igdf.getInteropClass(), args);
-                                            return;
+//                                            return;
                                         }
                                     }
                                 }
@@ -4598,7 +4598,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                     }
                                     String[] args = {fileName};
                                     runPlugin(igdf.getInteropClass(), args);
-                                    return;
+//                                    return;
                                 } else {
                                     String shapefile = StringUtilities.replaceLast(fileName, myExtension, "shp");
                                     File file2 = new File(shapefile);
@@ -4622,7 +4622,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                     }
                                     String[] args = {fileName};
                                     runPlugin(igdf.getInteropClass(), args);
-                                    return;
+//                                    return;
                                 }
                             }
                         }

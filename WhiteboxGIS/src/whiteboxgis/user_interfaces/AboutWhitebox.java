@@ -76,7 +76,7 @@ public class AboutWhitebox extends JDialog implements ActionListener {
         mainPane.add(imagePane);
         mainPane.add(Box.createVerticalStrut(10));
         
-        JLabel label4 = new JLabel(versionName + " (" + versionNumber + ") released 2013");
+        JLabel label4 = new JLabel(versionName + " (" + versionNumber + ") released 2014");
         Box box4 = Box.createHorizontalBox();
         box4.add(Box.createHorizontalGlue());
         box4.add(label4);
@@ -113,47 +113,8 @@ public class AboutWhitebox extends JDialog implements ActionListener {
         contributors.setWrapStyleWord(true);
         contributors.setCaretPosition(0);
         contributors.setEditable(false);
-//        contributors.setMaximumSize(new Dimension(9000, 100));
-//        scroll.setMaximumSize(new Dimension(9000, 100));
         mainPane.add(scroll);
         
-//        JPanel textPane = new JPanel();
-//        
-//        JLabel label4 = new JLabel(versionName + " (" + versionNumber + ") released 2013");
-//        Box box4 = Box.createHorizontalBox();
-//        box4.add(label4);
-//        textPane.add(box4);
-//        textPane.add(Box.createVerticalStrut(15));
-//        
-//        textPane.setLayout(new BoxLayout(textPane, BoxLayout.Y_AXIS));
-//        JLabel label1 = new JLabel("Dr. John Lindsay (Lead Developer)");
-//        Box box1 = Box.createHorizontalBox();
-//        box1.add(label1);
-//        box1.add(Box.createHorizontalGlue());
-//        
-//        JLabel label5 = new JLabel("Centre for Hydrogeomatics");
-//        Box box5 = Box.createHorizontalBox();
-//        box5.add(label5);
-//        box5.add(Box.createHorizontalGlue());
-//        
-//        JLabel label2 = new JLabel("The University of Guelph, Canada");
-//        Box box2 = Box.createHorizontalBox();
-//        box2.add(label2);
-//        box2.add(Box.createHorizontalGlue());
-//        
-//        JLabel label3 = new JLabel("e-mail: jlindsay@uoguelph.ca");
-//        Box box3 = Box.createHorizontalBox();
-//        box3.add(label3);
-//        box3.add(Box.createHorizontalGlue());
-//        
-//        Box vbox = Box.createVerticalBox();
-//        vbox.add(box1);
-//        vbox.add(box2);
-//        vbox.add(box3);
-//        //vbox.add(box4);
-//        
-//        textPane.add(vbox);
-//        mainPane.add(textPane);
         mainPane.add(Box.createVerticalStrut(10));
         
 
