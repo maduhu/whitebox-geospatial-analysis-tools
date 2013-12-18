@@ -25,38 +25,49 @@ import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "ImportArcAsciiGrid";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
         return "Import ArcGIS ASCII Grid";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
         return "Imports an ArcGIS ASCII grid file (.txt).";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
@@ -64,17 +75,23 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         String[] ret = {"IOTools"};
         return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -84,8 +101,11 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -95,8 +115,11 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
     }
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
@@ -108,8 +131,11 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -118,17 +144,21 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
@@ -141,9 +171,12 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         updateProgress("Progress: ", 0);
     }
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -184,27 +217,23 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         DataInputStream in = null;
         BufferedReader br = null;
 
-        if (args.length <= 0) {
-            showFeedback("Plugin parameters have not been set.");
-            return;
-        }
-
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputFilesString = args[i];
-            }
-        }
-
-        // check to see that the inputHeader and outputHeader are not null.
-        if ((inputFilesString == null)) {
-            showFeedback("One or more of the input parameters have not been set properly.");
-            return;
-        }
-
-        imageFiles = inputFilesString.split(";");
-        numImages = imageFiles.length;
-
         try {
+
+            if (args.length <= 0) {
+                showFeedback("Plugin parameters have not been set.");
+                return;
+            }
+
+            inputFilesString = args[0];
+
+            // check to see that the inputHeader and outputHeader are not null.
+            if ((inputFilesString == null)) {
+                showFeedback("One or more of the input parameters have not been set properly.");
+                return;
+            }
+
+            imageFiles = inputFilesString.split(";");
+            numImages = imageFiles.length;
 
             for (i = 0; i < numImages; i++) {
                 progress = (int) (100f * i / (numImages - 1));
@@ -214,16 +243,16 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                 // check to see if the file exists.
                 if (!((new File(arcFile)).exists())) {
                     showFeedback("ArcGIS raster file does not exist.");
-                    break;
+                    return;
                 }
-                
+
                 if (arcFile.lastIndexOf(".") >= 0) { // there is an extension
                     String extension = arcFile.substring(arcFile.lastIndexOf("."));
                     whiteboxHeaderFile = arcFile.replace(extension, ".dep");
                 } else {
                     whiteboxHeaderFile = arcFile + ".dep";
                 }
-                
+
                 (new File(whiteboxHeaderFile)).delete();
                 (new File(whiteboxHeaderFile.replace(".dep", ".tas"))).delete();
 
@@ -390,7 +419,7 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                     br.close();
 
                     wbr.addMetadataEntry("Created by the "
-                    + getDescriptiveName() + " tool.");
+                            + getDescriptiveName() + " tool.");
                     wbr.addMetadataEntry("Created on " + new Date());
                     //wbr.findMinAndMaxVals();
                     //wbr.writeHeaderFile();
@@ -417,22 +446,22 @@ public class ImportArcAsciiGrid implements WhiteboxPlugin, InteropPlugin {
             myHost.pluginComplete();
         }
     }
-    
+
     @Override
     public String[] getExtensions() {
-        return new String[]{ "txt", "asc" };
+        return new String[]{"txt", "asc"};
     }
 
     @Override
     public String getFileTypeName() {
         return "ArcGIS ASCII Grid";
     }
-    
-    @Override 
+
+    @Override
     public boolean isRasterFormat() {
         return true;
     }
-    
+
     @Override
     public InteropPlugin.InteropPluginType getInteropPluginType() {
         return InteropPlugin.InteropPluginType.importPlugin;

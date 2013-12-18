@@ -8,6 +8,7 @@ plugins.ExportSurferAsciiGrid
 plugins.ExportWellKnownText
 plugins.ImportArcAsciiGrid
 plugins.ImportArcGrid
+plugins.ImportDEM
 plugins.ImportGenericMultibandData
 plugins.ImportGeoTiff
 plugins.ImportGRASSAsciiGrid

@@ -32,38 +32,49 @@ import whitebox.interfaces.WhiteboxPlugin;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "ImportGRASSAsciiGrid";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
         return "Import GRASS ASCII Grid";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
         return "Imports a GRASS ASCII grid file (.txt).";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
@@ -71,17 +82,23 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         String[] ret = {"IOTools"};
         return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -91,8 +108,11 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -102,8 +122,11 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
     }
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
@@ -115,8 +138,11 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -125,17 +151,21 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
@@ -148,9 +178,12 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         updateProgress("Progress: ", 0);
     }
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -160,25 +193,6 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
     @Override
     public void run() {
         amIActive = true;
-
-        String inputFilesString = null;
-        String grassFile = null;
-        String whiteboxHeaderFile = null;
-        int i = 0;
-        int row, col, rows, cols;
-        String[] imageFiles;
-        int numImages = 0;
-        int progress = 0;
-        double cellsize = 0;
-        double north = 0;
-        double east = 0;
-        double west = 0;
-        double south = 0;
-        double arcNoData = -9999;
-        double whiteboxNoData = -32768d;
-        double z = 0;
-        String delimiter = " ";
-
         String str1 = null;
         FileWriter fw = null;
         BufferedWriter bw = null;
@@ -187,27 +201,40 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
         DataInputStream in = null;
         BufferedReader br = null;
 
-        if (args.length <= 0) {
-            showFeedback("Plugin parameters have not been set.");
-            return;
-        }
-
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputFilesString = args[i];
-            }
-        }
-
-        // check to see that the inputHeader and outputHeader are not null.
-        if ((inputFilesString == null)) {
-            showFeedback("One or more of the input parameters have not been set properly.");
-            return;
-        }
-
-        imageFiles = inputFilesString.split(";");
-        numImages = imageFiles.length;
-
         try {
+            String inputFilesString = null;
+            String grassFile = null;
+            String whiteboxHeaderFile = null;
+            int i = 0;
+            int row, col, rows, cols;
+            String[] imageFiles;
+            int numImages = 0;
+            int progress = 0;
+            double cellsize = 0;
+            double north = 0;
+            double east = 0;
+            double west = 0;
+            double south = 0;
+            double arcNoData = -9999;
+            double whiteboxNoData = -32768d;
+            double z = 0;
+            String delimiter = " ";
+
+            if (args.length <= 0) {
+                showFeedback("Plugin parameters have not been set.");
+                return;
+            }
+
+            inputFilesString = args[0];
+
+            // check to see that the inputHeader and outputHeader are not null.
+            if ((inputFilesString == null)) {
+                showFeedback("One or more of the input parameters have not been set properly.");
+                return;
+            }
+
+            imageFiles = inputFilesString.split(";");
+            numImages = imageFiles.length;
 
             for (i = 0; i < numImages; i++) {
                 if (numImages > 1) {
@@ -218,8 +245,8 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                 grassFile = imageFiles[i];
                 // check to see if the file exists.
                 if (!((new File(grassFile)).exists())) {
-                    showFeedback("ArcGIS raster file does not exist.");
-                    break;
+                    showFeedback("GRASS raster file does not exist.");
+                    return;
                 }
                 if (grassFile.lastIndexOf(".") >= 0) { // there is an extension
                     String extension = grassFile.substring(grassFile.lastIndexOf("."));
@@ -227,7 +254,7 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                 } else {
                     whiteboxHeaderFile = grassFile + ".dep";
                 }
-                
+
                 (new File(whiteboxHeaderFile)).delete();
                 (new File(whiteboxHeaderFile.replace(".dep", ".tas"))).delete();
 
@@ -364,12 +391,12 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                                 } else {
                                     wbr.setValue(row, col, whiteboxNoData);
                                 }
-                                
+
                                 col++;
                                 if (col == cols) {
                                     col = 0;
                                     row++;
-                                    progress = (int)(100f * row / (rows - 1));
+                                    progress = (int) (100f * row / (rows - 1));
                                     updateProgress(progress);
                                 }
                             }
@@ -381,7 +408,7 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                     br.close();
 
                     wbr.addMetadataEntry("Created by the "
-                    + getDescriptiveName() + " tool.");
+                            + getDescriptiveName() + " tool.");
                     wbr.addMetadataEntry("Created on " + new Date());
                     wbr.flush();
                     wbr.findMinAndMaxVals();
@@ -408,22 +435,22 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
             myHost.pluginComplete();
         }
     }
-    
+
     @Override
     public String[] getExtensions() {
-        return new String[]{ "txt", "asc" };
+        return new String[]{"txt", "asc"};
     }
 
     @Override
     public String getFileTypeName() {
         return "GRASS ASCII Grid";
     }
-    
-    @Override 
+
+    @Override
     public boolean isRasterFormat() {
         return true;
     }
-    
+
     @Override
     public InteropPlugin.InteropPluginType getInteropPluginType() {
         return InteropPlugin.InteropPluginType.importPlugin;
