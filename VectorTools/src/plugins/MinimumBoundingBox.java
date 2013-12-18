@@ -412,9 +412,8 @@ public class MinimumBoundingBox implements WhiteboxPlugin {
                     progress = (int) ((recordNum * 100.0) / numPolys);
                     if (progress > oldProgress) {
                         updateProgress(progress);
+                        oldProgress = progress;
                     }
-                    oldProgress = progress;
-
                 }
             } else { // point or multipoint basetype
                 double east = Double.NEGATIVE_INFINITY;
