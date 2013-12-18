@@ -1,33 +1,40 @@
 <?xml version="1.0"?>
 <VersionInfo>
     <VersionName>"3.0 'Iguazu'"</VersionName>
-    <VersionNumber>"3.0.8"</VersionNumber>
-    <DownloadLocation>"http://code.google.com/p/whitebox-geospatial-analysis-tools/downloads/list"</DownloadLocation>
-    <Announcements number="11">
+    <VersionNumber>"3.1.0"</VersionNumber>
+    <DownloadLocation>"http://www.uoguelph.ca/~hydrogeo/Whitebox/download.shtml"</DownloadLocation>
+    <Announcements number="12">
         <Announcement>
             <Date>2013-11-28</Date>
             <Language>en</Language>
-            <Title>Whitebox Version 3.0.8 Has Been Released</Title>
-            <Message><![CDATA[<p>Version 3.0.8 (November 27, 2013)</p> <ul>
-                <li>Added the TraceDownslopeFlowpath tool.</li>
-               <li>Fixed a bug with the FD8 and Dinf flow accumulation tools that allowed for 
-                    stack overflow errors if the DEM was large or contained a very long flow path.</li>
-               <li>Fixed a bug in the generate data functionality of the data base viewer/scripter.</li>
-                <li>Added Depth-In-Sink tool.</li>
-                <li>Modified the Difference From Mean Elevation tool to use an integral image. This
-                    speeds up the performance with large neighbourhoods dramatically. In fact, it 
-                    will take the same time to run regardless of the size of the neighbourhood.</li>
-                <li>Added the Multi-scale Elevation Residual Index (MERI) tool for performing 
-                    multi-scale landscape position analysis on a DEM.</li>
-                <li>Modified the Hillshade tool so that it only requires two passes instead of three.</li>
-                <li>Modified the Dissolve tool so that it can dissolve based on an attribute.</li>
-                <li>Added CreateHexagonalVectorGrid tool.</li>
-                <li>Added RescaleImageValueRange tool.</li>
-                <li>Added ThickenRasterLine tool.</li>
-                <li>Added FindStraightSegments tool.</li>
-                <li>Other minor bug fixes, particularly related to the newly added multi-feature 
-                    selection.</li>
-                <li>Improved error logging for all plug-in tools.</li></ul><]]>
+            <Title>Whitebox Version 3.1.0 Has Been Released</Title>
+            <Message><![CDATA[<p>Version 3.1.0 (December 16, 2013)</p> 
+                <p>The focus of this release has been improved data interoperability. 
+                We have made getting data into and out of Whitebox much easier.</p>
+                <ul>
+                <li>Modified the AddLayer method so that it accepts non-native format geospatial 
+                layers and automatically calls the appropriate data import tool.</li>
+                <li>Added an 'Export Layer' quick link to the various export data tools from 
+                the Layers menu and pop-up menu.</li>
+                <li>Added the Create TIN and Rasterize TIN tools.</li>
+               <li>Added support for import of tiled GeoTIFF files.</li>
+               <li>Added ShowGeoTiffTags tool for viewing the tags within a GeoTiff file.</li>
+                <li>Added ImportSRTM tool to import shuttle radar topography mission DEMs.</li>
+                <li>Moved all of the entries in the File menu that were related to maps to the 
+ Cartographic menu and made the corresponding change to the order of the icons 
+ in the toolbar. This should make it more obvious that when you first launch the 
+ program, you typically need to add data layers rather open a map. Previously
+ people were frequently confusing maps with data layers.</li>
+                <liFixed a bug with Nearest Neighbour LiDAR interpolation.</li>
+                <li>Modified the LiDAR IDW interpolation tool so that the maximum scan angle  
+ deviation can be specified by the user.</li>
+                <li>A raster's NoData value can now be updated directly from its layer properties.</li>
+                <li>Added ImportGenericMultibandData tool to convert ENVI style BIL, BSQ and BIP 
+ raster files. I was only able to get a .bsq file for testing so if you have  
+ access to a small .bip and/or .bil file please forward them to me.</li>
+                <li>Added ImportDEM tool for imported the USGS/CDED ASCII DEM files.</li>
+                <li>Fixed a bug with the Depression Filling (Planchon and Darboux) tool that  
+ affected DEMs with irregular shapes (i.e. areas of NoData around the edges).</li></ul><]]>
             </Message>
         </Announcement>
         <Announcement>
