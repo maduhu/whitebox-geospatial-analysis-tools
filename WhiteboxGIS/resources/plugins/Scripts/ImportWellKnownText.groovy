@@ -31,6 +31,7 @@ import whitebox.utilities.Topology;
 import groovy.transform.CompileStatic
 import com.vividsolutions.jts.io.WKTReader
 import com.vividsolutions.jts.geom.*
+import whitebox.interfaces.InteropPlugin.InteropPluginType
 
 // The following four variables are required for this 
 // script to be integrated into the tool tree panel. 
@@ -46,6 +47,7 @@ def toolboxes = ["IOTools"]
 def extensions = ["wkt"]
 def fileTypeName = "Well-Known Text"
 def isRasterFormat = false
+def interopPluginType = InteropPluginType.importPlugin;
 
 public class ImportWellKnownText implements ActionListener {
     private WhiteboxPluginHost pluginHost

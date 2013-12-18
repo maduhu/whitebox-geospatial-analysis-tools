@@ -81,6 +81,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 			sd.addDialogDataInput("IDW Exponent", "IDW Exponent", "2", true, false)
 			sd.addDialogDataInput("Max Search Distance (m)", "Max Search Distance (m)", "", true, false)
 			sd.addDialogDataInput("Grid Resolution (m)", "Grid Resolution (m)", "", true, false)
+			sd.addDialogDataInput("Max Scan Angle Deviation", "Max Scan Angle Deviation", "5.0", true, false)
 			sd.addDialogLabel("Exclude points with the following classification")
 			sd.addDialogLabel("values from the interpolation:")
 			sd.addDialogCheckBox("Never Classified", "Never Classified", false)
@@ -107,7 +108,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 	private void execute(String[] args) {
 		long start = System.currentTimeMillis()  
 	  try {
-	  	if (args.length != 17) {
+	  	if (args.length != 18) {
 			pluginHost.showFeedback("Incorrect number of arguments given to tool.")
 			return
 		}
@@ -120,16 +121,17 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
         double weight = Double.parseDouble(args[4]);
 		double maxDist = Double.parseDouble(args[5]);
 		double resolution = Double.parseDouble(args[6]);
-        final boolean excludeNeverClassified = Boolean.parseBoolean(args[7]);
-        final boolean excludeUnclassified = Boolean.parseBoolean(args[8]);
-        final boolean excludeBareGround = Boolean.parseBoolean(args[9]);
-        final boolean excludeLowVegetation = Boolean.parseBoolean(args[10]);
-        final boolean excludeMediumVegetation = Boolean.parseBoolean(args[11]);
-        final boolean excludeHighVegetation = Boolean.parseBoolean(args[12]);
-        final boolean excludeBuilding = Boolean.parseBoolean(args[13]);
-        final boolean excludeLowPoint = Boolean.parseBoolean(args[14]);
-        final boolean excludeModelKeyPoint = Boolean.parseBoolean(args[15]);
-        final boolean excludeWater = Boolean.parseBoolean(args[16]);
+        double maxScanAngleDeviation = Double.parseDouble(args[7]);
+        final boolean excludeNeverClassified = Boolean.parseBoolean(args[8]);
+        final boolean excludeUnclassified = Boolean.parseBoolean(args[9]);
+        final boolean excludeBareGround = Boolean.parseBoolean(args[10]);
+        final boolean excludeLowVegetation = Boolean.parseBoolean(args[11]);
+        final boolean excludeMediumVegetation = Boolean.parseBoolean(args[12]);
+        final boolean excludeHighVegetation = Boolean.parseBoolean(args[13]);
+        final boolean excludeBuilding = Boolean.parseBoolean(args[14]);
+        final boolean excludeLowPoint = Boolean.parseBoolean(args[15]);
+        final boolean excludeModelKeyPoint = Boolean.parseBoolean(args[16]);
+        final boolean excludeWater = Boolean.parseBoolean(args[17]);
 
         boolean[] classValuesToExclude = new boolean[32]; // there can be up to 32 different classes in future versions
 
@@ -203,7 +205,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 		for (i = 0; i < numFiles; i++) {
 			tasks.add(new DoWork(i, inputFiles, suffix, 
 	      		 bb, whatToInterpolate, returnNumberToInterpolate, 
-	      		 weight, maxDist, resolution, classValuesToExclude))
+	      		 weight, maxDist, resolution, maxScanAngleDeviation, classValuesToExclude))
 		}
 
 		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -287,11 +289,12 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 	    private double weight
 		private double maxDist
 		private double resolution
+		private double maxScanAngleDeviation
 		
 	    DoWork(int tileNum, String[] inputFiles, String suffix, 
 	      BoundingBox[] bb, String whatToInterpolate, 
 	      String returnNumberToInterpolate, double weight, 
-	      double maxDist, double resolution, 
+	      double maxDist, double resolution, double maxScanAngleDeviation,
 	      boolean[] classValuesToExclude) {
 			this.tileNum = tileNum;
 			this.inputFiles = inputFiles.clone();
@@ -302,6 +305,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 			this.weight = weight;
 			this.maxDist = maxDist;
 			this.resolution = resolution;
+			this.maxScanAngleDeviation = maxScanAngleDeviation;
 			this.classValuesToExclude = classValuesToExclude.clone();
        	}
         	
@@ -482,7 +486,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
                         for (i = 0; i < results.size(); i++) {
                         	value = (InterpolationRecord)results.get(i).value;
                             scanAngle = value.scanAngle;
-                            if ((scanAngle - minScanAngle) < 3) {
+                            if ((scanAngle - minScanAngle) < maxScanAngleDeviation) {
                                 scanAngleFilter[i] = true;
                             }
                         }
