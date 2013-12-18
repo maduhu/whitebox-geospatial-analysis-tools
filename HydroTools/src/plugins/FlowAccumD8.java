@@ -181,18 +181,11 @@ public class FlowAccumD8 implements WhiteboxPlugin {
             return;
         }
         
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                outputType = args[i].toLowerCase();
-            } else if (i == 3) {
-                logTransform = Boolean.parseBoolean(args[i]);
-            }
-        }
-
+        inputHeader = args[0];
+        outputHeader = args[1];
+        outputType = args[2].toLowerCase();
+        logTransform = Boolean.parseBoolean(args[3]);
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -285,7 +278,7 @@ public class FlowAccumD8 implements WhiteboxPlugin {
             }
             
             updateProgress("Loop 3 of 3:", 0);
-            if (outputType.equals("specific catchment area (sca)")) {
+            if (outputType.contains("specific") || outputType.contains("sca")) {
                 for (row = 0; row < rows; row++) {
                     for (col = 0; col < cols; col++) {
                         flowDir = pntr.getValue(row, col);
@@ -301,7 +294,7 @@ public class FlowAccumD8 implements WhiteboxPlugin {
                     progress = (float) (100f * row / (rows - 1));
                     updateProgress((int) progress);
                 }
-            } else if (outputType.equals("total catchment area")) {
+            } else if (outputType.contains("total")) {
                 double gridCellArea = gridRes * gridRes;
                 for (row = 0; row < rows; row++) {
                     for (col = 0; col < cols; col++) {

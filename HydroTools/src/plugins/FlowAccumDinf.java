@@ -208,31 +208,24 @@ public class FlowAccumDinf implements WhiteboxPlugin {
         String outputType = null;
         double flowDir;
 
-
-        if (args.length <= 0) {
-            showFeedback("Plugin parameters have not been set.");
-            return;
-        }
-
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                outputType = args[i].toLowerCase();
-            } else if (i == 3) {
-                logTransform = Boolean.parseBoolean(args[i]);
-            }
-        }
-
-        // check to see that the inputHeader and outputHeader are not null.
-        if ((inputHeader == null) || (outputHeader == null)) {
-            showFeedback("One or more of the input parameters have not been set properly.");
-            return;
-        }
-
         try {
+
+            if (args.length <= 0) {
+                showFeedback("Plugin parameters have not been set.");
+                return;
+            }
+
+            inputHeader = args[0];
+            outputHeader = args[1];
+            outputType = args[2].toLowerCase();
+            logTransform = Boolean.parseBoolean(args[3]);
+
+            // check to see that the inputHeader and outputHeader are not null.
+            if ((inputHeader == null) || (outputHeader == null)) {
+                showFeedback("One or more of the input parameters have not been set properly.");
+                return;
+            }
+
             pointer = new WhiteboxRaster(inputHeader, "r");
             int rows = pointer.getNumberRows();
             int cols = pointer.getNumberColumns();
@@ -389,7 +382,7 @@ public class FlowAccumDinf implements WhiteboxPlugin {
             myHost.pluginComplete();
         }
     }
-    
+
     int currentDepth;
     final int maxDepth = 1000;
 
