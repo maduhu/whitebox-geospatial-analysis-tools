@@ -168,7 +168,7 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
         }
         return value.trim();
     }
-
+    
     @Override
     public String getComponentName() {
         return name;

@@ -118,5 +118,6 @@ public class DialogComboBox extends JPanel implements ActionListener, DialogComp
     public void actionPerformed(ActionEvent e) {
         JComboBox cb = (JComboBox)e.getSource();
         value = (String)cb.getSelectedItem();
+        firePropertyChange("value", "", value);
     }
 }

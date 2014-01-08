@@ -137,5 +137,6 @@ public class DialogOption extends JPanel implements ActionListener, DialogCompon
     @Override
     public void actionPerformed(ActionEvent e) {
         value = e.getActionCommand();
+        firePropertyChange("value", "", value);
     }
 }

@@ -81,6 +81,12 @@ public class DialogDataInput extends JPanel implements ActionListener, DialogCom
         return value;
     }
     
+    
+    public void setValue(String value) {
+        this.value = value;
+        text.setText(value);
+    }
+    
     private boolean validateValue(String val) {
         String ret = "";
         if (!numericalInputOnly) {

@@ -221,8 +221,8 @@ public class PolynomialLeastSquares2DFitting {
 
             RealMatrix coefficients =
                     new Array2DRowRealMatrix(forwardCoefficientMatrix, false);
-            //DecompositionSolver solver = new SingularValueDecomposition(coefficients).getSolver();
-            DecompositionSolver solver = new QRDecomposition(coefficients).getSolver();
+            DecompositionSolver solver = new SingularValueDecomposition(coefficients).getSolver();
+            //DecompositionSolver solver = new QRDecomposition(coefficients).getSolver();
 
             // do the x-coordinate first
             RealVector constants = new ArrayRealVector(xCoords2, false);
