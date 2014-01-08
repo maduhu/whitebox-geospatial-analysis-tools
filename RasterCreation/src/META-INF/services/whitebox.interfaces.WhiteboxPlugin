@@ -1,7 +1,6 @@
 plugins.Aggregate
 plugins.AssignRowOrColNumber
 plugins.CreatePlane
-plugins.InterpolationIDW
 plugins.InterpolationNN
 plugins.NewRasterFromBase
 plugins.PointDensity
