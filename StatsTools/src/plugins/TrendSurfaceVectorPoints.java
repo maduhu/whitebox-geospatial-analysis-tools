@@ -402,7 +402,7 @@ public class TrendSurfaceVectorPoints implements WhiteboxPlugin {
             //DecompositionSolver solver = new SingularValueDecomposition(coefficients).getSolver();
             DecompositionSolver solver = new QRDecomposition(coefficients).getSolver();
 
-            // do the x-coordinate first
+            // do the z-coordinate
             RealVector constants = new ArrayRealVector(Z, false);
             RealVector solution = solver.solve(constants);
             regressCoefficents = new double[numCoefficients];
