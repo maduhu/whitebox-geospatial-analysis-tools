@@ -839,6 +839,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (containsName && containsDescriptiveName
                         && containsDescription && containsToolboxes) {
                     // it's a plugin!
+                    if (pluginBundle.containsKey(name)) {
+                        descriptiveName = pluginBundle.getString(name);
+                    }
                     PluginInfo pi = new PluginInfo(name, descriptiveName,
                             description, toolboxes, PluginInfo.SORT_MODE_NAMES);
                     pi.setScript(true);
@@ -907,6 +910,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (containsName && containsDescriptiveName
                         && containsDescription && containsToolboxes) {
                     // it's a plugin!
+                    if (pluginBundle.containsKey(name)) {
+                        descriptiveName = pluginBundle.getString(name);
+                    }
                     PluginInfo pi = new PluginInfo(name, descriptiveName,
                             description, toolboxes, PluginInfo.SORT_MODE_NAMES);
                     pi.setScript(true);
@@ -1003,6 +1009,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (containsName && containsDescriptiveName
                         && containsDescription && containsToolboxes) {
                     // it's a plugin!
+                    if (pluginBundle.containsKey(name)) {
+                        descriptiveName = pluginBundle.getString(name);
+                    }
                     PluginInfo pi = new PluginInfo(name, descriptiveName,
                             description, toolboxes, PluginInfo.SORT_MODE_NAMES);
                     pi.setScript(true);
@@ -4254,7 +4263,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             String returnString = (String) JOptionPane.showInputDialog(this,
                     "Select an export data type:", "Export Data Type",
                     JOptionPane.OK_CANCEL_OPTION, null, objectList,
-                    defaultObject); 
+                    defaultObject);
 
             if (returnString == null) {
                 return;
@@ -4425,7 +4434,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                 if (returnString == null) {
                                     return;
                                 }
-                                
+
                                 selectedFilterDescription = returnString;
                             } else {
                                 selectedFilterDescription = possibleFilters.get(0);

@@ -10,8 +10,13 @@
         <h1>Compare images for differences</h1>
 
         <p>This tool can be used to compare two images for statistically significant 
-            differences. It performs a 
-            paired sample t-test on the two images.</p>
+            differences. It performs either a paired-sample t-test or a two-sample 
+            Kolmogorov–Smirnov (K-S) test on the two images. The user can optionally 
+            choose to take a random sub-sample of the pixel data for the test, 
+            which is advisable because given a sufficiently large sample, extremely 
+            small and non-notable differences can be found to be statistically significant, 
+            and statistical significance says nothing about the practical significance of 
+            a difference.</p>
 
         <h2 class="SeeAlso">See Also:</h2>
         <ul>
@@ -25,8 +30,9 @@
                 wd = pluginHost.getWorkingDirectory()<br>
                 inputFile1 = wd + "input1.dep"<br>
                 inputFile2 = wd + "input2.dep"<br>
+                testType = "t-test"<br>
                 sampleSize = "not specified" # use all cells<br>
-                args = [inputFile1, inputFile2, sampleSize]<br>
+                args = [inputFile1, inputFile2, testType, sampleSize]<br>
                 pluginHost.runPlugin("CompareImagesForDifferences", args, False)<br>
             </code>
         </p>
@@ -36,8 +42,9 @@
                 def wd = pluginHost.getWorkingDirectory()<br>
                 def inputFile1 = wd + "input1.dep"<br>
                 def inputFile2 = wd + "input2.dep"<br>
+                def testType = "k-s test"<br>
                 def sampleSize = "1000"<br>
-                String[] args = [inputFile1, inputFile2, sampleSize]<br>
+                String[] args = [inputFile1, inputFile2, testType, sampleSize]<br>
                 pluginHost.runPlugin("CompareImagesForDifferences", args, false)<br>
             </code>
         </p>

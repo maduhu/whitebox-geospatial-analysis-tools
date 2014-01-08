@@ -34,7 +34,7 @@ import groovy.transform.CompileStatic
 def name = "AverageOverlay"
 def descriptiveName = "Average Overlay"
 def description = "Calculates the average for each grid cell from a group of raster images."
-def toolboxes = ["OverlayTools", "StatsTools"]
+def toolboxes = ["OverlayTools", "StatisticalTools"]
 
 public class AverageOverlay implements ActionListener {
 	private WhiteboxPluginHost pluginHost
