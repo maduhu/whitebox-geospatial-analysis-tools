@@ -321,6 +321,11 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public String getHelpDirectory() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     public enum Precedence {
 
         NONE(15),
