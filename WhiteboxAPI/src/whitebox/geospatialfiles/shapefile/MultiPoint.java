@@ -147,20 +147,12 @@ public class MultiPoint implements Geometry {
     
     @Override
     public boolean isMappable(BoundingBox box, double minSize) {
-        if (box.overlaps(bb) && maxExtent > minSize) {
-            return true;
-        } else {
-            return false;
-        }
+        return box.overlaps(bb) && maxExtent > minSize;
     }
     
     @Override
     public boolean needsClipping(BoundingBox box) {
-        if ((!bb.entirelyContainedWithin(box)) && (bb.overlaps(box))) {
-            return true;
-        } else {
-            return false;
-        }
+        return (!bb.entirelyContainedWithin(box)) && (bb.overlaps(box));
     }
     
     @Override

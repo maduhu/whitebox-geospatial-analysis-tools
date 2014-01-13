@@ -36,6 +36,8 @@ public interface Communicator {
     
     public String getLogDirectory();
     
+    public String getHelpDirectory();
+    
     public int showFeedback(String message);
     
     public int showFeedback(String message, int optionType, int messageType);

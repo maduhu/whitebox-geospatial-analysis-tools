@@ -49,6 +49,7 @@ public interface WhiteboxPluginHost extends Communicator {
 
     /**
      * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * @param ret
      * @return Object, such as an output WhiteboxRaster.
      */
     public void returnData(Object ret);

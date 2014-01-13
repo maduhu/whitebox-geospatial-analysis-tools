@@ -1381,7 +1381,7 @@ public class ShapeFile {
     }
 
     public ArrayList<ShapeFileRecord> clipRecordsToBoundingBox(BoundingBox box, double minSize) {
-        ArrayList<ShapeFileRecord> recs = new ArrayList<ShapeFileRecord>();
+        ArrayList<ShapeFileRecord> recs = new ArrayList<>();
         // first see if the bounding box for the entire shapefile fits within box
         BoundingBox myBox = new BoundingBox(xMin, yMin, xMax, yMax);
         if (box.contains(myBox)) {

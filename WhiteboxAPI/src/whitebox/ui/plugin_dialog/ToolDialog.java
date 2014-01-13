@@ -929,4 +929,9 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
     public String[] getCurrentlyDisplayedFiles() {
         return host.getCurrentlyDisplayedFiles();
     }
+    
+    @Override
+    public String getHelpDirectory() {
+        return host.getHelpDirectory();
+    }
 }

@@ -428,6 +428,11 @@ public class PluginHost implements WhiteboxPluginHost {
     public String getResourcesDirectory() {
         return resourcesDirectory;
     }
+    
+    @Override
+    public String getHelpDirectory() {
+        return helpDirectory;
+    }
 
     @Override
     public void editVector() {

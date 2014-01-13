@@ -106,20 +106,12 @@ public class PointM implements Geometry {
     
     @Override
     public boolean isMappable(BoundingBox box, double minSize) {
-        if (box.isPointInBox(x, y)) {
-            return true;
-        } else {
-            return false;
-        }
+        return box.isPointInBox(x, y);
     }
     
     @Override
     public boolean needsClipping(BoundingBox box) {
-        if (box.isPointInBox(x, y)) {
-            return false;
-        } else {
-            return true;
-        }
+        return !box.isPointInBox(x, y);
     }
     
     @Override
