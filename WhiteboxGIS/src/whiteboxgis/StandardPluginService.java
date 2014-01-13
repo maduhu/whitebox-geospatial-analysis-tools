@@ -90,8 +90,8 @@ public class StandardPluginService implements PluginService {
 
     @Override
     public WhiteboxPlugin getPlugin(String pluginName, int nameType) {
-        ServiceLoader<WhiteboxPlugin> serviceLoader = ServiceLoader.load(WhiteboxPlugin.class);
-        Iterator<WhiteboxPlugin> iterator = serviceLoader.iterator(); //getPlugins();
+        ServiceLoader<WhiteboxPlugin> myServiceLoader = ServiceLoader.load(WhiteboxPlugin.class);
+        Iterator<WhiteboxPlugin> iterator = myServiceLoader.iterator(); //getPlugins();
         if (nameType == DESCRIPTIVE_NAME) {
             if (hm.containsKey(pluginName)) {
                 pluginName = hm.get(pluginName);

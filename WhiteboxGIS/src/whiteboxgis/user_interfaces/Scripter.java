@@ -16,7 +16,6 @@
  */
 package whiteboxgis.user_interfaces;
 
-//import java.awt.event.KeyAdapter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -96,6 +95,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
     private JLabel findLabel;
     private JLabel replaceLabel;
     private JButton replaceButton;
+    private boolean saveOnExecution = true;
 
     public enum ScriptingLanguage {
 
@@ -738,11 +738,17 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             menubar.add(languageMenu);
 
             JMenu sourceMenu = new JMenu(bundle.getString("Source"));
+            
             JMenuItem execute = new JMenuItem(bundle.getString("ExecuteCode"));
             execute.setActionCommand("execute");
             execute.addActionListener(this);
             execute.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             sourceMenu.add(execute);
+            
+            JCheckBoxMenuItem saveOnExecute = new JCheckBoxMenuItem("Automatically Save On Execute", saveOnExecution);
+            saveOnExecute.setActionCommand("saveOnExecute");
+            saveOnExecute.addActionListener(this);
+            sourceMenu.add(saveOnExecute);
 
             sourceMenu.addSeparator();
             JMenuItem toggleComments = new JMenuItem(bundle.getString("ToggleComments"));
@@ -1674,7 +1680,6 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             host.resetRequestForOperationCancel();
             String expression = editor.getText();
             execWithThread(expression);
-//            Object result = engine.eval(expression);
         } catch (Exception e) {
             errOut.append(e.getMessage() + "\n");
         }
@@ -1827,11 +1832,13 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 this.dispose();
                 break;
             case "execute":
-                if (sourceFile != null && editorDirty) {
+                if (sourceFile != null && editorDirty && saveOnExecution) {
                     save();
                 }
                 execute();
                 break;
+            case "saveOnExecute":
+                saveOnExecution = !saveOnExecution;
             case "open":
                 openFile();
                 resetAutocompletion();

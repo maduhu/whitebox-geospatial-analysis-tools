@@ -390,4 +390,9 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     public String[] getCurrentlyDisplayedFiles() {
         return host.getCurrentlyDisplayedFiles();
     }
+
+    @Override
+    public String getHelpDirectory() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

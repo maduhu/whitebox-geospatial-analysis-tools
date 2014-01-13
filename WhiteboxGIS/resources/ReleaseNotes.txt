@@ -23,6 +23,13 @@ RELEASE NOTES:
 Version 3.1.1 ()
 -Added LongAxis tool for mapping the long axis of a polygon.
 -Modified the CompareImagesForDifferences tool to include a K-S test option.
+-Added MapGullyDepth tool.
+-The IDW interpolator has been significantly modified to include greater flexibility
+ in interpolation of vector point data. This includes the addition of alternative
+ nodal functions and weight functions.
+-Added a tool for interpolation using radial basis functions (RBFs) and splines.
+ This tool currently should only be applied to relatively small datasets of 
+ vector points.
 
 
 Version 3.1.0 (December 16, 2013)

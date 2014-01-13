@@ -59,7 +59,6 @@ public class HTMLViewer extends JFrame implements HyperlinkListener {
 //            System.setProperty("com.apple.macos.useScreenMenuBar", "true");
 //            System.setProperty("apple.laf.useScreenMenuBar", "true");
 //        }
-
         helpPane.addHyperlinkListener(this);
         helpPane.setContentType("text/html");
 
@@ -77,7 +76,11 @@ public class HTMLViewer extends JFrame implements HyperlinkListener {
             helpHistoryIndex = helpHistory.size() - 1;
         }
         try {
-            helpPane.setPage(new URL("file:///" + fileOrURL));
+            if (!fileOrURL.toLowerCase().startsWith("http://")) {
+                helpPane.setPage(new URL("file:///" + fileOrURL));
+            } else {
+                helpPane.setPage(new URL(fileOrURL));
+            }
         } catch (IOException e) {
             System.err.println(e.getStackTrace());
         }
@@ -92,7 +95,6 @@ public class HTMLViewer extends JFrame implements HyperlinkListener {
 //
 //        // This step is necessary for extensions to work:
 //        PlatformInit.getInstance().init(false, false);
-
 //        } else {
 //            this.setTitle("HTML Viewer");
 //

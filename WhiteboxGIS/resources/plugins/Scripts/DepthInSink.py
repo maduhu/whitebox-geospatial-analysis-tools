@@ -12,7 +12,7 @@ from java.awt.event import ActionEvent
 name = "DepthInSink"
 descriptiveName = "Depth in Sink"
 description = "Measures the depth of sinks (depressions) in a DEM"
-toolboxes = ["TerrainAnalysis"]
+toolboxes = ["RelativeLandscapePosition"]
 	
 class DepthInSink(ActionListener):
 	def __init__(self, args):

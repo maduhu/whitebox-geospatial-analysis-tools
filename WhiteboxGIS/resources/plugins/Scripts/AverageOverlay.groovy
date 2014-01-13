@@ -68,7 +68,7 @@ public class AverageOverlay implements ActionListener {
 			
 			// add some components to the dialog
 			sd.addDialogMultiFile("Select some input raster files", "Input Raster Files:", "Raster Files (*.dep), DEP")
-			sd.addDialogFile("Output file", "Output Raster File:", "close", "Raster Files (*.dep), DEP", true, false)
+			sd.addDialogFile("Output file", "Output Raster File:", "save", "Raster Files (*.dep), DEP", true, false)
 			
 			// resize the dialog to the standard size and display it
 			sd.setSize(800, 400)

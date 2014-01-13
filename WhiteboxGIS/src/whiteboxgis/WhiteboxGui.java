@@ -77,6 +77,7 @@ import whitebox.interfaces.MapLayer.MapLayerType;
 import whitebox.interfaces.*;
 import whitebox.structures.BoundingBox;
 import whitebox.structures.ExtensionFileFilter;
+import whitebox.structures.MenuExtension;
 import whitebox.utilities.FileUtilities;
 import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.geospatialfiles.shapefile.ShapeTypeDimension;
@@ -782,6 +783,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 String fileTypeName = "";
                 boolean isRasterFormat = false;
                 InteropPluginType pluginType = InteropPluginType.importPlugin;
+                
+                boolean containsParentMenu = false;
+                boolean containsMenuLabel = false;
+                boolean containsKeyStroke = false;
+                String parentMenu = "";
+                String menuLabel = "";
+                char keyStroke = 0;
+                
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
                         || !containsDescription || !containsToolboxes
@@ -830,6 +839,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         } else {
                             pluginType = InteropPluginType.exportPlugin;
                         }
+                    } else if (strLine.toLowerCase().contains("parentmenu = \"")) {
+                        containsParentMenu = true;
+                        String[] str2 = strLine.split("=");
+                        parentMenu = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("menulabel = \"")) {
+                        containsMenuLabel = true;
+                        String[] str2 = strLine.split("=");
+                        menuLabel = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("acceleratorkey = \"")) {
+                        containsKeyStroke = true;
+                        String[] str2 = strLine.split("=");
+                        String str3 = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        keyStroke = str3.charAt(0);
                     }
                 }
 
@@ -854,6 +876,32 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         && containsPluginType) {
                     interopGeospatialDataFormat.add(new InteroperableGeospatialDataFormat(fileTypeName,
                             extensions, name, isRasterFormat, pluginType));
+                }
+                
+                if (containsParentMenu && containsMenuLabel) {
+                    if (!parentMenu.isEmpty()) {
+                        MenuExtension me;
+                        if (parentMenu.toLowerCase().contains("file")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.FILE, str);
+                        } else if (parentMenu.toLowerCase().contains("layers")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.LAYERS, str);
+                        } else if (parentMenu.toLowerCase().contains("view")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.VIEW, str);
+                        } else if (parentMenu.toLowerCase().contains("carto")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.CARTOGRAPHIC, str);
+                        } else if (parentMenu.toLowerCase().contains("tools")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.TOOLS, str);
+                        } else if (parentMenu.toLowerCase().contains("help")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.HELP, str);
+                        } else {
+                            logger.log(Level.SEVERE, "WhiteboxGui.loadScripts", "Error adding menu extension");
+                            me = null;
+                        }
+                        if (containsKeyStroke) {
+                            me.setAcceleratorKeyStroke(keyStroke);
+                        }
+                        menuExtensions.add(me);
+                    }
                 }
             } catch (IOException ioe) {
                 System.out.println(ioe.getStackTrace());
@@ -951,6 +999,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 String fileTypeName = "";
                 boolean isRasterFormat = false;
                 InteropPluginType pluginType = InteropPluginType.importPlugin;
+
+                boolean containsParentMenu = false;
+                boolean containsMenuLabel = false;
+                boolean containsKeyStroke = false;
+                String parentMenu = "";
+                String menuLabel = "";
+                char keyStroke = 0;
+
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
                         || !containsDescription || !containsToolboxes
@@ -1000,6 +1056,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         } else {
                             pluginType = InteropPluginType.exportPlugin;
                         }
+                    } else if (strLine.toLowerCase().contains("parentmenu = \"")) {
+                        containsParentMenu = true;
+                        String[] str2 = strLine.split("=");
+                        parentMenu = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("menulabel = \"")) {
+                        containsMenuLabel = true;
+                        String[] str2 = strLine.split("=");
+                        menuLabel = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                    } else if (strLine.toLowerCase().contains("acceleratorkey = \"")) {
+                        containsKeyStroke = true;
+                        String[] str2 = strLine.split("=");
+                        String str3 = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        keyStroke = str3.charAt(0);
                     }
                 }
 
@@ -1025,8 +1094,34 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     interopGeospatialDataFormat.add(new InteroperableGeospatialDataFormat(fileTypeName,
                             extensions, name, isRasterFormat, pluginType));
                 }
+
+                if (containsParentMenu && containsMenuLabel) {
+                    if (!parentMenu.isEmpty()) {
+                        MenuExtension me;
+                        if (parentMenu.toLowerCase().contains("file")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.FILE, str);
+                        } else if (parentMenu.toLowerCase().contains("layers")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.LAYERS, str);
+                        } else if (parentMenu.toLowerCase().contains("view")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.VIEW, str);
+                        } else if (parentMenu.toLowerCase().contains("carto")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.CARTOGRAPHIC, str);
+                        } else if (parentMenu.toLowerCase().contains("tools")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.TOOLS, str);
+                        } else if (parentMenu.toLowerCase().contains("help")) {
+                            me = new MenuExtension(menuLabel, MenuExtension.ParentMenu.HELP, str);
+                        } else {
+                            logger.log(Level.SEVERE, "WhiteboxGui.loadScripts", "Error adding menu extension");
+                            me = null;
+                        }
+                        if (containsKeyStroke) {
+                            me.setAcceleratorKeyStroke(keyStroke);
+                        }
+                        menuExtensions.add(me);
+                    }
+                }
             } catch (IOException ioe) {
-                System.out.println(ioe.getStackTrace());
+                logger.log(Level.SEVERE, "WhiteboxGui.loadScripts", ioe);
             }
         }
     }
@@ -1250,6 +1345,68 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } catch (Exception e) {
             logger.log(Level.SEVERE, "WhiteboxGui.runPlugin", e);
             //System.err.println(e.getLocalizedMessage());
+        }
+    }
+
+    private void executeScriptFile(String scriptFile, String[] args, boolean runOnDedicatedThread) {
+        try {
+            // what is the scripting language?
+            if (scriptFile == null) {
+                return; // can't find scriptFile
+            }
+
+            String myScriptingLanguage;
+            if (scriptFile.toLowerCase().endsWith(".py")) {
+                myScriptingLanguage = "python";
+            } else if (scriptFile.toLowerCase().endsWith(".groovy")) {
+                myScriptingLanguage = "groovy";
+            } else if (scriptFile.toLowerCase().endsWith(".js")) {
+                myScriptingLanguage = "javascript";
+            } else {
+                showFeedback("Unsupported script type.");
+                return;
+            }
+
+            // has the scripting engine been initialized for the current script language.
+            if (engine == null || !myScriptingLanguage.equals(scriptingLanguage)) {
+                scriptingLanguage = myScriptingLanguage;
+                ScriptEngineManager mgr = new ScriptEngineManager();
+                engine = mgr.getEngineByName(scriptingLanguage);
+            }
+
+            PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
+            engine.getContext().setWriter(out);
+
+            if (scriptingLanguage.equals("python")) {
+                engine.put("__file__", scriptFile);
+            }
+            requestForOperationCancel = false;
+            engine.put("pluginHost", (WhiteboxPluginHost) this);
+            engine.put("args", args);
+
+            // run the script
+            // read the contents of the file
+            final String scriptContents = new String(Files.readAllBytes(Paths.get(scriptFile)));
+
+            if (runOnDedicatedThread) {
+                //Object result = engine.eval(scriptContents);
+                final Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            engine.eval(scriptContents);
+                        } catch (ScriptException e) {
+                            logger.log(Level.SEVERE, "WhiteboxGui.executeScriptFile", e);
+                        }
+                    }
+                };
+                final Thread t = new Thread(r);
+                t.start();
+            } else {
+                engine.eval(scriptContents);
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "WhiteboxGui.executeScriptFile", e);
         }
     }
     private boolean automaticallyDisplayReturns = true;
@@ -1645,6 +1802,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     @Override
     public String getLogDirectory() {
         return logDirectory;
+    }
+
+    @Override
+    public String getHelpDirectory() {
+        return helpDirectory;
     }
 
     @Override
@@ -2179,6 +2341,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         dialog.setVisible(true);
     }
 
+    private JMenu fileMenu;
+    private JMenu layersMenu;
+    private JMenu viewMenu;
+    private JMenu cartoMenu;
+    private JMenu toolsMenu;
+    private JMenu helpMenu;
+
     private void createMenu() {
         try {
             JMenuBar menubar = new JMenuBar();
@@ -2206,42 +2375,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JMenuItem refreshTools = new JMenuItem(bundle.getString("RefreshToolUsage"));
 
             // File menu
-            JMenu FileMenu = new JMenu(bundle.getString("File"));
-//            FileMenu.add(newMap);
-//            newMap.setActionCommand("newMap");
-//            newMap.addActionListener(this);
-//            newMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-//            FileMenu.add(openMap);
-//            openMap.setActionCommand("openMap");
-//            openMap.addActionListener(this);
-//            openMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-//            FileMenu.add(saveMap);
-//            saveMap.addActionListener(this);
-//            saveMap.addActionListener(this);
-//            saveMap.setActionCommand("saveMap");
-//            saveMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-//            FileMenu.add(closeMap);
-//            closeMap.setActionCommand("closeMap");
-//            //closeMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-//            closeMap.addActionListener(this);
-//            FileMenu.addSeparator();
-//            JMenuItem printMap = new JMenuItem(bundle.getString("PrintMap"), new ImageIcon(graphicsDirectory + "Print.png"));
-//            FileMenu.add(printMap);
-//            printMap.addActionListener(this);
-//            printMap.setActionCommand("printMap");
-//            printMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-//            JMenuItem exportMap = new JMenuItem(bundle.getString("ExportMapAsImage"));
-//            FileMenu.add(exportMap);
-//            exportMap.addActionListener(this);
-//            exportMap.setActionCommand("exportMapAsImage");
-//            if (System.getProperty("os.name").contains("Mac") == false) {
-//                FileMenu.addSeparator();
-//                FileMenu.add(close);
-//                close.setActionCommand("close");
-//                close.addActionListener(this);
-//            }
-
-//            FileMenu.addSeparator();
+            fileMenu = new JMenu(bundle.getString("File"));
             recentFilesMenu.setNumItemsToStore(numberOfRecentItemsToStore);
             recentFilesMenu.setText(bundle.getString("RecentDataLayers"));
             recentFilesMenu.addActionListener(new ActionListener() {
@@ -2250,7 +2384,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     addLayer(e.getActionCommand());
                 }
             });
-            FileMenu.add(recentFilesMenu);
+            fileMenu.add(recentFilesMenu);
 
             recentMapsMenu.setNumItemsToStore(numberOfRecentItemsToStore);
             recentMapsMenu.setText(bundle.getString("RecentMaps"));
@@ -2260,7 +2394,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     openMap(e.getActionCommand());
                 }
             });
-            FileMenu.add(recentMapsMenu);
+            fileMenu.add(recentMapsMenu);
 
             recentDirectoriesMenu.setNumItemsToStore(numberOfRecentItemsToStore);
             recentDirectoriesMenu.setText(bundle.getString("RecentWorkingDirectories"));
@@ -2270,19 +2404,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     setWorkingDirectory(e.getActionCommand());
                 }
             });
-            FileMenu.add(recentDirectoriesMenu);
+            fileMenu.add(recentDirectoriesMenu);
 
             if (System.getProperty("os.name").contains("Mac") == false) {
-                FileMenu.addSeparator();
-                FileMenu.add(close);
+                fileMenu.addSeparator();
+                fileMenu.add(close);
                 close.setActionCommand("close");
                 close.addActionListener(this);
             }
 
-            menubar.add(FileMenu);
+            menubar.add(fileMenu);
 
             // Layers menu
-            JMenu LayersMenu = new JMenu(bundle.getString("Data_Layers"));
+            layersMenu = new JMenu(bundle.getString("Data_Layers"));
             recentFilesMenu2.setNumItemsToStore(numberOfRecentItemsToStore);
             recentFilesMenu2.setText(bundle.getString("RecentDataLayers"));
             recentFilesMenu2.addActionListener(new ActionListener() {
@@ -2291,106 +2425,106 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     addLayer(e.getActionCommand());
                 }
             });
-            LayersMenu.add(recentFilesMenu2);
+            layersMenu.add(recentFilesMenu2);
 
             JMenuItem addLayers = new JMenuItem(bundle.getString("AddLayersToMap"),
                     new ImageIcon(graphicsDirectory + "AddLayer.png"));
-            LayersMenu.add(addLayers);
+            layersMenu.add(addLayers);
             addLayers.addActionListener(this);
             addLayers.setActionCommand("addLayer");
             addLayers.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             JMenuItem removeLayers = new JMenuItem(
                     bundle.getString("RemoveActiveLayerFromMap"),
                     new ImageIcon(graphicsDirectory + "RemoveLayer.png"));
-            LayersMenu.add(removeLayers);
+            layersMenu.add(removeLayers);
             removeLayers.addActionListener(this);
             removeLayers.setActionCommand("removeLayer");
             removeLayers.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             JMenuItem removeAllLayers = new JMenuItem(
                     bundle.getString("RemoveAllLayers"));
-            LayersMenu.add(removeAllLayers);
+            layersMenu.add(removeAllLayers);
             removeAllLayers.addActionListener(this);
             removeAllLayers.setActionCommand("removeAllLayers");
             JMenuItem allLayersInvisible = new JMenuItem(
                     bundle.getString("HideAllLayers"));
-            LayersMenu.add(allLayersInvisible);
+            layersMenu.add(allLayersInvisible);
             allLayersInvisible.addActionListener(this);
             allLayersInvisible.setActionCommand("allLayersInvisible");
             JMenuItem allLayersVisible = new JMenuItem(
                     bundle.getString("ShowAllLayers"));
-            LayersMenu.add(allLayersVisible);
+            layersMenu.add(allLayersVisible);
             allLayersVisible.addActionListener(this);
             allLayersVisible.setActionCommand("allLayersVisible");
-            LayersMenu.addSeparator();
+            layersMenu.addSeparator();
             JMenuItem raiseLayers = new JMenuItem(bundle.getString("RaiseLayer"),
                     new ImageIcon(graphicsDirectory + "PromoteLayer.png"));
-            LayersMenu.add(raiseLayers);
+            layersMenu.add(raiseLayers);
             raiseLayers.addActionListener(this);
             raiseLayers.setActionCommand("raiseLayer");
             JMenuItem lowerLayers = new JMenuItem(bundle.getString("LowerLayer"),
                     new ImageIcon(graphicsDirectory + "DemoteLayer.png"));
-            LayersMenu.add(lowerLayers);
+            layersMenu.add(lowerLayers);
             lowerLayers.addActionListener(this);
             lowerLayers.setActionCommand("lowerLayer");
             JMenuItem layerToTop = new JMenuItem(bundle.getString("LayerToTop"),
                     new ImageIcon(graphicsDirectory + "LayerToTop.png"));
-            LayersMenu.add(layerToTop);
+            layersMenu.add(layerToTop);
             layerToTop.addActionListener(this);
             layerToTop.setActionCommand("layerToTop");
             JMenuItem layerToBottom = new JMenuItem(bundle.getString("LayerToBottom"),
                     new ImageIcon(graphicsDirectory + "LayerToBottom.png"));
-            LayersMenu.add(layerToBottom);
+            layersMenu.add(layerToBottom);
             layerToBottom.addActionListener(this);
             layerToBottom.setActionCommand("layerToBottom");
 
-            LayersMenu.addSeparator();
+            layersMenu.addSeparator();
 
             JMenuItem deselectAllFeatures = new JMenuItem(bundle.getString("clearAllSelectedFeatures"));
             deselectAllFeatures.addActionListener(this);
             deselectAllFeatures.setActionCommand("clearAllSelectedFeatures");
-            LayersMenu.add(deselectAllFeatures);
+            layersMenu.add(deselectAllFeatures);
 
             JMenuItem saveSelection = new JMenuItem(bundle.getString("saveSelection"));
             saveSelection.addActionListener(this);
             saveSelection.setActionCommand("saveSelection");
-            LayersMenu.add(saveSelection);
+            layersMenu.add(saveSelection);
 
-            LayersMenu.addSeparator();
+            layersMenu.addSeparator();
 
             JMenuItem layerProperties2 = new JMenuItem(bundle.getString("LayerDisplayProperties"),
                     new ImageIcon(graphicsDirectory + "LayerProperties.png"));
             layerProperties2.setActionCommand("layerProperties");
             layerProperties2.addActionListener(this);
-            LayersMenu.add(layerProperties2);
+            layersMenu.add(layerProperties2);
 
             JMenuItem viewAttributeTable = new JMenuItem(bundle.getString("ViewAttributeTable"),
                     new ImageIcon(graphicsDirectory + "AttributeTable.png"));
-            LayersMenu.add(viewAttributeTable);
+            layersMenu.add(viewAttributeTable);
             viewAttributeTable.addActionListener(this);
             viewAttributeTable.setActionCommand("viewAttributeTable");
 
             JMenuItem histoMenuItem = new JMenuItem(bundle.getString("ViewHistogram"));
             histoMenuItem.addActionListener(this);
             histoMenuItem.setActionCommand("viewHistogram");
-            LayersMenu.add(histoMenuItem);
+            layersMenu.add(histoMenuItem);
 
-            LayersMenu.addSeparator();
+            layersMenu.addSeparator();
             JMenuItem clipLayerToExtent = new JMenuItem(bundle.getString("ClipLayerToCurrentExtent"));
             clipLayerToExtent.addActionListener(this);
             clipLayerToExtent.setActionCommand("clipLayerToExtent");
-            LayersMenu.add(clipLayerToExtent);
+            layersMenu.add(clipLayerToExtent);
 
-            LayersMenu.addSeparator();
+            layersMenu.addSeparator();
 
             JMenuItem mi = new JMenuItem(bundle.getString("ExportLayer"));
             mi.addActionListener(this);
             mi.setActionCommand("exportLayer");
-            LayersMenu.add(mi);
+            layersMenu.add(mi);
 
-            menubar.add(LayersMenu);
+            menubar.add(layersMenu);
 
             // View menu
-            JMenu viewMenu = new JMenu(bundle.getString("View"));
+            viewMenu = new JMenu(bundle.getString("View"));
 
             selectMenuItem = new JCheckBoxMenuItem(bundle.getString("SelectMapElement"),
                     new ImageIcon(graphicsDirectory + "select.png"));
@@ -2509,7 +2643,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             menubar.add(viewMenu);
 
             // Cartographic menu
-            JMenu cartoMenu = new JMenu(bundle.getString("Cartographic"));
+            cartoMenu = new JMenu(bundle.getString("Cartographic"));
 
             cartoMenu.add(newMap);
             newMap.setActionCommand("newMap");
@@ -2660,9 +2794,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             menubar.add(cartoMenu);
 
             // Tools menu
-            JMenu ToolsMenu = new JMenu(bundle.getString("Tools"));
+            toolsMenu = new JMenu(bundle.getString("Tools"));
 
-            ToolsMenu.add(rasterCalc);
+            toolsMenu.add(rasterCalc);
             rasterCalc.setActionCommand("rasterCalculator");
             rasterCalc.addActionListener(this);
 
@@ -2670,33 +2804,33 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     new ImageIcon(graphicsDirectory + "ScriptIcon2.png"));
             scripter.addActionListener(this);
             scripter.setActionCommand("scripter");
-            ToolsMenu.add(scripter);
+            toolsMenu.add(scripter);
 
             distanceToolMenuItem = new JCheckBoxMenuItem(bundle.getString("MeasureDistance"),
                     new ImageIcon(graphicsDirectory + "DistanceTool.png"));
-            ToolsMenu.add(distanceToolMenuItem);
+            toolsMenu.add(distanceToolMenuItem);
             distanceToolMenuItem.addActionListener(this);
             distanceToolMenuItem.setActionCommand("distanceTool");
 
-            ToolsMenu.add(paletteManagerMenu);
+            toolsMenu.add(paletteManagerMenu);
             paletteManagerMenu.addActionListener(this);
             paletteManagerMenu.setActionCommand("paletteManager");
 
-            ToolsMenu.add(modifyPixels);
+            toolsMenu.add(modifyPixels);
             modifyPixels.addActionListener(this);
             modifyPixels.setActionCommand("modifyPixels");
 
-            ToolsMenu.add(refreshTools);
+            toolsMenu.add(refreshTools);
             refreshTools.addActionListener(this);
             refreshTools.setActionCommand("refreshTools");
 
             JMenuItem newHelp = new JMenuItem(bundle.getString("CreateNewHelpEntry"));
             newHelp.addActionListener(this);
             newHelp.setActionCommand("newHelp");
-            ToolsMenu.add(newHelp);
-            menubar.add(ToolsMenu);
+            toolsMenu.add(newHelp);
+            menubar.add(toolsMenu);
 
-            ToolsMenu.addSeparator();
+            toolsMenu.addSeparator();
 
             JMenu editVectorMenu = new JMenu(bundle.getString("On-ScreenDigitizing"));
 
@@ -2728,27 +2862,27 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             deleteFeatureMenuItem.setActionCommand("deleteFeature");
             deleteFeatureMenuItem.setEnabled(false);
 
-            ToolsMenu.add(editVectorMenu);
+            toolsMenu.add(editVectorMenu);
 
             // Help menu
-            JMenu HelpMenu = new JMenu(bundle.getString("Help"));
+            helpMenu = new JMenu(bundle.getString("Help"));
             JMenuItem helpIndex = new JMenuItem(bundle.getString("Index"),
                     new ImageIcon(graphicsDirectory + "help.png"));
-            HelpMenu.add(helpIndex);
+            helpMenu.add(helpIndex);
             helpIndex.setActionCommand("helpIndex");
             helpIndex.addActionListener(this);
 
             JMenuItem helpSearch = new JMenuItem(bundle.getString("Search"));
             helpSearch.setActionCommand("helpSearch");
             helpSearch.addActionListener(this);
-            HelpMenu.add(helpSearch);
+            helpMenu.add(helpSearch);
 
             JMenuItem helpTutorials = new JMenuItem(bundle.getString("Tutorials"));
-            HelpMenu.add(helpTutorials);
+            helpMenu.add(helpTutorials);
             helpTutorials.setActionCommand("helpTutorials");
             helpTutorials.addActionListener(this);
 
-            HelpMenu.addSeparator();
+            helpMenu.addSeparator();
 
             String[][] tutorialFiles = findTutorialFiles();
             if (tutorialFiles != null) {
@@ -2757,16 +2891,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     tutorialMenuItems[a] = new JMenuItem(tutorialFiles[a][1]);
                     tutorialMenuItems[a].setActionCommand("tutorial_file:\t" + tutorialFiles[a][0]);
                     tutorialMenuItems[a].addActionListener(this);
-                    HelpMenu.add(tutorialMenuItems[a]);
+                    helpMenu.add(tutorialMenuItems[a]);
                 }
             }
 
-            HelpMenu.addSeparator();
+            helpMenu.addSeparator();
 
             JMenuItem helpAbout = new JMenuItem(bundle.getString("About") + " Whitebox GAT");
             helpAbout.setActionCommand("helpAbout");
             helpAbout.addActionListener(this);
-            HelpMenu.add(helpAbout);
+            helpMenu.add(helpAbout);
 
 //            HelpMenu.addSeparator();
 //
@@ -2774,14 +2908,57 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //            helpReport.setActionCommand("helpReport");
 //            helpReport.addActionListener(this);
 //            HelpMenu.add(helpReport);
-            menubar.add(HelpMenu);
+            menubar.add(helpMenu);
 
             this.setJMenuBar(menubar);
+
+            loadMenuExtensions();
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "WhiteboxGui.createMenu", e);
             showFeedback(e.getMessage());
         }
+    }
+
+    private ArrayList<MenuExtension> menuExtensions = new ArrayList<>();
+
+    private void loadMenuExtensions() {
+        for (MenuExtension me : menuExtensions) {
+            final String fileName = me.getScriptFile();
+            JMenuItem mi = new JMenuItem(me.getLabel());
+            mi.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String[] args = new String[0];
+                    executeScriptFile(fileName, args, false);
+                }
+            });
+            if (me.getAcceleratorKeyStroke() != null) {
+                mi.setAccelerator(me.getAcceleratorKeyStroke());
+            }
+            
+            switch (me.getMenu()) {
+                case FILE:
+                    fileMenu.add(mi);
+                    break;
+                case LAYERS:
+                    layersMenu.add(mi);
+                    break;
+                case VIEW:
+                    viewMenu.add(mi);
+                    break;
+                case CARTOGRAPHIC:
+                    cartoMenu.add(mi);
+                    break;
+                case TOOLS:
+                    toolsMenu.add(mi);
+                    break;
+                case HELP:
+                    helpMenu.add(mi);
+                    break;
+            }
+        }
+
     }
 
     private String[][] findTutorialFiles() {
@@ -3875,6 +4052,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     private DefaultMutableTreeNode populateTree(Node n) {
+        ArrayList<String> t;
         Element e = (Element) n;
         String label = e.getAttribute("label");
         String toolboxName = e.getAttribute("name");
@@ -3882,10 +4060,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         IconTreeNode result;
         if (bundle.containsKey(toolboxName)) {
             result = new IconTreeNode(bundle.getString(toolboxName));
-            //result = new DefaultMutableTreeNode(bundle.getString(toolboxName));
         } else {
             result = new IconTreeNode(label);
-            //result = new DefaultMutableTreeNode(label);
         }
         result.setIconName("toolbox");
 
@@ -3895,18 +4071,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 Element childElement = (Element) nodeList.item(i);
                 label = childElement.getAttribute("label");
                 toolboxName = childElement.getAttribute("name");
-                //DefaultMutableTreeNode childTreeNode;
                 IconTreeNode childTreeNode;
                 if (bundle.containsKey(toolboxName)) {
-                    //childTreeNode = new DefaultMutableTreeNode(bundle.getString(toolboxName));
                     childTreeNode = new IconTreeNode(bundle.getString(toolboxName));
                 } else {
                     childTreeNode = new IconTreeNode(label);
-                    //childTreeNode = new DefaultMutableTreeNode(label);
                 }
                 childTreeNode.setIconName("toolbox");
 
-                ArrayList<String> t = findToolsInToolbox(toolboxName);
+                t = findToolsInToolbox(toolboxName);
 
                 if (nodeList.item(i).getFirstChild() != null) {
                     NodeList childNodeList = nodeList.item(i).getChildNodes();
@@ -3927,23 +4100,19 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         } else {
                             childTreeNode2.setIconName("script");
                         }
-//                        IconTreeNode childTreeNode2 = new IconTreeNode(t.get(k));
-//                        childTreeNode2.setIconName("tool");
                         childTreeNode.add(childTreeNode2);
-                        //childTreeNode.add(new DefaultMutableTreeNode(t.get(k)));
                     }
                 } else if (nodeList.item(i).getFirstChild() == null) {
                     IconTreeNode childTreeNode2 = new IconTreeNode("No tools");
                     childTreeNode2.setIconName("tool");
                     childTreeNode.add(childTreeNode2);
-                    //childTreeNode.add(new DefaultMutableTreeNode("No tools"));
                 }
 
                 result.add(childTreeNode);
             }
         }
         if (nodeList.getLength() == 0) {
-            ArrayList<String> t = findToolsInToolbox(toolboxName);
+            t = findToolsInToolbox(toolboxName);
             if (t.size() > 0) {
                 for (int k = 0; k < t.size(); k++) {
                     String[] toolDetails = t.get(k).split(";");
@@ -3954,14 +4123,31 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         childTreeNode2.setIconName("script");
                     }
                     result.add(childTreeNode2);
-                    //result.add(new DefaultMutableTreeNode(t.get(k)));
                 }
             } else {
                 IconTreeNode childTreeNode2 = new IconTreeNode("No tools");
                 childTreeNode2.setIconName("tool");
                 result.add(childTreeNode2);
-                //result.add(new DefaultMutableTreeNode("No tools"));
             }
+        }
+
+        toolboxName = "topmost";
+        t = findToolsInToolbox(toolboxName);
+        if (t.size() > 0) {
+            for (int k = 0; k < t.size(); k++) {
+                String[] toolDetails = t.get(k).split(";");
+                IconTreeNode childTreeNode2 = new IconTreeNode(toolDetails[0]);
+                if (toolDetails[1].equals("false")) {
+                    childTreeNode2.setIconName("tool");
+                } else {
+                    childTreeNode2.setIconName("script");
+                }
+                result.add(childTreeNode2);
+            }
+        } else {
+            IconTreeNode childTreeNode2 = new IconTreeNode("No tools");
+            childTreeNode2.setIconName("tool");
+            result.add(childTreeNode2);
         }
 
         return result;
@@ -6817,17 +7003,17 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     @Override
     public void logException(String message, Exception e) {
-        logger.log(Level.SEVERE, message, e);
+        logger.log(Level.SEVERE, "Whitebox " + versionNumber + ". Error\n" + message, e);
     }
 
     @Override
     public void logThrowable(String message, Throwable t) {
-        logger.log(Level.SEVERE, message, t);
+        logger.log(Level.SEVERE, "Whitebox " + versionNumber + ". Throwable\n" + message, t);
     }
 
     @Override
     public void logMessage(Level level, String message) {
-        logger.log(level, message);
+        logger.log(level, "Whitebox " + versionNumber + ". Message\n" + message);
     }
 
     @Override
