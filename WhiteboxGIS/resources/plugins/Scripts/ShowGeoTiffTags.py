@@ -14,7 +14,7 @@ from java.awt.event import ActionEvent
 name = "ShowGeoTiffTags"
 descriptiveName = "Show GeoTiff Tags"
 description = "Prints the tags belonging to a GeoTiff"
-toolboxes = ["FileUtilities"]
+toolboxes = ["FileUtilities", "IOTools"]
 	
 class ShowGeoTiffTags(ActionListener):
 	def __init__(self, args):

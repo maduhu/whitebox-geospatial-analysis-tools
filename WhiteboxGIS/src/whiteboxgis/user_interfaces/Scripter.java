@@ -21,6 +21,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.Map;
@@ -281,6 +282,39 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             JScrollPane scroll2 = new JScrollPane(textArea);
             outputBox.add(outputToolbarBox);
             outputBox.add(scroll2);
+            
+            // text popup menu
+            JPopupMenu textPopup = new JPopupMenu();
+
+            JMenuItem mi;
+            mi = new JMenuItem(bundle.getString("Clear"));
+            mi.addActionListener(this);
+            mi.setActionCommand("clearText");
+            textPopup.add(mi);
+
+            mi = new JMenuItem(bundle.getString("Cut"));
+            mi.addActionListener(this);
+            mi.setActionCommand("cutText");
+            textPopup.add(mi);
+            mi = new JMenuItem(bundle.getString("Copy"));
+            mi.addActionListener(this);
+            mi.setActionCommand("copyText");
+            textPopup.add(mi);
+
+            mi = new JMenuItem(bundle.getString("Paste"));
+            mi.addActionListener(this);
+            mi.setActionCommand("pasteText");
+            textPopup.add(mi);
+
+            mi = new JMenuItem(bundle.getString("SelectAll"));
+            mi.addActionListener(this);
+            mi.setActionCommand("selectAllText");
+            textPopup.add(mi);
+
+            textPopup.setOpaque(true);
+            textPopup.setLightWeightPopupEnabled(true);
+
+            textArea.setComponentPopupMenu(textPopup);
 
             splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scroll, outputBox);
             splitPane.setDividerLocation(400);
@@ -581,7 +615,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         JToolBar toolbar = new JToolBar();
 
         JButton clearConsole = makeToolBarButton("ClearConsole.png", "clearConsole",
-                bundle.getString("ClearConsole"), "X"); //bundle.getString("ClearConsole"));
+                bundle.getString("ClearConsole"), "CLR"); //bundle.getString("ClearConsole"));
         toolbar.add(clearConsole);
 
         return toolbar;
@@ -1774,7 +1808,7 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
             // do nothing
         }
     }
-
+   
     @Override
     public void actionPerformed(ActionEvent e) {
 //        Object source = e.getSource();
@@ -1910,7 +1944,22 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 }
 
                 break;
-
+                
+            case "selectalltext":
+                textArea.selectAll();
+                break;
+            case "copytext":
+                textArea.copy();
+                break;
+            case "pastetext":
+                textArea.paste();
+                break;
+            case "cuttext":
+                textArea.cut();
+                break;
+            case "cleartext":
+                textArea.setText("");
+                break;
         }
     }
 

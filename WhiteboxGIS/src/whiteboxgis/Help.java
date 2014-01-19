@@ -547,7 +547,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
             String str;
 
-            str = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html>";
+            str = "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html lang=\"en\">";
             out.println(str);
             str = "<head>";
             out.println(str);

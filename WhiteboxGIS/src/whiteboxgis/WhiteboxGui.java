@@ -108,7 +108,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private StatusBar status;
     // common variables
     private static final String versionName = "3.0 'Iguazu'";
-    private static final String versionNumber = "3.1.0";
+    private static final String versionNumber = "3.1.1";
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
     private String applicationDirectory;
@@ -783,75 +783,77 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 String fileTypeName = "";
                 boolean isRasterFormat = false;
                 InteropPluginType pluginType = InteropPluginType.importPlugin;
-                
+
                 boolean containsParentMenu = false;
                 boolean containsMenuLabel = false;
                 boolean containsKeyStroke = false;
                 String parentMenu = "";
                 String menuLabel = "";
                 char keyStroke = 0;
-                
+
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
                         || !containsDescription || !containsToolboxes
                         || !containsPluginType)) {
-                    if (strLine.startsWith("name = \"")
-                            && !strLine.toLowerCase().contains("descriptivename")
-                            && !strLine.toLowerCase().contains("filetypename")) {
-                        containsName = true;
-                        // now retreive the name
-                        String[] str2 = strLine.split("=");
-                        name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.startsWith("descriptiveName = \"")) {
-                        containsDescriptiveName = true;
-                        String[] str2 = strLine.split("=");
-                        descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.startsWith("description = \"")) {
-                        containsDescription = true;
-                        String[] str2 = strLine.split("=");
-                        description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.startsWith("toolboxes = [\"")) {
-                        containsToolboxes = true;
-                        String[] str2 = strLine.split("=");
-                        toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
-                        for (int i = 0; i < toolboxes.length; i++) {
-                            toolboxes[i] = toolboxes[i].trim();
+                    if (!strLine.startsWith("#")) {
+                        if (strLine.startsWith("name = \"")
+                                && !strLine.toLowerCase().contains("descriptivename")
+                                && !strLine.toLowerCase().contains("filetypename")) {
+                            containsName = true;
+                            // now retreive the name
+                            String[] str2 = strLine.split("=");
+                            name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.startsWith("descriptiveName = \"")) {
+                            containsDescriptiveName = true;
+                            String[] str2 = strLine.split("=");
+                            descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.startsWith("description = \"")) {
+                            containsDescription = true;
+                            String[] str2 = strLine.split("=");
+                            description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.startsWith("toolboxes = [\"")) {
+                            containsToolboxes = true;
+                            String[] str2 = strLine.split("=");
+                            toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                            for (int i = 0; i < toolboxes.length; i++) {
+                                toolboxes[i] = toolboxes[i].trim();
+                            }
+                        } else if (strLine.startsWith("extensions = [")) {
+                            containsExtensions = true;
+                            String[] str2 = strLine.split("=");
+                            extensions = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                            for (int i = 0; i < extensions.length; i++) {
+                                extensions[i] = extensions[i].trim();
+                            }
+                        } else if (strLine.startsWith("fileTypeName = \"")) {
+                            containsFileTypeName = true;
+                            String[] str2 = strLine.split("=");
+                            fileTypeName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.startsWith("isRasterFormat = ")) {
+                            containsIsRasterFormat = true;
+                            String[] str2 = strLine.split("=");
+                            isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
+                        } else if (strLine.startsWith("interopPluginType = InteropPluginType")) {
+                            containsPluginType = true;
+                            if (strLine.toLowerCase().contains("import")) {
+                                pluginType = InteropPluginType.importPlugin;
+                            } else {
+                                pluginType = InteropPluginType.exportPlugin;
+                            }
+                        } else if (strLine.toLowerCase().contains("parentmenu = \"")) {
+                            containsParentMenu = true;
+                            String[] str2 = strLine.split("=");
+                            parentMenu = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("menulabel = \"")) {
+                            containsMenuLabel = true;
+                            String[] str2 = strLine.split("=");
+                            menuLabel = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("acceleratorkey = \"")) {
+                            containsKeyStroke = true;
+                            String[] str2 = strLine.split("=");
+                            String str3 = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                            keyStroke = str3.charAt(0);
                         }
-                    } else if (strLine.startsWith("extensions = [")) {
-                        containsExtensions = true;
-                        String[] str2 = strLine.split("=");
-                        extensions = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
-                        for (int i = 0; i < extensions.length; i++) {
-                            extensions[i] = extensions[i].trim();
-                        }
-                    } else if (strLine.startsWith("fileTypeName = \"")) {
-                        containsFileTypeName = true;
-                        String[] str2 = strLine.split("=");
-                        fileTypeName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.startsWith("isRasterFormat = ")) {
-                        containsIsRasterFormat = true;
-                        String[] str2 = strLine.split("=");
-                        isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
-                    } else if (strLine.startsWith("interopPluginType = InteropPluginType")) {
-                        containsPluginType = true;
-                        if (strLine.toLowerCase().contains("import")) {
-                            pluginType = InteropPluginType.importPlugin;
-                        } else {
-                            pluginType = InteropPluginType.exportPlugin;
-                        }
-                    } else if (strLine.toLowerCase().contains("parentmenu = \"")) {
-                        containsParentMenu = true;
-                        String[] str2 = strLine.split("=");
-                        parentMenu = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("menulabel = \"")) {
-                        containsMenuLabel = true;
-                        String[] str2 = strLine.split("=");
-                        menuLabel = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("acceleratorkey = \"")) {
-                        containsKeyStroke = true;
-                        String[] str2 = strLine.split("=");
-                        String str3 = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                        keyStroke = str3.charAt(0);
                     }
                 }
 
@@ -877,7 +879,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     interopGeospatialDataFormat.add(new InteroperableGeospatialDataFormat(fileTypeName,
                             extensions, name, isRasterFormat, pluginType));
                 }
-                
+
                 if (containsParentMenu && containsMenuLabel) {
                     if (!parentMenu.isEmpty()) {
                         MenuExtension me;
@@ -1011,64 +1013,67 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         && (!containsName || !containsDescriptiveName
                         || !containsDescription || !containsToolboxes
                         || !containsExtensions || !containsFileTypeName
-                        || !containsIsRasterFormat || !containsPluginType)) {
-                    if (strLine.toLowerCase().contains("name = \"")
-                            && !strLine.toLowerCase().contains("descriptivename")
-                            && !strLine.toLowerCase().contains("filetypename")) {
-                        containsName = true;
-                        // now retreive the name
-                        String[] str2 = strLine.split("=");
-                        name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("descriptivename = \"")) {
-                        containsDescriptiveName = true;
-                        String[] str2 = strLine.split("=");
-                        descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("description = \"")) {
-                        containsDescription = true;
-                        String[] str2 = strLine.split("=");
-                        description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("toolboxes = [\"")) {
-                        containsToolboxes = true;
-                        String[] str2 = strLine.split("=");
-                        toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
-                        for (int i = 0; i < toolboxes.length; i++) {
-                            toolboxes[i] = toolboxes[i].trim();
+                        || !containsIsRasterFormat || !containsPluginType
+                        || containsParentMenu || !containsMenuLabel)) {
+                    if (!strLine.startsWith("//")) {
+                        if (strLine.toLowerCase().contains("name = \"")
+                                && !strLine.toLowerCase().contains("descriptivename")
+                                && !strLine.toLowerCase().contains("filetypename")) {
+                            containsName = true;
+                            // now retreive the name
+                            String[] str2 = strLine.split("=");
+                            name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("descriptivename = \"")) {
+                            containsDescriptiveName = true;
+                            String[] str2 = strLine.split("=");
+                            descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("description = \"")) {
+                            containsDescription = true;
+                            String[] str2 = strLine.split("=");
+                            description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("toolboxes = [\"")) {
+                            containsToolboxes = true;
+                            String[] str2 = strLine.split("=");
+                            toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                            for (int i = 0; i < toolboxes.length; i++) {
+                                toolboxes[i] = toolboxes[i].trim();
+                            }
+                        } else if (strLine.toLowerCase().contains("extensions = [")) {
+                            containsExtensions = true;
+                            String[] str2 = strLine.split("=");
+                            extensions = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                            for (int i = 0; i < extensions.length; i++) {
+                                extensions[i] = extensions[i].trim();
+                            }
+                        } else if (strLine.toLowerCase().contains("filetypename = \"")) {
+                            containsFileTypeName = true;
+                            String[] str2 = strLine.split("=");
+                            fileTypeName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("israsterformat = ")) {
+                            containsIsRasterFormat = true;
+                            String[] str2 = strLine.split("=");
+                            isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
+                        } else if (strLine.toLowerCase().contains("interopplugintype = interopplugintype")) {
+                            containsPluginType = true;
+                            if (strLine.toLowerCase().contains("import")) {
+                                pluginType = InteropPluginType.importPlugin;
+                            } else {
+                                pluginType = InteropPluginType.exportPlugin;
+                            }
+                        } else if (strLine.toLowerCase().contains("parentmenu = \"")) {
+                            containsParentMenu = true;
+                            String[] str2 = strLine.split("=");
+                            parentMenu = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("menulabel = \"")) {
+                            containsMenuLabel = true;
+                            String[] str2 = strLine.split("=");
+                            menuLabel = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("acceleratorkey = \"")) {
+                            containsKeyStroke = true;
+                            String[] str2 = strLine.split("=");
+                            String str3 = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                            keyStroke = str3.charAt(0);
                         }
-                    } else if (strLine.toLowerCase().contains("extensions = [")) {
-                        containsExtensions = true;
-                        String[] str2 = strLine.split("=");
-                        extensions = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
-                        for (int i = 0; i < extensions.length; i++) {
-                            extensions[i] = extensions[i].trim();
-                        }
-                    } else if (strLine.toLowerCase().contains("filetypename = \"")) {
-                        containsFileTypeName = true;
-                        String[] str2 = strLine.split("=");
-                        fileTypeName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("israsterformat = ")) {
-                        containsIsRasterFormat = true;
-                        String[] str2 = strLine.split("=");
-                        isRasterFormat = Boolean.parseBoolean(str2[str2.length - 1].replace("\"", "").replace("\'", "").trim());
-                    } else if (strLine.toLowerCase().contains("interopplugintype = interopplugintype")) {
-                        containsPluginType = true;
-                        if (strLine.toLowerCase().contains("import")) {
-                            pluginType = InteropPluginType.importPlugin;
-                        } else {
-                            pluginType = InteropPluginType.exportPlugin;
-                        }
-                    } else if (strLine.toLowerCase().contains("parentmenu = \"")) {
-                        containsParentMenu = true;
-                        String[] str2 = strLine.split("=");
-                        parentMenu = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("menulabel = \"")) {
-                        containsMenuLabel = true;
-                        String[] str2 = strLine.split("=");
-                        menuLabel = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("acceleratorkey = \"")) {
-                        containsKeyStroke = true;
-                        String[] str2 = strLine.split("=");
-                        String str3 = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                        keyStroke = str3.charAt(0);
                     }
                 }
 
@@ -2936,7 +2941,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (me.getAcceleratorKeyStroke() != null) {
                 mi.setAccelerator(me.getAcceleratorKeyStroke());
             }
-            
+
             switch (me.getMenu()) {
                 case FILE:
                     fileMenu.add(mi);
@@ -3809,8 +3814,26 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             Document doc = db.parse(file);
             doc.getDocumentElement().normalize();
             Node topNode = doc.getFirstChild();
-            tree = new JTree(populateTree(topNode));
-
+            DefaultMutableTreeNode result = populateTree(topNode);
+            
+            // This adds any tools that may be contain in the top-level and 
+            // not in any toolbox.
+            ArrayList<String> t = findToolsInToolbox("topmost");
+            if (t.size() > 0) {
+                for (int k = 0; k < t.size(); k++) {
+                    String[] toolDetails = t.get(k).split(";");
+                    IconTreeNode childTreeNode2 = new IconTreeNode(toolDetails[0]);
+                    if (toolDetails[1].equals("false")) {
+                        childTreeNode2.setIconName("tool");
+                    } else {
+                        childTreeNode2.setIconName("script");
+                    }
+                    result.add(childTreeNode2);
+                }
+            }
+            
+            tree = new JTree(result); //populateTree(topNode));
+            
             MouseListener ml = new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
@@ -4131,24 +4154,20 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
         }
 
-        toolboxName = "topmost";
-        t = findToolsInToolbox(toolboxName);
-        if (t.size() > 0) {
-            for (int k = 0; k < t.size(); k++) {
-                String[] toolDetails = t.get(k).split(";");
-                IconTreeNode childTreeNode2 = new IconTreeNode(toolDetails[0]);
-                if (toolDetails[1].equals("false")) {
-                    childTreeNode2.setIconName("tool");
-                } else {
-                    childTreeNode2.setIconName("script");
-                }
-                result.add(childTreeNode2);
-            }
-        } else {
-            IconTreeNode childTreeNode2 = new IconTreeNode("No tools");
-            childTreeNode2.setIconName("tool");
-            result.add(childTreeNode2);
-        }
+//        toolboxName = "topmost";
+//        t = findToolsInToolbox(toolboxName);
+//        if (t.size() > 0) {
+//            for (int k = 0; k < t.size(); k++) {
+//                String[] toolDetails = t.get(k).split(";");
+//                IconTreeNode childTreeNode2 = new IconTreeNode(toolDetails[0]);
+//                if (toolDetails[1].equals("false")) {
+//                    childTreeNode2.setIconName("tool");
+//                } else {
+//                    childTreeNode2.setIconName("script");
+//                }
+//                result.add(childTreeNode2);
+//            }
+//        }
 
         return result;
 

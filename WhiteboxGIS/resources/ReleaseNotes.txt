@@ -23,13 +23,16 @@ RELEASE NOTES:
 Version 3.1.1 ()
 -Added LongAxis tool for mapping the long axis of a polygon.
 -Modified the CompareImagesForDifferences tool to include a K-S test option.
--Added MapGullyDepth tool.
+-Added MapGullyDepth tool for mapping gully features from high-res DEMs like LiDAR.
 -The IDW interpolator has been significantly modified to include greater flexibility
  in interpolation of vector point data. This includes the addition of alternative
  nodal functions and weight functions.
--Added a tool for interpolation using radial basis functions (RBFs) and splines.
- This tool currently should only be applied to relatively small datasets of 
- vector points.
+-Added the ability to make a feature request from within Whitebox
+-Added the ability to report an error from within Whitebox.
+-It is now possible to add custom menu items from a script. See the new feature
+ request and report error tools as examples of custom menu items.
+-Added raster increment and decrement tools.
+-Added a pop-up menu to the output textbox of the Scripter.
 
 
 Version 3.1.0 (December 16, 2013)

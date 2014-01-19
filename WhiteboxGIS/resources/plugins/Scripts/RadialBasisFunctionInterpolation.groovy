@@ -62,10 +62,10 @@ def description = "Performs a radial basis function (RBF) interpolation"
 def toolboxes = ["Interpolation"]
 
 public class RadialBasisFunctionInterpolation implements ActionListener {
-    private WhiteboxPluginHost pluginHost
-    private ScriptDialog sd;
-    private String descriptiveName
-    private String basisFunctionType = ""
+//    private WhiteboxPluginHost pluginHost
+//    private ScriptDialog sd;
+//    private String descriptiveName
+//    private String basisFunctionType = ""
 	
     public RadialBasisFunctionInterpolation(WhiteboxPluginHost pluginHost, 
         String[] args, def descriptiveName) {
