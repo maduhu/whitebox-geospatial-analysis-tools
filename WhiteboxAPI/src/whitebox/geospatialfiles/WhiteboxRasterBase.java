@@ -814,7 +814,11 @@ public abstract class WhiteboxRasterBase {
             }
 
         }
-
+    }
+    
+    public void resetDisplayMinMaxValues() {
+        this.displayMaximum = this.maximumValue;
+        this.displayMinimum = this.minimumValue;
     }
 
     /**
@@ -1366,6 +1370,13 @@ public abstract class WhiteboxRasterBase {
         return retVal;
     }
 
+    public void deleteStatsFile() {
+        File file = new File(statsFile);
+        if (file.exists()) {
+            file.delete();
+        }
+    }
+    
     public void readStatsFile() {
         File file = new File(statsFile);
         if (!file.exists()) {
