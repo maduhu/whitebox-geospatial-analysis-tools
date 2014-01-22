@@ -32,6 +32,8 @@ import whitebox.structures.BoundingBox;
 import whitebox.utilities.ByteSwapper;
 import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.utilities.StringUtilities;
+import whitebox.structures.KdTree;
+import whitebox.structures.KdTree.Entry;
 
 /**
  *
@@ -1618,6 +1620,12 @@ public class ShapeFile {
         } catch (Exception e) {
         }
     }
+    
+//    public KdTree<Integer> getKdTree() {
+//        KdTree<Integer> kdTree = new KdTree<>();
+//        
+//    }
+    
 //    // this is only used for debugging the tool
 //    public static void main(String[] args) {
 //        

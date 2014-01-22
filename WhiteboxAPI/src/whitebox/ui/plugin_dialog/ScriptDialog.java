@@ -299,6 +299,28 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         return dmf;
     }
 
+    
+    public JButton addDialogButton(String text, String align) {
+        Box box = Box.createHorizontalBox();
+        JButton btn = new JButton(text);
+        //box.add(Box.createHorizontalStrut(5));
+        
+        if (align.toLowerCase().contains("right")) {
+            box.add(Box.createHorizontalGlue());
+            box.add(btn);
+        } else if (align.toLowerCase().contains("left")) {
+            box.add(btn);
+            box.add(Box.createHorizontalGlue());
+        } else { // centre
+            box.add(Box.createHorizontalGlue());
+            box.add(btn);
+            box.add(Box.createHorizontalGlue());
+        }
+        
+        mainPanel.add(box);
+        return btn;
+    }
+    
     public JLabel addDialogLabel(String text) {
         Box box = Box.createHorizontalBox();
         JLabel lbl = new JLabel(text);
