@@ -1618,13 +1618,29 @@ public class ShapeFile {
         try {
             this.attributeTable = new AttributeTable(databaseFile);
         } catch (Exception e) {
+            
         }
     }
     
-//    public KdTree<Integer> getKdTree() {
-//        KdTree<Integer> kdTree = new KdTree<>();
-//        
-//    }
+    public KdTree<Integer> getKdTree() {
+        // figure out how many nodes there are
+        int nodes = 0;
+        for (ShapeFileRecord rec: records) {
+            double[][] points = rec.getGeometry().getPoints();
+            nodes += points.length;
+        }
+        KdTree<Integer> kdTree = new KdTree.SqrEuclid<>(2, new Integer(nodes));
+        
+        for (ShapeFileRecord rec: records) {
+            double[][] points = rec.getGeometry().getPoints();
+            for (int p = 0; p < points.length; p++) {
+                double[] entry = {points[p][0], points[p][1]};
+                kdTree.addPoint(entry, (int)(rec.getRecordNumber() - 1));
+            }
+            
+        }
+        return kdTree;
+    }
     
 //    // this is only used for debugging the tool
 //    public static void main(String[] args) {
