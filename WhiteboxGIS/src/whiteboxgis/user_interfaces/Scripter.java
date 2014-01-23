@@ -1938,8 +1938,9 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 context.setSearchForward(forward);
                 context.setWholeWord(wholeWordCB.isSelected());
 
-                boolean found = SearchEngine.find(editor, context);
-                if (!found) {
+//                boolean found = SearchEngine.find(editor, context);
+                SearchResult result = SearchEngine.find(editor, context);
+                if (!result.wasFound()) {
                     JOptionPane.showMessageDialog(this, "Text not found");
                 }
 

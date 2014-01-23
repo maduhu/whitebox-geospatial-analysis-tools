@@ -20,19 +20,29 @@ greatly increased performance.
 
 RELEASE NOTES:
 
-Version 3.1.1 ()
+Version 3.1.2 ()
+-Added ElevationAboveStream tool.
+-Added DownslopeDistanceToStream tool.
+-The ShapeFile class has a new getKdTree method that returns a kd-tree of feature
+ nodes. Each kd-entry value property contains the zero-base feature ID of the node.
+-The ScriptDialog class now has an addDialogButton method.
+
+
+Version 3.1.1 (January 19, 2014)
 -Added LongAxis tool for mapping the long axis of a polygon.
 -Modified the CompareImagesForDifferences tool to include a K-S test option.
 -Added MapGullyDepth tool for mapping gully features from high-res DEMs like LiDAR.
 -The IDW interpolator has been significantly modified to include greater flexibility
  in interpolation of vector point data. This includes the addition of alternative
  nodal functions and weight functions.
--Added the ability to make a feature request from within Whitebox
+-Added the ability to make a feature request from within Whitebox.
 -Added the ability to report an error from within Whitebox.
 -It is now possible to add custom menu items from a script. See the new feature
  request and report error tools as examples of custom menu items.
 -Added raster increment and decrement tools.
 -Added a pop-up menu to the output textbox of the Scripter.
+-Updated the rsyntaxarea and autocomplete libraries to latest versions. These
+ libraries are used by the Scripter and view-code window.
 
 
 Version 3.1.0 (December 16, 2013)
@@ -261,6 +271,7 @@ GNU General Public License below more details.
 
 Whitebox relies on the following libraries, each of which are distributed under their own licenses:
 
+Apache Commons IO (Apache License, Version 2.0)
 Apache Commons Math (Apache License, Version 2.0)
 Java Matrix Package-Jama (Released to the Public Domain)
 Java Topology Suite (GNU Lesser General Public License)
@@ -268,6 +279,7 @@ JSyntaxPane (Apache License, Version 2.0)
 Jython (Python Software Foundation License, Version 2)
 Groovy (Apache License, Version 2.0)
 Gson (Apache License, Version 2.0)
+RSyntaxTextArea and Autocomplete libraries (modified BSD license)
 
 
 

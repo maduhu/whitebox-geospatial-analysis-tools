@@ -107,7 +107,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     private StatusBar status;
     // common variables
-    private static final String versionName = "3.0 'Iguazu'";
+    private static final String versionName = "3.1 'Iguazu'";
     private static final String versionNumber = "3.1.1";
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
@@ -204,6 +204,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private String country = "CA";
     private boolean checkForUpdates = true;
     private boolean receiveAnnouncements = true;
+    private String updateDownloadArtifact = "";
 
     public static void main(String[] args) {
         try {
@@ -463,6 +464,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         if (nl.getLength() > 0) {
                             el = (Element) nl.item(0);
                             downloadLocation = el.getFirstChild().getNodeValue().replace("\"", "");
+                        }
+                        
+                        nl = docElement.getElementsByTagName("DownloadArtifact");
+                        if (nl.getLength() > 0) {
+                            el = (Element) nl.item(0);
+                            updateDownloadArtifact = el.getFirstChild().getNodeValue().replace("\"", "");
                         }
 
                         if (receiveAnnouncements) {

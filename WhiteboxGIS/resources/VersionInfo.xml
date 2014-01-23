@@ -1,40 +1,31 @@
 <?xml version="1.0"?>
 <VersionInfo>
-    <VersionName>"3.0 'Iguazu'"</VersionName>
-    <VersionNumber>"3.1.0"</VersionNumber>
+    <VersionName>"3.1 'Iguazu'"</VersionName>
+    <VersionNumber>"3.1.1"</VersionNumber>
     <DownloadLocation>"http://www.uoguelph.ca/~hydrogeo/Whitebox/download.shtml"</DownloadLocation>
-    <Announcements number="12">
+    <DownloadArtifact>"http://www.uoguelph.ca/~hydrogeo/Whitebox/WhiteboxGAT.zip"</DownloadArtifact>
+    <Announcements number="13">
         <Announcement>
-            <Date>2013-11-28</Date>
+            <Date>2014-01-19</Date>
             <Language>en</Language>
-            <Title>Whitebox Version 3.1.0 Has Been Released</Title>
-            <Message><![CDATA[<p>Version 3.1.0 (December 16, 2013)</p> 
-                <p>The focus of this release has been improved data interoperability. 
-                We have made getting data into and out of Whitebox much easier.</p>
+            <Title>Whitebox Version 3.1.1 Has Been Released</Title>
+            <Message><![CDATA[<p>Version 3.1.1 (January 19, 2014)</p> 
+                <p>A new version of Whitebox has been released.</p>
                 <ul>
-                <li>Modified the AddLayer method so that it accepts non-native format geospatial 
-                layers and automatically calls the appropriate data import tool.</li>
-                <li>Added an 'Export Layer' quick link to the various export data tools from 
-                the Layers menu and pop-up menu.</li>
-                <li>Added the Create TIN and Rasterize TIN tools.</li>
-               <li>Added support for import of tiled GeoTIFF files.</li>
-               <li>Added ShowGeoTiffTags tool for viewing the tags within a GeoTiff file.</li>
-                <li>Added ImportSRTM tool to import shuttle radar topography mission DEMs.</li>
-                <li>Moved all of the entries in the File menu that were related to maps to the 
- Cartographic menu and made the corresponding change to the order of the icons 
- in the toolbar. This should make it more obvious that when you first launch the 
- program, you typically need to add data layers rather open a map. Previously
- people were frequently confusing maps with data layers.</li>
-                <liFixed a bug with Nearest Neighbour LiDAR interpolation.</li>
-                <li>Modified the LiDAR IDW interpolation tool so that the maximum scan angle  
- deviation can be specified by the user.</li>
-                <li>A raster's NoData value can now be updated directly from its layer properties.</li>
-                <li>Added ImportGenericMultibandData tool to convert ENVI style BIL, BSQ and BIP 
- raster files. I was only able to get a .bsq file for testing so if you have  
- access to a small .bip and/or .bil file please forward them to me.</li>
-                <li>Added ImportDEM tool for imported the USGS/CDED ASCII DEM files.</li>
-                <li>Fixed a bug with the Depression Filling (Planchon and Darboux) tool that  
- affected DEMs with irregular shapes (i.e. areas of NoData around the edges).</li></ul><]]>
+                <li>Added LongAxis tool for mapping the long axis of a polygon.</li>
+                <li>Modified the CompareImagesForDifferences tool to include a K-S test option.</li>
+                <li>Added MapGullyDepth tool for mapping gully features from high-res DEMs like LiDAR.</li>
+               <li>The IDW interpolator has been significantly modified to include greater flexibility
+ in interpolation of vector point data. This includes the addition of alternative
+ nodal functions and weight functions.</li>
+               <li>Added the ability to make a feature request from within Whitebox</li>
+                <li>Added the ability to report an error from within Whitebox.</li>
+                <li>It is now possible to add custom menu items from a script. See the new feature
+ request and report error tools as examples of custom menu items.</li>
+                <li>Added raster increment and decrement tools.</li>
+                <li>Added a pop-up menu to the output textbox of the Scripter.</li>
+                <li>Updated the rsyntaxarea and autocomplete libraries to latest versions. These
+ libraries are used by the Scripter and view-code window.</li></ul><]]>
             </Message>
         </Announcement>
         <Announcement>
