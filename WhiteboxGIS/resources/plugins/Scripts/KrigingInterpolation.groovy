@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2014 Dr. Ehsan Roshani and Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,9 +39,9 @@ import whitebox.geospatialfiles.shapefile.attributes.*
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord
 import whitebox.utilities.Topology
 import groovy.transform.CompileStatic
-import plugins.Kriging
-import plugins.Kriging.*
-import plugins.KrigingPoint
+import whitebox.stats.Kriging
+import whitebox.stats.Kriging.*
+import whitebox.stats.KrigingPoint
 
 
 // The following four variables are required for this 
@@ -50,7 +50,7 @@ import plugins.KrigingPoint
 def name = "KrigingInterpolation"
 def descriptiveName = "Kriging Interpolation"
 def description = "Performs an Kriging interpolation"
-def toolboxes = ["RasterCreation"]
+def toolboxes = ["Interpolation", "StatisticalTools"]
 
 public class KrigingInterpolation implements ActionListener {
     private WhiteboxPluginHost pluginHost
@@ -61,14 +61,9 @@ public class KrigingInterpolation implements ActionListener {
     private DialogDataInput txtRange
     private DialogDataInput txtNugget
     private Kriging k
-    
-    
-    
-    
 
-	//@CompileStatic
-    public KrigingInterpolation(WhiteboxPluginHost pluginHost, 
-        String[] args, def descriptiveName) {
+	public KrigingInterpolation(WhiteboxPluginHost pluginHost, 
+        String[] args, def name, def descriptiveName) {
         this.pluginHost = pluginHost
         this.descriptiveName = descriptiveName
         
@@ -85,88 +80,83 @@ public class KrigingInterpolation implements ActionListener {
             // file in the help pane. This file should be be located 
             // in the help directory and have the same name as the 
             // class, with an html extension.
-            sd.setHelpFile("InterpolationIDW")
+            sd.setHelpFile(name)
 		
             // Specifying the source file allows the 'view code' 
             // button on the tool dialog to be displayed.
             def pathSep = File.separator
-            def scriptFile = pluginHost.getResourcesDirectory() + "plugins" + pathSep + "Scripts" + pathSep + "InterpolationIDW.groovy"
+            def scriptFile = pluginHost.getResourcesDirectory() + "plugins" + pathSep + "Scripts" + pathSep + name + ".groovy"
             sd.setSourceFile(scriptFile)
 			
             // add some components to the dialog
-        	//DialogFile dfIn = sd.addDialogFile("Input file", "Input Vector File:", "open", "Vector Files (*.shp), SHP", true, false)
-        	
-            DialogFieldSelector dfs = sd.addDialogFieldSelector("Input file and Value field.", "Input Value Field:", false)															//0
+        	DialogFieldSelector dfs = sd.addDialogFieldSelector("Input file and Value field.", "Input Value Field:", false)															//0
 			DialogFile dfOutput = sd.addDialogFile("Output file", "Output Raster File:", "saveAs", "Whitebox Raster Files (*.dep), DEP", true, false)								//1
 			
 			DialogCheckBox chxError = sd.addDialogCheckBox("Saves the Kriging Variance Error Map", "Save Variance Error Raster", false)												//2
 			DialogFile dfError = sd.addDialogFile("Error Output file", "Output Raster File:", "saveAs", "Whitebox Raster Files (*.dep), DEP", true, false)							//3
 			dfError.visible = false
-
 			
-			DialogDataInput txtCellSize = sd.addDialogDataInput("Output raster cell size.", "Cell Size:", "10", true, false)														//4
+			DialogDataInput txtCellSize = sd.addDialogDataInput("Output raster cell size.", "Cell Size:", "", true, false)														//4
 
-				def btn = sd.addDialogButton("Calculate Semi Variogram", "Center")
+			def btn = sd.addDialogButton("Calculate Semivariogram", "Center")
 			
-			DialogComboBox cboxSVType = sd.addDialogComboBox("Enter Semi Variogram Type", "Semi Variogram Type:", ["Gaussian Model", "Exponential Model", "Spherical Model"], 0)	//5
+			DialogComboBox cboxSVType = sd.addDialogComboBox("Enter Semivariogram Type", "Semivariogram Type:", ["Gaussian Model", "Exponential Model", "Spherical Model"], 0)	//5
 			DialogDataInput txtNlage = sd.addDialogDataInput("Number of Lags.", "Number of Lags:", "12", true, false)																//6
 			DialogDataInput txtLagSize = sd.addDialogDataInput("Lag Size.", "Lag Size:", "10", true, false)																			//7
 			DialogDataInput txtNNeighbor = sd.addDialogDataInput("Enter number of neighbors.", "Number of Neighbors:", "5", true, false)											//8
 			
-			DialogCheckBox chxNugget = sd.addDialogCheckBox("Apply Nugget in the theoritical semi variogram calculation ", "Apply Nugget:", false)									//9
-			txtNugget = sd.addDialogDataInput("Nugget.", "Nugget (optional):", "", true, true)																						//10
-			txtSill = sd.addDialogDataInput("Sill.", "Sill (optional):", "", true, true)																							//11
-			txtRange = sd.addDialogDataInput("Range.", "Range (optional):", "", true, true)																							//12
-			DialogCheckBox chxCurve = sd.addDialogCheckBox("Show Semi Variogram Curve", "Show Semi Variogram Curve:", true)															//13
-			DialogCheckBox chxMap = sd.addDialogCheckBox("Show Semi Variogram Map", "Show Semi Variogram Map:", true)																//14
+			DialogCheckBox chxNugget = sd.addDialogCheckBox("Apply Nugget in the theoritical semivariogram calculation ", "Apply Nugget:", false)									//9
+			txtNugget = sd.addDialogDataInput("Nugget.", "Nugget:", "", true, false)																						//10
+			txtSill = sd.addDialogDataInput("Sill.", "Sill:", "", true, false)																							//11
+			txtRange = sd.addDialogDataInput("Range.", "Range:", "", true, false)																							//12
+			DialogCheckBox chxCurve = sd.addDialogCheckBox("Show semivariogram curve", "Show Semivariogram Curve:", true)															//13
+			DialogCheckBox chxMap = sd.addDialogCheckBox("Show semivariogram map", "Show Semivariogram Map:", true)																//14
 
-		
-
-			DialogCheckBox chxAnIsotropic = sd.addDialogCheckBox("Is the data AnIsotropic", "Use AnIsotropic Model:", false)														//15
+			DialogCheckBox chxAnIsotropic = sd.addDialogCheckBox("Is the data Anisotropic", "Use Anisotropic Model:", false)														//15
 			DialogDataInput txtAngle = sd.addDialogDataInput("Angle (rad).", "Angle (Rad):", "0", true, false)																		//16
-			DialogDataInput txtTolerance = sd.addDialogDataInput("Tolerance.", "Tolerance (rad):", "1.5707", true, false)															//17
+			DialogDataInput txtTolerance = sd.addDialogDataInput("Tolerance.", "Tolerance (Rad):", "1.5707", true, false)															//17
 			DialogDataInput txtBandWidth = sd.addDialogDataInput("Band Width.", "Band Width:", "5", true, false)																	//18
 			txtAngle.visible = false
 			txtTolerance.visible = false
 			txtBandWidth.visible = false
 
-
-
-			DialogDataInput txtNorth = sd.addDialogDataInput("North.", "North (optional):", "", true, true)																			//19
-			DialogDataInput txtSouth = sd.addDialogDataInput("South.", "South (optional):", "", true, true)																			//20
-			DialogDataInput txtEast = sd.addDialogDataInput("East.", "East (optional):", "", true, true)																			//21
-			DialogDataInput txtWest = sd.addDialogDataInput("West.", "West (optional):", "", true, true)																			//22
+			DialogDataInput txtNorth = sd.addDialogDataInput("North.", "North:", "", true, false)																			//19
+			DialogDataInput txtSouth = sd.addDialogDataInput("South.", "South:", "", true, false)																			//20
+			DialogDataInput txtEast = sd.addDialogDataInput("East.", "East:", "", true, false)																			//21
+			DialogDataInput txtWest = sd.addDialogDataInput("West.", "West:", "", true, false)																			//22
 
 			
-
 			btn.addActionListener(new ActionListener() {
  	            public void actionPerformed(ActionEvent e)
 	            {
 				    k = new Kriging()
-					if(Boolean.parseBoolean(chxNugget.getValue())){
+
+					def progressListener = { evt -> if (evt.getPropertyName().equals("progress")) { 
+		            		int progress = (int)evt.getNewValue()
+		            		pluginHost.updateProgress("Interpolating Data", progress)
+		            	} 
+		            } as PropertyChangeListener
+		            k.addPropertyChangeListener(progressListener)
+				    
+					if (Boolean.parseBoolean(chxNugget.getValue())) {
 						k.ConsiderNugget = true;
-					}
-					else{
+					} else {
 						k.ConsiderNugget = false;
 					}
 
-					println(k.ConsiderNugget.toString())
 					String[] inputData = dfs.getValue().split(";")
 					
-
-					if((dfs.getValue()).length()>2){
-						//println("dfs")
+					if ((dfs.getValue()).length()>2) {
 						k.Points  =  k.ReadPointFile(inputData[0],inputData[1]);
 					}
 			        
 			        k.LagSize =  (txtLagSize.getValue()).toDouble()
-			        if(Boolean.parseBoolean(chxAnIsotropic.getValue())){
+			        if (Boolean.parseBoolean(chxAnIsotropic.getValue())) {
 						k.Anisotropic = true;
 						k.Angle = Double.parseDouble(txtAngle.getValue())
 						k.BandWidth = Double.parseDouble(txtBandWidth.getValue())
 						k.Tolerance = Double.parseDouble(txtTolerance.getValue())
-					}
-					else{
+					} else {
 						k.Anisotropic = false;
 					}
 			
@@ -176,17 +166,13 @@ public class KrigingInterpolation implements ActionListener {
 			        
 			        
 			        Kriging.Variogram var 
-			        println((cboxSVType.getValue()).toString())
-					if((cboxSVType.getValue()).toString() == "Gaussian Model")
-					{
-						var = k.SemiVariogram(Kriging.SemiVariogramType.Gaussian, 1d, numLags , anisotropic, true);
-					}
-					else if((cboxSVType.getValue()).toString() == "Exponential Model"){
+			        if ((cboxSVType.getValue()).toString() == "Gaussian Model") {
+						var = k.Semivariogram(Kriging.SemivariogramType.Gaussian, 1d, numLags , anisotropic, true);
+					} else if ((cboxSVType.getValue()).toString() == "Exponential Model") {
 						
-						var = k.SemiVariogram(Kriging.SemiVariogramType.Exponential, 1d, numLags , anisotropic, true);
-					}
-					else{
-						var = k.SemiVariogram(Kriging.SemiVariogramType.Spherical, 1d, numLags , anisotropic, true);
+						var = k.Semivariogram(Kriging.SemivariogramType.Exponential, 1d, numLags , anisotropic, true);
+					} else {
+						var = k.Semivariogram(Kriging.SemivariogramType.Spherical, 1d, numLags , anisotropic, true);
 					}
 			        
 					txtSill.setValue((var.Sill).toString())
@@ -194,20 +180,20 @@ public class KrigingInterpolation implements ActionListener {
 					txtNugget.setValue((var.Nugget).toString())
 					if (Boolean.parseBoolean(chxCurve.getValue()))
 					{
-			        	k.DrawSemiVariogram(k.Binnes, var);
+			        	k.DrawSemivariogram(k.bins, var);
 					}
 					
 			        if(Boolean.parseBoolean(chxMap.getValue()))
 					{        		
 						k.calcBinSurface(k.SVType,  1,k.NumberOfLags, Boolean.parseBoolean(chxAnIsotropic.getValue()));
-						k.DrawSemiVariogramSurface(k.LagSize*(k.NumberOfLags),  Boolean.parseBoolean(chxAnIsotropic.getValue()));
+						k.DrawSemivariogramSurface(k.LagSize*(k.NumberOfLags),  Boolean.parseBoolean(chxAnIsotropic.getValue()));
 					}			
 					
 	            }
         	});      
             
 
-//            
+            
 
 			//Listener for chxError            
             def lstrError = { evt -> if (evt.getPropertyName().equals("value")) { 
@@ -273,90 +259,62 @@ public class KrigingInterpolation implements ActionListener {
             	} 
             } as PropertyChangeListener
             dfs.addPropertyChangeListener(lsnFeild)
-//            
+            
             // resize the dialog to the standard size and display it
-            sd.setSize(800, 600)
+            //sd.setSize(800, 400)
             sd.visible = true
         }
     }
 
     @CompileStatic
     private void execute(String[] args) {
-		//Kriging k = new Kriging()
-		
-//		if((args[9]).toString() == "true"){
-//			k.ConsiderNugget = true;
-//		}
-//		else{
-//			k.ConsiderNugget = false;
-//		}
-//		
-//		String[] inputData = args[0].split(";")			
-//		
-//        k.Points  =  k.ReadPointFile(inputData[0],inputData[1]);
-//        k.LagSize =  (args[7]).toDouble()
-//        k.Anisotropic = false;
-//        if((args[15]).toString() == "true"){
-//			k.Anisotropic = true;
-//		}
-//		else{
-//			k.Anisotropic = false;
-//		}
+		try {
+			pluginHost.updateProgress("Interpolating Data...", 0)
 
-        
+	        boolean anisotropic = Boolean.parseBoolean(args[15])
+	        
+	        Kriging.Variogram var 
+			if (args[5] == "Gaussian Model") {
+				var = k.Semivariogram(Kriging.SemivariogramType.Gaussian, Double.parseDouble(txtRange.getValue()), Double.parseDouble(txtSill.getValue()),Double.parseDouble(txtNugget.getValue()), anisotropic)
+			} else if(args[5] == "Exponential Model") {
+				var = k.Semivariogram(Kriging.SemivariogramType.Exponential, Double.parseDouble(txtRange.getValue()), Double.parseDouble(txtSill.getValue()),Double.parseDouble(txtNugget.getValue()), anisotropic)
+			} else {
+				var = k.Semivariogram(Kriging.SemivariogramType.Spherical, Double.parseDouble(txtRange.getValue()), Double.parseDouble(txtSill.getValue()),Double.parseDouble(txtNugget.getValue()), anisotropic)
+			}
 
-        //int numLags = Integer.parseInt(args[6])
-        boolean anisotropic = Boolean.parseBoolean(args[15])
-        
-        Kriging.Variogram var 
-		if(args[5] == "Gaussian Model")
-		{
-			var = k.SemiVariogram(Kriging.SemiVariogramType.Gaussian, Double.parseDouble(txtRange.getValue()), Double.parseDouble(txtSill.getValue()),Double.parseDouble(txtNugget.getValue()), anisotropic)
+	        k.resolution = Double.parseDouble(args[4]);
+	        k.bMinX = Double.parseDouble(args[22]) + k.resolution / 2.0;
+	        k.bMaxX = Double.parseDouble(args[21]) - k.resolution / 2.0;
+	        k.bMinY = Double.parseDouble(args[20]) + k.resolution / 2.0;
+	        k.bMaxY = Double.parseDouble(args[19]) - k.resolution / 2.0;
+	
+	        List<KrigingPoint> outPnts = k.calcInterpolationPoints();
+	        
+	        outPnts = k.InterpolatePoints(var, outPnts, Integer.parseInt(args[8]));
+	        k.buildRaster(args[1], outPnts,false);
+	        if (Boolean.parseBoolean(args[2])) {
+				k.buildRaster(args[3], outPnts,true);
+			}
+			
+			if (Boolean.parseBoolean(args[13])) {
+	        	k.DrawSemivariogram(k.bins, var);
+			}
+			
+	        if(Boolean.parseBoolean(args[14])) {        		
+				k.calcBinSurface(k.SVType,  1,k.NumberOfLags, Boolean.parseBoolean(args[15]));
+				k.DrawSemivariogramSurface(k.LagSize*(k.NumberOfLags),  Boolean.parseBoolean(args[15]));
+			}			
+			pluginHost.returnData(args[1])
+			if (Boolean.parseBoolean(args[2])) {
+				pluginHost.returnData(args[3])
+			}
+			
+		} catch (Exception e) {
+			pluginHost.showFeedback("An error has occurred during operation. See log file for details.")
+	        pluginHost.logException("Error in " + descriptiveName, e)
+		} finally {
+			pluginHost.updateProgress("Progress", 0)
 		}
-		else if(args[5] == "Exponential Model"){
-			var = k.SemiVariogram(Kriging.SemiVariogramType.Exponential, Double.parseDouble(txtRange.getValue()), Double.parseDouble(txtSill.getValue()),Double.parseDouble(txtNugget.getValue()), anisotropic)
-		}
-		else{
-			var = k.SemiVariogram(Kriging.SemiVariogramType.Spherical, Double.parseDouble(txtRange.getValue()), Double.parseDouble(txtSill.getValue()),Double.parseDouble(txtNugget.getValue()), anisotropic)
-		}
-        
-//		txtSill.setValue((var.Sill).toString())
-//		txtRange.setValue((var.Range).toString())
-//		txtNugget.setValue((var.Nugget).toString())
-        //println((var.Sill).toString())
-
-        k.resolution = Double.parseDouble(args[4]);
-        k.BMinX = Double.parseDouble(args[22]) + k.resolution/2;
-        k.BMaxX = Double.parseDouble(args[21]) - k.resolution/2;
-        k.BMinY = Double.parseDouble(args[20]) + k.resolution/2;
-        k.BMaxY = Double.parseDouble(args[19]) - k.resolution/2;
-
-        List<KrigingPoint> outPnts = k.calcInterpolationPoints() ;
-        
-        outPnts = k.InterpolatePoints(var, outPnts, Integer.parseInt(args[8]));
-        k.BuildRaster(args[1], outPnts,false);
-        if (Boolean.parseBoolean(args[2]))
-		{
-			k.BuildRaster(args[3], outPnts,true);
-		}
-		
-		if (Boolean.parseBoolean(args[13]))
-		{
-        	k.DrawSemiVariogram(k.Binnes, var);
-		}
-		
-        if(Boolean.parseBoolean(args[14]))
-		{        		
-			k.calcBinSurface(k.SVType,  1,k.NumberOfLags, Boolean.parseBoolean(args[15]));
-			k.DrawSemiVariogramSurface(k.LagSize*(k.NumberOfLags),  Boolean.parseBoolean(args[15]));
-		}			
-		pluginHost.returnData(args[1])
-		if (Boolean.parseBoolean(args[2])){
-			pluginHost.returnData(args[3])
-		}
-		
-		
-		
     }
 
 	
@@ -381,5 +339,5 @@ public class KrigingInterpolation implements ActionListener {
 if (args == null) {
     pluginHost.showFeedback("Plugin arguments not set.")
 } else {
-    def f = new KrigingInterpolation(pluginHost, args, descriptiveName)
+    def f = new KrigingInterpolation(pluginHost, args, name, descriptiveName)
 }
