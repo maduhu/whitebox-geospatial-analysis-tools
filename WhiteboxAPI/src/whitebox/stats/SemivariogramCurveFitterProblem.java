@@ -1,8 +1,25 @@
 /*
+ *  Copyright (C) 2014 Ehsan Roshani
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * This is the optimization problem to find the best fit variables for semivariogram
  * 
  */
-package plugins;
+package whitebox.stats;
 
 /**
  *
@@ -12,43 +29,31 @@ package plugins;
     Guelph, Ont. N1G 2W1 CANADA
     Phone: (519) 824-4120 x53527
     Email: eroshani@uoguelph.ca
+    * 
+    * modified by John Lindsay
  */
 
-//import com.sun.org.apache.xml.internal.resolver.helpers.Debug;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import plugins.Kriging;
 import jmetal.core.Problem;
 import jmetal.core.Solution;
-import jmetal.encodings.solutionType.BinaryRealSolutionType;
 import jmetal.encodings.solutionType.RealSolutionType;
-import static jmetal.problems.Water.LOWERLIMIT;
-import static jmetal.problems.Water.UPPERLIMIT;
 import jmetal.util.JMException;
-import static plugins.Kriging.SemiVariogramType.Exponential;
-import static plugins.Kriging.SemiVariogramType.Gaussian;
-import static plugins.Kriging.SemiVariogramType.Spherical;
-import plugins.KrigingPoint;
-import whitebox.geospatialfiles.WhiteboxRaster;
-import whitebox.geospatialfiles.shapefile.Point;
-import whitebox.geospatialfiles.shapefile.attributes.DBFException;
+import static whitebox.stats.Kriging.SemivariogramType.Exponential;
+import static whitebox.stats.Kriging.SemivariogramType.Gaussian;
+import static whitebox.stats.Kriging.SemivariogramType.Spherical;
 
 
-public class SemiVariogramCurveFitterProblem extends Problem{
+public class SemivariogramCurveFitterProblem extends Problem {
     // defining the lower and upper limits
     //Range, Sill, Nugget
   public static double [] LOWERLIMIT ;
   public static double [] UPPERLIMIT ;           
   double difMin = 1000000000;
-  Kriging.SemiVariogramType SVType;
+  Kriging.SemivariogramType SVType;
   double [][] Pnts;
   boolean Nugget;
-  public static Kriging.Variogram Var;
+  public static Kriging.Variogram var;
 
-  void SetData(double[][] Points, Kriging.SemiVariogramType SemiVType, boolean  Nugget ){
+  void SetData(double[][] Points, Kriging.SemivariogramType SemiVType, boolean  Nugget ){
       this.Pnts = Points;
       this.SVType = SemiVType; 
       double Xmax=0; double Ymax=0; double Xmin=Double.MAX_VALUE;double Ymin=Double.MAX_VALUE;  
@@ -94,7 +99,7 @@ public class SemiVariogramCurveFitterProblem extends Problem{
   * Creates a default instance of the Water problem.
   * @param solutionType The solution type must "Real" or "BinaryReal".
   */
-  public SemiVariogramCurveFitterProblem(double[][] Points, Kriging.SemiVariogramType SVType, boolean  Nugget) {
+  public SemivariogramCurveFitterProblem(double[][] Points, Kriging.SemivariogramType SVType, boolean  Nugget) {
       this.Nugget = Nugget;
       if (Nugget) {
           numberOfVariables_   = 3 ;
@@ -180,25 +185,26 @@ public class SemiVariogramCurveFitterProblem extends Problem{
       if (mse< difMin) {
           Kriging k = new Kriging();
           
-          Var = k.SemiVariogram(SVType,
+          var = k.Semivariogram(SVType,
                   solution.getDecisionVariables()[0].getValue(),
                   solution.getDecisionVariables()[1].getValue(),
                   (Nugget)?solution.getDecisionVariables()[2].getValue():0,
                   false);
+          var.mse = mse;
           difMin = mse;
       }
 
              
     solution.setObjective(0,mse);    
     solution.setObjective(1,mse);
-    //System.out.println(mse);
-  } // evaluate
+  }
 
   /** 
    * NOT USED Evaluates the constraint overhead of a solution 
    * @param solution The solution
    * @throws JMException 
    */  
+  @Override
   public void evaluateConstraints(Solution solution) throws JMException {
       
 //      

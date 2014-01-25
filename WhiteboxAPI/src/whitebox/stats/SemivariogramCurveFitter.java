@@ -1,7 +1,23 @@
 /*
+ *  Copyright (C) 2014 Ehsan Roshani
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/*
  * This is to set up the SemiVariogram Curve fitter optimization problem
  */
-package plugins;
+package whitebox.stats;
 
 /**
  *
@@ -11,6 +27,8 @@ package plugins;
     Guelph, Ont. N1G 2W1 CANADA
     Phone: (519) 824-4120 x53527
     Email: eroshani@uoguelph.ca
+    * 
+    * modified by John Lindsay
  */
 
 import jmetal.core.Algorithm;
@@ -20,32 +38,22 @@ import jmetal.core.SolutionSet;
 import jmetal.operators.crossover.CrossoverFactory;
 import jmetal.operators.mutation.MutationFactory;
 import jmetal.operators.selection.SelectionFactory;
-import jmetal.problems.ProblemFactory;
 import jmetal.qualityIndicator.QualityIndicator;
-import jmetal.util.Configuration;
 import jmetal.util.JMException;
-
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
 import jmetal.metaheuristics.nsgaII.NSGAII;
-import static jmetal.metaheuristics.nsgaII.NSGAII_main.fileHandler_;
-import static jmetal.metaheuristics.nsgaII.NSGAII_main.logger_;
-import jmetal.problems.Roshani;
-import whitebox.geospatialfiles.WhiteboxRaster;
-import plugins.Kriging;
 
 
-public class SemiVariogramCurveFitter {
+public class SemivariogramCurveFitter {
   
-    public Kriging.Variogram Run(double[][] Points, Kriging.SemiVariogramType SVType, boolean ConsiderNugget)throws 
+    public Kriging.Variogram Run(double[][] Points, Kriging.SemivariogramType SVType, boolean ConsiderNugget)throws 
                                   JMException, 
                                   SecurityException, 
                                   IOException, 
                                   ClassNotFoundException 
     {
-        SemiVariogramCurveFitter so = new SemiVariogramCurveFitter();
+        SemivariogramCurveFitter so = new SemivariogramCurveFitter();
         Problem   problem   ; // The problem to solve
         Algorithm algorithm ; // The algorithm to use
         Operator  crossover ; // Crossover operator
@@ -58,7 +66,7 @@ public class SemiVariogramCurveFitter {
 
         indicators = null ;
         
-        problem = new SemiVariogramCurveFitterProblem(Points,SVType,ConsiderNugget);
+        problem = new SemivariogramCurveFitterProblem(Points,SVType,ConsiderNugget);
 
         algorithm = new NSGAII(problem);
         //algorithm = new ssNSGAII(problem);
@@ -94,7 +102,7 @@ public class SemiVariogramCurveFitter {
         //long initTime = System.currentTimeMillis();
         SolutionSet population = algorithm.execute();
         //long estimatedTime = System.currentTimeMillis() - initTime;
-        return SemiVariogramCurveFitterProblem.Var;
+        return SemivariogramCurveFitterProblem.var;
 
   }
 

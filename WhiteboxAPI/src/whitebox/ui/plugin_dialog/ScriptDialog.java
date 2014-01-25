@@ -195,7 +195,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         int screenHeight = dim.height;
         int screenWidth = dim.width;
-        setSize(screenWidth / 2, screenHeight / 2);
+        //setSize(screenWidth / 2, screenHeight / 2);
         setLocation(screenWidth / 4, screenHeight / 4);
     }
 
