@@ -164,6 +164,8 @@ public class RasterizeTIN implements ActionListener {
             } else {
                 output = new WhiteboxRaster(outputFile, "rw",
                         baseFileHeader, WhiteboxRasterBase.DataType.FLOAT, nodata);
+                rows = output.getNumberRows()
+                cols = output.getNumberColumns()
             }
 
             output.setPreferredPalette("high_relief.pal")

@@ -21,11 +21,15 @@ greatly increased performance.
 RELEASE NOTES:
 
 Version 3.1.2 ()
+-Added a kriging interpolation tool. The kriging tool includes an interactive
+ semivariogram tool.
 -Added ElevationAboveStream tool.
 -Added DownslopeDistanceToStream tool.
 -The ShapeFile class has a new getKdTree method that returns a kd-tree of feature
  nodes. Each kd-entry value property contains the zero-base feature ID of the node.
 -The ScriptDialog class now has an addDialogButton method.
+-Fixed a bug with the InterpolationIDW and RasterizeTIN tools that did not allow 
+ for the use of a specified base raster for determining resolution and extent.
 
 
 Version 3.1.1 (January 19, 2014)
@@ -273,13 +277,26 @@ Whitebox relies on the following libraries, each of which are distributed under 
 
 Apache Commons IO (Apache License, Version 2.0)
 Apache Commons Math (Apache License, Version 2.0)
-Java Matrix Package-Jama (Released to the Public Domain)
-Java Topology Suite (GNU Lesser General Public License)
-JSyntaxPane (Apache License, Version 2.0)
-Jython (Python Software Foundation License, Version 2)
+Finmath lib (Apache License version 2.0)
 Groovy (Apache License, Version 2.0)
 Gson (Apache License, Version 2.0)
+Java Matrix Package-Jama (Released to the Public Domain)
+Java Topology Suite (GNU Lesser General Public License)
+JFreeChart (GNU Lesser General Public License)
+JMetal (GNU Lesser General Public License)
+JSyntaxPane (Apache License, Version 2.0)
+Jython (Python Software Foundation License, Version 2)
 RSyntaxTextArea and Autocomplete libraries (modified BSD license)
+
+The Colt (v 1.2.0) maths library is a dependency of finmath and is distributed under 
+its own license agreement as follows:
+Copyright (c) 1999 CERN - European Organization for Nuclear Research.
+Permission to use, copy, modify, distribute and sell this software and its 
+documentation for any purpose is hereby granted without fee, provided that the 
+above copyright notice appear in all copies and that both that copyright notice 
+and this permission notice appear in supporting documentation. CERN makes no 
+representations about the suitability of this software for any purpose. It is 
+provided "as is" without expressed or implied warranty.
 
 
 

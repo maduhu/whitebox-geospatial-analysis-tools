@@ -342,6 +342,8 @@ public class RadialBasisFunctionInterpolation implements ActionListener {
             } else {
                 output = new WhiteboxRaster(outputFile, "rw",
                         baseFileHeader, WhiteboxRasterBase.DataType.FLOAT, nodata);
+                rows = output.getNumberRows()
+                cols = output.getNumberColumns()
             }
             
             output.setPreferredPalette("spectrum.pal")

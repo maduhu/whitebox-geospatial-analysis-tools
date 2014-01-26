@@ -310,7 +310,7 @@ public class InterpolationIDW implements ActionListener {
 					}
 				}
 			}
-
+			
 			int numSamples = zList.size()
 			KdTree<Integer> pointsTree = new KdTree.SqrEuclid<Integer>(2, new Integer(numSamples));
 			for (i = 0; i < numSamples; i++) {
@@ -340,11 +340,13 @@ public class InterpolationIDW implements ActionListener {
                 south = north - rows * cellSize;
 
                 output = new WhiteboxRaster(outputFile, north, south, east, west,
-                        rows, cols, WhiteboxRasterBase.DataScale.CONTINUOUS,
-                        WhiteboxRasterBase.DataType.FLOAT, nodata, nodata);
+                    rows, cols, WhiteboxRasterBase.DataScale.CONTINUOUS,
+                    WhiteboxRasterBase.DataType.FLOAT, nodata, nodata);
             } else {
                 output = new WhiteboxRaster(outputFile, "rw",
                         baseFileHeader, WhiteboxRasterBase.DataType.FLOAT, nodata);
+                rows = output.getNumberRows()
+                cols = output.getNumberColumns()
             }
             
             output.setPreferredPalette("spectrum.pal")
@@ -496,12 +498,13 @@ public class InterpolationIDW implements ActionListener {
 //				weightFunction.setP(exponent)
 //			}
 
+			
 			// perform the interpolation
 			double weight, distance, dMax
 			oldProgress = -1;
-            for (row = 0; row < rows; row++) {
-                for (col = 0; col < cols; col++) {
-                    x = output.getXCoordinateFromColumn(col);
+			for (row = 0; row < rows; row++) {
+				for (col = 0; col < cols; col++) {
+                	x = output.getXCoordinateFromColumn(col);
                     y = output.getYCoordinateFromRow(row);
                     double[] entry = new double[2]
                     entry[0] = x
