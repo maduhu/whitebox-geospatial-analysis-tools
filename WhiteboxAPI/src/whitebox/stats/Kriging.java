@@ -69,6 +69,7 @@ import whitebox.structures.KdTree;
 import java.util.Random;
 import jmetal.util.JMException;
 import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
+import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  *
@@ -162,8 +163,9 @@ public class Kriging {
 
     public enum SemivariogramType {
 
-        Spherical, Exponential, Gaussian
+        SPHERICAL, EXPONENTIAL, GAUSSIAN
     }
+
     public double Range;        //SemiVariogram a value
     public double Sill;        //SemiVariogram h value
     public double Nugget;       //Semivariogram Nugget value
@@ -236,7 +238,7 @@ public class Kriging {
      *
      * @param Range
      */
-    void CalcBins4Sec(double Range) {
+    void calcBins4Sec(double Range) {
         int ad = 0;
         if (Range % this.LagSize == 0) {
             ad = 0;
@@ -267,8 +269,6 @@ public class Kriging {
                 bins[i][0].Value = bins[i][0].Value / bins[i][0].Size;
             }
         }
-        //==========================
-
     }
 
     /**
@@ -280,7 +280,7 @@ public class Kriging {
      * @param Tolerance
      * @param BandWidth
      */
-    void CalcBins4Sec(double Range, double Angle, double Tolerance, double BandWidth) {
+    void calcBins4Sec(double Range, double Angle, double Tolerance, double BandWidth) {
         int ad = 0;
         if (Range % this.LagSize == 0) {
             ad = 0;
@@ -829,6 +829,7 @@ public class Kriging {
         LevenbergMarquardt optimizer = new LevenbergMarquardt() {
             // Override your objective function here
 
+            @Override
             public void setValues(double[] parameters, double[] values) {
                 //parameters[0] = sill, parameters[1] Range, parameters[2] nugget    
 //                double [] x = new double[values.length];
@@ -836,7 +837,7 @@ public class Kriging {
 //                        x[i]=bins[i][ nthSVariogram].Distance;
 //                    }
                 switch (SVType) {
-                    case Exponential:
+                    case EXPONENTIAL:
                         for (int i = 0; i < x.length; i++) {
                             if (x[i] != 0) {
                                 values[i] = (ConsiderNugget ? parameters[2] : 0) + parameters[0] * (1 - Math.exp(-x[i] / parameters[1]));
@@ -845,7 +846,7 @@ public class Kriging {
                             }
                         }
                         break;
-                    case Gaussian:
+                    case GAUSSIAN:
                         for (int i = 0; i < x.length; i++) {
                             if (x[i] != 0) {
                                 values[i] = (ConsiderNugget ? parameters[2] : 0) + parameters[0] * (1 - Math.exp(-(Math.pow(x[i], 2)) / (Math.pow(parameters[1], 2))));
@@ -854,7 +855,7 @@ public class Kriging {
                             }
                         }
                         break;
-                    case Spherical:
+                    case SPHERICAL:
                         for (int i = 0; i < x.length; i++) {
                             if (x[0] > parameters[1]) {
                                 values[i] = (ConsiderNugget ? parameters[2] : 0) + parameters[0];
@@ -954,21 +955,21 @@ public class Kriging {
 
         double res = 0.0;
         switch (vario.Type) {
-            case Exponential:
+            case EXPONENTIAL:
                 if (Distance != 0) {
                     res = vario.Nugget + vario.Sill * (1 - Math.exp(-Distance / vario.Range));
                 } else {
                     res = 0;
                 }
                 break;
-            case Gaussian:
+            case GAUSSIAN:
                 if (Distance != 0) {
                     res = vario.Nugget + vario.Sill * (1 - Math.exp(-3 * (Math.pow(Distance, 2)) / (Math.pow(vario.Range, 2))));
                 } else {
                     res = 0;
                 }
                 break;
-            case Spherical:
+            case SPHERICAL:
 
                 if (Distance > vario.Range) {
                     res = vario.Nugget + vario.Sill;
@@ -993,7 +994,7 @@ public class Kriging {
         for (int i = 0; i < res.length; i++) {
             res[i][0] = i * MaximumDisplyDistanst / (2 * NumberOfLags);
             switch (vario.Type) {
-                case Exponential:
+                case EXPONENTIAL:
                     if (res[i][0] != 0) {
                         res[i][1] = vario.Nugget + vario.Sill * (1 - Math.exp(-res[i][0] / vario.Range));
                     } else {
@@ -1001,14 +1002,14 @@ public class Kriging {
                     }
 
                     break;
-                case Gaussian:
+                case GAUSSIAN:
                     if (res[i][0] != 0) {
                         res[i][1] = vario.Nugget + vario.Sill * (1 - Math.exp(-3 * (Math.pow(res[i][0], 2)) / (Math.pow(vario.Range, 2))));
                     } else {
                         res[i][1] = vario.Nugget;
                     }
                     break;
-                case Spherical:
+                case SPHERICAL:
                     if (res[i][0] > vario.Range) {
                         res[i][1] = vario.Nugget + vario.Sill;
                     } else if (res[i][0] > 0 && res[i][0] <= vario.Range) {
@@ -1080,7 +1081,7 @@ public class Kriging {
         //////////////////////
         Object[] data = null;
         double[][] geometry;
-        List<KrigingPoint> Points = new ArrayList<KrigingPoint>();
+        List<KrigingPoint> Points = new ArrayList<>();
 
         for (ShapeFileRecord record : input.records) {
             try {
@@ -1174,6 +1175,12 @@ public class Kriging {
         changes.addPropertyChangeListener(listener);
     }
 
+    WhiteboxPluginHost host = null;
+
+    public void setPluginHost(WhiteboxPluginHost host) {
+        this.host = host;
+    }
+
     /**
      * Produces the output raster
      *
@@ -1248,7 +1255,6 @@ public class Kriging {
             out.close();
 
         } catch (Exception e) {
-
             return;
         }
         int row, col;
@@ -1281,6 +1287,10 @@ public class Kriging {
         }
         image.addMetadataEntry("Created by the Kriging Interpolation Tool.");
         image.addMetadataEntry("Created on " + new Date());
+        image.addMetadataEntry("Semivariogram Model = " + SemiVariogramModel);
+        image.addMetadataEntry("Range = " + Range);
+        image.addMetadataEntry("Sill = " + Sill);
+        image.addMetadataEntry("Nugget = " + Nugget);
 
         image.close();
     }
@@ -1372,6 +1382,180 @@ public class Kriging {
         return outPnts;
     }
 
+    public void interpolateRaster(Variogram variogram, int numberOfNearestPoints, WhiteboxRaster raster, boolean mapError) {
+        int row, col;
+        int rows = raster.getNumberRows();
+        int cols = raster.getNumberColumns();
+        double easting, northing;
+        double e;
+
+        double[][] D = new double[numberOfNearestPoints + 1][1];
+
+        List<KrigingPoint> nnPoints = new ArrayList();
+        int progress;
+        int oldProgress = -1;
+        for (row = 0; row < rows; row++) {
+            for (col = 0; col < cols; col++) {
+                easting = raster.getXCoordinateFromColumn(col);
+                northing = raster.getYCoordinateFromRow(row);
+                KrigingPoint pnt = new KrigingPoint(easting, northing, 0.0d);
+
+                nnPoints = getNNpoints(this.pointsTree, pnt, numberOfNearestPoints);
+
+                double[][] C = CalcConstantCoef(variogram, nnPoints);
+                double[] tm = CalcVariableCoef(variogram, pnt, nnPoints);
+                for (int i = 0; i < tm.length; i++) {
+                    D[i][0] = tm[i];
+                }
+                Matrix tmp = Matrix.constructWithCopy(C);
+                Matrix VariableCoef = Matrix.constructWithCopy(D);
+                Matrix w = null;
+                //boolean flag = false;
+                try {
+                    double vs = 0;
+                    w = tmp.solve(VariableCoef);
+                    double[][] Wi = w.getArray();
+                    double s = 0;
+                    for (int i = 0; i < Wi.length - 1; i++) {
+                        s = s + Wi[i][0] * nnPoints.get(i).z;
+                        vs = vs + Wi[i][0] * D[i][0];
+                    }
+                    e = vs + Wi[Wi.length - 1][0];
+                    if (!mapError) {
+                        raster.setValue(row, col, s);
+                    } else {
+                        raster.setValue(row, col, e);
+                    }
+
+                } catch (Exception ex) {
+                    SingularValueDecomposition svd = tmp.svd();
+                    Matrix u = svd.getU();
+                    Matrix s = svd.getS();
+                    Matrix v = svd.getV();
+
+                    int rrr = svd.rank();
+                    double[][] stemp = s.getArray();
+                    for (int nn = 0; nn < stemp.length; nn++) {
+                        if (stemp[nn][nn] > 0.003) {
+                            stemp[nn][nn] = 1 / stemp[nn][nn];
+                        } else {
+                            stemp[nn][nn] = 0;
+                        }
+                    }
+                    Matrix sp = new Matrix(stemp);
+                    w = v.times(sp).times(u.transpose()).times(VariableCoef);
+                    //Matrix test = tmp.times(w).minus(VariableCoef);
+                    double[][] Wi = w.getArray();
+                    double ss = 0;
+                    double vs = 0;
+                    for (int i = 0; i < Wi.length - 1; i++) {
+                        ss = ss + Wi[i][0] * nnPoints.get(i).z;
+                        vs = vs + Wi[i][0] * D[i][0];
+                    }
+                    e = vs + Wi[Wi.length - 1][0];
+                    if (!mapError) {
+                        raster.setValue(row, col, ss);
+                    } else {
+                        raster.setValue(row, col, e);
+                    }
+                }
+            }
+
+            progress = (int) (100f * row / (rows - 1.0));
+            if (progress > oldProgress) {
+                changes.firePropertyChange("progress", oldProgress, progress);
+                if (host != null) {
+                    host.updateProgress("Interpolating Data:", progress);
+                }
+                oldProgress = progress;
+            }
+        }
+    }
+    
+    public void interpolateRaster(Variogram variogram, int numberOfNearestPoints, WhiteboxRaster raster, WhiteboxRaster errorRaster) {
+        int row, col;
+        int rows = raster.getNumberRows();
+        int cols = raster.getNumberColumns();
+        double easting, northing;
+        double e;
+
+        double[][] D = new double[numberOfNearestPoints + 1][1];
+
+        List<KrigingPoint> nnPoints = new ArrayList();
+        int progress;
+        int oldProgress = -1;
+        for (row = 0; row < rows; row++) {
+            for (col = 0; col < cols; col++) {
+                easting = raster.getXCoordinateFromColumn(col);
+                northing = raster.getYCoordinateFromRow(row);
+                KrigingPoint pnt = new KrigingPoint(easting, northing, 0.0d);
+
+                nnPoints = getNNpoints(this.pointsTree, pnt, numberOfNearestPoints);
+
+                double[][] C = CalcConstantCoef(variogram, nnPoints);
+                double[] tm = CalcVariableCoef(variogram, pnt, nnPoints);
+                for (int i = 0; i < tm.length; i++) {
+                    D[i][0] = tm[i];
+                }
+                Matrix tmp = Matrix.constructWithCopy(C);
+                Matrix VariableCoef = Matrix.constructWithCopy(D);
+                Matrix w = null;
+                //boolean flag = false;
+                try {
+                    double vs = 0;
+                    w = tmp.solve(VariableCoef);
+                    double[][] Wi = w.getArray();
+                    double s = 0;
+                    for (int i = 0; i < Wi.length - 1; i++) {
+                        s = s + Wi[i][0] * nnPoints.get(i).z;
+                        vs = vs + Wi[i][0] * D[i][0];
+                    }
+                    e = vs + Wi[Wi.length - 1][0];
+                    raster.setValue(row, col, s);
+                    errorRaster.setValue(row, col, e);
+
+                } catch (Exception ex) {
+                    SingularValueDecomposition svd = tmp.svd();
+                    Matrix u = svd.getU();
+                    Matrix s = svd.getS();
+                    Matrix v = svd.getV();
+
+                    int rrr = svd.rank();
+                    double[][] stemp = s.getArray();
+                    for (int nn = 0; nn < stemp.length; nn++) {
+                        if (stemp[nn][nn] > 0.003) {
+                            stemp[nn][nn] = 1 / stemp[nn][nn];
+                        } else {
+                            stemp[nn][nn] = 0;
+                        }
+                    }
+                    Matrix sp = new Matrix(stemp);
+                    w = v.times(sp).times(u.transpose()).times(VariableCoef);
+                    //Matrix test = tmp.times(w).minus(VariableCoef);
+                    double[][] Wi = w.getArray();
+                    double ss = 0;
+                    double vs = 0;
+                    for (int i = 0; i < Wi.length - 1; i++) {
+                        ss = ss + Wi[i][0] * nnPoints.get(i).z;
+                        vs = vs + Wi[i][0] * D[i][0];
+                    }
+                    e = vs + Wi[Wi.length - 1][0];
+                    raster.setValue(row, col, ss);
+                    errorRaster.setValue(row, col, e);
+                }
+            }
+
+            progress = (int) (100f * row / (rows - 1.0));
+            if (progress > oldProgress) {
+                changes.firePropertyChange("progress", oldProgress, progress);
+                if (host != null) {
+                    host.updateProgress("Interpolating Data:", progress);
+                }
+                oldProgress = progress;
+            }
+        }
+    }
+    
     /**
      * Gets the variogram and unknown point list and returns the interpolated
      * values for the unknown points It also calculates the Kriging Variance and
@@ -1379,28 +1563,32 @@ public class Kriging {
      *
      * @param variogram
      * @param pnts
+     * @param numberOfNearestPoints
      * @return
      */
-    public List<KrigingPoint> InterpolatePoints(Variogram variogram, List<KrigingPoint> pnts, int NumberOfNearestPoints) {
+    public List<KrigingPoint> interpolatePoints(Variogram variogram, List<KrigingPoint> pnts, int numberOfNearestPoints) {
 
-        double[] res = new double[NumberOfNearestPoints];
-        double[][] D = new double[NumberOfNearestPoints + 1][1];
+        //double[] res = new double[numberOfNearestPoints];
+        double[][] D = new double[numberOfNearestPoints + 1][1];
 
         List<KrigingPoint> nnPoints = new ArrayList();
         List<KrigingPoint> outPnts = new ArrayList();
-        for (int n = 0; n < pnts.size(); n++) {
-            nnPoints = getNNpoints(this.pointsTree, pnts.get(n), NumberOfNearestPoints);
+        int progress;
+        int oldProgress = -1;
+        int numPoints = pnts.size();
+
+        for (int n = 0; n < numPoints; n++) {
+            nnPoints = getNNpoints(this.pointsTree, pnts.get(n), numberOfNearestPoints);
 
             double[][] C = CalcConstantCoef(variogram, nnPoints);
-            double[] tm = CalcVariableCoef(variogram, pnts.get(n), nnPoints); ///------------
+            double[] tm = CalcVariableCoef(variogram, pnts.get(n), nnPoints);
             for (int i = 0; i < tm.length; i++) {
                 D[i][0] = tm[i];
             }
-            //double[][] d = {{1,2,3},{4,5,6,},{7,8,10}};
             Matrix tmp = Matrix.constructWithCopy(C);
             Matrix VariableCoef = Matrix.constructWithCopy(D);
             Matrix w = null;
-            boolean flag = false;
+            //boolean flag = false;
             try {
                 double vs = 0;
                 w = tmp.solve(VariableCoef);
@@ -1412,9 +1600,9 @@ public class Kriging {
                 }
                 KrigingPoint pnt = new KrigingPoint(pnts.get(n).x, pnts.get(n).y, s);
                 pnt.v = vs + Wi[Wi.length - 1][0];
-                if (pnt.v <= 0) {
-                    pnt.v = pnt.v;
-                }
+//                if (pnt.v <= 0) {
+//                    pnt.v = pnt.v;
+//                }
                 outPnts.add(pnt);
                 //pnts.get(n).z = s;
                 //res[n]=s;
@@ -1425,9 +1613,6 @@ public class Kriging {
                 Matrix u = svd.getU();
                 Matrix s = svd.getS();
                 Matrix v = svd.getV();
-                //u.print(u.getRowDimension(), u.getColumnDimension());
-                //s.print(s.getRowDimension(), s.getColumnDimension());
-                //v.print(v.getRowDimension(), v.getColumnDimension());
 
                 int rrr = svd.rank();
                 double[][] stemp = s.getArray();
@@ -1465,6 +1650,15 @@ public class Kriging {
 
                 //pnts.get(n).z = ss;
                 ss = 0;
+            }
+
+            progress = (int) (100f * n / (numPoints - 1.0));
+            if (progress > oldProgress) {
+                changes.firePropertyChange("progress", oldProgress, progress);
+                if (host != null) {
+                    host.updateProgress("Interpolating Data:", progress);
+                }
+                oldProgress = progress;
             }
         }
 
@@ -1606,22 +1800,19 @@ public class Kriging {
      * points and boundary It also build the KDTree object to be used with the
      * Kriging
      */
-    void CalPairs4Sec() throws FileNotFoundException {
+    void calPairs4Sec() throws FileNotFoundException {
         MaximumDistance = 0;
         MinX = Double.POSITIVE_INFINITY;
         MinY = Double.POSITIVE_INFINITY;
         MaxX = Double.NEGATIVE_INFINITY;
         MaxY = Double.NEGATIVE_INFINITY;
-        pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.Points.size()));
+        pointsTree = new KdTree.SqrEuclid<>(2, new Integer(this.Points.size()));
         //PairsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.Points.size()*(this.Points.size()-1)/2));
-        PairsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.Points.size() * (this.Points.size())));
+        PairsTree = new KdTree.SqrEuclid<>(2, new Integer(this.Points.size() * (this.Points.size())));
         double[] entry;
         double[] pairentry;
 
-        String s = new String();
-//        PrintWriter pw ;
-//        pw = new PrintWriter("G:\\test.txt");
-
+//        String s = new String();
         double dx = 0;
         double dy = 0;
         for (int i = 0; i < this.Points.size(); i++) {
@@ -1688,15 +1879,7 @@ public class Kriging {
                     pairentry = new double[]{pr.VerDistance, pr.HorDistance};
                     PairsTree.addPoint(pairentry, (double) Pairs.size() - 1.0);
 
-//                    s =  Double.toString(pr.Distance) + "," + Double.toString(pr.Direction)+
-//                            "," + Double.toString(pr.MomentI)+
-//                            "," + Double.toString(pr.HorDistance)+
-//                            ","+Double.toString(pr.VerDistance)+
-//                            "," + Integer.toString(pr.FirstP)+
-//                            "," + Integer.toString(pr.SecondP);
-                    //System.out.println(s);
                 }
-
             }
         }
 
@@ -1706,7 +1889,6 @@ public class Kriging {
         bMaxY = MaxY;
         bMinX = MinX;
         bMinY = MinY;
-
     }
 
     /**
@@ -1820,11 +2002,10 @@ public class Kriging {
      * It gets the semivariogram type and bins list and draw a graph for them
      * TheoryVariogram should be called first
      *
-     * @param Bins
+     * @param bins
      * @param variogram
-     * @param Type
      */
-    public void DrawSemivariogram(bin[][] Bins, Variogram variogram) {
+    public void DrawSemivariogram(bin[][] bins, Variogram variogram) {
         XYSeriesCollection sampleCollct = new XYSeriesCollection();
         XYSeries series = new XYSeries("Sample Variogram");
 //        for (Iterator<bin> i = bins.iterator(); i.hasNext(); )
@@ -1835,10 +2016,10 @@ public class Kriging {
 //        }
         XYLineAndShapeRenderer xylineshapRend = new XYLineAndShapeRenderer(false, true);
         CombinedRangeXYPlot combinedrangexyplot = new CombinedRangeXYPlot();
-        for (int i = 0; i < Bins[0].length; i++) {
-            for (int k = 0; k < Bins.length; k++) {
-                if (!Double.isNaN(Bins[k][i].Value)) {
-                    series.add(Bins[k][i].Distance, Bins[k][i].Value);
+        for (int i = 0; i < bins[0].length; i++) {
+            for (int k = 0; k < bins.length; k++) {
+                if (!Double.isNaN(bins[k][i].Value)) {
+                    series.add(bins[k][i].Distance, bins[k][i].Value);
                 }
             }
             sampleCollct.addSeries(series);
@@ -1859,7 +2040,6 @@ public class Kriging {
             xyplot1.setRenderer(1, lineshapRend);
             xyplot1.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
             combinedrangexyplot.add(xyplot1);
-
         }
 
         DecimalFormat df = new DecimalFormat("###,##0.000");
@@ -1913,44 +2093,44 @@ public class Kriging {
      * Variogram Points list should be filled first This function fills the Sill
      * and Range in the Kriging object
      *
-     * @param Type
-     * @param DistanseRatio is the ratio of the maximum distance in point to the
+     * @param type
+     * @param distanceRatio is the ratio of the maximum distance in point to the
      * maximum distance of the variogram
-     * @param NumberOfLags
-     * @param Anisotropic
-     * @param UseNSGA
+     * @param numberOfLags
+     * @param anisotropic
+     * @param useNSGA
      * @return
      */
-    public Variogram Semivariogram(SemivariogramType Type, double DistanseRatio, int NumberOfLags,
-            boolean Anisotropic, boolean UseNSGA) {
-        this.NumberOfLags = NumberOfLags;
+    public Variogram getSemivariogram(SemivariogramType type, double distanceRatio, int numberOfLags,
+            boolean anisotropic, boolean useNSGA) {
+        this.NumberOfLags = numberOfLags;
         try {
-            CalPairs4Sec();
+            calPairs4Sec();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Kriging.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (this.LagSize == 0) {
-            this.LagSize = (this.MaximumDistance * DistanseRatio) / this.NumberOfLags;
+            this.LagSize = (this.MaximumDistance * distanceRatio) / this.NumberOfLags;
         }
 
         int n = 0;
-        if (!Anisotropic) {
+        if (!anisotropic) {
             n = 0;
-            CalcBins4Sec(this.LagSize * this.NumberOfLags);
+            calcBins4Sec(this.LagSize * this.NumberOfLags);
         } else {
             n = 0;
-            CalcBins4Sec(this.LagSize * this.NumberOfLags, this.Angle, this.Tolerance, this.BandWidth);
+            calcBins4Sec(this.LagSize * this.NumberOfLags, this.Angle, this.Tolerance, this.BandWidth);
         }
-        return (UseNSGA) ? TheoryVariogramNSGA(Type, n) : TheoryVariogram(Type, n);
+        return (useNSGA) ? TheoryVariogramNSGA(type, n) : TheoryVariogram(type, n);
     }
 
-    public Variogram Semivariogram(SemivariogramType Type, double Range, double Sill, double Nugget,
-            boolean Anisotropic) {
+    public Variogram getSemivariogram(SemivariogramType type, double range, double sill, double nugget,
+            boolean anisotropic) {
         Variogram var = new Variogram();
-        var.Type = Type;
-        var.Range = Range;
-        var.Sill = Sill;
-        var.Nugget = Nugget;
+        var.Type = type;
+        var.Range = range;
+        var.Sill = sill;
+        var.Nugget = nugget;
         return var;
     }
 
@@ -1989,7 +2169,7 @@ public class Kriging {
 
             for (int i = 0; i < 13; i++) {
                 k.Angle = Math.PI / 12.0 * i;
-                Variogram var = k.Semivariogram(SemivariogramType.Spherical, 1, k.NumberOfLags, true, true);
+                Variogram var = k.getSemivariogram(SemivariogramType.SPHERICAL, 1, k.NumberOfLags, true, true);
                 pw.println(k.Angle + "," + var.Range + "," + var.Sill + "," + var.Nugget);
                 pw.flush();
                 System.out.println((i + 1) + " of 12");
