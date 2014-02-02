@@ -95,16 +95,16 @@ public class KrigingInterpolation implements ActionListener {
 			DialogDataInput txtCellSize = sd.addDialogDataInput("Output raster cell size.", "Cell Size (optional):", "", true, true)														
 			sd.addDialogFile("Input base file", "Base Raster File (optional):", "open", "Whitebox Raster Files (*.dep), DEP", true, true)
 
-			DialogDataInput txtNNeighbor = sd.addDialogDataInput("Enter number of neighbors.", "Number of Neighbors:", "5", true, false)											
+			DialogDataInput txtNNeighbor = sd.addDialogDataInput("Enter number of neighbors.", "Number of Neighbors:", "10", true, false)											
 			
 			sd.addDialogLabel(" ")
-            sd.addDialogLabel("<html><b>Semivariogram Parameters</b></html>")
+            sd.addDialogLabel("<html><b>Variogram Parameters</b></html>")
             
-			DialogComboBox cboxSVType = sd.addDialogComboBox("Enter semivariogram model type", "Model Type:", ["Gaussian", "Exponential", "Spherical"], 0)	
+			DialogComboBox cboxSVType = sd.addDialogComboBox("Enter variogram model type", "Model Type:", ["Gaussian", "Exponential", "Spherical"], 0)	
 			DialogDataInput txtNlag = sd.addDialogDataInput("Number of Lags.", "Number of Lags:", "12", true, false)																
 			DialogDataInput txtLagSize = sd.addDialogDataInput("Lag Size.", "Lag Size:", "", true, false)																			
 			
-			DialogCheckBox chxNugget = sd.addDialogCheckBox("Apply nugget in the theoretical semivariogram calculation ", "Apply Nugget:", true)									
+			DialogCheckBox chxNugget = sd.addDialogCheckBox("Apply nugget in the theoretical variogram calculation ", "Apply Nugget:", true)									
 
 			DialogCheckBox chxAnIsotropic = sd.addDialogCheckBox("Is the data Anisotropic", "Use Anisotropic Model:", false)														//15
 			DialogDataInput txtAngle = sd.addDialogDataInput("Angle (rad).", "Angle (Rad):", "", true, true)																		//16
@@ -114,10 +114,10 @@ public class KrigingInterpolation implements ActionListener {
 			txtTolerance.visible = false
 			txtBandWidth.visible = false
 
-			def btn = sd.addDialogButton("View Semivariogram", "Center")
+			def btn = sd.addDialogButton("View Variogram", "Center")
 			
-			DialogCheckBox chxCurve = sd.addDialogCheckBox("Show semivariogram curve", "Show Semivariogram:", true)															//13
-			DialogCheckBox chxMap = sd.addDialogCheckBox("Show semivariogram map", "Show Semivariogram Map:", true)																//14
+			DialogCheckBox chxCurve = sd.addDialogCheckBox("Show variogram curve", "Show Variogram:", true)															//13
+			DialogCheckBox chxMap = sd.addDialogCheckBox("Show variogram map", "Show Variogram Map:", true)																//14
 
 			btn.addActionListener(new ActionListener() {
  	            public void actionPerformed(ActionEvent e) {
@@ -319,13 +319,40 @@ public class KrigingInterpolation implements ActionListener {
 
 				switch (modelType) {
 					case "gaussian":
-						v = k.getSemivariogram(Kriging.SemivariogramType.GAUSSIAN, 1d, numLags , anisotropic, true);
+						v = k.getSemivariogram(Kriging.SemivariogramType.GAUSSIAN, 1d, numLags, anisotropic, true);
 						break
 					case "exponential":
-						v = k.getSemivariogram(Kriging.SemivariogramType.EXPONENTIAL, 1d, numLags , anisotropic, true);
+						v = k.getSemivariogram(Kriging.SemivariogramType.EXPONENTIAL, 1d, numLags, anisotropic, true);
 						break
 					default: // spherical
-						v = k.getSemivariogram(Kriging.SemivariogramType.SPHERICAL, 1d, numLags , anisotropic, true);
+						v = k.getSemivariogram(Kriging.SemivariogramType.SPHERICAL, 1d, numLags, anisotropic, true);
+				}
+			} else if (k != null && v != null) {
+				if (k.LagSize != lagSize || k.NumberOfLags != numLags) {
+					pluginHost.updateProgress("Calculating Semivariogram...", 0)
+					k = new Kriging()
+	
+					addPropertyListenerToKriging(k)
+					k.ConsiderNugget = applyNugget
+					k.Points = k.ReadPointFile(inputData[0], inputData[1])
+			        k.LagSize =  lagSize
+			        k.Anisotropic = anisotropic
+			        if (anisotropic) {
+						k.Angle = angle
+						k.BandWidth = bandWidth
+						k.Tolerance = tolerance
+					}
+	
+					switch (modelType) {
+						case "gaussian":
+							v = k.getSemivariogram(Kriging.SemivariogramType.GAUSSIAN, 1d, numLags, anisotropic, true);
+							break
+						case "exponential":
+							v = k.getSemivariogram(Kriging.SemivariogramType.EXPONENTIAL, 1d, numLags, anisotropic, true);
+							break
+						default: // spherical
+							v = k.getSemivariogram(Kriging.SemivariogramType.SPHERICAL, 1d, numLags, anisotropic, true);
+					}
 				}
 			}
 
@@ -414,17 +441,66 @@ public class KrigingInterpolation implements ActionListener {
 				pluginHost.returnData(outputErrorFile)
 			}
 
-			StringBuilder statsReport = new StringBuilder()
-			statsReport.append("KRIGING REPORT:\n\n")
-			statsReport.append("Semivariogram Model:\t" + v.Type + "\n")
-			statsReport.append("Range:\t" + v.Range + "\n")
-			statsReport.append("Sill:\t" + v.Sill + "\n")
-			statsReport.append("Nugget:\t" + v.Nugget + "\n")
-			statsReport.append("Lag Size:\t" + lagSize + "\n")
-			statsReport.append("Num. Bins:\t" + numLags + "\n")
-			statsReport.append("RMSE:\t" + Math.sqrt(v.mse) + "\n")
+			DecimalFormat df = new DecimalFormat("###,###,###,##0.000")
+			
+			StringBuilder ret = new StringBuilder()
+			ret.append("<!DOCTYPE html>")
+			ret.append('<html lang="en">')
 
-			pluginHost.returnData(statsReport.toString())
+			ret.append("<head>")
+//            ret.append("<meta content=\"text/html; charset=iso-8859-1\" http-equiv=\"content-type\">")
+            ret.append("<title>Kriging Report</title>").append("\n")
+            
+            ret.append("<style>")
+			ret.append("table {margin-left: 15px;} ")
+			ret.append("h1 {font-size: 14pt; margin-left: 15px; margin-right: 15px; text-align: center; font-family: Helvetica, Verdana, Geneva, Arial, sans-serif;} ")
+			ret.append("p {font-size: 12pt; font-family: Helvetica, Verdana, Geneva, Arial, sans-serif; margin-left: 15px; margin-right: 15px;} ")
+			ret.append("table {font-size: 12pt; font-family: Helvetica, Verdana, Geneva, Arial, sans-serif;}")
+			ret.append("table th {border-width: 1px; padding: 8px; border-style: solid; border-color: #666666; background-color: #dedede; }")
+			ret.append("table td {border-width: 1px; padding: 8px; border-style: solid; border-color: #666666; background-color: #ffffff; }")
+			ret.append("caption {font-family: Helvetica, Verdana, Geneva, Arial, sans-serif; margin-left: 15px; margin-right: 15px;} ")
+			ret.append(".numberCell { text-align: right; }") 
+            ret.append("</style></head>").append("\n")
+            ret.append("<body><h1>Kriging Report</h1>").append("\n")
+
+        
+			ret.append("<p><b>Input File Name:</b> &nbsp ").append(new File(inputFile).getName()).append("<br>\n")
+			ret.append("<b>Output File Name:</b> &nbsp ").append(new File(outputFile).getName()).append("\n")
+			if (!outputErrorFile.toLowerCase().equals("not specified")) {
+				ret.append("<br><b>Output Error File Name:</b> &nbsp ").append(new File(outputErrorFile).getName()).append("</p>\n")
+			} else {
+				ret.append("</p>")
+			}
+			
+			ret.append("<br><table border=\"1\" cellspacing=\"0\" cellpadding=\"3\">").append("\n")
+			
+			ret.append("<tr><th>Characteristic</th><th>Value</th></tr>")
+
+			ret.append("<tr><td>Semivariogram Model</td><td class=\"numberCell\">")
+			ret.append(v.Type).append("</td></tr>").append("\n")
+
+			ret.append("<tr><td>Range</td><td class=\"numberCell\">")
+			ret.append(df.format(v.Range)).append("</td></tr>").append("\n")
+
+			ret.append("<tr><td>Sill</td><td class=\"numberCell\">")
+			ret.append(df.format(v.Sill)).append("</td></tr>").append("\n")
+
+			ret.append("<tr><td>Nugget</td><td class=\"numberCell\">")
+			ret.append(df.format(v.Nugget)).append("</td></tr>").append("\n")
+
+			ret.append("<tr><td>Lag Size</td><td class=\"numberCell\">")
+			ret.append(df.format(lagSize)).append("</td></tr>").append("\n")
+
+			ret.append("<tr><td>Number of Bins</td><td class=\"numberCell\">")
+			ret.append(numLags).append("</td></tr>").append("\n")
+
+			ret.append("<tr><td>RMSE</td><td class=\"numberCell\">")
+			ret.append(df.format(Math.sqrt(v.mse))).append("</td></tr>").append("\n")
+
+			ret.append("</table>")
+
+			ret.append("</body></html>")
+			pluginHost.returnData(ret.toString());
 			
 		} catch (Exception e) {
 			pluginHost.showFeedback("An error has occurred during operation. See log file for details.")

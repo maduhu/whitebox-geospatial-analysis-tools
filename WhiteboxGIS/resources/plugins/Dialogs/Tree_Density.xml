@@ -1,4 +1,4 @@
-<Dialog Name="Tree_Density" HelpFile="LiDAR_PointDensity.html">
+<Dialog Name="Tree_Density" HelpFile="Tree_Density.html">
 	<DialogComponent type="DialogFile">
 		<Name>InputFile</Name>
 		<Description>Enter the name of the input file here</Description>
@@ -27,7 +27,7 @@
 		<LabelText>Threshold Tree Height:</LabelText>
 		<IsVisible>True</IsVisible>
 		<InitialText>0</InitialText>
-		<NumericalInputOnly>Ture</NumericalInputOnly>
+		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
 
@@ -37,7 +37,7 @@
 		<LabelText>a:</LabelText>
 		<IsVisible>True</IsVisible>
 		<InitialText>2.51503</InitialText>
-		<NumericalInputOnly>Ture</NumericalInputOnly>
+		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
 
@@ -47,7 +47,7 @@
 		<LabelText>b:</LabelText>
 		<IsVisible>True</IsVisible>
 		<InitialText>0</InitialText>
-		<NumericalInputOnly>Ture</NumericalInputOnly>
+		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
 
@@ -57,7 +57,7 @@
 		<LabelText>c:</LabelText>
 		<IsVisible>True</IsVisible>
 		<InitialText>0.00901</InitialText>
-		<NumericalInputOnly>Ture</NumericalInputOnly>
+		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
 
@@ -67,7 +67,7 @@
 		<LabelText>Maximum Tree Height</LabelText>
 		<IsVisible>True</IsVisible>
 		<InitialText>50</InitialText>
-		<NumericalInputOnly>Ture</NumericalInputOnly>
+		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
 
@@ -77,7 +77,7 @@
 		<LabelText>Cell Size</LabelText>
 		<IsVisible>True</IsVisible>
 		<InitialText>1</InitialText>
-		<NumericalInputOnly>Ture</NumericalInputOnly>
+		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
 
@@ -87,7 +87,7 @@
 		<LabelText>Search Radius</LabelText>
 		<IsVisible>True</IsVisible>
 		<InitialText>100</InitialText>
-		<NumericalInputOnly>Ture</NumericalInputOnly>
+		<NumericalInputOnly>True</NumericalInputOnly>
 		<MakeOptional>False</MakeOptional>
 	</DialogComponent>
 

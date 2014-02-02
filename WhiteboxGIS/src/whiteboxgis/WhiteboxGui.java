@@ -384,9 +384,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (defaultQualPalette.equals("")) {
                 defaultQualPalette = "qual.pal";
             }
-            
+
 //            initializeFontSize();
-                    
             this.createGui();
 
             if (newInstall) {
@@ -468,7 +467,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                             el = (Element) nl.item(0);
                             downloadLocation = el.getFirstChild().getNodeValue().replace("\"", "");
                         }
-                        
+
                         nl = docElement.getElementsByTagName("DownloadArtifact");
                         if (nl.getLength() > 0) {
                             el = (Element) nl.item(0);
@@ -555,7 +554,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         });
         return true;
     }
-    
+
 //    public static void initializeFontSize() {
 //        String fontSizeParam = "8"; //System.getProperty("myapp.fontSize");
 //        if (fontSizeParam != null) {
@@ -577,7 +576,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //            }
 //        }
 //    }
-
     private String getTextValue(Element ele, String tagName) {
         String textVal = "";
         try {
@@ -718,7 +716,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         || !containsDescription || !containsToolboxes
                         || !containsPluginType)) {
                     if (!strLine.startsWith("#")) {
-                        if (strLine.startsWith("name = \"")
+                        if (strLine.startsWith("name = \"")  && name.isEmpty()
                                 && !strLine.toLowerCase().contains("descriptivename")
                                 && !strLine.toLowerCase().contains("filetypename")) {
                             containsName = true;
@@ -852,7 +850,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
                         || !containsDescription || !containsToolboxes)) {
-                    if (strLine.toLowerCase().contains("name = \"")
+                    if (strLine.contains("name = \"") && name.isEmpty()
                             && !strLine.toLowerCase().contains("descriptivename")) {
                         containsName = true;
                         // now retreive the name
@@ -938,7 +936,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         || !containsIsRasterFormat || !containsPluginType
                         || containsParentMenu || !containsMenuLabel)) {
                     if (!strLine.startsWith("//")) {
-                        if (strLine.toLowerCase().contains("name = \"")
+                        if (strLine.contains("name = \"") && name.isEmpty()
                                 && !strLine.toLowerCase().contains("descriptivename")
                                 && !strLine.toLowerCase().contains("filetypename")) {
                             containsName = true;
@@ -1363,22 +1361,23 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 } else if (retStr.endsWith(".html") && retStr.contains(pathSep)) {
                     // display this markup in a webbrowser component
                     try {
-                        JFrame frame = new HTMLViewer(retStr);
+                        JFrame frame = new HTMLViewer(this, retStr);
                         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                         frame.setSize(600, 600);
                         frame.setVisible(true);
                     } catch (Exception e) {
-                        System.err.println(e.getMessage());
+                        logger.log(Level.SEVERE, "WhiteboxGui.returnData", e);
                     }
-//            } else if (retStr.contains("<html>") && retStr.contains("</html>")) {
-//                // display this markup in a webbrowser component
-//                try {
-//                    JFrame frame = new HTMLViewer(retStr);
-//                    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-//                    frame.setSize(600, 600);
-//                    frame.setVisible(true);
-//                } catch (Exception e) {
-//                }
+                } else if (retStr.contains("<html") && retStr.contains("</html>")) {
+                    // display this markup in a webbrowser component
+                    try {
+                        JFrame frame = new HTMLViewer(this, retStr);
+                        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                        frame.setSize(600, 600);
+                        frame.setVisible(true);
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE, "WhiteboxGui.returnData", e);
+                    }
                 } else if (retStr.toLowerCase().startsWith("newmap")) {
                     String mapName = "NewMap";
                     if (retStr.contains(":")) {
@@ -2829,12 +2828,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             helpAbout.addActionListener(this);
             helpMenu.add(helpAbout);
 
-//            HelpMenu.addSeparator();
-//
-//            JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
-//            helpReport.setActionCommand("helpReport");
-//            helpReport.addActionListener(this);
-//            HelpMenu.add(helpReport);
+            helpMenu.addSeparator();
+
+            JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
+            helpReport.setActionCommand("helpReport");
+            helpReport.addActionListener(this);
+            helpMenu.add(helpReport);
             menubar.add(helpMenu);
 
             this.setJMenuBar(menubar);
@@ -3222,7 +3221,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewButtonGroup.add(pan);
             viewButtonGroup.add(zoomOut);
             viewButtonGroup.add(zoomIntoBox);
-            select.setSelected(true);
+            //select.setSelected(true);
+            zoomIntoBox.setSelected(true);
+            //openMaps.get(activeMap).deslectAllCartographicElements();
+            //refreshMap(false);
+            drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOM);
+            selectMenuItem.setState(false);
+            selectFeatureMenuItem.setState(false);
+            zoomMenuItem.setState(true);
+            zoomOutMenuItem.setState(false);
+            panMenuItem.setState(false);
 
             JButton previousExtent = makeToolBarButton("back.png", "previousExtent",
                     bundle.getString("PreviousExtent"), "Prev Extent");
@@ -3737,7 +3745,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             doc.getDocumentElement().normalize();
             Node topNode = doc.getFirstChild();
             DefaultMutableTreeNode result = populateTree(topNode);
-            
+
             // This adds any tools that may be contain in the top-level and 
             // not in any toolbox.
             ArrayList<String> t = findToolsInToolbox("topmost");
@@ -3753,9 +3761,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     result.add(childTreeNode2);
                 }
             }
-            
+
             tree = new JTree(result); //populateTree(topNode));
-            
+
             MouseListener ml = new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
@@ -4090,7 +4098,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //                result.add(childTreeNode2);
 //            }
 //        }
-
         return result;
 
     }
@@ -6857,9 +6864,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
         }
 
-        reportOutput += "\nYou can contribute by writing a help entry for a plugin tool that doesn't currently have "
-                + "one (press the 'Create new help entry' button on the tool's dialog) or by improving the help entry "
-                + "for a tool that already has one. Email your work to jlindsay@uoguelph.ca.";
+        reportOutput += "\nYou can contribute by writing a help entry for a plugin tool that doesn't currently have \n"
+                + "one (press the 'Create new help entry' button on the tool's dialog) or by improving the help entry \n"
+                + "for a tool that already has one. Email your work to jlindsay@uoguelph.ca.\n";
 
         returnData(reportOutput);
 

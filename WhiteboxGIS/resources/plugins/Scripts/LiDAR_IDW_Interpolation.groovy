@@ -49,7 +49,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 	private int numSolvedTiles = 0
 	
 	public LiDAR_IDW_Interpolation(WhiteboxPluginHost pluginHost, 
-		String[] args, def descriptiveName) {
+		String[] args, def name, def descriptiveName) {
 		this.pluginHost = pluginHost
 		this.descriptiveName = descriptiveName
 			
@@ -64,19 +64,18 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 			// file in the help pane. This file should be be located 
 			// in the help directory and have the same name as the 
 			// class, with an html extension.
-			def helpFile = "LiDAR_IDW_Interpolation"
-			sd.setHelpFile(helpFile)
+			sd.setHelpFile(name)
 		
 			// Specifying the source file allows the 'view code' 
 			// button on the tool dialog to be displayed.
 			def pathSep = File.separator
-			def scriptFile = pluginHost.getResourcesDirectory() + "plugins" + pathSep + "Scripts" + pathSep + "LiDAR_IDW_Interpolation.groovy"
+			def scriptFile = pluginHost.getResourcesDirectory() + "plugins" + pathSep + "Scripts" + pathSep + name + ".groovy"
 			sd.setSourceFile(scriptFile)
 			
 			// add some components to the dialog
 			sd.addDialogMultiFile("Select the input LAS files", "Input LAS Files:", "LAS Files (*.las), LAS")
 			sd.addDialogDataInput("Output File Suffix (e.g. _lastReturn)", "Output File Suffix (e.g. _lastReturn)", "", false, false)
-			sd.addDialogComboBox("Interpolation Paramter:", "Interpolation Paramter:", ["Z (elevation)", "Intensity", "Scan Angle"], 0)
+			sd.addDialogComboBox("Interpolation Paramter:", "Interpolation Parameter:", ["Z (elevation)", "Intensity", "Scan Angle"], 0)
 			sd.addDialogComboBox("Point Return:", "Point Return:", ["All Points", "First Return", "Last Return"], 0)
 			sd.addDialogDataInput("IDW Exponent", "IDW Exponent", "2", true, false)
 			sd.addDialogDataInput("Max Search Distance (m)", "Max Search Distance (m)", "", true, false)
@@ -115,7 +114,10 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 		
 		// read the input parameters
 		final String inputFileString = args[0]
-		String suffix = " " + args[1].trim();
+		String suffix = ""
+		if (args[1] != null) {
+			suffix = " " + args[1].trim();
+		}
         String whatToInterpolate = args[2].toLowerCase();
         String returnNumberToInterpolate = args[3].toLowerCase();
         double weight = Double.parseDouble(args[4]);
@@ -567,5 +569,5 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 if (args == null) {
 	pluginHost.showFeedback("Plugin arguments not set.")
 } else {
-	def myClass = new LiDAR_IDW_Interpolation(pluginHost, args, descriptiveName)
+	def myClass = new LiDAR_IDW_Interpolation(pluginHost, args, name, descriptiveName)
 }

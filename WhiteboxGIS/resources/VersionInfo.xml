@@ -4,28 +4,22 @@
     <VersionNumber>"3.1.1"</VersionNumber>
     <DownloadLocation>"http://www.uoguelph.ca/~hydrogeo/Whitebox/download.shtml"</DownloadLocation>
     <DownloadArtifact>"http://www.uoguelph.ca/~hydrogeo/Whitebox/WhiteboxGAT.zip"</DownloadArtifact>
-    <Announcements number="13">
+    <Announcements number="14">
         <Announcement>
-            <Date>2014-01-19</Date>
+            <Date>2014-01-29</Date>
             <Language>en</Language>
-            <Title>Whitebox Version 3.1.1 Has Been Released</Title>
-            <Message><![CDATA[<p>Version 3.1.1 (January 19, 2014)</p> 
-                <p>A new version of Whitebox has been released.</p>
-                <ul>
-                <li>Added LongAxis tool for mapping the long axis of a polygon.</li>
-                <li>Modified the CompareImagesForDifferences tool to include a K-S test option.</li>
-                <li>Added MapGullyDepth tool for mapping gully features from high-res DEMs like LiDAR.</li>
-               <li>The IDW interpolator has been significantly modified to include greater flexibility
- in interpolation of vector point data. This includes the addition of alternative
- nodal functions and weight functions.</li>
-               <li>Added the ability to make a feature request from within Whitebox</li>
-                <li>Added the ability to report an error from within Whitebox.</li>
-                <li>It is now possible to add custom menu items from a script. See the new feature
- request and report error tools as examples of custom menu items.</li>
-                <li>Added raster increment and decrement tools.</li>
-                <li>Added a pop-up menu to the output textbox of the Scripter.</li>
-                <li>Updated the rsyntaxarea and autocomplete libraries to latest versions. These
- libraries are used by the Scripter and view-code window.</li></ul><]]>
+            <Title>Two new features worth checking out...</Title>
+            <Message><![CDATA[<p>I would like to draw your attention to two new 
+features of the latest version of Whitebox (v. 3.1.1). The <b>Request New Feature</b> 
+tool, located in the tools tab and in the Help menu, can be used to send a feature 
+request to the Whitebox development team. Features that have a greater number of 
+requests will move higher in the development priority queue, so send us your most 
+wanted new features! The second addition is the new <b>Error Reporting</b> feature, 
+also found under the Help menu. When you are using Whitebox and encounter an error, 
+use the new reporting tool to send the development team a description of the error 
+you encountered. The tool will automatically send us a copy of your log files as well 
+so that we can get a better idea of what went wrong. Both these new features will 
+help us to further improve Whitebox.</p><]]>
             </Message>
         </Announcement>
         <Announcement>

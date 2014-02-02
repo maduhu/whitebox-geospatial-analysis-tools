@@ -116,7 +116,7 @@ public class InterpolationIDW implements ActionListener {
             
             sd.addDialogLabel("<html><b>Neighbourhood Parameters</b></html>")
             sd.addDialogDataInput("Search distance.", "<html>Search Distance (<i>d<sub>max</sub> ):</html>", "", true, false)
-            sd.addDialogDataInput("Minimum Number of neighbours in subsample.", "Number of Points:", "", true, false)
+            sd.addDialogDataInput("Minimum Number of neighbours in subsample.", "Min. Number of Points:", "", true, false)
             sd.addDialogCheckBox("Use quadrant-based search", "Use quadrant-based search", false)
             
             def listener = { evt -> if (evt.getPropertyName().equals("value")) { 

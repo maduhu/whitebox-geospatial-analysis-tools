@@ -48,7 +48,7 @@ public class EstimateHeightsFromParallax implements ActionListener {
 	private String descriptiveName
 	
 	public EstimateHeightsFromParallax(WhiteboxPluginHost pluginHost, 
-		String[] args, def descriptiveName) {
+		String[] args, def name, def descriptiveName) {
 		this.pluginHost = pluginHost
 		this.descriptiveName = descriptiveName
 			
@@ -63,15 +63,14 @@ public class EstimateHeightsFromParallax implements ActionListener {
 			// file in the help pane. This file should be be located 
 			// in the help directory and have the same name as the 
 			// class, with an html extension.
-			def helpFile = "EstimateHeightsFromParallax"
-			sd.setHelpFile(helpFile)
+			sd.setHelpFile(name)
 		
 			// Specifying the source file allows the 'view code' 
 			// button on the tool dialog to be displayed.
 			def pathSep = File.separator
 			def scriptFile = pluginHost.getResourcesDirectory() + 
 			 "plugins" + pathSep + "Scripts" + pathSep + 
-			   "EstimateHeightsFromParallax.groovy"
+			   name + ".groovy"
 			sd.setSourceFile(scriptFile)
 			
 			// add some components to the dialog
@@ -187,5 +186,5 @@ public class EstimateHeightsFromParallax implements ActionListener {
 if (args == null) {
 	pluginHost.showFeedback("Plugin arguments not set.")
 } else {
-	def f = new EstimateHeightsFromParallax(pluginHost, args, descriptiveName)
+	def f = new EstimateHeightsFromParallax(pluginHost, args, name, descriptiveName)
 }

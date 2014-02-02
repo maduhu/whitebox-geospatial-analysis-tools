@@ -1,4 +1,5 @@
 from java.io import File
+from java.lang import StringBuilder
 
 # The following four variables are required for this 
 # script to be integrated into the tool tree panel. 
@@ -12,11 +13,44 @@ toolboxes = ["topmost"]
 parentMenu = "Help"
 menuLabel = "New Feature Request"
 
-pathSep = File.separator
-helpDirectory = pluginHost.getHelpDirectory()
-featureRequestFile = helpDirectory + "other" + pathSep + "FeatureRequest.html"
+try:
+	sb = StringBuilder()
+	sb.append("<!DOCTYPE html>")
+	sb.append("<html>")
+	sb.append("<head><meta charset=\"UTF-8\">")
+	sb.append("<title>New Feature Request</title>")
+	sb.append("<style media=\"screen\" type=\"text/css\">")
+	sb.append("table {margin-left: 15px;} ")
+	sb.append("form {text-align: center;} ")
+	sb.append("h1 {font-size: 14pt; margin-left: 15px; margin-right: 15px; text-align: center; font-family: Helvetica, Verdana, Geneva, Arial, sans-serif;} ")
+	sb.append("p {font-size: 12pt; font-family: Helvetica, Verdana, Geneva, Arial, sans-serif; margin-left: 15px; margin-right: 15px;} ")
+	sb.append("table {font-size: 12pt; font-family: Helvetica, Verdana, Geneva, Arial, sans-serif;}")
+	sb.append("table th {border-width: 1px; padding: 8px; border-style: solid; border-color: #666666; background-color: #dedede; }")
+	sb.append("table td {border-width: 1px; padding: 8px; border-style: solid; border-color: #666666; background-color: #ffffff; }")
+	sb.append("caption {font-family: Helvetica, Verdana, Geneva, Arial, sans-serif; margin-left: 15px; margin-right: 15px;} ")
+	sb.append(".numberCell { text-align: right; }")             
+	sb.append("</style> </head> <body>")
+	sb.append("<h1>New Feature Request</h1>")
+	sb.append("<p>You can help to improve Whitebox GAT by suggesting ways of making it ")
+	sb.append("even better. Describe the new feature or tool that you would like to ")
+	sb.append("see developed in the text-box below. At present, we can only accept ")
+	sb.append("feature requests written in English.</p><br>")
+	sb.append("<form onsubmit=\"return true\" action=\"http://www.uoguelph.ca/cgi-bin/FormMail.pl\"")
+	sb.append("method=\"post\" name=\"form1\" id=\"form1\">")
+	sb.append("<div align=\"center\">")
+	sb.append("Enter your name: <input name=\"realname\" type=\"text\"><br><br>")
+	sb.append("Enter your email: <input name=\"email\" type=\"text\"><br><br>")
+	sb.append("<textarea name=\"featureRequest\" form=\"form1\" rows=\"10\" cols=\"40\"></textarea><br><br>")
+	sb.append("<input value=\"Clear\" type=\"reset\"><input value=\"Submit\" type=\"submit\">")
+	sb.append("<input value=\"jlindsay@uoguelph.ca\" name=\"recipient\" type=\"hidden\">")
+	#sb.append("<input name=\"redirect\" value=\"http://www.uoguelph.ca/~hydrogeo/Whitebox/FeatureRequestRedirect.html\" type=\"hidden\">")
+	sb.append("<input value=\"Whitebox GAT feature request\" name=\"subject\" type=\"hidden\">")
+	sb.append("<input name=\"required\" value=\"email,realname\" type=\"hidden\"></div>")
+	sb.append("</form></body></html>")
+	sb.append("</form>")
+	sb.append("</body></html>")
+	
+	pluginHost.returnData(sb.toString())
 
-# This line just returns the html file within the help directory
-# that contains the script for emailing the suggestion. Clearly 
-# an internet connection is required.
-pluginHost.returnData(featureRequestFile)
+except Exception, value:
+	print value

@@ -303,7 +303,7 @@ public class EstimateHeightsFromParallax implements ActionListener {
 			leftTiePoints.write()
 			rightTiePoints.write()
 
-			pluginHost.showFeedback("Done!")
+			pluginHost.showFeedback("Operation complete. The calculated height data has been written \nto the attribute tables of the two tie point files.")
 			
 	  	} catch (OutOfMemoryError oe) {
             pluginHost.showFeedback("An out-of-memory error has occurred during operation.")

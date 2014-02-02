@@ -41,7 +41,7 @@ def toolboxes = ["Photogrammetry", "ImageEnhancement"]
 
 public class CorrectVignetting implements ActionListener {
 	private WhiteboxPluginHost pluginHost
-	private ScriptDialog sd;
+	private ScriptDialog sd
 	private String descriptiveName
 	
 	public CorrectVignetting(WhiteboxPluginHost pluginHost, 

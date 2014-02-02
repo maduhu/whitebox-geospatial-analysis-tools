@@ -84,14 +84,14 @@ public class FindTiePoints implements ActionListener {
 			sd.addDialogFile("Output tiepoints file right", "Right Output Points File:", "save", "Shapefiles (*.shp), SHP", true, false)
 			
 			sd.addDialogLabel(" ")
-			sd.addDialogLabel("<html><b><i>SURF Feature Detection Paramters:</i></b></html>")
+			sd.addDialogLabel("<html><b><i>SURF Feature Detection Parameters:</i></b></html>")
 			sd.addDialogDataInput("Threshold value", "Threshold Value:", "4.0", true, false)
             sd.addDialogDataInput("Number of octaves", "Number of Octaves:", "4", true, false)
             //sd.addDialogDataInput("Balance value", "Balance Value:", "0.81", true, false)
 			sd.addDialogDataInput("SURF point matching threshold value", "Matching Threshold Value:", "0.6", true, false)
 
             sd.addDialogLabel(" ")
-			sd.addDialogLabel("<html><b><i>Model-Fitting Paramters:</i></b></html>")
+			sd.addDialogLabel("<html><b><i>Model-Fitting Parameters:</i></b></html>")
 			sd.addDialogDataInput("Threshold value for determining when a datum fits a model", "Threshold Value For Removal:", "2.0", true, false)
             sd.addDialogDataInput("Polynomial order", "Polynomial Order:", "1", true, false)
             
