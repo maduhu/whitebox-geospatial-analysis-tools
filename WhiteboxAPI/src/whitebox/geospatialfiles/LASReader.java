@@ -101,6 +101,10 @@ public class LASReader {
         return versionMinor;
     }
 
+    public ArrayList<VariableLengthRecord> getVariableLengthRecords() {
+        return vlrArray;
+    }
+    
     public byte getGPSTimeType() {
         return GPSTimeType;
     }
@@ -647,6 +651,15 @@ public class LASReader {
                 buf.get(rawData);
                 vlr.setRawData(rawData);
                 
+                tmp1 = new short[rawData.length];
+                for (int j = 0; j < tmp1.length; j++) {
+                    tmp1[j] = Unsigned.getUnsignedByte(rawData[j]);
+                }
+                
+                String data = convertShortArrayToAscii(tmp1);
+                String decoded = new String(rawData, "ASCII"); 
+                vlr.setFormatedData(data);
+                
                 vlrArray.add(vlr);
                 
                 pos += 54 + vlr.getRecordLengthAfterHeader();
@@ -972,54 +985,63 @@ public class LASReader {
     
     
     // related classes
-    private class VariableLengthRecord {
+    public class VariableLengthRecord {
         // fields
         String userID;
         int recordID;
         int recordLengthAfterHeader;
         String description;
+        String data;
         
         byte[] rawData;
         
         // property getters and setters
-        String getUserID() {
+        public String getUserID() {
             return userID;
         }
         
-        void setUserID(String userID) {
+        public void setUserID(String userID) {
             this.userID = userID;
         }
         
-        int getRecordID() {
+        public int getRecordID() {
             return recordID;
         }
         
-        void setRecordID(int recordID) {
+        public void setRecordID(int recordID) {
             this.recordID = recordID;
         }
         
-        int getRecordLengthAfterHeader() {
+        public int getRecordLengthAfterHeader() {
             return recordLengthAfterHeader;
         }
         
-        void setRecordLengthAfterHeader(int recordLengthAfterHeader) {
+        public void setRecordLengthAfterHeader(int recordLengthAfterHeader) {
             this.recordLengthAfterHeader = recordLengthAfterHeader;
         }
         
-        String getDescription() {
+        public String getDescription() {
             return description;
         }
         
-        void setDescription(String description) {
+        public void setDescription(String description) {
             this.description = description;
         }
         
-        byte[] getRawData() {
+        public byte[] getRawData() {
             return rawData;
         }
         
-        void setRawData(byte[] rawData) {
+        public void setRawData(byte[] rawData) {
             this.rawData = rawData;
+        }
+        
+        public void setFormatedData(String data) {
+            this.data = data;
+        }
+        
+        public String getFormatedData() {
+            return this.data;
         }
     }
     
@@ -1028,7 +1050,7 @@ public class LASReader {
         private double y; //8 bytes
         private double z; //8 bytes
         private int intensity; //4 bytes
-        private byte classification; //2 bytes
+        private byte classification; //1 bytes
         private byte returnNumber; //1 byte
         private byte numberOfReturns; //1 byte
         private boolean scanDirectionFlag; //1 byte

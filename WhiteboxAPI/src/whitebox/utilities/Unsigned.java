@@ -18,7 +18,11 @@ import java.nio.ByteBuffer;
  * @version $Id: Unsigned.java,v 1.1 2002/02/12 22:06:44 ron Exp $
  */
 public class Unsigned {
-
+    
+    public static short getUnsignedByte(Byte b) {
+        return ((short) (b & 0xff));
+    }
+    
     public static short getUnsignedByte(ByteBuffer bb) {
         return ((short) (bb.get() & 0xff));
     }

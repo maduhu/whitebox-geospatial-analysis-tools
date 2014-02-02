@@ -102,10 +102,10 @@ public class Kriging {
         bMaxX = MaximumX;
         bMaxY = MaximumY;
     }
-    public double MinX;     //Minimum X Coordinat in the Points 
-    public double MinY;     //Minimum Y Coordinat in the Points
-    public double MaxX;     //Maximum X Coordinat in the Points
-    public double MaxY;     //Maximum Y Coordinat in the Points
+    public double MinX;     //Minimum X Coordinate in the Points 
+    public double MinY;     //Minimum Y Coordinate in the Points
+    public double MaxX;     //Maximum X Coordinate in the Points
+    public double MaxY;     //Maximum Y Coordinate in the Points
     public int NumberOfLags;
     public double LagSize;
     //public double 
