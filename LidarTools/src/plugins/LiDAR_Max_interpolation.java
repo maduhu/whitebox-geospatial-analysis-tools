@@ -244,7 +244,7 @@ public class LiDAR_Max_interpolation implements WhiteboxPlugin {
         whatToInterpolate = args[2].toLowerCase();
         returnNumberToInterpolate = args[3].toLowerCase();
         resolution = Double.parseDouble(args[4]);
-        double circleCircumscrbingGridCell = Math.sqrt(2) * resolution;
+        double circleCircumscrbingGridCell = Math.sqrt(2) * resolution / 2.0; // radius
         excludeNeverClassified = Boolean.parseBoolean(args[5]);
         excludeUnclassified = Boolean.parseBoolean(args[6]);
         excludeBareGround = Boolean.parseBoolean(args[7]);
