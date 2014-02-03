@@ -353,16 +353,16 @@ public class NearestNeighbourAnalysis implements ActionListener {
 			 *  error in his eq 5.27 in that it should be se = 0.26136 * (A / n^2)^0.5.
 			 */
 			//double expectedDist = 0.5 * Math.sqrt(A / numPoints) + (0.514 + 0.412 / Math.sqrt(numPoints)) * (P / numPoints)
-			double expectedDist = 0.5 * Math.sqrt(A / numPoints)
-			//double expectedDist = 0.5 / Math.sqrt(numPoints / A)
+			double expectedDist = 0.5 * Math.sqrt(A / numPoints) // Davis' as well as Walford's equation
+			//double expectedDist = 1.0d / (2.0d * Math.sqrt(numPoints / A)) // jensen and jensen formula
 			ret.append("<tr><td>Expected Mean NN Distance:</td><td class=\"numberCell\">")
 			ret.append(df.format(expectedDist)).append("</td></tr>").append("\n")
 			
 			// standard error of mean distance
 			//double se = 0.070 * A / (numPoints * numPoints) + 0.035 * P * (Math.sqrt(A) / Math.pow(numPoints, (5.0 / 2.0)))
-			//double se = 0.26136 * Math.sqrt(A / (numPoints * numPoints))
-			double se = Math.sqrt((0.06831 * A) / (numPoints * numPoints))
-			//double se = 0.26136 / Math.sqrt((numPoints * numPoints) / A)
+			//double se = 0.26136 * Math.sqrt(A / (numPoints * numPoints)) // Davis' equation modified
+			//double se = Math.sqrt((0.06831 * A) / (numPoints * numPoints))
+			double se = 0.26136 / Math.sqrt(numPoints * numPoints / A) // Jensen and Jensen as well as Walford's equation.
 			ret.append("<tr><td>Standard Error:</td><td class=\"numberCell\">")
 			ret.append(df.format(se)).append("</td></tr>").append("\n")
 

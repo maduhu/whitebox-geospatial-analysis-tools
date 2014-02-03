@@ -21,6 +21,7 @@ greatly increased performance.
 RELEASE NOTES:
 
 Version 3.1.2 ()
+-Added a profile tool for creating topographic profiles from surface rasters.
 -Added a kriging interpolation tool. The kriging tool includes an interactive
  semivariogram tool.
 -Added the Bare-Earth DEM tool for LiDAR data.
