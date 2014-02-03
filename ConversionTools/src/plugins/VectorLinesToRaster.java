@@ -326,7 +326,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
 
             // first sort the records based on their maxY coordinate. This will
             // help reduce the amount of disc IO for larger rasters.
-            ArrayList<RecordInfo> myList = new ArrayList<RecordInfo>();
+            ArrayList<RecordInfo> myList = new ArrayList<>();
 
             for (ShapeFileRecord record : input.records) {
                 i = record.getRecordNumber();
@@ -348,7 +348,7 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
             long heapSize = Runtime.getRuntime().totalMemory();
             int flushSize = (int)(heapSize / 32);
             int j, numCellsToWrite;
-            PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<RowPriorityGridCell>(flushSize);
+            PriorityQueue<RowPriorityGridCell> pq = new PriorityQueue<>(flushSize);
             RowPriorityGridCell cell;
             int numRecords = input.getNumberOfRecords();
             int count = 0;
