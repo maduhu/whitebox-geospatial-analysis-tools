@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.io.*;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
+import javax.swing.border.Border;
 import whitebox.interfaces.DialogComponent;
 import whitebox.interfaces.Communicator;
 import javax.swing.event.HyperlinkListener;
@@ -31,6 +32,7 @@ import whitebox.utilities.FileUtilities;
 
 /**
  * This class is used to provide a dialog box for a Whitebox GAT script tool.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class ScriptDialog extends JDialog implements Communicator, ActionListener, HyperlinkListener {
@@ -64,8 +66,10 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
 
     /**
      * Constructor
+     *
      * @param owner the name of the Whitebox GAT GUI class
-     * @param title A string that should be the same name as the script's descriptive name
+     * @param title A string that should be the same name as the script's
+     * descriptive name
      * @param buttonActionListener A listener to attach to the OK button
      */
     public ScriptDialog(Frame owner, String title, ActionListener buttonActionListener) {
@@ -149,7 +153,6 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         box2.add(modifyHelp);
         box2.add(Box.createHorizontalStrut(5));
 
-
         // create the back button
         imgLocation = graphicsDirectory + "HelpBack.png";
         image = new ImageIcon(imgLocation, "");
@@ -201,9 +204,11 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
 
     /**
      * Adds a checkbox to the dialog
+     *
      * @param description This string is entered into the pop-up description.
      * @param labelText This string is added to the checkbox label.
-     * @param initialState Determines whether the checkbox is checked at startup.
+     * @param initialState Determines whether the checkbox is checked at
+     * startup.
      * @return DialogCheckBox a reference to the created object.
      */
     public DialogCheckBox addDialogCheckBox(String description, String labelText,
@@ -259,7 +264,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         mainPanel.add(df);
         return df;
     }
-    
+
 //    public DialogFile addDialogFile(String description, String labelText,
 //            String dialogMode, String filter, boolean showButton, 
 //            boolean makeOptional, ActionListener actionListener) {
@@ -283,7 +288,6 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
 //        mainPanel.add(df);
 //        return df;
 //    }
-
     public DialogMultiFile addDialogMultiFile(String description, String labelText,
             String filter) {
         String[] args = new String[4];
@@ -299,12 +303,11 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         return dmf;
     }
 
-    
     public JButton addDialogButton(String text, String align) {
         Box box = Box.createHorizontalBox();
         JButton btn = new JButton(text);
         //box.add(Box.createHorizontalStrut(5));
-        
+
         if (align.toLowerCase().contains("right")) {
             box.add(Box.createHorizontalGlue());
             box.add(btn);
@@ -317,20 +320,37 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
             box.add(Box.createHorizontalGlue());
         }
         
+//        JPanel panel = new JPanel();
+//        Border border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+//        panel.setBorder(border);
+//        panel.setBackground(Color.red);
+//        panel.setMaximumSize(new Dimension(2500, btn.getPreferredSize().height + 8));
+//        panel.setPreferredSize(new Dimension(350, btn.getPreferredSize().height + 8));
+//        panel.add(box);
+        
         mainPanel.add(box);
         return btn;
     }
-    
+
     public JLabel addDialogLabel(String text) {
+//        JPanel panel = new JPanel();
+//        panel.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        //Border border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+        //panel.setBorder(border);
+
         Box box = Box.createHorizontalBox();
         JLabel lbl = new JLabel(text);
         box.add(Box.createHorizontalStrut(5));
         box.add(lbl);
         box.add(Box.createHorizontalGlue());
+        //panel.setBackground(Color.blue);
+//        panel.setMaximumSize(new Dimension(2500, lbl.getPreferredSize().height + 2));
+//        panel.setPreferredSize(new Dimension(350, lbl.getPreferredSize().height + 2));
+//        panel.add(box);
         mainPanel.add(box);
         return lbl;
     }
-    
+
     public DialogFieldSelector addDialogFieldSelector(String description, String labelText,
             boolean allowMultipleSelection) {
         String[] args = new String[4];

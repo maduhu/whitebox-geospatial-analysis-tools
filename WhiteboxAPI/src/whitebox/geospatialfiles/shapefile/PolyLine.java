@@ -129,6 +129,7 @@ public class PolyLine implements Geometry {
         return numPoints;
     }
 
+    @Override
     public double[][] getPoints() {
         return points;
     }
@@ -137,6 +138,7 @@ public class PolyLine implements Geometry {
         return numParts;
     }
 
+    @Override
     public int[] getParts() {
         return parts;
     }

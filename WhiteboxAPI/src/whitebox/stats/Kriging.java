@@ -2032,9 +2032,9 @@ public class Kriging {
             theorCollct.addSeries(seriesTSV);
 
             XYDataset xydataset = sampleCollct;
-
+            
             XYPlot xyplot1 = new XYPlot(xydataset, new NumberAxis(), null, xylineshapRend);
-
+            
             xyplot1.setDataset(1, theorCollct);
             XYLineAndShapeRenderer lineshapRend = new XYLineAndShapeRenderer(true, false);
             xyplot1.setRenderer(1, lineshapRend);
@@ -2046,7 +2046,7 @@ public class Kriging {
         String title = "Semivariogram (RMSE = " + df.format(Math.sqrt(variogram.mse)) + ")";
         JFreeChart chart = new JFreeChart(title,
                 JFreeChart.DEFAULT_TITLE_FONT, combinedrangexyplot, true);
-
+         
 //        JFreeChart chart = ChartFactory.createScatterPlot(
 //            "Semivariogram", // chart title
 //            "Distance", // x axis label
