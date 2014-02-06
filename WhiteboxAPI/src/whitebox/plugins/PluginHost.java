@@ -359,7 +359,7 @@ public class PluginHost implements WhiteboxPluginHost {
 
     @Override
     public void returnData(Object ret) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        
     }
     
     @Override
