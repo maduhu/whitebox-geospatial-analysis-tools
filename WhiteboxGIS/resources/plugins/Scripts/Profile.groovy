@@ -26,7 +26,7 @@ import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 import java.awt.Color;
 import javax.swing.JPanel;
-
+import java.awt.Dimension
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -163,6 +163,17 @@ public class Profile implements ActionListener {
 			rows = surface.getNumberRows()
 			cols = surface.getNumberColumns()
 			nodata = surface.getNoDataValue()
+			String domainLabel = "Distance"
+			String xyUnits = surface.getXYUnits()
+			if (xyUnits == null || !xyUnits.toLowerCase().equals("not specified")) {
+				domainLabel = domainLabel + " (${xyUnits})"
+			}
+			String rangeLabel = "Elevation"
+			String zUnits = surface.getZUnits()
+			if (zUnits == null || !zUnits.toLowerCase().equals("not specified")) {
+				rangeLabel = rangeLabel + " (${zUnits})"
+			}
+			
 
 			ShapeFile input = new ShapeFile(inputLines)
 			ShapeType shapeType = input.getShapeType()
@@ -239,11 +250,11 @@ public class Profile implements ActionListener {
 								col = (int)(startingCol + j * dX)
 								row = (int)(startingRow + j * dY)
 								z = surface.getValue(row, col)
+								dist += distStep
 								if (z != nodata) {
 									if (z < minZ) { minZ = z }
 									if (z > maxZ) { maxZ = z }
 									zList.add(z)
-									dist += distStep
 									distList.add(dist)
 									series.add(dist, z)
 									//println("${dist}\t${z}")
@@ -269,13 +280,10 @@ public class Profile implements ActionListener {
 				}
             }
 
-			//XYLineAndShapeRenderer xylineshapRend = new XYLineAndShapeRenderer(false, true);
-			//CombinedRangeXYPlot combinedrangexyplot = new CombinedRangeXYPlot();
-
 			JFreeChart chart = ChartFactory.createXYLineChart(
             "Profile",
-            "Distance",
-            "Elevation",
+            domainLabel,
+            rangeLabel,
             xyCollection,
             PlotOrientation.VERTICAL,  // Plot Orientation
             true,                      // Show Legend
@@ -298,23 +306,8 @@ public class Profile implements ActionListener {
 	        NumberAxis range = (NumberAxis) plot.getRangeAxis();
 	        range.setRange(minZ, maxZ);
 
-            
-//            XYDataset xydataset = xyCollection;
-//
-//            XYPlot xyplot1 = new XYPlot(xydataset, new NumberAxis(), null, xylineshapRend);
-//
-//            xyplot1.setDataset(1, xyCollection);
-//            XYLineAndShapeRenderer lineshapeRend = new XYLineAndShapeRenderer(true, false);
-//            xyplot1.setRenderer(1, lineshapeRend);
-//            xyplot1.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
-//            combinedrangexyplot.add(xyplot1);
-//
-//            JFreeChart chart = new JFreeChart("Profile", JFreeChart.DEFAULT_TITLE_FONT, combinedrangexyplot, true);
-//			ChartFrame frame = new ChartFrame("Semivariogram", chart);
-//			frame.pack();
-//        	frame.setVisible(true);
-            
             ChartPanel chartPanel = new ChartPanel(chart)
+			chartPanel.setPreferredSize(new Dimension(700, 300))
 			
         	pluginHost.returnData(chartPanel)
 		

@@ -96,6 +96,7 @@ import whitebox.internationalization.WhiteboxInternationalizationTools;
 import whitebox.structures.InteroperableGeospatialDataFormat;
 import whitebox.interfaces.InteropPlugin.InteropPluginType;
 import whitebox.utilities.StringUtilities;
+import whitebox.plugins.ReturnedDataEvent;
 
 /**
  *
@@ -716,7 +717,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         || !containsDescription || !containsToolboxes
                         || !containsPluginType)) {
                     if (!strLine.startsWith("#")) {
-                        if (strLine.startsWith("name = \"")  && name.isEmpty()
+                        if (strLine.startsWith("name = \"") && name.isEmpty()
                                 && !strLine.toLowerCase().contains("descriptivename")
                                 && !strLine.toLowerCase().contains("filetypename")) {
                             containsName = true;
@@ -1163,7 +1164,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             logger.log(Level.SEVERE, "WhiteboxGui.runPlugin", e);
         }
     }
+
+    public void isPluginReturnDataSuppressed(boolean value) {
+        multiOperationsuppressReturnedData = value;
+    }
+
     private boolean suppressReturnedData;
+    private boolean multiOperationsuppressReturnedData = false;
 
     @Override
     public void runPlugin(String pluginName, String[] args, boolean runOnDedicatedThread,
@@ -1334,93 +1341,121 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             logger.log(Level.SEVERE, "WhiteboxGui.executeScriptFile", e);
         }
     }
+
     private boolean automaticallyDisplayReturns = true;
 
     @Override
     public void returnData(Object ret) {
         try {
-            if (suppressReturnedData) {
-                return; // returns can be disruptive for scripts
-            }
-            // this is where all of the data returned by plugins is handled.
-            if (ret instanceof String) {
-                String retStr = ret.toString();
-                if (retStr.endsWith(".dep") && retStr.contains(pathSep)) {
-                    if (automaticallyDisplayReturns) {
-                        addLayer(retStr);
+            if (!suppressReturnedData && !multiOperationsuppressReturnedData) {
+
+                // this is where all of the data returned by plugins is handled.
+                if (ret instanceof String) {
+                    String retStr = ret.toString();
+                    if (retStr.endsWith(".dep") && retStr.contains(pathSep)) {
+                        if (automaticallyDisplayReturns) {
+                            addLayer(retStr);
+                        }
+                    } else if (retStr.endsWith(".shp") && retStr.contains(pathSep)) {
+                        if (automaticallyDisplayReturns) {
+                            addLayer(retStr);
+                        }
+                    } else if (retStr.toLowerCase().endsWith(".dbf") && retStr.contains(pathSep)) {
+                        AttributesFileViewer afv = new AttributesFileViewer(this, false, retStr.replace(".dbf", ".shp"));
+                        int height = 500;
+                        afv.setSize((int) (height * 1.61803399), height); // golden ratio.
+                        afv.setVisible(true);
+                    } else if (retStr.endsWith(".html") && retStr.contains(pathSep)) {
+                        // display this markup in a webbrowser component
+                        try {
+                            JFrame frame = new HTMLViewer(this, retStr);
+                            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                            frame.setSize(600, 600);
+                            frame.setVisible(true);
+                        } catch (Exception e) {
+                            logger.log(Level.SEVERE, "WhiteboxGui.returnData", e);
+                        }
+                    } else if (retStr.contains("<html") && retStr.contains("</html>")) {
+                        // display this markup in a webbrowser component
+                        try {
+                            JFrame frame = new HTMLViewer(this, retStr);
+                            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                            frame.setSize(600, 600);
+                            frame.setVisible(true);
+                        } catch (Exception e) {
+                            logger.log(Level.SEVERE, "WhiteboxGui.returnData", e);
+                        }
+                    } else if (retStr.toLowerCase().startsWith("newmap")) {
+                        String mapName = "NewMap";
+                        if (retStr.contains(":")) {
+                            String[] val = retStr.split(":");
+                            mapName = val[val.length - 1].trim();
+                        }
+                        newMap(mapName);
+                    } else {
+                        // display the text area, if it's not already.
+                        if (splitPane3.getDividerLocation() / splitPane3.getHeight() < 0.75) {
+                            splitPane3.setDividerLocation(0.75);
+                        }
+                        textArea.setText("");
+                        textArea.setText(retStr);
                     }
-                } else if (retStr.endsWith(".shp") && retStr.contains(pathSep)) {
-                    if (automaticallyDisplayReturns) {
-                        addLayer(retStr);
-                    }
-                } else if (retStr.toLowerCase().endsWith(".dbf") && retStr.contains(pathSep)) {
-                    AttributesFileViewer afv = new AttributesFileViewer(this, false, retStr.replace(".dbf", ".shp"));
-                    int height = 500;
-                    afv.setSize((int) (height * 1.61803399), height); // golden ratio.
-                    afv.setVisible(true);
-                } else if (retStr.endsWith(".html") && retStr.contains(pathSep)) {
-                    // display this markup in a webbrowser component
-                    try {
-                        JFrame frame = new HTMLViewer(this, retStr);
-                        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                        frame.setSize(600, 600);
-                        frame.setVisible(true);
-                    } catch (Exception e) {
-                        logger.log(Level.SEVERE, "WhiteboxGui.returnData", e);
-                    }
-                } else if (retStr.contains("<html") && retStr.contains("</html>")) {
-                    // display this markup in a webbrowser component
-                    try {
-                        JFrame frame = new HTMLViewer(this, retStr);
-                        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                        frame.setSize(600, 600);
-                        frame.setVisible(true);
-                    } catch (Exception e) {
-                        logger.log(Level.SEVERE, "WhiteboxGui.returnData", e);
-                    }
-                } else if (retStr.toLowerCase().startsWith("newmap")) {
-                    String mapName = "NewMap";
-                    if (retStr.contains(":")) {
-                        String[] val = retStr.split(":");
-                        mapName = val[val.length - 1].trim();
-                    }
-                    newMap(mapName);
-                } else {
-                    // display the text area, if it's not already.
-                    if (splitPane3.getDividerLocation() / splitPane3.getHeight() < 0.75) {
-                        splitPane3.setDividerLocation(0.75);
-                    }
-                    textArea.setText("");
-                    textArea.setText(retStr);
-                }
-            } else if (ret instanceof JPanel) {
-                // Create a dialog and place it in that. Then display the dialog.
-                JDialog dialog = new JDialog(this, "");
-                Container contentPane = dialog.getContentPane();
-                JPanel panel = (JPanel) ret;
-                contentPane.add(panel, BorderLayout.CENTER);
+                } else if (ret instanceof JPanel) {
+                    // Create a dialog and place it in that. Then display the dialog.
+                    JDialog dialog = new JDialog(this, "");
+                    Container contentPane = dialog.getContentPane();
+                    JPanel panel = (JPanel) ret;
+                    contentPane.add(panel, BorderLayout.CENTER);
 //                int k = panel.getPreferredSize().height;
-                if (panel.getPreferredSize().height > 100) {
-                    dialog.setPreferredSize(panel.getPreferredSize());
-                } else {
-                    dialog.setPreferredSize(new Dimension(500, 500));
-                }
-                if (panel.getName() != null) {
-                    dialog.setTitle(panel.getName());
-                }
-                dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                dialog.pack();
-                dialog.setLocationRelativeTo(null);
-                dialog.setVisible(true);
-            } else if (ret instanceof MapLayer) {
-                if (automaticallyDisplayReturns) {
-                    addLayer((MapLayer) ret);
+                    if (panel.getPreferredSize().height > 100) {
+                        dialog.setPreferredSize(panel.getPreferredSize());
+                    } else {
+                        dialog.setPreferredSize(new Dimension(500, 500));
+                    }
+                    if (panel.getName() != null) {
+                        dialog.setTitle(panel.getName());
+                    }
+                    dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                    dialog.pack();
+                    dialog.setLocationRelativeTo(null);
+                    dialog.setVisible(true);
+                } else if (ret instanceof MapLayer) {
+                    if (automaticallyDisplayReturns) {
+                        addLayer((MapLayer) ret);
+                    }
                 }
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "WhiteboxGui.returnData", e);
         } finally {
             suppressReturnedData = false;
+            fireReturnedDataEvent(new ReturnedDataEvent(this, ret));
+        }
+    }
+
+    // Create the listener list
+    protected javax.swing.event.EventListenerList returnedDataListenerList
+            = new javax.swing.event.EventListenerList();
+
+    // This methods allows classes to register for ReturnedDataEvents
+    public void addReturnedDataEventListener(ReturnedDataListener listener) {
+        returnedDataListenerList.add(ReturnedDataListener.class, listener);
+    }
+
+    // This methods allows classes to unregister for ReturnedDataEvents
+    public void removeReturnedDataEventListener(ReturnedDataListener listener) {
+        returnedDataListenerList.remove(ReturnedDataListener.class, listener);
+    }
+
+    // This private class is used to fire ReturnedDataEvents
+    void fireReturnedDataEvent(ReturnedDataEvent evt) {
+        Object[] listeners = returnedDataListenerList.getListenerList();
+        // Each listener occupies two elements - the first is the listener class
+        // and the second is the listener instance
+        for (int i = 0; i < listeners.length; i += 2) {
+            if (listeners[i] == ReturnedDataListener.class) {
+                ((ReturnedDataListener) listeners[i + 1]).dataReturned(evt);
+            }
         }
     }
 
@@ -4257,11 +4292,20 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         return n;
     }
+
     String progressString = "";
     int progressValue = 0;
+    private boolean isUpdateProgressEnabled = true;
+
+    public void setUpdateProgressEnabled(boolean value) {
+        isUpdateProgressEnabled = value;
+    }
 
     @Override
     public void updateProgress(String progressLabel, int progress) {
+        if (!isUpdateProgressEnabled) {
+            return;
+        }
         if (!progressLabel.equals(progressString) || progress != progressValue) {
             if (progress < 0) {
                 progress = 0;
@@ -4278,6 +4322,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     @Override
     public void updateProgress(int progress) {
+        if (!isUpdateProgressEnabled) {
+            return;
+        }
         if (progress != progressValue) {
             if (progress < 0) {
                 progress = 0;

@@ -7852,6 +7852,131 @@
        id="linearGradient4680"
        xlink:href="#linearGradient6227-09"
        inkscape:collect="always" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2485-6"
+       id="linearGradient3886-8"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.6666685,0,0,1.6250003,-22.166733,116.28606)"
+       x1="61.447758"
+       y1="236.41124"
+       x2="64.518295"
+       y2="240.35397" />
+    <linearGradient
+       id="linearGradient2485-6">
+      <stop
+         id="stop2486-57"
+         offset="0.0000000"
+         style="stop-color:#ffffff;stop-opacity:1.0000000" />
+      <stop
+         id="stop2487-6"
+         offset="1.0000000"
+         style="stop-color:#aaaaaa;stop-opacity:1.0000000;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5704-8-7"
+       id="linearGradient3888-2"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.6666685,0,0,1.6250003,-22.166733,116.28606)"
+       x1="59"
+       y1="235.13408"
+       x2="62.5"
+       y2="239.49016" />
+    <linearGradient
+       id="linearGradient5704-8-7">
+      <stop
+         style="stop-color:#5a5a5a;stop-opacity:1;"
+         offset="0"
+         id="stop5706-8-0" />
+      <stop
+         style="stop-color:#000000;stop-opacity:1.0000000;"
+         offset="1.0000000"
+         id="stop5708-2-3" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5704-5-8-31-9"
+       id="linearGradient4669-9"
+       x1="115.5"
+       y1="494.36218"
+       x2="120.5"
+       y2="494.36218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.75,0,0,0.75000002,17.358054,122.88047)" />
+    <linearGradient
+       id="linearGradient5704-5-8-31-9">
+      <stop
+         style="stop-color:#5a5a5a;stop-opacity:1;"
+         offset="0"
+         id="stop5706-1-7-9-9" />
+      <stop
+         style="stop-color:#000000;stop-opacity:1.0000000;"
+         offset="1.0000000"
+         id="stop5708-7-6-5-1" />
+    </linearGradient>
+    <linearGradient
+       y2="494.36218"
+       x2="120.5"
+       y1="494.36218"
+       x1="115.5"
+       gradientTransform="matrix(0.74739959,-0.07159007,0.0624007,0.85746459,-33.440865,81.705551)"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient6187"
+       xlink:href="#linearGradient5704-5-8-31-9"
+       inkscape:collect="always" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2485-88-5-8-5"
+       id="linearGradient4634-8-7"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-89.76246,25.500036)"
+       x1="146.75"
+       y1="481.86218"
+       x2="157.77492"
+       y2="481.86218" />
+    <linearGradient
+       id="linearGradient2485-88-5-8-5">
+      <stop
+         id="stop2486-4-9-3-7"
+         offset="0.0000000"
+         style="stop-color:#ffffff;stop-opacity:1.0000000" />
+      <stop
+         id="stop2487-3-4-5-2"
+         offset="1.0000000"
+         style="stop-color:#aaaaaa;stop-opacity:1.0000000;" />
+    </linearGradient>
+    <linearGradient
+       y2="472.36218"
+       x2="170.5"
+       y1="472.36218"
+       x1="154.5"
+       gradientTransform="translate(5.76246,29.500006)"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient4806-9"
+       xlink:href="#linearGradient4447-2-7"
+       inkscape:collect="always" />
+    <linearGradient
+       id="linearGradient4447-2-7">
+      <stop
+         style="stop-color:#ffff64;stop-opacity:1;"
+         offset="0"
+         id="stop4449-6-5" />
+      <stop
+         style="stop-color:#808032;stop-opacity:1;"
+         offset="1"
+         id="stop4451-6-6" />
+    </linearGradient>
+    <linearGradient
+       y2="472.36218"
+       x2="170.5"
+       y1="472.36218"
+       x1="154.5"
+       gradientTransform="translate(-100,34.000016)"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient6272"
+       xlink:href="#linearGradient4447-2-7"
+       inkscape:collect="always" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -7863,15 +7988,15 @@
      objecttolerance="10000"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="25.32467"
-     inkscape:cx="343.11362"
-     inkscape:cy="506.78776"
+     inkscape:zoom="1.2999295"
+     inkscape:cx="140.18989"
+     inkscape:cy="502.10033"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1386"
-     inkscape:window-height="856"
-     inkscape:window-x="54"
+     inkscape:window-width="1280"
+     inkscape:window-height="752"
+     inkscape:window-x="0"
      inkscape:window-y="0"
      showguides="true"
      inkscape:guide-bbox="true"
@@ -11491,5 +11616,71 @@
            id="tspan4657-8"
            sodipodi:role="line">?</tspan></text>
     </g>
+    <path
+       style="fill:none;stroke:url(#linearGradient6187);stroke-width:1.07110405;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 84.01431,495.66438 3.160128,2.6978"
+       id="path3892-7"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/Users/johnlindsay/Documents/Programming/Whitebox/trunk/WhiteboxGIS/resources/Images/close.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
+    <path
+       inkscape:export-ydpi="91.010635"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-filename="/Users/johnlindsay/Documents/Programming/Whitebox/trunk/WhiteboxGIS/resources/Images/close.png"
+       style="fill:url(#linearGradient3886-8);fill-opacity:1;fill-rule:evenodd;stroke:url(#linearGradient3888-2);stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;display:inline"
+       d="m 77.000044,495.77432 6.940492,0 0.01144,2.60316 3.048024,-0.0153 0,10.41213 -10.000004,0 z"
+       id="path3884-2"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:connector-curvature="0" />
+    <g
+       id="g7112"
+       transform="translate(-0.2500198,0.25000388)"
+       inkscape:export-filename="/Users/johnlindsay/Documents/Programming/Whitebox/trunk/WhiteboxGIS/resources/Images/close.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635">
+      <path
+         transform="matrix(1.2965764,0,0,1.29658,-455.1809,-257.80159)"
+         d="m 417,586.86218 c 0,1.38071 -1.11929,2.5 -2.5,2.5 -1.38071,0 -2.5,-1.11929 -2.5,-2.5 0,-1.38071 1.11929,-2.5 2.5,-2.5 1.38071,0 2.5,1.11929 2.5,2.5 z"
+         sodipodi:ry="2.5"
+         sodipodi:rx="2.5"
+         sodipodi:cy="586.86218"
+         sodipodi:cx="414.5"
+         id="path6224"
+         style="fill:#ff0000;fill-rule:evenodd;stroke:#000000;stroke-width:0.77126086;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         sodipodi:type="arc" />
+      <g
+         transform="translate(0.1250178,0.43751874)"
+         id="g7108">
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+           d="m 80.25,500.98716 3.75,3.375"
+           id="path6226"
+           inkscape:connector-curvature="0" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+           d="m 84,500.98716 -3.75,3.375"
+           id="path6226-8"
+           inkscape:connector-curvature="0" />
+      </g>
+    </g>
+    <path
+       style="fill:url(#linearGradient6272);fill-opacity:1;stroke:#505050;stroke-width:0.80000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 55,500.36218 0,12 15,0 0,-10 -10,0 -1,-2 z"
+       id="path4419-8-5"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:export-filename="/Users/johnlindsay/Documents/Programming/Whitebox/trunk/WhiteboxGIS/resources/Images/close.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
+    <path
+       style="fill:none;stroke:#cccccc;stroke-width:0.86602539px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 59,502.36218 -3,0"
+       id="path6303"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/Users/johnlindsay/Documents/Programming/Whitebox/trunk/WhiteboxGIS/resources/Images/close.png"
+       inkscape:export-xdpi="91.010635"
+       inkscape:export-ydpi="91.010635" />
   </g>
 </svg>

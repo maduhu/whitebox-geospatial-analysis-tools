@@ -79,9 +79,9 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
     private JCheckBoxMenuItem groovy = new JCheckBoxMenuItem("Groovy");
     private JCheckBoxMenuItem javascript = new JCheckBoxMenuItem("Javascript");
     private ResourceBundle bundle;
-    private JButton generateDataButton;
+//    private JButton generateDataButton;
     public static final String PROP_SCRIPTING_LANGUAGE = "languageChanged";
-    public static final String PROP_GENERATE_DATA = "generateData";
+//    public static final String PROP_GENERATE_DATA = "generateData";
     private int numLinesInDoc = 1;
     private boolean editorDirty = false;
     private JTextField searchField;
@@ -375,11 +375,11 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 bundle.getString("ExecuteCode"), "Execute");
         toolbar.add(executeBtn);
 
-        generateDataButton = makeToolBarButton("GenerateData.png", "generateData",
-                bundle.getString("GenerateColumnData"), "Generate Data");
-        toolbar.add(generateDataButton);
-
-        showGenerateDataButton(false);
+//        generateDataButton = makeToolBarButton("GenerateData.png", "generateData",
+//                bundle.getString("GenerateColumnData"), "Generate Data");
+//        toolbar.add(generateDataButton);
+//
+//        showGenerateDataButton(false);
 
         toolbar.add(Box.createHorizontalGlue());
 
@@ -2034,22 +2034,21 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
         this.firePropertyChange(PROP_SCRIPTING_LANGUAGE, oldLang, lang);
     }
 
-    public void showGenerateDataButton(boolean show) {
-        generateDataButton.setVisible(show);
-    }
+//    public void showGenerateDataButton(boolean show) {
+//        generateDataButton.setVisible(show);
+//    }
 
     /**
      * Creates a CompiledScript object using the provided text and the currently
      * selected ScriptEngine.
      *
-     * @param script
      * @return
      */
     public CompiledScript compileScript() {
         try {
 
             CompiledScript compiled = ((Compilable) engine).compile(this.editor.getText());
-
+            
             return compiled;
         } catch (ScriptException e) {
             System.out.println(e);
