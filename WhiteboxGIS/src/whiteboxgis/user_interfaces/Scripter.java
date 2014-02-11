@@ -347,6 +347,9 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
 
         JButton openBtn = makeToolBarButton("open.png", "open", bundle.getString("OpenFile"), "Open");
         toolbar.add(openBtn);
+        
+        JButton closeBtn = makeToolBarButton("close.png", "close", bundle.getString("CloseFile"), "Close");
+        toolbar.add(closeBtn);
 
         JButton saveBtn = makeToolBarButton("SaveMap.png", "save", bundle.getString("SaveFile"), "Save");
         toolbar.add(saveBtn);

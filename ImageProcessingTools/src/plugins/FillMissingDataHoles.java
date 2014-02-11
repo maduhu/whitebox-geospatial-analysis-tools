@@ -25,56 +25,73 @@ import whitebox.structures.KdTree;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class FillMissingDataHoles implements WhiteboxPlugin {
-    
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "FillMissingDataHoles";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "Fill Missing Data Holes";
+        return "Fill Missing Data Holes";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "Fills NoData holes in an image or DEM by linear interpolation.";
+        return "Fills NoData holes in an image or DEM by linear interpolation.";
     }
-     /**
+
+    /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "ImageEnhancement", "TerrainAnalysis", "LidarTools" };
-    	return ret;
+        String[] ret = {"ImageEnhancement", "TerrainAnalysis", "LidarTools"};
+        return ret;
     }
-     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+
+    /**
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
-     */  
+     */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -84,8 +101,11 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -96,21 +116,27 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
 
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -119,34 +145,41 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
+
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
+
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -156,7 +189,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
+
         String inputHeader = null;
         String outputHeader = null;
         int row, col, x, y;
@@ -165,15 +198,15 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
         int i;
         int[] dX = {1, 1, 1, 0, -1, -1, -1, 0};
         int[] dY = {-1, 0, 1, 1, 1, 0, -1, -1};
-        
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
+
         inputHeader = args[0];
         outputHeader = args[1];
-        
+        boolean onlyInterolateInteriorHoles = Boolean.parseBoolean(args[2]);
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
@@ -187,9 +220,9 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
             int rows = image.getNumberRows();
             int cols = image.getNumberColumns();
             double noData = image.getNoDataValue();
-            
+
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
-            
+
             // flag the noData cells in the output image
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
@@ -205,56 +238,57 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                 progress = (int) (100f * row / (rows - 1));
                 updateProgress("Loop 1 of 6: ", progress);
             }
-            
-            int[] scanFilter = new int[]{6, 7, 0, 5};
-            
-            for (row = 0; row < rows; row++) { // west to east
-                for (col = 0; col < cols; col++) {
-                    z = output.getValue(row, col);
-                    if (z == 1) {
-                        for (int a = 0; a < 4; a++) {
-                            x = col + dX[scanFilter[a]];
-                            y = row + dY[scanFilter[a]];
-                            z = output.getValue(y, x);
-                            if (z == -1 || x < 0 || x >= cols || y < 0 || y >= rows) {
-                                output.setValue(row, col, -1);
+
+            if (onlyInterolateInteriorHoles) {
+                int[] scanFilter = new int[]{6, 7, 0, 5};
+
+                for (row = 0; row < rows; row++) { // west to east
+                    for (col = 0; col < cols; col++) {
+                        z = output.getValue(row, col);
+                        if (z == 1) {
+                            for (int a = 0; a < 4; a++) {
+                                x = col + dX[scanFilter[a]];
+                                y = row + dY[scanFilter[a]];
+                                z = output.getValue(y, x);
+                                if (z == -1 || x < 0 || x >= cols || y < 0 || y >= rows) {
+                                    output.setValue(row, col, -1);
+                                }
                             }
                         }
                     }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (int) (100f * row / (rows - 1));
+                    updateProgress("Loop 2 of 6: ", progress);
                 }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
-                progress = (int) (100f * row / (rows - 1));
-                updateProgress("Loop 2 of 6: ", progress);
-            }
-            
-            scanFilter = new int[]{4, 3, 2, 1};
-            
-            for (row = (rows - 1); row >= 0; row--) { // west to east
-                for (col = 0; col < cols; col++) {
-                    z = output.getValue(row, col);
-                    if (z == 1) {
-                        for (int a = 0; a < 4; a++) {
-                            x = col + dX[scanFilter[a]];
-                            y = row + dY[scanFilter[a]];
-                            z = output.getValue(y, x);
-                            if (z == -1 || x < 0 || x >= cols || y < 0 || y >= rows) {
-                                output.setValue(row, col, -1);
+
+                scanFilter = new int[]{4, 3, 2, 1};
+
+                for (row = (rows - 1); row >= 0; row--) { // west to east
+                    for (col = 0; col < cols; col++) {
+                        z = output.getValue(row, col);
+                        if (z == 1) {
+                            for (int a = 0; a < 4; a++) {
+                                x = col + dX[scanFilter[a]];
+                                y = row + dY[scanFilter[a]];
+                                z = output.getValue(y, x);
+                                if (z == -1 || x < 0 || x >= cols || y < 0 || y >= rows) {
+                                    output.setValue(row, col, -1);
+                                }
                             }
                         }
                     }
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                    progress = (int) (100f * 1 - row / (rows - 1));
+                    updateProgress("Loop 3 of 6: ", progress);
                 }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
-                progress = (int) (100f * 1 - row / (rows - 1));
-                updateProgress("Loop 3 of 6: ", progress);
             }
 
- 
             // Find all cells that border with no-data cells. 
             int k = 0;
             boolean neighboursNoData = false;
@@ -283,9 +317,9 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                 progress = (int) (100f * row / (rows - 1));
                 updateProgress("Loop 4 of 6: ", progress);
             }
-            
+
             KdTree<Double> tree = new KdTree.SqrEuclid<Double>(2, k);
-            
+
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     z = image.getValue(row, col);
@@ -298,7 +332,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                             }
                         }
                         if (neighboursNoData) {
-                            double[] entry = { row, col };
+                            double[] entry = {row, col};
                             tree.addPoint(entry, z);
                         }
                     }
@@ -318,7 +352,7 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                 for (col = 0; col < cols; col++) {
                     z = output.getValue(row, col);
                     if (z == 1) {
-                        double[] entry = { row, col };
+                        double[] entry = {row, col};
                         results = tree.nearestNeighbor(entry, 6, true);
                         sumWeights = 0;
                         for (i = 0; i < results.size(); i++) {
@@ -340,14 +374,14 @@ public class FillMissingDataHoles implements WhiteboxPlugin {
                 progress = (int) (100f * row / (rows - 1));
                 updateProgress("Loop 6 of 6: ", progress);
             }
-            
+
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
-            
+
             image.close();
             output.close();
-            
+
             // returning a header file string displays the image.
             returnData(outputHeader);
 

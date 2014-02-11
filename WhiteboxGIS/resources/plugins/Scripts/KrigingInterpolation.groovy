@@ -51,7 +51,7 @@ import whitebox.stats.KrigingPoint
 def name = "KrigingInterpolation"
 def descriptiveName = "Kriging Interpolation"
 def description = "Performs an Kriging interpolation"
-def toolboxes = ["Interpolation", "StatisticalTools"]
+def toolboxes = ["Interpolation"]
 
 public class KrigingInterpolation implements ActionListener {
     private WhiteboxPluginHost pluginHost

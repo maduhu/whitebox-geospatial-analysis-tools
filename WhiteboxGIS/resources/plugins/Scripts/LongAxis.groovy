@@ -117,7 +117,7 @@ public class LongAxis implements ActionListener {
             // make sure that input is of a POLYGON base shapetype
             ShapeType shapeType = input.getShapeType()
             if (shapeType.getBaseType() != ShapeType.POLYGON) {
-                pluginHost.showFeedback("Input shapefile must be of a POLYLINE base shapetype.")
+                pluginHost.showFeedback("Input shapefile must be of a POLYGON base shapetype.")
                 return
             }
 

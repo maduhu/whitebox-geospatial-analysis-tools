@@ -20,7 +20,15 @@ greatly increased performance.
 
 RELEASE NOTES:
 
-Version 3.1.2 ()
+Version 3.1.4 ()
+-Added Plot Variogram tool.
+-Added Stream long profile tool.
+-Added Distance to Outlet tool.
+-Moved the log directory out of the Resources folder to a higher level. This should 
+ make finding logs easier for users.
+-Added check for updates and automatic downloading of latest version.
+
+Version 3.1.2 (February 5, 2014)
 -Added a Profile tool for creating topographic profiles from surface rasters.
 -Added a kriging interpolation tool. The kriging tool includes an interactive
  semivariogram tool.

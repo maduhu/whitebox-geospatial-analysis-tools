@@ -134,7 +134,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
      * (read/write).
      * @param BaseRasterHeader The name of a WhiteboxRaster header file to base
      * this new object on.
-     * @param DataType The data type of the new WhiteboxRaster. Can be 'double',
+     * @param dataType The data type of the new WhiteboxRaster. Can be 'double',
      * 'float', 'integer', or 'byte'
      * @param InitialValue Double indicating the value used to initialize the
      * grid. It is recommended to use the noDataValue.
@@ -387,7 +387,6 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
         FileChannel outChannel = null;
         ByteBuffer buf = null;
         try {
-
             // See if the data file exists.
             File file = new File(dataFile);
             if (!file.exists()) {
@@ -405,7 +404,7 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
                 buf = ByteBuffer.allocateDirect(cellSizeInBytes * writeLengthInCells);
                 buf.order(byteOrder);
                 DoubleBuffer db = buf.asDoubleBuffer();
-                db.put(grid[row]);
+                db.put(vals);
                 db = null;
                 outChannel.write(buf);
             } else if (dataType == DataType.FLOAT) { //.equals("float")) {

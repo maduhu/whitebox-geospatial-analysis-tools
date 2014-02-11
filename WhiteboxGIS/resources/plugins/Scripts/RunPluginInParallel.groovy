@@ -26,9 +26,6 @@ import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
 import groovy.transform.CompileStatic
 
-// The following four variables are required for this 
-// script to be integrated into the tool tree panel. 
-// Comment them out if you want to remove the script.
 def name = "RunPluginInParallel"
 def descriptiveName = "Run Plugin In Parallel"
 def description = "Runs a plugin tool multiple times in parallel"
@@ -98,27 +95,26 @@ public class RunPluginInParallel implements ActionListener {
     	}
     }
 
-    //@CompileStatic
+    @CompileStatic
     private void execute(String[] args) {
 
 		String pluginName = args[0]
 		String argsFile = args[1]
 		boolean suppressReturns = Boolean.parseBoolean(args[2])
 
-		ArrayList<String[]> pluginArgs = new ArrayList<>()
-		new File(argsFile).eachLine { line -> 
-			String str = String.valueOf(line)
-			if (str != null && !(str.trim()).isEmpty()) {
-				String[] s = str.replace("\"", "").split(",")
-				for (int j in 0..(s.length - 1)) {
-					s[j] = s[j].trim()
-				}
-				pluginArgs.add(s)
-			}
-		}
-
-		
 		try {
+			ArrayList<String[]> pluginArgs = new ArrayList<>()
+			new File(argsFile).eachLine { line -> 
+				String str = String.valueOf(line)
+				if (str != null && !(str.trim()).isEmpty()) {
+					String[] s = str.replace("\"", "").split(",")
+					for (int j in 0..(s.length - 1)) {
+						s[j] = s[j].trim()
+					}
+					pluginArgs.add(s)
+				}
+			}
+
 			int numTasks = pluginArgs.size()
 			
 			pluginHost.updateProgress("Please wait...", 0)

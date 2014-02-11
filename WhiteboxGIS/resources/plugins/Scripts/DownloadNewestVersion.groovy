@@ -13,12 +13,28 @@ import groovy.time.*
 
 // The following lines are necessary for the script 
 // to be recognized as a menu extension.
-//parentMenu = "Help"
-//menuLabel = "Download Newest Version of Whitebox"
+parentMenu = "Help"
+menuLabel = "Check For Update"
 
 try {
 	def timeStart = new Date()
 	WhiteboxGui wg = (WhiteboxGui)(pluginHost)
+
+	if (wg.currentVersionNumber == null || wg.currentVersionNumber.isEmpty()) {
+		if (wg.isVersionUpToDate()) {
+			wg.showFeedback("Your version of Whitebox GAT is current.")
+			return
+		}
+	} else if (wg.currentVersionNumber <= wg.versionNumber) {
+		wg.showFeedback("Your version of Whitebox GAT is current.")
+		return
+	} else {
+		if (wg.showFeedback("There is a newer version. Would you like to update?", 
+		    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == 1) {
+			return
+		}
+	}
+	
 	String downloadArtifact = wg.updateDownloadArtifact
 	
 	// ask the user for the directory into which the file should be saved.

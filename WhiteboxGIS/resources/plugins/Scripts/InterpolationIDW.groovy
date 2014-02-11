@@ -26,6 +26,8 @@ import java.util.Arrays
 import java.util.Collections
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
+import java.util.concurrent.Future
+import java.util.concurrent.*
 import whitebox.interfaces.WhiteboxPluginHost
 import whitebox.geospatialfiles.ShapeFile
 import whitebox.geospatialfiles.shapefile.*
@@ -65,7 +67,19 @@ public class InterpolationIDW implements ActionListener {
     private WhiteboxPluginHost pluginHost
     private ScriptDialog sd;
     private String descriptiveName
-    private String basisFunctionType = ""
+//    private String basisFunctionType = ""
+
+    List<KdTree.Entry<Integer>> results
+    KdTree<Integer> pointsTree
+	ArrayList<Double> xList = new ArrayList<>()
+    ArrayList<Double> yList = new ArrayList<>()
+    ArrayList<Double> zList = new ArrayList<>()
+    WhiteboxRaster output
+    double maxSearchDist
+    int numNeighbours
+    boolean useQuadrandSearch
+    NodalFunction[] nodalFunc
+    WeightFunction weightFunction
 	
     public InterpolationIDW(WhiteboxPluginHost pluginHost, 
         String[] args, def descriptiveName) {
@@ -157,11 +171,11 @@ public class InterpolationIDW implements ActionListener {
         	double north, south, east, west
         	double cellSize = -1.0
         	double nodata = -32768
-        	List<KdTree.Entry<Integer>> results
-            ArrayList<Double> xList = new ArrayList<>()
-            ArrayList<Double> yList = new ArrayList<>()
-            ArrayList<Double> zList = new ArrayList<>()
-            
+//        	List<KdTree.Entry<Integer>> results
+//            ArrayList<Double> xList = new ArrayList<>()
+//            ArrayList<Double> yList = new ArrayList<>()
+//            ArrayList<Double> zList = new ArrayList<>()
+	            
 			if (args.length != 11) {
                 pluginHost.showFeedback("Incorrect number of arguments given to tool.")
                 return
@@ -192,17 +206,17 @@ public class InterpolationIDW implements ActionListener {
 	        if (args[7].toLowerCase().contains("quad")) {
 	        	nodalFunction = "quadratic"
 	        }
-			double maxSearchDist = Double.parseDouble(args[8])
+			maxSearchDist = Double.parseDouble(args[8])
 			if (maxSearchDist < 0) {
 				maxSearchDist = 0
 			}
-			int numNeighbours = Integer.parseInt(args[9])
+			numNeighbours = Integer.parseInt(args[9])
 			if (numNeighbours < 0) {
 				numNeighbours = 0
 			}
-			boolean useQuadrandSearch = Boolean.parseBoolean(args[10])
+			useQuadrandSearch = Boolean.parseBoolean(args[10])
 
-			WeightFunction weightFunction = new WeightFunction(weightType, exponent)
+			weightFunction = new WeightFunction(weightType, exponent)
 	        
             ShapeFile input = new ShapeFile(inputFile)
 
@@ -312,7 +326,8 @@ public class InterpolationIDW implements ActionListener {
 			}
 			
 			int numSamples = zList.size()
-			KdTree<Integer> pointsTree = new KdTree.SqrEuclid<Integer>(2, new Integer(numSamples));
+			//KdTree<Integer> pointsTree = new KdTree.SqrEuclid<Integer>(2, new Integer(numSamples));
+			pointsTree = new KdTree.SqrEuclid<Integer>(2, new Integer(numSamples));
 			for (i = 0; i < numSamples; i++) {
 				double[] entry = new double[2]
 				entry[0] = xList.get(i)
@@ -326,7 +341,7 @@ public class InterpolationIDW implements ActionListener {
 	        west = input.getxMin() - cellSize / 2.0;
                 
 			// initialize the output raster
-            WhiteboxRaster output;
+//            WhiteboxRaster output;
             if ((cellSize > 0) || ((cellSize < 0) & (baseFileHeader.toLowerCase().contains("not specified")))) {
                 if ((cellSize < 0) & (baseFileHeader.toLowerCase().contains("not specified"))) {
                     cellSize = Math.min((input.getyMax() - input.getyMin()) / 500.0,
@@ -352,7 +367,7 @@ public class InterpolationIDW implements ActionListener {
             output.setPreferredPalette("spectrum.pal")
 
 			// calculate the nodal functions
-			NodalFunction[] nodalFunc = new NodalFunction[numSamples]
+			nodalFunc = new NodalFunction[numSamples]
 			if (nodalFunction.contains("constant")) {
 				byte functionType = 0
 				for (i = 0; i < numSamples; i++) {
@@ -498,60 +513,30 @@ public class InterpolationIDW implements ActionListener {
 //				weightFunction.setP(exponent)
 //			}
 
-			
-			// perform the interpolation
-			double weight, distance, dMax
-			oldProgress = -1;
-			for (row = 0; row < rows; row++) {
-				for (col = 0; col < cols; col++) {
-                	x = output.getXCoordinateFromColumn(col);
-                    y = output.getYCoordinateFromRow(row);
-                    double[] entry = new double[2]
-                    entry[0] = x
-                    entry[1] = y
-                    
-                    results = pointsTree.neighborsWithinRange(entry, maxSearchDist)
-                    dMax = maxSearchDist
-                    int numResults = results.size()
-                    if (numResults < numNeighbours) {
-                    	results = pointsTree.nearestNeighbor(entry, numNeighbours, true, useQuadrandSearch)
-                    	dMax = results.get(0).distance
-                    	numResults = results.size()
-                    }
-                	if (numResults >= 1) {
-                		double[] weights = new double[numResults]
-                		double[] values = new double[numResults]
-                		double sumWeights = 0
-                		boolean useExactValue = false
-	                	for (i = 0; i < numResults; i++) {
-	                    	int j = results.get(i).value
-	                    	values[i] = nodalFunc[j].getValue(x, y)
-	                    	distance = Math.sqrt(results.get(i).distance)
-	                    	if (distance > 0) {
-	                    		weight = weightFunction.getPartialWeight(distance, dMax)
-		                    	weights[i] = weight
-		                    	sumWeights += weight
-	                    	} else {
-	                    		z = values[i]
-	                    		useExactValue = true
-	                    		break
-	                    	}
-	                    }
-	                    if (!useExactValue) {
-	                    	z = 0
-	                    	for (i = 0; i < numResults; i++) {
-	                    		z += values[i] * weights[i] / sumWeights
-	                    	}
-	                    }
-                	} else {
-                		z = nodata
-                	}
-                    
-                    output.setValue(row, col, z)
-                }
-                progress = (int)(100f * row / (rows - 1))
+			pluginHost.updateProgress("Please wait...", 0)
+			ArrayList<DoWorkOnRow> tasks = new ArrayList<>();
+			for (int r in 0..(rows - 1)) {
+				double[] data = output.getRowValues(r)
+				tasks.add(new DoWorkOnRow(data, nodata, r))
+			}
+	    
+			ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+	  	    // the only reason for the getExecutorResults method 
+	  	    // is that Groovy throws a compilation type mis-match
+	  	    // error when compiled statically. I think it's a bug.
+	  	    List<Future<RowNumberAndData>> results = getExecutorResults(executor, tasks); //executor.invokeAll(tasks);
+	        executor.shutdown();
+	
+	        i = 0
+		    for (Future<RowNumberAndData> result : results) {
+	    		RowNumberAndData data = result.get()
+	    		row = data.getRow()
+	    		output.setRowValues(row, data.getData())
+	        	i++
+				// update progress bar
+				progress = (int)(100f * i / rows)
 				if (progress > oldProgress) {
-					pluginHost.updateProgress("Interpolating:", progress)
+					pluginHost.updateProgress("Progress", progress)
 					oldProgress = progress
 				}
 				// check to see if the user has requested a cancellation
@@ -559,7 +544,69 @@ public class InterpolationIDW implements ActionListener {
 					pluginHost.showFeedback("Operation cancelled")
 					return
 				}
-            }
+		    }
+	    
+//			// perform the interpolation
+//			double weight, distance, dMax
+//			oldProgress = -1;
+//			for (row = 0; row < rows; row++) {
+//				for (col = 0; col < cols; col++) {
+//                	x = output.getXCoordinateFromColumn(col);
+//                    y = output.getYCoordinateFromRow(row);
+//                    double[] entry = new double[2]
+//                    entry[0] = x
+//                    entry[1] = y
+//                    
+//                    results = pointsTree.neighborsWithinRange(entry, maxSearchDist)
+//                    dMax = maxSearchDist
+//                    int numResults = results.size()
+//                    if (numResults < numNeighbours) {
+//                    	results = pointsTree.nearestNeighbor(entry, numNeighbours, true, useQuadrandSearch)
+//                    	dMax = results.get(0).distance
+//                    	numResults = results.size()
+//                    }
+//                	if (numResults >= 1) {
+//                		double[] weights = new double[numResults]
+//                		double[] values = new double[numResults]
+//                		double sumWeights = 0
+//                		boolean useExactValue = false
+//	                	for (i = 0; i < numResults; i++) {
+//	                    	int j = results.get(i).value
+//	                    	values[i] = nodalFunc[j].getValue(x, y)
+//	                    	distance = Math.sqrt(results.get(i).distance)
+//	                    	if (distance > 0) {
+//	                    		weight = weightFunction.getPartialWeight(distance, dMax)
+//		                    	weights[i] = weight
+//		                    	sumWeights += weight
+//	                    	} else {
+//	                    		z = values[i]
+//	                    		useExactValue = true
+//	                    		break
+//	                    	}
+//	                    }
+//	                    if (!useExactValue) {
+//	                    	z = 0
+//	                    	for (i = 0; i < numResults; i++) {
+//	                    		z += values[i] * weights[i] / sumWeights
+//	                    	}
+//	                    }
+//                	} else {
+//                		z = nodata
+//                	}
+//                    
+//                    output.setValue(row, col, z)
+//                }
+//                progress = (int)(100f * row / (rows - 1))
+//				if (progress > oldProgress) {
+//					pluginHost.updateProgress("Interpolating:", progress)
+//					oldProgress = progress
+//				}
+//				// check to see if the user has requested a cancellation
+//				if (pluginHost.isRequestForOperationCancelSet()) {
+//					pluginHost.showFeedback("Operation cancelled")
+//					return
+//				}
+//            }
 
 			output.addMetadataEntry("Created by the "
 	                    + descriptiveName + " tool.")
@@ -703,6 +750,127 @@ public class InterpolationIDW implements ActionListener {
     	}
     }
 
+	public List<Future<RowNumberAndData>> getExecutorResults(ExecutorService executor, ArrayList<DoWorkOnRow> tasks) {
+    	List<Future<RowNumberAndData>> results = executor.invokeAll(tasks);
+		return results
+    }
+
+	@CompileStatic
+    class DoWorkOnRow implements Callable<RowNumberAndData> {
+		private double[] data
+		private int row
+		private double nodata
+		
+	    DoWorkOnRow(double[] data, double nodata, int row) {
+        	this.data = data
+        	this.row = row
+            this.nodata = nodata
+       	}
+        	
+        @Override
+	    public RowNumberAndData call() {
+	    	// check to see if the user has requested a cancellation
+			if (pluginHost.isRequestForOperationCancelSet()) {
+				return null
+			}
+			
+	    	int cols = data.length
+	       	double[] retData = new double[cols]
+   	        double distance, dMax, weight, x, y, z
+   	        int i
+
+	        for (int col in 0..(cols - 1)) {
+            	x = output.getXCoordinateFromColumn(col);
+                y = output.getYCoordinateFromRow(row);
+                double[] entry = new double[2]
+                entry[0] = x
+                entry[1] = y
+                
+                results = pointsTree.neighborsWithinRange(entry, maxSearchDist)
+                dMax = maxSearchDist
+                int numResults = results.size()
+                if (numResults < numNeighbours) {
+                	results = pointsTree.nearestNeighbor(entry, numNeighbours, true, useQuadrandSearch)
+                	dMax = results.get(0).distance
+                	numResults = results.size()
+                }
+            	if (numResults >= 1) {
+            		double[] weights = new double[numResults]
+            		double[] values = new double[numResults]
+            		double sumWeights = 0
+            		boolean useExactValue = false
+                	for (i = 0; i < numResults; i++) {
+                    	int j = results.get(i).value
+                    	values[i] = nodalFunc[j].getValue(x, y)
+                    	distance = Math.sqrt(results.get(i).distance)
+                    	if (distance > 0) {
+                    		weight = weightFunction.getPartialWeight(distance, dMax)
+	                    	weights[i] = weight
+	                    	sumWeights += weight
+                    	} else {
+                    		z = values[i]
+                    		useExactValue = true
+                    		break
+                    	}
+                    }
+                    if (!useExactValue) {
+                    	z = 0
+                    	for (i = 0; i < numResults; i++) {
+                    		z += values[i] * weights[i] / sumWeights
+                    	}
+                    }
+            	} else {
+            		z = nodata
+            	}
+                
+                retData[col] = z
+            }
+            // check to see if the user has requested a cancellation
+			if (pluginHost.isRequestForOperationCancelSet()) {
+				pluginHost.showFeedback("Operation cancelled")
+				return
+			}
+			
+			return new RowNumberAndData(row, retData)
+        }                
+    }
+
+	@CompileStatic
+    class RowNumberAndData {
+		private int row
+		private double[] data
+		private int numDataEntries = 0
+		
+    	RowNumberAndData(int row, double[] data) {
+    		this.row = row
+    		this.data = data
+    		this.numDataEntries = data.length
+    	}
+
+    	public int getRow() {
+    		return row
+    	}
+
+    	public void setRow(int row) {
+    		this.row = row
+    	}
+
+    	public double[] getData() {
+    		return data
+    	}
+
+		public void setData(double[] data) {
+			this.data = data
+		}
+		
+    	public double getDataAt(int n) {
+    		if (n < numDataEntries) {
+    			return data[n]
+    		} else {
+    			return null
+    		}
+    	}
+    }
 }
 
 if (args == null) {

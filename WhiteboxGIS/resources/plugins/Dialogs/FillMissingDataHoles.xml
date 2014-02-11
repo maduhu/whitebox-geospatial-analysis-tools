@@ -19,4 +19,11 @@
 		<MakeOptional>False</MakeOptional>
 		<ShowButton>True</ShowButton>
 	</DialogComponent>
+        <DialogComponent type="DialogCheckBox">
+		<Name>onlyInterpolateInteriorHoles</Name>
+		<Description>Only interpolate interior holes?</Description>
+		<LabelText>Only interpolate interior holes?</LabelText>
+		<InitialState>True</InitialState>
+		<IsVisible>True</IsVisible>
+	</DialogComponent>
 </Dialog>

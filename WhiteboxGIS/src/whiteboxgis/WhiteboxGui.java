@@ -110,7 +110,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private StatusBar status;
     // common variables
     private static final String versionName = "3.1 'Iguazu'";
-    private static final String versionNumber = "3.1.2";
+    public static final String versionNumber = "3.1.3";
+    public static String currentVersionNumber;
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
     private String applicationDirectory;
@@ -318,7 +319,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             propsFile = resourcesDirectory + "app.config";
             workingDirectory = resourcesDirectory + "samples" + pathSep;
             paletteDirectory = resourcesDirectory + "palettes" + pathSep;
-            logDirectory = resourcesDirectory + "logs" + pathSep;
+            logDirectory = applicationDirectory + pathSep + "logs" + pathSep;
+            File ld = new File(logDirectory);
+            if (!ld.exists()) {
+                ld.mkdirs();
+            }
+//            logDirectory = resourcesDirectory + "logs" + pathSep;
 
             // set up the logger
             int limit = 1000000; // 1 Mb
@@ -419,6 +425,80 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
+    public boolean isVersionUpToDate() {
+        try {
+            String currentVersionName = "";
+            currentVersionNumber = "";
+            String downloadLocation = "";
+
+            //make a URL to a known source
+            String baseUrl = "http://www.uoguelph.ca/~hydrogeo/Whitebox/VersionInfo.xml";
+            URL url = new URL(baseUrl);
+
+            //open a connection to that source
+            HttpURLConnection urlConnect = (HttpURLConnection) url.openConnection();
+
+            //trying to retrieve data from the source. If there
+            //is no connection, this line will fail
+            Object objData = urlConnect.getContent();
+
+            InputStream inputStream = (InputStream) urlConnect.getContent();
+            DocumentBuilderFactory docbf = DocumentBuilderFactory.newInstance();
+            docbf.setNamespaceAware(true);
+            DocumentBuilder docbuilder = docbf.newDocumentBuilder();
+            Document document = docbuilder.parse(inputStream, baseUrl);
+
+            document.getDocumentElement().normalize();
+            Element docElement = document.getDocumentElement();
+
+            Element el;
+            NodeList nl = docElement.getElementsByTagName("VersionName");
+            if (nl.getLength() > 0) {
+                el = (Element) nl.item(0);
+                currentVersionName = el.getFirstChild().getNodeValue().replace("\"", "");
+            }
+
+            nl = docElement.getElementsByTagName("VersionNumber");
+            if (nl.getLength() > 0) {
+                el = (Element) nl.item(0);
+                currentVersionNumber = el.getFirstChild().getNodeValue().replace("\"", "");
+            }
+
+            nl = docElement.getElementsByTagName("DownloadLocation");
+            if (nl.getLength() > 0) {
+                el = (Element) nl.item(0);
+                downloadLocation = el.getFirstChild().getNodeValue().replace("\"", "");
+            }
+
+            nl = docElement.getElementsByTagName("DownloadArtifact");
+            if (nl.getLength() > 0) {
+                el = (Element) nl.item(0);
+                updateDownloadArtifact = el.getFirstChild().getNodeValue().replace("\"", "");
+            }
+
+            if (currentVersionName.isEmpty()
+                    || currentVersionNumber.isEmpty()
+                    || downloadLocation.isEmpty()) {
+                return true;
+            }
+
+            if (Integer.parseInt(versionNumber.replace(".", ""))
+                    < Integer.parseInt(currentVersionNumber.replace(".", ""))) {
+                return false;
+            }
+            return true;
+        } catch (UnknownHostException e) {
+            // no internet connection...no big deal.
+            return true;
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "WhiteboxGui.checkVersionIsUpToDate", e);
+            return true;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "WhiteboxGui.checkVersionIsUpToDate", e);
+            return true;
+        }
+    }
+
     private boolean checkVersionIsUpToDate() {
         // Throwing this on the EDT to allow the window to pop up faster
         SwingUtilities.invokeLater(new Runnable() {
@@ -427,7 +507,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 try {
                     if (checkForUpdates || receiveAnnouncements) {
                         String currentVersionName = "";
-                        String currentVersionNumber = "";
+                        currentVersionNumber = "";
                         String downloadLocation = "";
 
                         //make a URL to a known source

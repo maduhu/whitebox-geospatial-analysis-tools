@@ -304,11 +304,7 @@ public class Polygon implements Geometry {
                 crossproducts[j] = (x1 - x0) * (y2 - y1) - (y1 - y0) * (x2 - x1);
             }
             boolean testSign;
-            if (crossproducts[0] >= 0) {
-                testSign = true; // positive
-            } else {
-                testSign = false; // negative
-            }
+            testSign = crossproducts[0] >= 0;
             isConvex[i] = true;
             for (int j = 1; j < numPointsInPart; j++) {
                 if (crossproducts[j] >= 0 && !testSign) {

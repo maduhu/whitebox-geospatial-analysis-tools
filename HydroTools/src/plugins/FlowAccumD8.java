@@ -23,60 +23,77 @@ import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class FlowAccumD8 implements WhiteboxPlugin {
-    
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
-    
+
     // Constants
     private static final double LnOf2 = 0.693147180559945;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "FlowAccumD8";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "D8 and Rho8 Flow Accumulation";
+        return "D8 and Rho8 Flow Accumulation";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "Performs a D8 or Rho8 flow accumulation operation on a "
+        return "Performs a D8 or Rho8 flow accumulation operation on a "
                 + "specified flow pointer grid.";
     }
+
     /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "FlowAccum" };
-    	return ret;
+        String[] ret = {"FlowAccum"};
+        return ret;
     }
+
     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
      */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -86,8 +103,11 @@ public class FlowAccumD8 implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -98,21 +118,27 @@ public class FlowAccumD8 implements WhiteboxPlugin {
 
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -121,34 +147,41 @@ public class FlowAccumD8 implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
+
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
+
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -158,11 +191,12 @@ public class FlowAccumD8 implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
+
         String inputHeader = null;
         String outputHeader = null;
         int row, col, x, y;
-        float progress = 0;
+        int progress = 0;
+        int oldProgress;
         double slope;
         double z, z2;
         int i;
@@ -175,17 +209,17 @@ public class FlowAccumD8 implements WhiteboxPlugin {
         String outputType = null;
         double gridRes;
         double flowDir = 0;
-        
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
+
         inputHeader = args[0];
         outputHeader = args[1];
         outputType = args[2].toLowerCase();
         logTransform = Boolean.parseBoolean(args[3]);
-        
+
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -194,45 +228,53 @@ public class FlowAccumD8 implements WhiteboxPlugin {
 
         try {
             WhiteboxRaster pntr = new WhiteboxRaster(inputHeader, "r");
-            
+
             int rows = pntr.getNumberRows();
+            int rowsLessOne = rows - 1;
             int cols = pntr.getNumberColumns();
             double noData = pntr.getNoDataValue();
             gridRes = pntr.getCellSizeX();
-                    
-            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", 
+
+            WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw",
                     inputHeader, WhiteboxRaster.DataType.FLOAT, 1);
             output.setPreferredPalette("blueyellow.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);
             output.setZUnits("dimensionless");
-            
-            WhiteboxRaster tmpGrid = new WhiteboxRaster(outputHeader.replace(".dep", 
+
+            WhiteboxRaster tmpGrid = new WhiteboxRaster(outputHeader.replace(".dep",
                     "_temp.dep"), "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
             tmpGrid.isTemporaryFile = true;
-            
+
             updateProgress("Loop 1 of 3:", 0);
+            oldProgress = -1;
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     if (pntr.getValue(row, col) != noData) {
                         z = 0;
                         for (i = 0; i < 8; i++) {
-                            if (pntr.getValue(row + dY[i], col + dX[i]) ==
-                                    inflowingVals[i]) { z++; }
+                            if (pntr.getValue(row + dY[i], col + dX[i])
+                                    == inflowingVals[i]) {
+                                z++;
+                            }
                         }
                         tmpGrid.setValue(row, col, z);
                     } else {
                         output.setValue(row, col, noData);
                     }
                 }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
+                progress = (int) (100f * row / rowsLessOne);
+                if (progress > oldProgress) {
+                    updateProgress(progress);
+                    oldProgress = progress;
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
                 }
-                progress = (float) (100f * row / (rows - 1));
-                updateProgress("Loop 1 of 3:", (int) progress);
             }
 
             updateProgress("Loop 2 of 3:", 0);
+            oldProgress = -1;
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     if (tmpGrid.getValue(row, col) == 0) { //there are no 
@@ -269,15 +311,19 @@ public class FlowAccumD8 implements WhiteboxPlugin {
                         } while (flag);
                     }
                 }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
+                progress = (int) (100f * row / rowsLessOne);
+                if (progress > oldProgress) {
+                    updateProgress(progress);
+                    oldProgress = progress;
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
                 }
-                progress = (float) (100f * row / (rows - 1));
-                updateProgress("Loop 2 of 3:", (int) progress);
             }
-            
+
             updateProgress("Loop 3 of 3:", 0);
+            oldProgress = -1;
             if (outputType.contains("specific") || outputType.contains("sca")) {
                 for (row = 0; row < rows; row++) {
                     for (col = 0; col < cols; col++) {
@@ -287,12 +333,15 @@ public class FlowAccumD8 implements WhiteboxPlugin {
                                     output.getValue(row, col) * gridRes);
                         }
                     }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
+                    progress = (int) (100f * row / rowsLessOne);
+                    if (progress > oldProgress) {
+                        updateProgress(progress);
+                        oldProgress = progress;
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
                     }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress((int) progress);
                 }
             } else if (outputType.contains("total")) {
                 double gridCellArea = gridRes * gridRes;
@@ -304,17 +353,21 @@ public class FlowAccumD8 implements WhiteboxPlugin {
                                     output.getValue(row, col) * gridCellArea);
                         }
                     }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
+                    progress = (int) (100f * row / rowsLessOne);
+                    if (progress > oldProgress) {
+                        updateProgress(progress);
+                        oldProgress = progress;
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
                     }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress("Loop 3 of 3:", (int) progress);
                 }
 
             }
-            
+
             if (logTransform) {
+                oldProgress = -1;
                 for (row = 0; row < rows; row++) {
                     for (col = 0; col < cols; col++) {
                         flowDir = output.getValue(row, col);
@@ -323,19 +376,22 @@ public class FlowAccumD8 implements WhiteboxPlugin {
                                     Math.log(output.getValue(row, col)));
                         }
                     }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
+                    progress = (int) (100f * row / rowsLessOne);
+                    if (progress > oldProgress) {
+                        updateProgress(progress);
+                        oldProgress = progress;
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
                     }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress((int) progress);
                 }
             }
-            
+
             output.addMetadataEntry("Created by the "
                     + getDescriptiveName() + " tool.");
             output.addMetadataEntry("Created on " + new Date());
-            
+
             pntr.close();
             tmpGrid.close();
             output.close();

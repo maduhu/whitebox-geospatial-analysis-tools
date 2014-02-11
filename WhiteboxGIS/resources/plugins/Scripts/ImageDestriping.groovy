@@ -72,7 +72,7 @@ public class ImageDestriping implements ActionListener {
 			// add some components to the dialog
 			sd.addDialogFile("Input image file", "Input Image:", "open", "Raster Files (*.dep), DEP", true, false)
 			sd.addDialogFile("Output file", "Output Raster File:", "save", "Raster Files (*.dep), DEP", true, false)
-			sd.addDialogDataInput("Threshold value.</html>", "Threshold Value:", "5.0", true, false)
+			sd.addDialogDataInput("Threshold value.", "Threshold Value:", "5.0", true, false)
             sd.addDialogComboBox("Which direction are the stripes in the image?", "Striping Direction:", ["Horizontal", "Vertical"], 0)
 			
 			// resize the dialog to the standard size and display it

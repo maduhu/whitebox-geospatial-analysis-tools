@@ -1,25 +1,37 @@
 <?xml version="1.0"?>
 <VersionInfo>
     <VersionName>"3.1 'Iguazu'"</VersionName>
-    <VersionNumber>"3.1.1"</VersionNumber>
+    <VersionNumber>"3.1.2"</VersionNumber>
     <DownloadLocation>"http://www.uoguelph.ca/~hydrogeo/Whitebox/download.shtml"</DownloadLocation>
     <DownloadArtifact>"http://www.uoguelph.ca/~hydrogeo/Whitebox/WhiteboxGAT.zip"</DownloadArtifact>
-    <Announcements number="14">
+    <Announcements number="15">
         <Announcement>
             <Date>2014-01-29</Date>
             <Language>en</Language>
-            <Title>Two new features worth checking out...</Title>
-            <Message><![CDATA[<p>I would like to draw your attention to two new 
-features of the latest version of Whitebox (v. 3.1.1). The <b>Request New Feature</b> 
-tool, located in the tools tab and in the Help menu, can be used to send a feature 
-request to the Whitebox development team. Features that have a greater number of 
-requests will move higher in the development priority queue, so send us your most 
-wanted new features! The second addition is the new <b>Error Reporting</b> feature, 
-also found under the Help menu. When you are using Whitebox and encounter an error, 
-use the new reporting tool to send the development team a description of the error 
-you encountered. The tool will automatically send us a copy of your log files as well 
-so that we can get a better idea of what went wrong. Both these new features will 
-help us to further improve Whitebox.</p><]]>
+            <Title>Whitebox 3.1.2 Has Been Released</Title>
+            <Message><![CDATA[<p>The following additions/modifications have been made:</p>
+<ul><li>Added a Profile tool for creating topographic profiles from surface rasters.</li>
+<li>Added a kriging interpolation tool. The kriging tool includes an interactive
+ semivariogram tool.</li>
+<li>Added the Bare-Earth DEM tool for LiDAR data.</li>
+<li>Added the Canopy Model tool for LiDAR data.</li>
+<li>Added the ElevationAboveStream tool.</li>
+<li>Added the DownslopeDistanceToStream tool.</li>
+<li>Added the GetLasFileStatistics tool for examining LAS (LiDAR) files.</li>
+<li>Added the NearestNeighbourAnalysis tool for identifying clustered point patterns.</li>
+<li>Added the EliminateCoincidentPoints tool.</li>
+<li>Added the ShortAxis tool.</li>
+<li>Added the RunPluginInParallel tool, which can run any one plugin in parallel using a batch 
+ file of input parameters.</li>
+<li>The ShapeFile class has a new getKdTree method that returns a kd-tree of feature
+ nodes. Each kd-entry value property contains the zero-base feature ID of the node.</li>
+<li>The ScriptDialog class now has an addDialogButton method.</li>
+<li>Fixed a bug with the InterpolationIDW and RasterizeTIN tools that did not allow 
+ for the use of a specified base raster for determining resolution and extent.</li>
+<li>Integrated a 'Field Calculator' directly into the attribute table dialog to simplify 
+ the process of creating and populating new fields. At the moment the field 
+ calculator only works with Groovy as a scripting engine. There appears to be 
+ something wrong with the Python engine currently.</li></ul><]]>
             </Message>
         </Announcement>
         <Announcement>

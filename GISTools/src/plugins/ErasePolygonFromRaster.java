@@ -273,7 +273,6 @@ public class ErasePolygonFromRaster implements WhiteboxPlugin {
 
             Collections.sort(myList);
 
-
             for (int k = 0; k < numFiles; k++) {
                 // initialize the shapefile input
 
@@ -429,19 +428,21 @@ public class ErasePolygonFromRaster implements WhiteboxPlugin {
 
                 j = 0;
                 numCellsToWrite = pq.size();
-                do {
-                    cell = pq.poll();
-                    output.setValue(cell.row, cell.col, cell.z);
+                if (numCellsToWrite > 0) {
+                    do {
+                        cell = pq.poll();
+                        output.setValue(cell.row, cell.col, cell.z);
 
-                    j++;
-                    if (j % 1000 == 0) {
-                        if (cancelOp) {
-                            cancelOperation();
-                            return;
+                        j++;
+                        if (j % 1000 == 0) {
+                            if (cancelOp) {
+                                cancelOperation();
+                                return;
+                            }
+                            updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
                         }
-                        updateProgress("Writing to Output (" + df.format(j) + " of " + df.format(numCellsToWrite) + "):", (int) (j * 100.0 / numCellsToWrite));
-                    }
-                } while (pq.size() > 0);
+                    } while (pq.size() > 0);
+                }
 
                 output.addMetadataEntry("Created by the "
                         + getDescriptiveName() + " tool.");
@@ -474,8 +475,8 @@ public class ErasePolygonFromRaster implements WhiteboxPlugin {
         ShapeType shapeType = record.getShapeType();
         switch (shapeType) {
             case POLYGON:
-                whitebox.geospatialfiles.shapefile.Polygon recPolygon =
-                        (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+                whitebox.geospatialfiles.shapefile.Polygon recPolygon
+                        = (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
                 ret = recPolygon.getPoints();
                 partData = recPolygon.getParts();
                 partHoleData = recPolygon.getPartHoleData();
@@ -507,8 +508,8 @@ public class ErasePolygonFromRaster implements WhiteboxPlugin {
         ShapeType shapeType = record.getShapeType();
         switch (shapeType) {
             case POLYGON:
-                whitebox.geospatialfiles.shapefile.Polygon recPolygon =
-                        (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+                whitebox.geospatialfiles.shapefile.Polygon recPolygon
+                        = (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
                 ret = recPolygon.getBox();
                 break;
             case POLYGONZ:

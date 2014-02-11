@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2014 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
  
 import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
-//import java.util.concurrent.Future
-//import java.util.concurrent.*
 import java.util.Date
 import java.util.ArrayList
 import whitebox.interfaces.WhiteboxPluginHost
