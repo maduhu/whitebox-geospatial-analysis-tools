@@ -1600,9 +1600,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // does this plugin provide it's own dialog?
             boolean pluginProvidesDialog = false;
-
-            String parameterFile = resourcesDirectory + "plugins"
-                    + pathSep + "Dialogs" + pathSep + plug.getName() + ".xml";
+            String parameterFile = FileUtilities.findFileInDirectory(new File(resourcesDirectory + "plugins" + pathSep), plug.getName() + ".xml"); 
+//            String parameterFile = resourcesDirectory + "plugins"
+//                    + pathSep + "Dialogs" + pathSep + plug.getName() + ".xml";
+//            if (parameterFile == null) {
+//                showFeedback("Dialog parameter file not located for plugin.");
+//                return;
+//            }
             File file = new File(parameterFile);
 
             try {

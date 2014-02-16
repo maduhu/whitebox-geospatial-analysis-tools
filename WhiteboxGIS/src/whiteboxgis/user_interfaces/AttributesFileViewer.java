@@ -148,7 +148,6 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 //                scripter.showGenerateDataButton(true);
 //            }
 //        });
-
     }
 
     public AttributesFileViewer(Frame owner, boolean modal, String shapeFileName) {
@@ -204,7 +203,6 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 //                scripter.showGenerateDataButton(true);
 //            }
 //        });
-
     }
 
     private void createGui() {
@@ -285,10 +283,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             int screenWidth = dim.width;
             //setSize(screenWidth / 2, screenHeight / 2);
             this.setLocation(screenWidth / 4, screenHeight / 4);
-            
-            
+
             setScripterDefaultText();
-                    
+
         } catch (Exception e) {
             if (host != null) {
                 host.showFeedback(messages.getString("ErrorExecutingScript"));
@@ -302,7 +299,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JToolBar toolbar = new JToolBar();
-        
+
         toolbar.add(new JLabel("Target Field:"));
         targetFieldCB = new JComboBox();
         updateFieldComboBox();
@@ -310,7 +307,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         toolbar.add(targetFieldCB);
 
         toolbar.addSeparator();
-        
+
         JButton openBtn = makeToolBarButton("open.png", "open", bundle.getString("OpenFile"), "Open");
         toolbar.add(openBtn);
 
@@ -378,9 +375,11 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
         return panel;
     }
-    
+
     private void updateFieldComboBox() {
-        if (targetFieldCB == null) { return; }
+        if (targetFieldCB == null) {
+            return;
+        }
         final AttributeFieldTableModel model = new AttributeFieldTableModel(attributeTable);
         String[] fieldNames = new String[model.getRowCount()];
         for (int i = 0; i < model.getRowCount(); i++) {
@@ -676,7 +675,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                 }
             }
         });
-        
+
 //        table.addPropertyChangeListener( new PropertyChangeListener() {
 //
 //            @Override
@@ -686,7 +685,6 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 //                }
 //            }
 //        });
-
         return table;
     }
 
@@ -726,6 +724,33 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     private JPopupMenu createFieldRevertPopup(final AttributeFieldTableModel model, final int row) {
 
         JPopupMenu popup = new JPopupMenu();
+
+        JMenuItem changeFieldTitleItem = new JMenuItem(bundle.getString("ChangeFieldTitle"));
+        changeFieldTitleItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String s = (String) JOptionPane.showInputDialog(
+                        (JFrame)host,
+                        "Please enter a new title.",
+                        "New Field Title",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        null,
+                        "");
+                if (s.length() > 10) {
+                    s = s.substring(0, 9);
+                }
+                s = s.toUpperCase().replace(" ", "_");
+                model.changeFieldTitle(row, s);
+                AttributeFileTableModel dataModel = (AttributeFileTableModel) dataTable.getModel();
+                dataModel.unhideColumns();
+                dataModel.fireTableDataChanged();
+                updateFieldComboBox();
+            }
+        });
+
+        popup.add(changeFieldTitleItem);
+
         JMenuItem revertItem = new JMenuItem(bundle.getString("RevertChanges"));
 
         if (model.isModified(row)) {
@@ -792,10 +817,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 //        generateFieldData.add(generateData);
 //
 //        menubar.add(generateFieldData);
-
         return menubar;
     }
-    
+
     private void print() {
         try {
             editor.print();
@@ -803,7 +827,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             host.logException("Error in AttributesFileViewer.", e);
         }
     }
-    
+
     public void openFile(String fileName) {
         sourceFile = fileName;
         if (sourceFile == null || sourceFile.isEmpty()) {
@@ -812,7 +836,6 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
         editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
         editor.setEditable(true);
-
 
         DataInputStream in = null;
         BufferedReader br = null;
@@ -867,7 +890,6 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
             editor.setEditable(true);
 
-
             DataInputStream in = null;
             BufferedReader br = null;
             try {
@@ -901,7 +923,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     private void save() {
         if (sourceFile == null) {
             String extension = ".groovy";
-            
+
             JFileChooser fc = new JFileChooser();
             fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
             fc.setMultiSelectionEnabled(false);
@@ -910,7 +932,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
             FileFilter ft = new FileNameExtensionFilter("Groovy " + bundle.getString("Files"), "groovy");
             fc.addChoosableFileFilter(ft);
-            
+
             fc.setCurrentDirectory(new File(scriptsDirectory));
             int result = fc.showSaveDialog(this);
             File file = null;
@@ -940,7 +962,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                     }
                 }
                 sourceFile = file.toString();
-                
+
                 //this.setTitle("Whitebox Scripter: " + new File(sourceFile).getName());
             } else {
                 return;
@@ -972,13 +994,13 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             }
         }
     }
-    
+
     private String sourceFile;
+
     private void saveAs() {
         sourceFile = null;
         save();
     }
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -990,23 +1012,23 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                 break;
             case "closescript":
                 //if (editorDirty) {
-                    Object[] options = {"Yes", "No", "Cancel"};
-                    int n = JOptionPane.showOptionDialog(this,
-                            "Would you like to save the code?",
-                            "Whitebox GAT Message",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE,
-                            null, //do not use a custom Icon
-                            options, //the titles of buttons
-                            options[0]); //default button title
+                Object[] options = {"Yes", "No", "Cancel"};
+                int n = JOptionPane.showOptionDialog(this,
+                        "Would you like to save the code?",
+                        "Whitebox GAT Message",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null, //do not use a custom Icon
+                        options, //the titles of buttons
+                        options[0]); //default button title
 
-                    if (n == JOptionPane.YES_OPTION) {
-                        save();
-                    } else if (n == JOptionPane.NO_OPTION) {
-                        // do nothing
-                    } else if (n == JOptionPane.CANCEL_OPTION) {
-                        return;
-                    }
+                if (n == JOptionPane.YES_OPTION) {
+                    save();
+                } else if (n == JOptionPane.NO_OPTION) {
+                    // do nothing
+                } else if (n == JOptionPane.CANCEL_OPTION) {
+                    return;
+                }
                 //}
                 editor.setText("");
                 sourceFile = null;
@@ -1072,7 +1094,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             case "print":
                 print();
                 break;
-                        
+
         }
     }
 
@@ -1154,9 +1176,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                 dataModel.fireTableDataChanged();
             }
         }
-        
+
         updateFieldComboBox();
-        
+
     }
 
     /**
@@ -1166,7 +1188,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         AttributeFieldTableModel model = (AttributeFieldTableModel) fieldTable.getModel();
 
         model.createNewField();
-        
+
         updateFieldComboBox();
     }
 
@@ -1231,7 +1253,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
             //System.out.println("Deleting: " + selection.toString());
         }
-        
+
     }
 
     private void addAreaField() {
@@ -1276,10 +1298,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
                 }
             }
-            
+
             updateFieldComboBox();
-            
-            
+
             host.showFeedback(messages.getString("CalculationComplete"));
 
         } catch (Exception e) {
@@ -1333,7 +1354,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                 }
 
             }
-            
+
             updateFieldComboBox();
             host.showFeedback(messages.getString("CalculationComplete"));
 
@@ -1402,11 +1423,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 //            setScripterDefaultText(lang);
 //        }
 //    };
-
     private void setScripterDefaultText() { //ScriptingLanguage lang) {
-        
+
         String commentMarker = "//";
-        
+
         String default_text = commentMarker + " "
                 + messages.getString("ScriptMessage1") + "\n"
                 + commentMarker + " " + messages.getString("ScriptMessage2") + "\n"
@@ -1421,25 +1441,25 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 //            case PYTHON:
 //            case GROOVY:
 //            case JAVASCRIPT:
-                default_text += "index + 1";
+        default_text += "index + 1";
 //                break;
 //
 //        }
 //        scripter.setEditorText(default_text);
-                editor.setText(default_text);
+        editor.setText(default_text);
     }
-    
+
     private void executeScript() {
         AttributeFieldTableModel fieldModel = (AttributeFieldTableModel) fieldTable.getModel();
         AttributeFileTableModel dataModel = (AttributeFileTableModel) dataTable.getModel();
         int fieldCount = fieldModel.getRowCount();
 
         try {
-            
+
             this.generateDataColumnIndex = targetFieldCB.getSelectedIndex();
 
             CompiledScript generate_data = ((Compilable) engine).compile(this.editor.getText());
-       
+
             Bindings bindings = engine.createBindings();
 
             for (int row = 0; row < dataModel.getRowCount(); row++) {

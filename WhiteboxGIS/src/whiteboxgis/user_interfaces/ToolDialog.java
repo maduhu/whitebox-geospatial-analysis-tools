@@ -89,8 +89,9 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         this.pluginName = pluginName;
         applicationDirectory = host.getApplicationDirectory();
         resourcesDirectory = host.getResourcesDirectory();
-        parameterFile = resourcesDirectory + "plugins"
-                + pathSep + "Dialogs" + pathSep + pluginName + ".xml";
+        parameterFile = FileUtilities.findFileInDirectory(new File(resourcesDirectory + "plugins" + pathSep), pluginName + ".xml");
+//        parameterFile = resourcesDirectory + "plugins"
+//                + pathSep + "Dialogs" + pathSep + pluginName + ".xml";
         // see if the parameterFile exists.
         bundle = host.getGuiLabelsBundle();
         messages = host.getMessageBundle();
