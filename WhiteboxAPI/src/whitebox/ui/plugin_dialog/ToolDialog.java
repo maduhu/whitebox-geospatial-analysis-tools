@@ -34,6 +34,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import whitebox.utilities.FileUtilities;
 
 /**
  *
@@ -87,8 +88,9 @@ public class ToolDialog extends JDialog implements Communicator, ActionListener,
         this.pluginName = pluginName;
         applicationDirectory = host.getApplicationDirectory();
         resourcesDirectory = host.getResourcesDirectory();
-        parameterFile = resourcesDirectory + "plugins"
-                + pathSep + "Dialogs" + pathSep + pluginName + ".xml";
+        parameterFile = FileUtilities.findFileInDirectory(new File(resourcesDirectory + "plugins" + pathSep), pluginName + ".xml");
+//        parameterFile = resourcesDirectory + "plugins"
+//                + pathSep + "Dialogs" + pathSep + pluginName + ".xml";
         // see if the parameterFile exists.
         if (!(new File(parameterFile).exists())) {
             host.showFeedback("The tool's parameter file could not be located.");

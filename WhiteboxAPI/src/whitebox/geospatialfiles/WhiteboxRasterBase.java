@@ -1176,8 +1176,8 @@ public abstract class WhiteboxRasterBase {
                         pos = i * cellSizeInBytes * numberColumns + cellSizeInBytes * col;
                         inChannel.read(buf, pos);
                         buf.rewind();
-                        IntBuffer ib = buf.asIntBuffer();
-                        retVals[i] = (double)ib.get(0);
+                        ShortBuffer sb = buf.asShortBuffer();
+                        retVals[i] = (double)sb.get(0);
                     }
                     break;
                 case BYTE:

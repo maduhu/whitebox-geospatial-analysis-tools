@@ -151,6 +151,15 @@ public class AttributeTable {
         return this.fieldArray[index];
     }
     
+    public void updateFieldName(int index, String name) {
+        this.fieldArray[index].setName(name);
+        try {
+            this.write();
+        } catch (Exception e) {
+            // do nothing.
+        }
+    }
+    
     /**
      * Retrieves all fields in this database.
      * @return DBFField array

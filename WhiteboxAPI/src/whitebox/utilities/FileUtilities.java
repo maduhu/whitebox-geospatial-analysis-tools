@@ -32,7 +32,7 @@ public class FileUtilities {
         }
 
         destFile.createNewFile();
-        
+
         FileChannel source = null;
         FileChannel destination = null;
         try {
@@ -48,13 +48,14 @@ public class FileUtilities {
             }
         }
     }
-    
+
     public static ArrayList<String> findAllFilesWithExtension(String dir, String extension, boolean searchSubDirectories) {
         return findAllFilesWithExtension(new File(dir), extension, searchSubDirectories);
     }
-    
+
     private static ArrayList<String> foundFiles = new ArrayList<>();
     private static boolean recursive;
+
     public static ArrayList<String> findAllFilesWithExtension(File dir, String extension, boolean searchSubDirectories) {
         foundFiles.clear();
         recursive = searchSubDirectories;
@@ -65,7 +66,7 @@ public class FileUtilities {
         }
         return ret;
     }
-    
+
     private static ArrayList<String> findAllFilesWithExtension2(File dir, String extension) {
         if (!extension.startsWith(".")) {
             extension = "." + extension;
@@ -79,9 +80,22 @@ public class FileUtilities {
             }
         }
         return foundFiles;
-        
+
     }
-    
+
+    static String foundFile;
+    public static String findFileInDirectory(File directory, String shortFileName) {
+        File[] files = directory.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].isDirectory()) {
+                findFileInDirectory(files[i], shortFileName);
+            } else if (files[i].getName().contains(shortFileName)) {
+                foundFile = files[i].toString();
+            }
+        }
+        return foundFile;
+    }
+
     public static String readFileAsString(String fileName) throws java.io.IOException {
         byte[] buffer = new byte[(int) new File(fileName).length()];
         BufferedInputStream f = null;
@@ -98,7 +112,7 @@ public class FileUtilities {
         }
         return new String(buffer);
     }
-    
+
     public static void fillFileWithString(String fileName, String str) throws java.io.IOException {
         File file = new File(fileName);
         FileWriter fw = null;
@@ -110,7 +124,7 @@ public class FileUtilities {
             out = new PrintWriter(bw, true);
 
             out.print(str);
-            
+
         } finally {
             if (out != null || bw != null) {
                 out.flush();
@@ -119,7 +133,7 @@ public class FileUtilities {
 
         }
     }
-    
+
     public static String removeFileExtension(String s) {
 
         String separator = System.getProperty("file.separator");
@@ -141,12 +155,12 @@ public class FileUtilities {
 
         return filename.substring(0, extensionIndex);
     }
-    
+
     public static String getShortFileName(String fileName) {
         int idx = fileName.replaceAll("\\\\", "/").lastIndexOf("/");
         return idx >= 0 ? fileName.substring(idx + 1) : fileName;
     }
-    
+
     public static String getFileExtension(String s) {
 
         String separator = System.getProperty("file.separator");
@@ -168,9 +182,9 @@ public class FileUtilities {
 
         return filename.substring(extensionIndex + 1);
     }
-    
+
     public static boolean fileExists(String fileName) {
         return (new File(fileName)).exists();
     }
-    
+
 }

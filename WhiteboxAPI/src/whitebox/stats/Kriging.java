@@ -128,7 +128,7 @@ public class Kriging {
 //        p.z = z;
 //        return p;
 //    }
-    public List<KrigingPoint> Points = new ArrayList();
+    public List<KrigingPoint> points = new ArrayList();
 
     public class pair {
 
@@ -1031,7 +1031,7 @@ public class Kriging {
      * @param fieldName
      * @return
      */
-    public List<KrigingPoint> ReadPointFile(String inputFile, String fieldName) {
+    public void readPointFile(String inputFile, String fieldName) {
         int fieldNum = 0;
         WhiteboxRasterBase.DataType dataType = WhiteboxRasterBase.DataType.INTEGER;
         boolean useRecID = false;
@@ -1051,7 +1051,7 @@ public class Kriging {
                 && input.getShapeType() != ShapeType.MULTIPOINTM) {
             //showFeedback("The input shapefile must be of a 'point' data type.");
             JOptionPane.showMessageDialog(null, "The input shapefile must be of a 'point' data type.");
-            return null;
+            return;
         }
         ///////////////
         // what type of data is contained in fieldName?
@@ -1081,7 +1081,7 @@ public class Kriging {
         //////////////////////
         Object[] data = null;
         double[][] geometry;
-        List<KrigingPoint> Points = new ArrayList<>();
+        points = new ArrayList<>();
 
         for (ShapeFileRecord record : input.records) {
             try {
@@ -1092,11 +1092,17 @@ public class Kriging {
             geometry = getXYFromShapefileRecord(record);
             for (int i = 0; i < geometry.length; i++) {
                 KrigingPoint p = new KrigingPoint(geometry[i][0], geometry[i][1], Double.valueOf(data[fieldNum].toString()));
-                Points.add(p);
+                points.add(p);
             }
         }
-
-        return Points;
+    }
+    
+    public void setPoints(List<KrigingPoint> krigingPoints) {
+        points = krigingPoints;
+    }
+    
+    public List<KrigingPoint> getPoints() {
+        return points;
     }
 
     private double[][] getXYFromShapefileRecord(ShapeFileRecord record) {
@@ -1711,7 +1717,7 @@ public class Kriging {
         for (int i = 0; i < results.size(); i++) {
             //KrigingPoint tmp = new KrigingPoint();
             //int id = results.get(i).value.intValue();
-            res.add(Points.get(results.get(i).value.intValue()));
+            res.add(points.get(results.get(i).value.intValue()));
         }
         return res;
     }
@@ -1785,10 +1791,10 @@ public class Kriging {
      * (Kriging Optimizer)
      */
     void BuildPointTree() {
-        pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.Points.size()));
+        pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.points.size()));
         double[] entry;
-        for (int i = 0; i < this.Points.size(); i++) {
-            entry = new double[]{this.Points.get(i).y, this.Points.get(i).x};
+        for (int i = 0; i < this.points.size(); i++) {
+            entry = new double[]{this.points.get(i).y, this.points.get(i).x};
             pointsTree.addPoint(entry, (double) i);
         }
 
@@ -1806,52 +1812,52 @@ public class Kriging {
         MinY = Double.POSITIVE_INFINITY;
         MaxX = Double.NEGATIVE_INFINITY;
         MaxY = Double.NEGATIVE_INFINITY;
-        pointsTree = new KdTree.SqrEuclid<>(2, new Integer(this.Points.size()));
+        pointsTree = new KdTree.SqrEuclid<>(2, new Integer(this.points.size()));
         //PairsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.Points.size()*(this.Points.size()-1)/2));
-        PairsTree = new KdTree.SqrEuclid<>(2, new Integer(this.Points.size() * (this.Points.size())));
+        PairsTree = new KdTree.SqrEuclid<>(2, new Integer(this.points.size() * (this.points.size())));
         double[] entry;
         double[] pairentry;
 
 //        String s = new String();
         double dx = 0;
         double dy = 0;
-        for (int i = 0; i < this.Points.size(); i++) {
+        for (int i = 0; i < this.points.size(); i++) {
 
-            if (this.Points.get(i).x < MinX) {
-                MinX = this.Points.get(i).x;
+            if (this.points.get(i).x < MinX) {
+                MinX = this.points.get(i).x;
             }
-            if (this.Points.get(i).y < MinY) {
-                MinY = this.Points.get(i).y;
+            if (this.points.get(i).y < MinY) {
+                MinY = this.points.get(i).y;
             }
-            if (this.Points.get(i).x > MaxX) {
-                MaxX = this.Points.get(i).x;
+            if (this.points.get(i).x > MaxX) {
+                MaxX = this.points.get(i).x;
             }
-            if (this.Points.get(i).y > MaxY) {
-                MaxY = this.Points.get(i).y;
+            if (this.points.get(i).y > MaxY) {
+                MaxY = this.points.get(i).y;
             }
 
-            entry = new double[]{this.Points.get(i).y, this.Points.get(i).x};
+            entry = new double[]{this.points.get(i).y, this.points.get(i).x};
             pointsTree.addPoint(entry, (double) i);
 
-            for (int j = 0; j < this.Points.size(); j++) {
+            for (int j = 0; j < this.points.size(); j++) {
                 pair pr = new pair();
 
                 if (i != j) {
 
                     pr.FirstP = i;
                     pr.SecondP = j;
-                    pr.Distance = Math.sqrt(Math.pow((Points.get(i).x - Points.get(j).x), 2)
-                            + Math.pow((Points.get(i).y - Points.get(j).y), 2));
+                    pr.Distance = Math.sqrt(Math.pow((points.get(i).x - points.get(j).x), 2)
+                            + Math.pow((points.get(i).y - points.get(j).y), 2));
 
-                    pr.HorDistance = (Points.get(j).x - Points.get(i).x);
-                    pr.VerDistance = (Points.get(j).y - Points.get(i).y);
+                    pr.HorDistance = (points.get(j).x - points.get(i).x);
+                    pr.VerDistance = (points.get(j).y - points.get(i).y);
 
                     if (MaximumDistance < pr.Distance) {
                         MaximumDistance = pr.Distance;
                     }
 
-                    dx = Points.get(j).x - Points.get(i).x;
-                    dy = Points.get(j).y - Points.get(i).y;
+                    dx = points.get(j).x - points.get(i).x;
+                    dy = points.get(j).y - points.get(i).y;
 
                     if (dx != 0) {
                         if ((dx > 0 && dy >= 0)) {
@@ -1873,7 +1879,7 @@ public class Kriging {
                             pr.Direction = 3 * Math.PI / 2;
                         }
                     }
-                    pr.MomentI = Math.pow((Points.get(i).z - Points.get(j).z), 2) / 2;
+                    pr.MomentI = Math.pow((points.get(i).z - points.get(j).z), 2) / 2;
                     Pairs.add(pr);
 
                     pairentry = new double[]{pr.VerDistance, pr.HorDistance};
@@ -1902,8 +1908,8 @@ public class Kriging {
         MinY = Double.POSITIVE_INFINITY;
         MaxX = Double.NEGATIVE_INFINITY;
         MaxY = Double.NEGATIVE_INFINITY;
-        pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.Points.size()));
-        PairsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.Points.size() * (this.Points.size() - 1) / 2));
+        pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.points.size()));
+        PairsTree = new KdTree.SqrEuclid<Double>(2, new Integer(this.points.size() * (this.points.size() - 1) / 2));
         double[] entry;
         double[] pairentry;
 
@@ -1912,42 +1918,42 @@ public class Kriging {
 //        pw = new PrintWriter("G:\\test.txt");
         double dx = 0;
         double dy = 0;
-        for (int i = 0; i < this.Points.size(); i++) {
+        for (int i = 0; i < this.points.size(); i++) {
 
-            if (this.Points.get(i).x < MinX) {
-                MinX = this.Points.get(i).x;
+            if (this.points.get(i).x < MinX) {
+                MinX = this.points.get(i).x;
             }
-            if (this.Points.get(i).y < MinY) {
-                MinY = this.Points.get(i).y;
+            if (this.points.get(i).y < MinY) {
+                MinY = this.points.get(i).y;
             }
-            if (this.Points.get(i).x > MaxX) {
-                MaxX = this.Points.get(i).x;
+            if (this.points.get(i).x > MaxX) {
+                MaxX = this.points.get(i).x;
             }
-            if (this.Points.get(i).y > MaxY) {
-                MaxY = this.Points.get(i).y;
+            if (this.points.get(i).y > MaxY) {
+                MaxY = this.points.get(i).y;
             }
 
-            entry = new double[]{this.Points.get(i).y, this.Points.get(i).x};
+            entry = new double[]{this.points.get(i).y, this.points.get(i).x};
             pointsTree.addPoint(entry, (double) i);
 
-            for (int j = 0; j < this.Points.size(); j++) {
+            for (int j = 0; j < this.points.size(); j++) {
                 pair pr = new pair();
 
-                if (Points.get(i).x <= Points.get(j).x && i != j) {
+                if (points.get(i).x <= points.get(j).x && i != j) {
 
                     pr.FirstP = i;
                     pr.SecondP = j;
-                    pr.Distance = Math.sqrt(Math.pow((Points.get(i).x - Points.get(j).x), 2)
-                            + Math.pow((Points.get(i).y - Points.get(j).y), 2));
+                    pr.Distance = Math.sqrt(Math.pow((points.get(i).x - points.get(j).x), 2)
+                            + Math.pow((points.get(i).y - points.get(j).y), 2));
 
-                    pr.HorDistance = (Points.get(j).x - Points.get(i).x);
-                    pr.VerDistance = (Points.get(j).y - Points.get(i).y);
+                    pr.HorDistance = (points.get(j).x - points.get(i).x);
+                    pr.VerDistance = (points.get(j).y - points.get(i).y);
 
                     if (MaximumDistance < pr.Distance) {
                         MaximumDistance = pr.Distance;
                     }
-                    dx = Points.get(j).x - Points.get(i).x;
-                    dy = Points.get(j).y - Points.get(i).y;
+                    dx = points.get(j).x - points.get(i).x;
+                    dy = points.get(j).y - points.get(i).y;
 
                     if (dx != 0) {
                         if ((dx > 0 && dy >= 0)) {
@@ -1970,7 +1976,7 @@ public class Kriging {
                         }
                     }
 
-                    pr.MomentI = Math.pow((Points.get(i).z - Points.get(j).z), 2) / 2;
+                    pr.MomentI = Math.pow((points.get(i).z - points.get(j).z), 2) / 2;
                     Pairs.add(pr);
 
                     pairentry = new double[]{pr.VerDistance, pr.HorDistance};
@@ -2157,7 +2163,7 @@ public class Kriging {
         try {
             //ChartPanel(createChart(createDataset()));
             Kriging k = new Kriging();
-            k.Points = k.ReadPointFile("/Users/johnlindsay/Documents/Data/Krigging Test Data/test.shp", "Z");
+            k.readPointFile("/Users/johnlindsay/Documents/Data/Krigging Test Data/test.shp", "Z");
             k.ConsiderNugget = false;
             k.LagSize = 50;
             k.NumberOfLags = 100;
