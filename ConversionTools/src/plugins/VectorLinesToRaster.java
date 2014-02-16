@@ -322,6 +322,9 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
             } else {
                 output = new WhiteboxRaster(outputHeader, "rw",
                         baseFileHeader, dataType, backgroundValue);
+                if (backgroundValue == noData) {
+                    output.setNoDataValue(noData);
+                }
             }
 
             // first sort the records based on their maxY coordinate. This will
