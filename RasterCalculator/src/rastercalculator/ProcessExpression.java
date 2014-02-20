@@ -302,7 +302,7 @@ public class ProcessExpression implements WhiteboxPluginHost, Runnable {
     }
 
     @Override
-    public void delectedAllFeaturesInActiveLayer() {
+    public void deselectAllFeaturesInActiveLayer() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
