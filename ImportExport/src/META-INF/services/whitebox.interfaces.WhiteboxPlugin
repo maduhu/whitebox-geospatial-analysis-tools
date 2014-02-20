@@ -6,7 +6,6 @@ plugins.ExportIDRISIRaster
 plugins.ExportSagaGrid
 plugins.ExportSurferAsciiGrid
 plugins.ExportWellKnownText
-plugins.ImportArcAsciiGrid
 plugins.ImportArcGrid
 plugins.ImportDEM
 plugins.ImportGenericMultibandData
