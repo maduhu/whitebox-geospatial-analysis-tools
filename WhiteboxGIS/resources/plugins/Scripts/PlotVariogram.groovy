@@ -125,7 +125,7 @@ public class PlotVariogram implements ActionListener {
 						return
 					}
 					if ((dfs.getValue()).length()>2) {
-						k.Points = k.ReadPointFile(inputData[0], inputData[1]);
+						k.readPointFile(inputData[0], inputData[1]);
 					}
 			        
 			        k.LagSize =  (txtLagSize.getValue()).toDouble()
@@ -268,7 +268,7 @@ public class PlotVariogram implements ActionListener {
 				k = new Kriging()
 
 				k.ConsiderNugget = applyNugget
-				k.Points = k.ReadPointFile(inputData[0], inputData[1])
+				k.readPointFile(inputData[0], inputData[1])
 		        k.LagSize =  lagSize
 		        k.Anisotropic = anisotropic
 		        if (anisotropic) {
@@ -293,7 +293,7 @@ public class PlotVariogram implements ActionListener {
 					k = new Kriging()
 	
 					k.ConsiderNugget = applyNugget
-					k.Points = k.ReadPointFile(inputData[0], inputData[1])
+					k.readPointFile(inputData[0], inputData[1])
 			        k.LagSize =  lagSize
 			        k.Anisotropic = anisotropic
 			        if (anisotropic) {

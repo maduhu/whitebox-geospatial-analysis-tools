@@ -101,7 +101,9 @@ public class LongProfile implements ActionListener {
 			sd.addDialogFile("Input D8 flow pointer file", "Input D8 Pointer Raster:", "open", "Raster Files (*.dep), DEP", true, false)
             sd.addDialogFile("Input streams file", "Input Streams Raster:", "open", "Raster Files (*.dep), DEP", true, false)
             sd.addDialogFile("Input digital elevation model (DEM) file", "Input Digital Elevation Model (DEM):", "open", "Raster Files (*.dep), DEP", true, false)
-			
+
+			sd.addDialogFile("Output text file (optional)", "Output Text File (Blank for none):", "save", "Text Files (*.csv), CSV", true, true)
+            
 			// resize the dialog to the standard size and display it
 			sd.setSize(800, 400)
 			sd.visible = true
@@ -119,7 +121,7 @@ public class LongProfile implements ActionListener {
 			int[] dY = [ -1, 0, 1, 1, 1, 0, -1, -1 ]
 			double[] inflowingVals = [ 16, 32, 64, 128, 1, 2, 4, 8 ]
         	double flowDir
-        	double val
+        	double val, x, y
         	boolean flag
         	double outputValue = 1.0
         	final double LnOf2 = 0.693147180559945;
@@ -128,7 +130,7 @@ public class LongProfile implements ActionListener {
 	        double maxDist = Double.NEGATIVE_INFINITY
 	        
         	
-			if (args.length != 3) {
+			if (args.length < 3) {
 				pluginHost.showFeedback("Incorrect number of arguments given to tool.")
 				return
 			}
@@ -136,7 +138,16 @@ public class LongProfile implements ActionListener {
 			String pointerFile = args[0]
 			String inputStreamsFile = args[1]
 			String demFile = args[2]
-			
+			boolean textOutput = false
+            String outputFileName = ""
+            if (args.length == 4) {
+            	if (!args[3].isEmpty() && 
+            	     !args[3].toLowerCase().equals("not specified")) {
+	            	textOutput = true
+	            	outputFileName = args[3]
+            	}
+            }
+            
 			// read the input image and PP vector files
 			WhiteboxRaster pointer = new WhiteboxRaster(pointerFile, "r")
 			double pointerNoData = pointer.getNoDataValue()
@@ -222,12 +233,15 @@ public class LongProfile implements ActionListener {
 
 			XYSeriesCollection xyCollection = new XYSeriesCollection();
         	pluginHost.updateProgress("Plotting profiles...", 0)
-			
+
+        	StringBuilder sb = new StringBuilder()
+        	
 			double pntrVal, dist, flowpathDist, outputVal, z
 			int numChannelHeads = channelHeadsRows.size()
 			oldProgress = -1
   		  	for (int i = 0; i < numChannelHeads; i++) {
   		  		XYSeries series = new XYSeries("Profile ${i + 1}")
+				sb.append("X,Y,Distance,Z\n")
 				
   		  		cN = channelHeadsCols.get(i)
                 rN = channelHeadsRows.get(i)
@@ -264,6 +278,11 @@ public class LongProfile implements ActionListener {
 					if (z > maxZ) { maxZ = z }
 					if (dist > maxDist) { maxDist = dist }
 					series.add(dist, z)
+					if (textOutput) {
+						x = dem.getXCoordinateFromColumn(cN)
+						y = dem.getYCoordinateFromRow(rN)
+						sb.append("${x},${y},${dist},${z}\n")
+					}
                 	// find it's downslope neighbour
                     flowDir = pointer.getValue(rN, cN);
                     if (flowDir > 0 && flowDir != pointerNoData) {
@@ -277,6 +296,11 @@ public class LongProfile implements ActionListener {
                         	dist -= gridLengths[c]
                         	z = dem.getValue(rN, cN)
                         	series.add(dist, z)
+                        	if (textOutput) {
+								x = dem.getXCoordinateFromColumn(cN)
+								y = dem.getYCoordinateFromRow(rN)
+								sb.append("${x},${y},${dist},${z}\n")
+							}
                         } else {
                         	dist -= gridLengths[c]
                         }
@@ -338,7 +362,12 @@ public class LongProfile implements ActionListener {
 			chartPanel.setPreferredSize(new Dimension(700, 300))
 			
         	pluginHost.returnData(chartPanel)
-		
+
+			if (textOutput) {
+        		def outFile = new File(outputFileName)
+        		if (outFile.exists()) { outFile.delete() }
+        		outFile.text = sb.toString()
+        	}
 	
 		} catch (OutOfMemoryError oe) {
             pluginHost.showFeedback("An out-of-memory error has occurred during operation.")

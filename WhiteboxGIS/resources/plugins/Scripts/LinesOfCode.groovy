@@ -1,4 +1,8 @@
 import whitebox.utilities.FileUtilities
+import java.text.DecimalFormat
+
+def df = new DecimalFormat("###,###,##0")
+def df2 = new DecimalFormat("#0.0%")
 
 def pathSep = File.separator
 def sd = pluginHost.getResourcesDirectory() + "plugins" + pathSep + "Scripts" + pathSep
@@ -124,5 +128,6 @@ for (String file : javaFiles) {
 	}
 }
 
-println("There are ${numLinesGroovy} lines of Groovy, ${numLinesJava} lines of Java, ${numLinesPython} lines of Python, and ${numLinesJava + numLinesGroovy + numLinesPython} lines overall in ${numFiles} script files.")
+int totalLines = numLinesJava + numLinesGroovy + numLinesPython
+println("There are ${df.format(numLinesGroovy)} (${df2.format(numLinesGroovy / totalLines)}) lines of Groovy, ${df.format(numLinesJava)} (${df2.format(numLinesJava / totalLines)}) lines of Java,\n${df.format(numLinesPython)} (${df2.format(numLinesPython / totalLines)}) lines of Python, and ${df.format(totalLines)} lines overall contained in ${df.format(numFiles)} files.")
 //println("There were also ${commentLines} lines of comments excluded.")

@@ -141,7 +141,7 @@ public class KrigingInterpolation implements ActionListener {
 						return
 					}
 					if ((dfs.getValue()).length()>2) {
-						k.Points = k.ReadPointFile(inputData[0], inputData[1]);
+						k.readPointFile(inputData[0], inputData[1]);
 					}
 			        
 			        k.LagSize =  (txtLagSize.getValue()).toDouble()
@@ -308,7 +308,7 @@ public class KrigingInterpolation implements ActionListener {
 
 				addPropertyListenerToKriging(k)
 				k.ConsiderNugget = applyNugget
-				k.Points = k.ReadPointFile(inputData[0], inputData[1])
+				k.readPointFile(inputData[0], inputData[1])
 		        k.LagSize =  lagSize
 		        k.Anisotropic = anisotropic
 		        if (anisotropic) {
@@ -334,7 +334,7 @@ public class KrigingInterpolation implements ActionListener {
 	
 					addPropertyListenerToKriging(k)
 					k.ConsiderNugget = applyNugget
-					k.Points = k.ReadPointFile(inputData[0], inputData[1])
+					k.readPointFile(inputData[0], inputData[1])
 			        k.LagSize =  lagSize
 			        k.Anisotropic = anisotropic
 			        if (anisotropic) {

@@ -70,13 +70,13 @@ public class ERODE_LEM implements ActionListener {
 			sd.addDialogFile("Specify the name of the digital elevation model raster file.", "Input Digital Elevation Model (DEM):", "open", "Raster Files (*.dep), DEP", true, false)
 			sd.addDialogFile("Output file", "Output Raster File:", "save", "Raster Files (*.dep), DEP", true, false)
 			sd.addDialogDataInput("Number of time steps", "Number of time steps:", "", true, false)
-			sd.addDialogDataInput("Time step duration (years)", "Time step duration (years):", "1", true, false)
-			sd.addDialogDataInput("Uplift rate (mm / yr)", "Uplift rate (mm / yr):", "", true, false)
+			sd.addDialogDataInput("Time step duration (years)", "Time step duration (years):", "10", true, false)
+			sd.addDialogDataInput("Uplift rate (mm / yr)", "Uplift rate (mm / yr):", "0.0", true, false)
 			sd.addDialogDataInput("Erodability factor (mm / yr)", "Erodability factor (mm / yr):", "", true, false)
-			sd.addDialogDataInput("Average annual rainfall (mm / yr)", "Average annual rainfall (mm / yr):", "", true, false)
-			sd.addDialogDataInput("Slope exponent", "Slope exponent:", "", true, false)
-			sd.addDialogDataInput("Discharge exponent", "Discharge exponent:", "", true, false)
-			sd.addDialogDataInput("Area exponent", "Area exponent:", "", true, false)
+			sd.addDialogDataInput("Average annual rainfall (mm / yr)", "Average annual rainfall (mm / yr):", "750", true, false)
+			sd.addDialogDataInput("Slope exponent", "Slope exponent:", "1.5", true, false)
+			sd.addDialogDataInput("Discharge exponent", "Discharge exponent:", "1.5", true, false)
+			sd.addDialogDataInput("Area exponent", "Area exponent:", "1.0", true, false)
 
 			// resize the dialog to the standard size and display it
 			sd.setSize(800, 400)
@@ -108,7 +108,7 @@ public class ERODE_LEM implements ActionListener {
 		double timeStepDuration = Double.parseDouble(args[3])
 		double U = Double.parseDouble(args[4])
 		double K = Double.parseDouble(args[5])
-		double R = Double.parseDouble(args[6])
+		double R = Double.parseDouble(args[6]) / 1000.0
 		double n = Double.parseDouble(args[7])
 		double m = Double.parseDouble(args[8])
 		double p = Double.parseDouble(args[9])
@@ -130,11 +130,11 @@ public class ERODE_LEM implements ActionListener {
 			if (progress > oldProgress) {
 				pluginHost.updateProgress(progress)
 				oldProgress = progress
-			}
-			// check to see if the user has requested a cancellation
-			if (pluginHost.isRequestForOperationCancelSet()) {
-				pluginHost.showFeedback("Operation cancelled")
-				return
+				// check to see if the user has requested a cancellation
+				if (pluginHost.isRequestForOperationCancelSet()) {
+					pluginHost.showFeedback("Operation cancelled")
+					return
+				}
 			}
   		}
 
@@ -147,10 +147,54 @@ public class ERODE_LEM implements ActionListener {
 			args = [outputFile, slopeFile, zFactor] 
 			pluginHost.runPlugin("Slope", args, false)
 
+			// fill the DEM
 			def filledDEMFile = wd + "filledDEM.dep" 
 			def flatIncrement = "0.001" 
 			args = [outputFile, filledDEMFile, flatIncrement]
 			pluginHost.runPlugin("FillDepressions", args, false)
+
+			// calculate D8 flow pointer grid
+			def pointerFile = wd + "pointer.dep" 
+			args = [filledDEMFile, pointerFile] 
+			pluginHost.runPlugin("FlowPointerD8", args, false)
+
+			// calculate the upslope area
+			def upslopeAreaFile = wd + "upslope area.dep" 
+			def outputType = "total catchment area" 
+			def logTransformOutput = "false" 
+			args = [pointerFile, upslopeAreaFile, outputType, logTransformOutput] 
+			pluginHost.runPlugin("FlowAccumD8", args, false)
+
+			WhiteboxRaster area = new WhiteboxRaster(upslopeAreaFile, "r")
+
+			WhiteboxRaster slope = new WhiteboxRaster(slopeFile, "r")
+
+			def qsFile = wd + "qs.dep" 
+			WhiteboxRaster qs = new WhiteboxRaster(qsFile, "rw", 
+  		  	  demFile, DataType.FLOAT, nodata)
+
+  		  	
+			double q, slopeVal
+			oldProgress = -1
+  		  	for (int row in 0..(numRows - 1)) {
+	  			for (int col in 0..(numColumns - 1)) {
+	  				q = R * Math.pow(area.getValue(row, col), p)
+	  				slopeVal = Math.tan(slope.getValue(row, col) * Math.PI / 180.0)
+	  				z = K * Math.pow(q, m) * Math.pow(slopeVal, n)
+	  				qs.setValue(row, col, z)
+	  			}
+	  			progress = (int)(100f * row / numRows)
+				if (progress > oldProgress) {
+					pluginHost.updateProgress(progress)
+					oldProgress = progress
+					// check to see if the user has requested a cancellation
+					if (pluginHost.isRequestForOperationCancelSet()) {
+						pluginHost.showFeedback("Operation cancelled")
+						return
+					}
+				}
+	  		}
+  		  	  
 		}
 
 		output.addMetadataEntry("Created by the "

@@ -1,11 +1,14 @@
 import java.io.File
 import whitebox.utilities.FileUtilities
+import whiteboxgis.WhiteboxGui
 
 try {
 	// The following lines are necessary for the script 
 	// to be recognized as a menu extension.
 	def parentMenu = "Help"
 	def menuLabel = "Report An Error"
+
+	def versionNum = ((WhiteboxGui)(pluginHost)).versionNumber
 	
 	def logDirectory = pluginHost.getLogDirectory()
 	
@@ -41,6 +44,7 @@ try {
 	sb.append("<p>Describe the details of what you were doing when you encountered the error (e.g. What tool were you using? What type of data were you processing? Was there an error message, and if so, what did it say? etc.) in the text box below:</p><br>")
 	sb.append("<form onsubmit=\"return true\" action=\"http://www.uoguelph.ca/cgi-bin/FormMail.pl\"")
 	sb.append("method=\"post\" name=\"form1\" id=\"form1\">")
+	sb.append("<input value=\"${versionNum}\" name=\"version\" type=\"hidden\">")
 	sb.append("<textarea name=\"errorDescription\" form=\"form1\" rows=\"10\" cols=\"40\"></textarea><br>")
 	sb.append("<p>The contents of your log files will be attached.</p><br>")
 	sb.append("<input value=\"").append(errorLogs.toString()).append("\" name=\"errorlogs\" type=\"hidden\">")

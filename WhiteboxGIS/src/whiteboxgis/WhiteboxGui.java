@@ -2233,12 +2233,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             };
             textArea.addMouseListener(ml);
+            textArea.setPreferredSize(new Dimension(0, 50));
             JScrollPane scrollText = new JScrollPane(textArea);
             scrollText.setMinimumSize(new Dimension(0, 0));
             splitPane3 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, drawingArea, scrollText);
             splitPane3.setResizeWeight(1.0);
             splitPane3.setOneTouchExpandable(true);
-            splitPane3.setDividerLocation(1.0);
+            //splitPane3.setDividerLocation(1.0);
 
             tb = createTabbedPane();
             tb.setMaximumSize(new Dimension(150, 50));
@@ -2275,7 +2276,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             // set the message indicating the number of plugins that were located.
             status.setMessage(" " + plugInfo.size() + " plugins were located");
 
-            splitPane2.setDividerLocation(0.75); //splitterToolboxLoc);
+            //splitPane2.setDividerLocation(0.75); //splitterToolboxLoc);
 
             pack();
             restoreDefaults();
@@ -2289,6 +2290,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
+                splitPane2.setDividerLocation(0.75);//splitterToolboxLoc);
                 splitPane3.setDividerLocation(1.0);
             }
         });
@@ -4010,7 +4012,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             splitPane2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, treeView, qlTabs);
             splitPane2.setResizeWeight(1);
-            splitPane2.setDividerLocation(0.75); //splitterToolboxLoc);
+            //splitPane2.setDividerLocation(0.75); //splitterToolboxLoc);
             splitPane2.setOneTouchExpandable(true);
 
             return splitPane2;

@@ -120,7 +120,9 @@ public class Profile implements ActionListener {
  	            	pluginHost.launchDialog("Create New Shapefile")
  	            }
  	        });  
- 	        
+
+ 	        DialogFile dfOut = sd.addDialogFile("Output text file (optional)", "Output Text File (Blank for none):", "save", "Text Files (*.csv), CSV", true, true)
+            
             // resize the dialog to the standard size and display it
             sd.setSize(800, 400)
             sd.visible = true
@@ -150,7 +152,7 @@ public class Profile implements ActionListener {
         	boolean foundIntersection
         	BoundingBox box 
         	
-            if (args.length != 2) {
+            if (args.length < 2) {
                 pluginHost.showFeedback("Incorrect number of arguments given to tool.")
                 return
             }
@@ -158,6 +160,15 @@ public class Profile implements ActionListener {
             // read the input parameters
             String inputSurfaceFile = args[0]
             String inputLines = args[1]
+            boolean textOutput = false
+            String outputFileName = ""
+            if (args.length == 3) {
+            	if (!args[2].isEmpty() && 
+            	     !args[2].toLowerCase().equals("not specified")) {
+	            	textOutput = true
+	            	outputFileName = args[2]
+            	}
+            }
 			
 			WhiteboxRaster surface = new WhiteboxRaster(inputSurfaceFile, "r")
 			rows = surface.getNumberRows()
@@ -183,7 +194,9 @@ public class Profile implements ActionListener {
             }
 
             XYSeriesCollection xyCollection = new XYSeriesCollection();
-        			
+
+			StringBuilder sb = new StringBuilder()
+        	
 			int numFeatures = input.getNumberOfRecords()
             int count = 0
             int numSeries = 0
@@ -197,6 +210,7 @@ public class Profile implements ActionListener {
 				int numParts = partData.length
 				
 				for (int part = 0; part < numParts; part++) {
+					sb.append("X,Y,Distance,Z\n")
 					XYSeries series
 					if (numParts > 1) {
 						series = new XYSeries("Profile ${recNum}-${part}")
@@ -205,8 +219,8 @@ public class Profile implements ActionListener {
 					}
 					numSeries++
 					
-                	ArrayList<Double> zList = new ArrayList<>()
-					ArrayList<Double> distList = new ArrayList<>()
+//                	ArrayList<Double> zList = new ArrayList<>()
+//					ArrayList<Double> distList = new ArrayList<>()
 					
                     startingPointInPart = partData[part];
                     if (part < numParts - 1) {
@@ -218,9 +232,9 @@ public class Profile implements ActionListener {
 					row = surface.getRowFromYCoordinate(points[0][1])
                     col = surface.getColumnFromXCoordinate(points[0][0])
                     z = surface.getValue(row, col)
-                    zList.add(z)
+//                    zList.add(z)
                     double dist = 0
-					distList.add(dist)
+//					distList.add(dist)
                     
 					double dX, dY
 					int endingRow, endingCol, startingRow, startingCol
@@ -244,7 +258,6 @@ public class Profile implements ActionListener {
 
 						distStep = Math.sqrt((points[i][0] - points[i + 1][0]) * (points[i][0] - points[i + 1][0]) + (points[i][1] - points[i + 1][1]) * (points[i][1] - points[i + 1][1])) / pathDist
 
-//						println("${startingCol}, ${startingRow}, ${endingCol}, ${endingRow}, ${dX}, ${dY}, ${pathDist}, ${numSteps}")
 						if (numSteps > 0) {
 							for (int j in 1..numSteps) {
 								col = (int)(startingCol + j * dX)
@@ -254,10 +267,14 @@ public class Profile implements ActionListener {
 								if (z != nodata) {
 									if (z < minZ) { minZ = z }
 									if (z > maxZ) { maxZ = z }
-									zList.add(z)
-									distList.add(dist)
+//									zList.add(z)
+//									distList.add(dist)
 									series.add(dist, z)
-									//println("${dist}\t${z}")
+									if (textOutput) {
+										x = surface.getXCoordinateFromColumn(col)
+										y = surface.getYCoordinateFromRow(row)
+										sb.append("${x},${y},${dist},${z}\n")
+									}
 								}
 							}
 						}
@@ -310,6 +327,12 @@ public class Profile implements ActionListener {
 			chartPanel.setPreferredSize(new Dimension(700, 300))
 			
         	pluginHost.returnData(chartPanel)
+
+        	if (textOutput) {
+        		def outFile = new File(outputFileName)
+        		if (outFile.exists()) { outFile.delete() }
+        		outFile.text = sb.toString()
+        	}
 		
 			
         } catch (OutOfMemoryError oe) {

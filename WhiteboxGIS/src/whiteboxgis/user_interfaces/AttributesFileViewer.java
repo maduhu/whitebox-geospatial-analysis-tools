@@ -52,6 +52,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
+import java.awt.datatransfer.*;
+import java.awt.Toolkit;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
@@ -321,7 +323,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
     private JPanel getFieldCalculator() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        
+
         editor = new RSyntaxTextArea(20, 60);
         editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
         editor.setCodeFoldingEnabled(true);
@@ -335,8 +337,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         editor.setMarkOccurrences(true);
 //        resetAutocompletion();
 //        setupAutocomplete();
-        
-        
+
         JToolBar toolbar = new JToolBar();
 
         toolbar.add(new JLabel("Target Field:"));
@@ -405,7 +406,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
     private JPanel getSelectionCalculator() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        
+
         selectionEditor = new RSyntaxTextArea(20, 60);
         selectionEditor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
         selectionEditor.setCodeFoldingEnabled(true);
@@ -419,8 +420,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         selectionEditor.setMarkOccurrences(true);
         //resetAutocompletion();
         //setupAutocomplete();
-        
-        
+
         JToolBar toolbar = new JToolBar();
 
         JButton openBtn = makeToolBarButton("open.png", "openSelectionScript", bundle.getString("OpenFile"), "Open");
@@ -496,7 +496,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         toolbarPanel.add(toolbar);
         toolbarPanel.add(toolbar2);
         panel.add(toolbarPanel, BorderLayout.PAGE_START);
-        
+
         RTextScrollPane scroll = new RTextScrollPane(selectionEditor);
         scroll.setFoldIndicatorEnabled(true);
 
@@ -618,7 +618,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
                     return;
                 }
                 if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
-                    JPopupMenu popup = createDataRevertPopup(model, rowIndex);
+                    JPopupMenu popup = createDataPopup(model, rowIndex);
                     popup.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
@@ -904,9 +904,15 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
      *
      * @param row
      */
-    private JPopupMenu createDataRevertPopup(final AttributeFileTableModel model, final int row) {
+    private JPopupMenu createDataPopup(final AttributeFileTableModel model, final int row) {
 
         JPopupMenu popup = new JPopupMenu();
+
+        JMenuItem mi = new JMenuItem(bundle.getString("CopyToClipboard"));
+        mi.setActionCommand("copyToClipboard");
+        mi.addActionListener(this);
+        popup.add(mi);
+
         JMenuItem revertItem = new JMenuItem(bundle.getString("RevertChanges"));
 
         if (model.isModified(row)) {
@@ -1004,7 +1010,14 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         mi.setActionCommand("saveSelection");
         mi.addActionListener(this);
         menu.add(mi);
-
+        
+        mi = new JMenuItem(bundle.getString("CopyToClipboard"));
+        mi.setActionCommand("copyToClipboard");
+        mi.addActionListener(this);
+        menu.add(mi);
+        
+        menu.addSeparator();
+        
         mi = new JMenuItem(bundle.getString("ApplyFilter"));
         mi.setActionCommand("applyFilter");
         mi.addActionListener(this);
@@ -1257,6 +1270,33 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         String actionCommand = e.getActionCommand().toLowerCase();
         Object[] options = {"Yes", "No", "Cancel"};
         switch (actionCommand) {
+            case "copytoclipboard":
+                try {
+                    AttributeFileTableModel model = (AttributeFileTableModel)dataTable.getModel();
+                    StringBuilder sb = new StringBuilder();
+                    int[] selectedRecords = dataTable.getSelectedRows();
+                    int fieldCount = dataTable.getColumnCount();
+                    String newline = System.lineSeparator();
+                    for (int r = 0; r < selectedRecords.length; r++) {
+                        int recNum = dataTable.convertRowIndexToModel(selectedRecords[r]);
+                        for (int c = 1; c < fieldCount; c++) {
+                            Object o = model.getValueAt(recNum, c);
+                            if (c < fieldCount - 1) {
+                                sb.append(o.toString().replace(",", ";")).append(",");
+                            } else {
+                                sb.append(o.toString().replace(",", ";")).append(newline);
+                            }
+                        }
+                    }
+                    StringSelection stringSelection = new StringSelection(sb.toString());
+                    Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    clpbrd.setContents(stringSelection, null);
+                } catch (Exception ex) {
+                    if (host != null) {
+                        host.logException("Error in AttributesFileViewer.", ex);
+                    }
+                }
+                break;
             case "saveselection":
                 if (host != null) {
                     host.saveSelection();
@@ -2007,7 +2047,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
             switch (fieldType) {
                 case STRING:
                 case MEMO:
-                     className = String.class.getCanonicalName();
+                    className = String.class.getCanonicalName();
                     break;
                 case DATE:
                     className = Calendar.class.getCanonicalName();
@@ -2020,7 +2060,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
                     className = Boolean.class.getCanonicalName();
                     break;
             }
-            
+
             importVariableAs(fieldName, className);
         }
 
@@ -2032,7 +2072,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         if (editor != null) {
             ac.install(editor);
         }
-        
+
         if (selectionEditor != null) {
             ac.install(selectionEditor);
         }
