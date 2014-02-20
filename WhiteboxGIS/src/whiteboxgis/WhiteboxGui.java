@@ -418,6 +418,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     status.setMessage(str);
                 }
             }
+            
+            pan();
 
         } catch (IOException | SecurityException e) {
             logger.log(Level.SEVERE, "WhiteboxGui.constructor", e);
@@ -1600,7 +1602,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             // does this plugin provide it's own dialog?
             boolean pluginProvidesDialog = false;
-            String parameterFile = FileUtilities.findFileInDirectory(new File(resourcesDirectory + "plugins" + pathSep), plug.getName() + ".xml"); 
+            String parameterFile = FileUtilities.findFileInDirectory(new File(resourcesDirectory + "plugins" + pathSep), plug.getName() + ".xml");
 //            String parameterFile = resourcesDirectory + "plugins"
 //                    + pathSep + "Dialogs" + pathSep + plug.getName() + ".xml";
 //            if (parameterFile == null) {
@@ -2616,11 +2618,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             zoomToPage.addActionListener(this);
             zoomToPage.setActionCommand("zoomToPage");
 
-            selectMenuItem.setState(true);
+            selectMenuItem.setState(false);
             selectFeatureMenuItem.setState(false);
             zoomMenuItem.setState(false);
             zoomOutMenuItem.setState(false);
-            panMenuItem.setState(false);
+            panMenuItem.setState(true);
 
             JMenuItem panLeft = new JMenuItem(bundle.getString("PanLeft"));
             viewMenu.add(panLeft);
@@ -3341,7 +3343,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewButtonGroup.add(zoomOut);
             viewButtonGroup.add(zoomIntoBox);
             //select.setSelected(true);
-            zoomIntoBox.setSelected(true);
+            //zoomIntoBox.setSelected(true);
+            pan.setSelected(true);
             //openMaps.get(activeMap).deslectAllCartographicElements();
             //refreshMap(false);
             drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_ZOOM);
@@ -7113,7 +7116,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
 
     @Override
-    public void delectedAllFeaturesInActiveLayer() {
+    public void deselectAllFeaturesInActiveLayer() {
         try {
             MapLayer layer = openMaps.get(activeMap).getActiveMapArea().getActiveLayer();
             if (layer instanceof VectorLayerInfo) {
@@ -7199,6 +7202,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
+    private void pan() {
+        drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_PAN);
+        selectMenuItem.setState(false);
+        selectFeatureMenuItem.setState(false);
+        zoomMenuItem.setState(false);
+        zoomOutMenuItem.setState(false);
+        panMenuItem.setState(true);
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
 //        Object source = e.getSource();
@@ -7211,7 +7223,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
         switch (actionCommand) {
             case "clearAllSelectedFeatures":
-                delectedAllFeaturesInActiveLayer();
+                deselectAllFeaturesInActiveLayer();
                 break;
             case "saveSelection":
                 saveSelection();
@@ -7344,12 +7356,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 panMenuItem.setState(false);
                 break;
             case "pan":
-                drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_PAN);
-                selectMenuItem.setState(false);
-                selectFeatureMenuItem.setState(false);
-                zoomMenuItem.setState(false);
-                zoomOutMenuItem.setState(false);
-                panMenuItem.setState(true);
+                pan();
                 break;
             case "select":
                 drawingArea.setMouseMode(MapRenderer2.MOUSE_MODE_SELECT);

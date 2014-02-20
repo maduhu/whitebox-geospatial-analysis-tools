@@ -21,6 +21,8 @@ greatly increased performance.
 RELEASE NOTES:
 
 Version 3.1.3 ()
+-Embedded vector selection by attributes into the attribute table window.
+-Added scroll zooming and improved natural zooming.
 -Added Plot Variogram tool.
 -Added Stream long profile tool.
 -Added Distance to Outlet tool for stream-network analysis.
@@ -31,6 +33,7 @@ Version 3.1.3 ()
 -Moved the log directory out of the Resources folder to a higher level. This should 
  make finding logs easier for users.
 -Added check for updates and automatic downloading of latest version.
+-Fixed a minor bug with the ImportArcASCIIGrid tool that offset each row by one.
 
 Version 3.1.2 (February 5, 2014)
 -Added a Profile tool for creating topographic profiles from surface rasters.

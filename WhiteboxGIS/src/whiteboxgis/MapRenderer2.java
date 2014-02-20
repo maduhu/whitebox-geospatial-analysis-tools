@@ -81,7 +81,7 @@ import whitebox.cartographic.MapScale.ScaleStyle;
  * @author johnlindsay
  */
 public class MapRenderer2 extends JPanel implements Printable, MouseMotionListener,
-        MouseListener {
+        MouseListener, MouseWheelListener {
 
     public static final int MOUSE_MODE_ZOOM = 0;
     public static final int MOUSE_MODE_PAN = 1;
@@ -93,7 +93,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     public static final int MOUSE_MODE_DIGITIZE = 7;
     public static final int MOUSE_MODE_ZOOMOUT = 8;
     public static final int MOUSE_MODE_FEATURE_SELECT = 9;
-    private int myMode = 3;
+    private int myMode = 1;
     public static final int RESIZE_MODE_N = 0;
     public static final int RESIZE_MODE_S = 1;
     public static final int RESIZE_MODE_E = 2;
@@ -175,10 +175,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 digitizeCursor = toolkit.createCustomCursor(toolkit.getImage(graphicsDirectory + "DigitizeCursorWin.png"), new Point(16, 16), "digitizeCursor");
 
             }
-            this.setCursor(selectCursor);
-            panning = false;
+            this.setCursor(panCursor);
+            panning = true;
             this.addMouseMotionListener(this);
             this.addMouseListener(this);
+            this.addMouseWheelListener(this);
             this.addKeyListener(new KeyListener() {
                 @Override
                 public void keyPressed(KeyEvent e) {
@@ -374,7 +375,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             }
 
 //        int i = pf.getOrientation();
-
             // get the size of the page
             double pageWidth = pf.getImageableWidth();
             double pageHeight = pf.getImageableHeight();
@@ -464,7 +464,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             AffineTransform old = g2.getTransform();
 
             // get the drawing area's width and height
-
             Stroke oldStroke;
 
             RenderingHints rh = new RenderingHints(
@@ -517,7 +516,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     }
                 }
 
-
                 scale = Math.min((w / pageExtent.getWidth()),
                         (h / pageExtent.getHeight()));
 
@@ -540,21 +538,20 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     constantLineWidth = 0.5f;
                 }
                 float dash1[] = {constantLineWidth * 4};
-                BasicStroke dashed =
-                        new BasicStroke(constantLineWidth,
-                        BasicStroke.CAP_BUTT,
-                        BasicStroke.JOIN_MITER,
-                        miter, dash1, 0.0f);
-                BasicStroke dashed2 =
-                        new BasicStroke(constantLineWidth,
-                        BasicStroke.CAP_BUTT,
-                        BasicStroke.JOIN_MITER,
-                        miter, dash1, constantLineWidth * 4);
+                BasicStroke dashed
+                        = new BasicStroke(constantLineWidth,
+                                BasicStroke.CAP_BUTT,
+                                BasicStroke.JOIN_MITER,
+                                miter, dash1, 0.0f);
+                BasicStroke dashed2
+                        = new BasicStroke(constantLineWidth,
+                                BasicStroke.CAP_BUTT,
+                                BasicStroke.JOIN_MITER,
+                                miter, dash1, constantLineWidth * 4);
 
 //                BoundingBox currentExtent; // = map.getCurrentExtent();
 //                double xRange; //= Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
 //                double yRange; //= Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
-
                 // draw the page on the drawing area if it is visible
                 if (map.isPageVisible() && !printingMap) {
 
@@ -592,11 +589,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 //***************************
                 // Draw cartographic elements
                 //***************************
-
 //                Color selectedColour = Color.BLACK;
-
 //                double ppm = java.awt.Toolkit.getDefaultToolkit().getScreenResolution() * 39.3701;
-
                 for (CartographicElement ce : map.getCartographicElementList()) {
 
                     if (ce instanceof MapScale) {
@@ -659,7 +653,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     }
                 }
 
-
                 g2.setTransform(old);
 
             }
@@ -705,7 +698,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         (CartographicElementGroup) ce, dashed);
             }
         }
-        
+
         if (group.isSelected()) {
             Color selectedColour = Color.BLACK;
             PageFormat pageFormat = map.getPageFormat();
@@ -1214,7 +1207,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 }
             }
 
-
         }
     }
 
@@ -1302,7 +1294,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         mapImageHeight);
                 g2.setStroke(oldStroke);
             }
-
 
         }
 
@@ -1507,11 +1498,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     if (isOutlined) {
                                         BasicStroke myStroke = new BasicStroke(lineThickness);
                                         if (vli.isDashed()) {
-                                            myStroke =
-                                                    new BasicStroke(lineThickness,
-                                                    BasicStroke.CAP_BUTT,
-                                                    BasicStroke.JOIN_MITER,
-                                                    10.0f, vli.getDashArray(), 0.0f);
+                                            myStroke
+                                                    = new BasicStroke(lineThickness,
+                                                            BasicStroke.CAP_BUTT,
+                                                            BasicStroke.JOIN_MITER,
+                                                            10.0f, vli.getDashArray(), 0.0f);
                                         }
                                         Stroke oldStroke2 = g2.getStroke();
                                         g2.setStroke(myStroke);
@@ -1669,11 +1660,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                         g2.setColor(lineColour);
                                         BasicStroke myStroke = new BasicStroke(lineThickness);
                                         if (vli.isDashed()) {
-                                            myStroke =
-                                                    new BasicStroke(lineThickness,
-                                                    BasicStroke.CAP_BUTT,
-                                                    BasicStroke.JOIN_MITER,
-                                                    10.0f, vli.getDashArray(), 0.0f);
+                                            myStroke
+                                                    = new BasicStroke(lineThickness,
+                                                            BasicStroke.CAP_BUTT,
+                                                            BasicStroke.JOIN_MITER,
+                                                            10.0f, vli.getDashArray(), 0.0f);
                                         }
 
                                         Stroke oldStroke2 = g2.getStroke();
@@ -1772,7 +1763,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 g2.setFont(font);
             }
 
-
         }
     }
 
@@ -1801,7 +1791,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             int fontHeight = metrics.getHeight() - metrics.getDescent();
 
             //boolean isActiveMap = map.getActiveMapAreaElementNumber() == mapArea.getElementNumber();
-
             if (mapArea.getUpperLeftY() == -32768) {
                 // first set the reference marks size;
                 mapArea.setReferenceMarksSize(fontHeight + 2);
@@ -2128,7 +2117,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             }
                                                         }
 
-
                                                         if (activeLayerBool && isActivelyEdited) {
                                                             g2.setColor(Color.RED);
                                                             GeneralPath polyline2;
@@ -2168,13 +2156,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     case POLYLINEM:
                                         //g2.setColor(lineColour);
                                         myStroke = new BasicStroke(layer.getLineThickness(), BasicStroke.CAP_BUTT,
-                                                    BasicStroke.JOIN_ROUND);
+                                                BasicStroke.JOIN_ROUND);
                                         if (layer.isDashed()) {
-                                            myStroke =
-                                                    new BasicStroke(layer.getLineThickness(),
-                                                    BasicStroke.CAP_BUTT,
-                                                    BasicStroke.JOIN_ROUND,
-                                                    10.0f, layer.getDashArray(), 0.0f);
+                                            myStroke
+                                                    = new BasicStroke(layer.getLineThickness(),
+                                                            BasicStroke.CAP_BUTT,
+                                                            BasicStroke.JOIN_ROUND,
+                                                            10.0f, layer.getDashArray(), 0.0f);
                                         }
                                         oldStroke = g2.getStroke();
                                         g2.setStroke(myStroke);
@@ -2208,7 +2196,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                         polyline.lineTo(xPoints[index], yPoints[index]);
                                                     }
                                                     if (activeLayerBool && isActivelyEdited) {
-                                                        if (activeLayerBool && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
+                                                        if (activeLayerBool && layer.isFeatureSelected(record.getRecordNumber())) {
                                                             g2.setColor(selectedFeatureColour);
                                                         } else {
                                                             g2.setColor(colours[r]);
@@ -2238,8 +2226,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                     }
                                                 }
 
-                                                if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT &&
-                                                        layer.getNumSelectedFeatures() > 0) {
+                                                if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT
+                                                        && layer.getNumSelectedFeatures() > 0) {
                                                     BoundingBox bb = record.getGeometry().getBox();
                                                     if (bb.isPointInBox(mapX, mapY)) {
                                                         g2.setColor(selectionBoxColour);
@@ -2308,13 +2296,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                 if (layer.isOutlined() || (activeLayerBool && isActivelyEdited)) {
                                                     g2.setColor(lineColour);
                                                     myStroke = new BasicStroke(layer.getLineThickness(), BasicStroke.CAP_BUTT,
-                                                        BasicStroke.JOIN_ROUND);
+                                                            BasicStroke.JOIN_ROUND);
                                                     if (layer.isDashed()) {
-                                                        myStroke =
-                                                                new BasicStroke(layer.getLineThickness(),
-                                                                BasicStroke.CAP_BUTT,
-                                                                BasicStroke.JOIN_ROUND,
-                                                                10.0f, layer.getDashArray(), 0.0f);
+                                                        myStroke
+                                                                = new BasicStroke(layer.getLineThickness(),
+                                                                        BasicStroke.CAP_BUTT,
+                                                                        BasicStroke.JOIN_ROUND,
+                                                                        10.0f, layer.getDashArray(), 0.0f);
                                                     }
                                                     oldStroke = g2.getStroke();
                                                     g2.setStroke(myStroke);
@@ -2365,11 +2353,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             }
                                         }
 
-                                        if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && 
-                                                layer.getNumSelectedFeatures() > 0) {
+                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0) { //backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && 
                                             g2.setColor(selectedFeatureColour);
                                             for (ShapeFileRecord record : records) {
-                                                if (layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
+                                                if (layer.isFeatureSelected(record.getRecordNumber())) {
                                                     partStart = record.getGeometry().getParts();
                                                     points = record.getGeometry().getPoints();
                                                     int numParts = partStart.length;
@@ -2396,27 +2383,29 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                     }
                                                 }
 
-                                                BoundingBox bb = record.getGeometry().getBox();
+                                                if (backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
+                                                    BoundingBox bb = record.getGeometry().getBox();
 
-                                                if (bb.isPointInBox(mapX, mapY)) {
-                                                    g2.setColor(selectionBoxColour);
-                                                    polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
-                                                    xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
-                                                    yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
-                                                    float xPoint2 = (float) (viewAreaULX + (bb.getMaxX() - leftCoord) / EWRange * viewAreaWidth);
-                                                    float yPoint2 = (float) (viewAreaULY + (topCoord - bb.getMaxY()) / NSRange * viewAreaHeight);
-                                                    polyline.moveTo(xPoint, yPoint);
-                                                    polyline.lineTo(xPoint, yPoint2);
-                                                    polyline.lineTo(xPoint2, yPoint2);
-                                                    polyline.lineTo(xPoint2, yPoint);
-                                                    polyline.lineTo(xPoint, yPoint);
+                                                    if (bb.isPointInBox(mapX, mapY)) {
+                                                        g2.setColor(selectionBoxColour);
+                                                        polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+                                                        xPoint = (float) (viewAreaULX + (bb.getMinX() - leftCoord) / EWRange * viewAreaWidth);
+                                                        yPoint = (float) (viewAreaULY + (topCoord - bb.getMinY()) / NSRange * viewAreaHeight);
+                                                        float xPoint2 = (float) (viewAreaULX + (bb.getMaxX() - leftCoord) / EWRange * viewAreaWidth);
+                                                        float yPoint2 = (float) (viewAreaULY + (topCoord - bb.getMaxY()) / NSRange * viewAreaHeight);
+                                                        polyline.moveTo(xPoint, yPoint);
+                                                        polyline.lineTo(xPoint, yPoint2);
+                                                        polyline.lineTo(xPoint2, yPoint2);
+                                                        polyline.lineTo(xPoint2, yPoint);
+                                                        polyline.lineTo(xPoint, yPoint);
 
-                                                    g2.draw(polyline);
+                                                        g2.draw(polyline);
 
-                                                    Ellipse2D circle = new Ellipse2D.Double(xPoint + (xPoint2 - xPoint) / 2 - 2, yPoint + (yPoint2 - yPoint) / 2 - 2, 4, 4);
-                                                    g2.fill(circle);
+                                                        Ellipse2D circle = new Ellipse2D.Double(xPoint + (xPoint2 - xPoint) / 2 - 2, yPoint + (yPoint2 - yPoint) / 2 - 2, 4, 4);
+                                                        g2.fill(circle);
 
-                                                    g2.setColor(selectedFeatureColour);
+                                                        g2.setColor(selectedFeatureColour);
+                                                    }
                                                 }
                                             }
                                         }
@@ -2525,7 +2514,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     g2.drawString(label, viewAreaLRX - wd, viewAreaLRY + ht); //referenceMarkSize - 1);
 
                     // rotate the font
-
                     // Create a rotation transformation for the font.
                     AffineTransform fontAT = new AffineTransform();
 
@@ -2562,7 +2550,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
             }
 
-
             if (mapArea.isNeatlineVisible() || mapArea.isSelected()) {
                 if (!mapArea.isSizeMaximizedToScreenSize()) {
                     oldStroke = g2.getStroke();
@@ -2589,7 +2576,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 //                            if (mapArea.getRotation() > 0) {
 //                                g2.rotate(-mapArea.getRotation());
 //                            }
-
             if (usingDistanceTool || (digitizingNewFeature
                     && (map.getActiveMapAreaElementNumber() == mapArea.getElementNumber()))) {
                 double topCoord = mapExtent.getMaxY();
@@ -2661,7 +2647,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
         double x1, y1, x2, y2;
         int n1 = 0, n2 = 0;
         double area = 0;
-
 
         numPoints = distPoints.size();
         if (numPoints < 3) {
@@ -2756,7 +2741,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             if (ce.isSelected()) {
                 ce.resize(x, y, myResizeMode);
             }
-
 
         }
         this.repaint();
@@ -3049,7 +3033,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
                     if (mapArea.isVisible() && mapArea.getNumLayers() > 0) {
                         XYPoint point = getMapXYCoordinates(e.getX(), e.getY(), mapArea);
-                        mapArea.zoom(point.x, point.y, (1 + clickCount * 0.15));
+                        mapArea.naturalZoom(point.x, point.y, (1 + clickCount * 0.15));
                     } else {
                         int x = (int) ((e.getX() - pageLeft) / scale);
                         int y = (int) ((e.getY() - pageTop) / scale);
@@ -3069,7 +3053,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
                     if (mapArea.isVisible() && mapArea.getNumLayers() > 0) {
                         XYPoint point = getMapXYCoordinates(e.getX(), e.getY(), mapArea);
-                        mapArea.zoom(point.x, point.y, (1 - clickCount * 0.15));
+                        mapArea.naturalZoom(point.x, point.y, (1 - clickCount * 0.15));
                     } else {
                         int x = (int) ((e.getX() - pageLeft) / scale);
                         int y = (int) ((e.getY() - pageTop) / scale);
@@ -3119,7 +3103,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     modifyPixelsX = mapArea.getXCoordinateFromColumn(point.col);
 
                     //mapArea.get
-
                     if (point.row >= 0) {
                         host.refreshMap(false);
                         RasterLayerInfo rli = (RasterLayerInfo) mapArea.getActiveLayer();
@@ -3639,6 +3622,27 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             return (Window) c;
         } else {
             return findWindow(c.getParent());
+        }
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        
+        int notches = e.getWheelRotation();
+        
+        if (myMode == MOUSE_MODE_MAPAREA) {
+            if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
+                MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
+                if (mapArea.isVisible() && mapArea.getNumLayers() > 0) {
+                    XYPoint point = getMapXYCoordinates(e.getX(), e.getY(), mapArea);
+                    mapArea.naturalZoom(point.x, point.y, (1 + notches * 0.15));
+                    host.refreshMap(false);
+                } else {
+                    int x = (int) ((e.getX() - pageLeft) / scale);
+                    int y = (int) ((e.getY() - pageTop) / scale);
+                    map.zoom(x, y, (1 + notches * 0.15));
+                }
+            }
         }
     }
 }

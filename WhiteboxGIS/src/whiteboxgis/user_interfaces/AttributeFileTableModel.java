@@ -17,6 +17,7 @@
 
 package whiteboxgis.user_interfaces;
 
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -150,7 +151,11 @@ public class AttributeFileTableModel extends AbstractTableModel {
 
             if (row != null && row.length > fieldIndex) {
                 // First column shown is the ID
-                return row[fieldIndex];
+                Object ret = row[fieldIndex];
+                if (ret.getClass().equals(String.class)) {
+                    ret = ((String)(ret)).trim();
+                }
+                return ret; //row[fieldIndex];
             }
         } catch (DBFException e) {
             System.out.println(e.getMessage());

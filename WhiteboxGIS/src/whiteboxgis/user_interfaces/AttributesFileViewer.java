@@ -25,6 +25,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -34,20 +35,27 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.ResourceBundle;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
-import javax.script.ScriptException;
 import javax.swing.*;
 import static javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableRowSorter;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import org.fife.ui.autocomplete.*;
 import whitebox.geospatialfiles.VectorLayerInfo;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
@@ -58,18 +66,19 @@ import whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType;
 import whitebox.interfaces.WhiteboxPluginHost;
 //import whiteboxgis.user_interfaces.Scripter.ScriptingLanguage;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
+//import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import whiteboxgis.ScripterCompletionProvider;
 //import static whiteboxgis.user_interfaces.Scripter.ScriptingLanguage.PYTHON;
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class AttributesFileViewer extends JDialog implements ActionListener {
+public class AttributesFileViewer extends JDialog implements ActionListener, PropertyChangeListener {
 
     private String dbfFileName = "";
     private String shapeFileName = "";
@@ -77,6 +86,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     //private JButton edit = new JButton("Edit");
     private JTable dataTable = new JTable();
     private JTable fieldTable = new JTable();
+    private TableRowSorter<AttributeFileTableModel> sorter;
     private JTabbedPane tabs;
     private WhiteboxPluginHost host = null;
     private ShapeFile shapeFile = null;
@@ -86,11 +96,15 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     private int generateDataColumnIndex = -1;
     private VectorLayerInfo vectorLayerInfo = null;
     private RSyntaxTextArea editor;
+    private RSyntaxTextArea selectionEditor;
     private ScriptEngineManager mgr = new ScriptEngineManager();
     private ScriptEngine engine;
     private JComboBox targetFieldCB;
+    private JComboBox targetFieldCB2;
+    private JComboBox selectionModeCB;
     private JTextArea textArea = new JTextArea();
     private String scriptsDirectory = "";
+    private int activeTextArea = 0; // 0 = editor; 1 = selectionEditor
 
     public AttributesFileViewer(Frame owner, boolean modal, VectorLayerInfo vli) {
         super(owner, modal);
@@ -107,6 +121,8 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         }
         this.shapeFileName = vli.getFileName();
         this.vectorLayerInfo = vli;
+
+        this.vectorLayerInfo.pcs.addPropertyChangeListener("selectedFeatureNumber", this);
 
         if (shapeFileName.toLowerCase().contains(".shp")) {
             dbfFileName = shapeFileName.replace(".shp", ".dbf");
@@ -246,6 +262,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
             dataTable = getDataTable();
             dataTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+            sorter = new TableRowSorter<>((AttributeFileTableModel) dataTable.getModel());
+            dataTable.setRowSorter(sorter);
+            selectRowsBasedOnFeatureSelection();
 
             JScrollPane scroll = new JScrollPane(dataTable);
             tabs = new JTabbedPane();
@@ -267,6 +286,11 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             tabs.addTab(bundle.getString("FieldSummary"), panel2);
 
             tabs.addTab(bundle.getString("FieldCalculator"), getFieldCalculator());
+
+//            JPanel panel3 = new JPanel();
+//            panel3.setLayout(new BoxLayout(panel3, BoxLayout.Y_AXIS));
+//            panel3.add(scroll);
+            tabs.addTab("Feature Selection", getSelectionCalculator());
 
             mainBox.add(tabs);
             this.getContentPane().add(mainBox, BorderLayout.CENTER);
@@ -297,7 +321,22 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     private JPanel getFieldCalculator() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
+        
+        editor = new RSyntaxTextArea(20, 60);
+        editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
+        editor.setCodeFoldingEnabled(true);
+        editor.setAntiAliasingEnabled(true);
+        editor.setCloseCurlyBraces(true);
+        //editor.addKeyListener(this);
+        editor.setTabSize(4);
+        editor.setBracketMatchingEnabled(true);
+        editor.setAutoIndentEnabled(true);
+        editor.setCloseCurlyBraces(true);
+        editor.setMarkOccurrences(true);
+//        resetAutocompletion();
+//        setupAutocomplete();
+        
+        
         JToolBar toolbar = new JToolBar();
 
         toolbar.add(new JLabel("Target Field:"));
@@ -355,20 +394,110 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         toolbarPanel.add(toolbar);
         panel.add(toolbarPanel, BorderLayout.PAGE_START);
 
-        editor = new RSyntaxTextArea(20, 60);
-        editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
-        editor.setCodeFoldingEnabled(true);
-        editor.setAntiAliasingEnabled(true);
-        editor.setCloseCurlyBraces(true);
-        //editor.addKeyListener(this);
-        editor.setTabSize(4);
-        editor.setBracketMatchingEnabled(true);
-        editor.setAutoIndentEnabled(true);
-        editor.setCloseCurlyBraces(true);
-        editor.setMarkOccurrences(true);
-        //resetAutocompletion();
-//            setupAutocomplete();
         RTextScrollPane scroll = new RTextScrollPane(editor);
+        scroll.setFoldIndicatorEnabled(true);
+
+        panel.add(scroll);
+
+        return panel;
+    }
+
+    private JPanel getSelectionCalculator() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        
+        selectionEditor = new RSyntaxTextArea(20, 60);
+        selectionEditor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
+        selectionEditor.setCodeFoldingEnabled(true);
+        selectionEditor.setAntiAliasingEnabled(true);
+        selectionEditor.setCloseCurlyBraces(true);
+        //selectionEditor.addKeyListener(this);
+        selectionEditor.setTabSize(4);
+        selectionEditor.setBracketMatchingEnabled(true);
+        selectionEditor.setAutoIndentEnabled(true);
+        selectionEditor.setCloseCurlyBraces(true);
+        selectionEditor.setMarkOccurrences(true);
+        //resetAutocompletion();
+        //setupAutocomplete();
+        
+        
+        JToolBar toolbar = new JToolBar();
+
+        JButton openBtn = makeToolBarButton("open.png", "openSelectionScript", bundle.getString("OpenFile"), "Open");
+        toolbar.add(openBtn);
+
+        JButton closeBtn = makeToolBarButton("close.png", "closeSelectionScript", bundle.getString("CloseFile"), "Close");
+        toolbar.add(closeBtn);
+
+        JButton saveBtn = makeToolBarButton("SaveMap.png", "saveSelectionScript", bundle.getString("SaveFile"), "Save");
+        toolbar.add(saveBtn);
+
+        JButton printBtn = makeToolBarButton("print.png", "printSelectionScript",
+                bundle.getString("Print"), "Print");
+        toolbar.add(printBtn);
+
+        toolbar.addSeparator();
+
+        JButton toggleComment = makeToolBarButton("Comment.png", "commentSelectionScript",
+                bundle.getString("ToggleComments"), "Comment");
+        toolbar.add(toggleComment);
+
+        JButton indent = makeToolBarButton("Indent.png", "indentSelectionScript",
+                "Indent", "Indent");
+        toolbar.add(indent);
+
+        JButton outdent = makeToolBarButton("Outdent.png", "outdentSelectionScript",
+                "Outdent", "Outdent");
+        toolbar.add(outdent);
+
+        toolbar.addSeparator();
+
+        JButton executeBtn = makeToolBarButton("Execute.png", "executeSelectionScript",
+                bundle.getString("ExecuteCode"), "Execute");
+        toolbar.add(executeBtn);
+
+        toolbar.add(Box.createHorizontalGlue());
+
+        toolbar.setMaximumSize(new Dimension(20000, 50));
+
+        JToolBar toolbar2 = new JToolBar();
+        toolbar2.add(new JLabel("Fields:"));
+        targetFieldCB2 = new JComboBox();
+        updateFieldComboBox();
+        targetFieldCB2.setMaximumSize(new Dimension(20, 80)); //targetFieldCB.getPreferredSize() );
+        toolbar2.add(targetFieldCB2);
+        JButton insertButton = new JButton("Insert");
+        insertButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String fieldName = targetFieldCB2.getSelectedItem().toString();
+                selectionEditor.insert(fieldName, selectionEditor.getCaretPosition());
+            }
+        });
+
+        toolbar2.add(insertButton);
+
+        toolbar2.addSeparator();
+        toolbar2.add(new JLabel("Mode:"));
+        selectionModeCB = new JComboBox();
+        String[] selectionModesNames = {"Create new selection", "Add to current selection", "Remove from current selection", "Select from current selection"};
+        selectionModeCB.setModel(new DefaultComboBoxModel(selectionModesNames));
+        selectionModeCB.revalidate();
+        selectionModeCB.repaint();
+        toolbar2.add(selectionModeCB);
+
+        toolbar2.add(Box.createHorizontalGlue());
+
+        toolbar2.setMaximumSize(new Dimension(20000, 50));
+
+        JPanel toolbarPanel = new JPanel();
+        toolbarPanel.setLayout(new BoxLayout(toolbarPanel, BoxLayout.Y_AXIS));
+        toolbarPanel.add(toolbar);
+        toolbarPanel.add(toolbar2);
+        panel.add(toolbarPanel, BorderLayout.PAGE_START);
+        
+        RTextScrollPane scroll = new RTextScrollPane(selectionEditor);
         scroll.setFoldIndicatorEnabled(true);
 
         panel.add(scroll);
@@ -388,6 +517,14 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         targetFieldCB.setModel(new DefaultComboBoxModel(fieldNames));
         targetFieldCB.revalidate();
         targetFieldCB.repaint();
+
+        if (targetFieldCB2 == null) {
+            return;
+        }
+        targetFieldCB2.setModel(new DefaultComboBoxModel(fieldNames));
+        targetFieldCB2.revalidate();
+        targetFieldCB2.repaint();
+        resetAutocompletion();
     }
 
     String graphicsDirectory = "";
@@ -432,11 +569,12 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                     comp.setBackground(Color.WHITE);
                     comp.setForeground(Color.BLACK);
                 } else {
-                    comp.setBackground(new Color(225, 245, 255)); //new Color(210, 230, 255));
+                    comp.setBackground(new Color(225, 245, 255));
                     comp.setForeground(Color.BLACK);
                 }
                 if (isCellSelected(index_row, index_col)) {
-                    comp.setForeground(Color.RED);
+                    comp.setBackground(new Color(250, 200, 200)); //new Color(255, 255, 160));
+                    //comp.setForeground(Color.RED);
                 }
                 return comp;
             }
@@ -470,20 +608,12 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             @Override
             public void mousePressed(MouseEvent e) {
                 handleEvent(e);
+                //selectRecord();
             }
 
             private void handleEvent(MouseEvent e) {
-                int r = table.rowAtPoint(e.getPoint());
-//                if (r >= 0 && r < table.getRowCount()) {
-//                    table.setRowSelectionInterval(r, r);
-//                } else {
-//                    table.clearSelection();
-//                }
-
-//                // what is the record index?
-//                int recNum = (int)table.getValueAt(r, 1);
-//                selectRecord(recNum);
-                int rowIndex = table.getSelectedRow();
+                int r = dataTable.rowAtPoint(e.getPoint());
+                int rowIndex = dataTable.getSelectedRow();
                 if (rowIndex < 0) {
                     return;
                 }
@@ -495,6 +625,54 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         });
 
         return table;
+    }
+
+    private void selectRowsBasedOnFeatureSelection() {
+        dataTable.clearSelection();
+        ArrayList<Integer> selectedFeatures = vectorLayerInfo.getSelectedFeatureNumbers();
+        if (selectedFeatures.size() > 0) {
+            for (int i : selectedFeatures) {
+                int r = dataTable.convertRowIndexToView(i - 1); //getRowWithRecord(i - 1);
+                if (r >= 0) {
+                    dataTable.addRowSelectionInterval(r, r);
+                }
+            }
+        }
+    }
+
+    private void selectRecord(int record) {
+        if (vectorLayerInfo != null) {
+            vectorLayerInfo.selectFeature(record);
+            if (host != null) {
+                host.refreshMap(false);
+            }
+        }
+    }
+
+    private void selectRecord(ArrayList<Integer> records) {
+        if (vectorLayerInfo != null) {
+            for (int record : records) {
+                vectorLayerInfo.selectFeature(record);
+            }
+            if (host != null) {
+                host.refreshMap(false);
+            }
+        }
+    }
+
+    private void selectRecord() {
+        if (vectorLayerInfo != null) {
+
+            int[] selectedRecords = dataTable.getSelectedRows();
+            vectorLayerInfo.clearSelectedFeatures();
+            for (int r = 0; r < selectedRecords.length; r++) {
+                int recNum = dataTable.convertRowIndexToModel(selectedRecords[r]) + 1; //int) dataTable.getValueAt(selectedRecords[r], 1) + 1;
+                vectorLayerInfo.selectFeature(recNum);
+            }
+            if (host != null) {
+                host.refreshMap(false);
+            }
+        }
     }
 
     private void toggleComment(int lineNum) {
@@ -515,17 +693,35 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
     private void comment() {
         try {
-            String selectedText = editor.getSelectedText();
-            int start = editor.getSelectionStart();
-            int end = editor.getSelectionEnd();
+            int start, end, startLine, endLine;
 
-            if (selectedText == null || selectedText.isEmpty()) {
-                toggleComment(editor.getCaretLineNumber());
+            if (activeTextArea == 0) {
+                String selectedText = editor.getSelectedText();
+                start = editor.getSelectionStart();
+                end = editor.getSelectionEnd();
+
+                if (selectedText == null || selectedText.isEmpty()) {
+                    toggleComment(editor.getCaretLineNumber());
+                } else {
+                    startLine = editor.getLineOfOffset(start);
+                    endLine = editor.getLineOfOffset(end);
+                    for (int i = startLine; i <= endLine; i++) {
+                        toggleComment(i);
+                    }
+                }
             } else {
-                int startLine = editor.getLineOfOffset(start);
-                int endLine = editor.getLineOfOffset(end);
-                for (int i = startLine; i <= endLine; i++) {
-                    toggleComment(i);
+                String selectedText = selectionEditor.getSelectedText();
+                start = selectionEditor.getSelectionStart();
+                end = selectionEditor.getSelectionEnd();
+
+                if (selectedText == null || selectedText.isEmpty()) {
+                    toggleComment(selectionEditor.getCaretLineNumber());
+                } else {
+                    startLine = selectionEditor.getLineOfOffset(start);
+                    endLine = selectionEditor.getLineOfOffset(end);
+                    for (int i = startLine; i <= endLine; i++) {
+                        toggleComment(i);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -535,15 +731,30 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
     private void indentSelection() {
         try {
-            int start = editor.getSelectionStart();
-            int end = editor.getSelectionEnd();
+            int start, end, startLine, endLine;
 
-            int startLine = editor.getLineOfOffset(start);
-            int endLine = editor.getLineOfOffset(end);
-            for (int i = startLine; i <= endLine; i++) {
-                int j = editor.getLineStartOffset(i);
-                // add a line comment tag.
-                editor.insert("\t", j);
+            if (activeTextArea == 0) {
+                start = editor.getSelectionStart();
+                end = editor.getSelectionEnd();
+
+                startLine = editor.getLineOfOffset(start);
+                endLine = editor.getLineOfOffset(end);
+                for (int i = startLine; i <= endLine; i++) {
+                    int j = editor.getLineStartOffset(i);
+                    // add a line comment tag.
+                    editor.insert("\t", j);
+                }
+            } else {
+                start = selectionEditor.getSelectionStart();
+                end = selectionEditor.getSelectionEnd();
+
+                startLine = selectionEditor.getLineOfOffset(start);
+                endLine = selectionEditor.getLineOfOffset(end);
+                for (int i = startLine; i <= endLine; i++) {
+                    int j = selectionEditor.getLineStartOffset(i);
+                    // add a line comment tag.
+                    selectionEditor.insert("\t", j);
+                }
             }
         } catch (Exception e) {
             host.logException("Error in AttributesFileViewer", e);
@@ -552,19 +763,38 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
     private void outdentSelection() {
         try {
-            int start = editor.getSelectionStart();
-            int end = editor.getSelectionEnd();
+            int start, end, startLine, endLine;
+            if (activeTextArea == 0) {
+                start = editor.getSelectionStart();
+                end = editor.getSelectionEnd();
 
-            int startLine = editor.getLineOfOffset(start);
-            int endLine = editor.getLineOfOffset(end);
-            for (int i = startLine; i <= endLine; i++) {
-                int j = editor.getLineStartOffset(i);
-                if (editor.getText(j, "\t".length()).startsWith("\t")) {
-                    // remove the indent
-                    editor.replaceRange("", j, j + "\t".length());
-                } else if (editor.getText(j, "    ".length()).startsWith("    ")) {
-                    // remove the indent
-                    editor.replaceRange("", j, j + "    ".length());
+                startLine = editor.getLineOfOffset(start);
+                endLine = editor.getLineOfOffset(end);
+                for (int i = startLine; i <= endLine; i++) {
+                    int j = editor.getLineStartOffset(i);
+                    if (editor.getText(j, "\t".length()).startsWith("\t")) {
+                        // remove the indent
+                        editor.replaceRange("", j, j + "\t".length());
+                    } else if (editor.getText(j, "    ".length()).startsWith("    ")) {
+                        // remove the indent
+                        editor.replaceRange("", j, j + "    ".length());
+                    }
+                }
+            } else {
+                start = selectionEditor.getSelectionStart();
+                end = selectionEditor.getSelectionEnd();
+
+                startLine = selectionEditor.getLineOfOffset(start);
+                endLine = selectionEditor.getLineOfOffset(end);
+                for (int i = startLine; i <= endLine; i++) {
+                    int j = selectionEditor.getLineStartOffset(i);
+                    if (selectionEditor.getText(j, "\t".length()).startsWith("\t")) {
+                        // remove the indent
+                        selectionEditor.replaceRange("", j, j + "\t".length());
+                    } else if (selectionEditor.getText(j, "    ".length()).startsWith("    ")) {
+                        // remove the indent
+                        selectionEditor.replaceRange("", j, j + "    ".length());
+                    }
                 }
             }
         } catch (Exception e) {
@@ -575,7 +805,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     private void initScriptEngine() {
         try {
 
-            engine = mgr.getEngineByName("groovy");
+//            if (System.getProperty("python.home") == null) {
+//                System.setProperty("python.home", "");
+//            }
+            engine = mgr.getEngineByName("groovy"); //python");
             //PrintWriter out = new PrintWriter(new Scripter.TextAreaWriter(textArea));
 
 //            engine.getContext().setWriter(out);
@@ -583,33 +816,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             engine.put("pluginHost", (WhiteboxPluginHost) host);
             engine.put("args", new String[0]);
 
-            // update the statusbar
-            ScriptEngineFactory scriptFactory = engine.getFactory();
+            //ScriptEngineFactory scriptFactory = engine.getFactory();
         } catch (Exception e) {
             host.logException("Error in AttributesFileViewer", e);
-        }
-    }
-
-    private void selectRecord(int record) {
-        if (vectorLayerInfo != null) {
-            vectorLayerInfo.selectFeature(record);
-            if (host != null) {
-                host.refreshMap(false);
-            }
-        }
-    }
-
-    private void selectRecord() {
-        if (vectorLayerInfo != null) {
-            vectorLayerInfo.clearSelectedFeatures();
-            int[] selectedRecords = dataTable.getSelectedRows();
-            for (int r = 0; r < selectedRecords.length; r++) {
-                int recNum = (int) dataTable.getValueAt(selectedRecords[r], 1) + 1;
-                vectorLayerInfo.selectFeature(recNum);
-            }
-            if (host != null) {
-                host.refreshMap(false);
-            }
         }
     }
 
@@ -629,7 +838,8 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                     comp.setForeground(Color.BLACK);
                 }
                 if (isCellSelected(Index_row, Index_col)) {
-                    comp.setForeground(Color.RED);
+                    comp.setBackground(new Color(250, 200, 200)); //new Color(255, 255, 160));
+                    //comp.setForeground(Color.RED);
                 }
                 return comp;
             }
@@ -730,7 +940,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String s = (String) JOptionPane.showInputDialog(
-                        (JFrame)host,
+                        (JFrame) host,
                         "Please enter a new title.",
                         "New Field Title",
                         JOptionPane.PLAIN_MESSAGE,
@@ -783,31 +993,53 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         JMenuBar menubar = new JMenuBar();
 
         // Add Field menu
-        JMenu addFieldMenu = new JMenu(bundle.getString("EditFields"));
+        JMenu menu = new JMenu("Options");
+
+        JMenuItem mi = new JMenuItem(bundle.getString("DeselectFields"));
+        mi.setActionCommand("deselectAllFields");
+        mi.addActionListener(this);
+        menu.add(mi);
+
+        mi = new JMenuItem(bundle.getString("saveSelection"));
+        mi.setActionCommand("saveSelection");
+        mi.addActionListener(this);
+        menu.add(mi);
+
+        mi = new JMenuItem(bundle.getString("ApplyFilter"));
+        mi.setActionCommand("applyFilter");
+        mi.addActionListener(this);
+        menu.add(mi);
+
+        mi = new JMenuItem(bundle.getString("RemoveFilter"));
+        mi.setActionCommand("removeFilter");
+        mi.addActionListener(this);
+        menu.add(mi);
+
+        menu.addSeparator();
 
         JMenuItem addNewField = new JMenuItem(bundle.getString("AddNewField"));
         addNewField.setActionCommand("addNewField");
         addNewField.addActionListener(this);
-        addFieldMenu.add(addNewField);
+        menu.add(addNewField);
 
         JMenuItem deleteField = new JMenuItem(bundle.getString("DeleteField") + "...");
         deleteField.setActionCommand("deleteField");
         deleteField.addActionListener(this);
-        addFieldMenu.add(deleteField);
+        menu.add(deleteField);
 
         if (shapeFile.getShapeType().getBaseType() == ShapeType.POLYGON) {
             JMenuItem addAreaField = new JMenuItem(bundle.getString("AddAreaField"));
             addAreaField.setActionCommand("addAreaField");
             addAreaField.addActionListener(this);
-            addFieldMenu.add(addAreaField);
+            menu.add(addAreaField);
 
             JMenuItem addPerimeterField = new JMenuItem(bundle.getString("AddPerimeterField"));
             addPerimeterField.setActionCommand("addPerimeterField");
             addPerimeterField.addActionListener(this);
-            addFieldMenu.add(addPerimeterField);
+            menu.add(addPerimeterField);
         }
 
-        menubar.add(addFieldMenu);
+        menubar.add(menu);
 
 //        JMenu generateFieldData = new JMenu(bundle.getString("GenerateData"));
 //
@@ -822,7 +1054,11 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
 
     private void print() {
         try {
-            editor.print();
+            if (activeTextArea == 0) {
+                editor.print();
+            } else {
+                selectionEditor.print();
+            }
         } catch (Exception e) {
             host.logException("Error in AttributesFileViewer.", e);
         }
@@ -888,7 +1124,8 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             //String fileDirectory = file.getParentFile() + pathSep;
 
             editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
-            editor.setEditable(true);
+            selectionEditor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_GROOVY);
+            //editor.setEditable(true);
 
             DataInputStream in = null;
             BufferedReader br = null;
@@ -908,15 +1145,23 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                         str += line + "\n";
                     }
                 }
-                editor.setText(str);
+                if (activeTextArea == 0) {
+                    editor.setText(str);
+                } else {
+                    selectionEditor.setText(str);
+                }
             } catch (Exception e) {
                 host.logException("Error in AttributesFileViewer", e);
             }
 
-            editor.setEditable(true);
-            editor.setCaretPosition(0);
+            if (activeTextArea == 0) {
+                editor.setEditable(true);
+                editor.setCaretPosition(0);
+            } else {
+                selectionEditor.setEditable(true);
+                selectionEditor.setCaretPosition(0);
+            }
 
-            //this.setTitle("Whitebox Scripter: " + new File(sourceFile).getName());
         }
     }
 
@@ -978,7 +1223,11 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             bw = new BufferedWriter(fw);
             out = new PrintWriter(bw, true);
 
-            out.print(editor.getText());
+            if (activeTextArea == 0) {
+                out.print(editor.getText());
+            } else {
+                out.print(selectionEditor.getText());
+            }
 
             bw.close();
             fw.close();
@@ -1006,13 +1255,45 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
         String actionCommand = e.getActionCommand().toLowerCase();
+        Object[] options = {"Yes", "No", "Cancel"};
         switch (actionCommand) {
+            case "saveselection":
+                if (host != null) {
+                    host.saveSelection();
+                }
+                break;
+            case "deselectallfields":
+                vectorLayerInfo.clearSelectedFeatures();
+                if (host != null) {
+                    host.refreshMap(true);
+                }
+                sorter.setRowFilter(null);
+                break;
+            case "removefilter":
+                sorter.setRowFilter(null);
+                break;
+            case "applyfilter":
+                final ArrayList<Integer> selectedFeatures = vectorLayerInfo.getSelectedFeatureNumbers();
+                RowFilter<Object, Object> myFilter = new RowFilter<Object, Object>() {
+                    @Override
+                    public boolean include(RowFilter.Entry<? extends Object, ? extends Object> entry) {
+                        int i = (Integer) entry.getIdentifier();
+                        return selectedFeatures.contains(i + 1);
+                    }
+                };
+                sorter.setRowFilter(myFilter);
+                break;
             case "open":
+                activeTextArea = 0;
+                openFile();
+                break;
+            case "openselectionscript":
+                activeTextArea = 1;
                 openFile();
                 break;
             case "closescript":
                 //if (editorDirty) {
-                Object[] options = {"Yes", "No", "Cancel"};
+                //Object[] options = {"Yes", "No", "Cancel"};
                 int n = JOptionPane.showOptionDialog(this,
                         "Would you like to save the code?",
                         "Whitebox GAT Message",
@@ -1033,6 +1314,31 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
                 editor.setText("");
                 sourceFile = null;
                 break;
+
+            case "closeselectionscript":
+                //if (editorDirty) {
+
+                int p = JOptionPane.showOptionDialog(this,
+                        "Would you like to save the code?",
+                        "Whitebox GAT Message",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null, //do not use a custom Icon
+                        options, //the titles of buttons
+                        options[0]); //default button title
+
+                if (p == JOptionPane.YES_OPTION) {
+                    save();
+                } else if (p == JOptionPane.NO_OPTION) {
+                    // do nothing
+                } else if (p == JOptionPane.CANCEL_OPTION) {
+                    return;
+                }
+                //}
+                selectionEditor.setText("");
+                sourceFile = null;
+                break;
+
             case "close":
                 closeWindow();
                 break;
@@ -1052,49 +1358,89 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
             case "addperimeterfield":
                 addPerimeterField();
                 break;
-//            case "generateData":
-//                showScripter();
-//                break;
-//            
-//           case "generatedata":
-//                this.firePropertyChange("generateData", false, true);
-//                break;
             case "savescript":
+                activeTextArea = 0;
+                saveAs();
+                break;
+            case "saveselectionscript":
+                activeTextArea = 1;
                 saveAs();
                 break;
             case "indent":
+                activeTextArea = 0;
                 indentSelection();
                 break;
             case "outdent":
+                activeTextArea = 0;
+                outdentSelection();
+                break;
+            case "indentselectionscript":
+                activeTextArea = 1;
+                indentSelection();
+                break;
+            case "outdentselectionscript":
+                activeTextArea = 1;
                 outdentSelection();
                 break;
             case "undo":
-                editor.undoLastAction();
+                if (tabs.getSelectedIndex() == 2) {
+                    editor.undoLastAction();
+                } else if (tabs.getSelectedIndex() == 3) {
+                    selectionEditor.undoLastAction();
+                }
                 break;
             case "redo":
-                editor.redoLastAction();
+                if (tabs.getSelectedIndex() == 2) {
+                    editor.redoLastAction();
+                } else if (tabs.getSelectedIndex() == 3) {
+                    selectionEditor.redoLastAction();
+                }
                 break;
             case "cut":
-                editor.cut();
+                if (tabs.getSelectedIndex() == 2) {
+                    editor.cut();
+                } else if (tabs.getSelectedIndex() == 3) {
+                    selectionEditor.cut();
+                }
                 break;
             case "copy":
-                editor.copy();
+                if (tabs.getSelectedIndex() == 2) {
+                    editor.copy();
+                } else if (tabs.getSelectedIndex() == 3) {
+                    selectionEditor.copy();
+                }
                 break;
             case "paste":
-                editor.paste();
+                if (tabs.getSelectedIndex() == 2) {
+                    editor.paste();
+                } else if (tabs.getSelectedIndex() == 3) {
+                    selectionEditor.paste();
+                }
 //                resetAutocompletion();
 //                scanDoc();
                 break;
             case "comment":
+                activeTextArea = 0;
+                comment();
+                break;
+            case "commentselectionscript":
+                activeTextArea = 1;
                 comment();
                 break;
             case "execute":
                 executeScript();
                 break;
+            case "executeselectionscript":
+                executeSelectionScript();
+                break;
             case "print":
+                activeTextArea = 0;
                 print();
                 break;
-
+            case "printselectionscript":
+                activeTextArea = 1;
+                print();
+                break;
         }
     }
 
@@ -1190,6 +1536,14 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         model.createNewField();
 
         updateFieldComboBox();
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("selectedFeatureNumber")) {
+            selectRowsBasedOnFeatureSelection();
+            //setSelectedFeatureNumber((int) (evt.getNewValue()));
+        }
     }
 
     private class SelectionIdentifier {
@@ -1513,63 +1867,395 @@ public class AttributesFileViewer extends JDialog implements ActionListener {
         }
     }
 
-//    private void generateData() {
-//
-//        AttributeFieldTableModel fieldModel = (AttributeFieldTableModel) fieldTable.getModel();
-//        AttributeFileTableModel dataModel = (AttributeFileTableModel) dataTable.getModel();
-//        int fieldCount = fieldModel.getRowCount();
-//
-//        CompiledScript generate_data = scripter.compileScript();
-//
-//        try {
-//            Bindings bindings = scripter.createBindingsObject();
-//
-//            for (int row = 0; row < dataModel.getRowCount(); row++) {
-//                bindings.put("index", new Integer(row));
-//
-//                // Bind each of the variables from the row
-//                for (int i = 0; i < fieldCount; i++) {
-//                    String fieldName = (String) fieldModel.getValueAt(i,
-//                            fieldModel.findColumn(AttributeFieldTableModel.ColumnName.NAME.toString()));
-//                    // Add 2 because we need to skip modified and ID in dataModel
-//                    bindings.put(fieldName, dataModel.getValueAt(row, i + 2));
-//
-//                }
-//
-//                Object data = generate_data.eval(bindings);
-//
-//                if (data != null) {
-//                    Class dataClass = data.getClass();
-//                    DBFField[] fields = attributeTable.getAllFields();
-//                    Class fieldClass = fields[this.generateDataColumnIndex].getDataType().getEquivalentClass();
-//                    if (dataClass != fieldClass) {
-//                        try {
-//                            data = fieldClass.getConstructor(String.class).newInstance(data.toString());
-//
-//                        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//                            //System.out.println(e);
-//                            if (host != null) {
-//                                host.showFeedback(messages.getString("UnableToConvertDataType"));
-//                                host.logException("Error from AttributesFileViewer", e);
-//                            }
-//                            return;
-//                        }
-//                    }
-//                } else {
+    private void executeSelectionScript() {
+        AttributeFieldTableModel fieldModel = (AttributeFieldTableModel) fieldTable.getModel();
+        AttributeFileTableModel dataModel = (AttributeFileTableModel) dataTable.getModel();
+        int fieldCount = fieldModel.getRowCount();
+
+        try {
+
+            // what is the selection mode with options:
+            // "Create new selection", "Add to current selection", "Remove from current selection", "Select from current selection"
+            String selectionMode = selectionModeCB.getSelectedItem().toString();
+
+//            if (selectionMode.equals("Create new selection")) {
+//                // deselect all features
+//                vectorLayerInfo.clearSelectedFeatures();
+//            }
+            this.generateDataColumnIndex = targetFieldCB.getSelectedIndex();
+
+            CompiledScript generate_data = ((Compilable) engine).compile(this.selectionEditor.getText());
+
+            Bindings bindings = engine.createBindings();
+
+            final ArrayList<Integer> selectedFeatures = new ArrayList<>();
+            sorter.setRowFilter(null);
+            for (int row = 0; row < dataModel.getRowCount(); row++) {
+                bindings.put("index", new Integer(row));
+
+                // Bind each of the variables from the row
+                for (int i = 0; i < fieldCount; i++) {
+                    String fieldName = (String) fieldModel.getValueAt(i,
+                            fieldModel.findColumn(AttributeFieldTableModel.ColumnName.NAME.toString()));
+                    // Add 2 because we need to skip modified and ID in dataModel
+                    bindings.put(fieldName, dataModel.getValueAt(row, i + 2));
+
+                }
+
+                boolean data = false;
+                //try {
+                data = (boolean) (generate_data.eval(bindings));
+//                } catch (ScriptException se) {
 //                    if (host != null) {
-//                        host.showFeedback(messages.getString("ErrorAddingData"));
+//                        host.showFeedback(se.getMessage());
 //                    }
 //                }
-//
-//                dataModel.setValueAt(data, row, 2 + this.generateDataColumnIndex);
-//
-//            }
-//
-//        } catch (ScriptException e) {
-//            if (host != null) {
-//                host.showFeedback(messages.getString("ErrorExecutingScript"));
-//                host.logException("Error from AttributesFileViewer", e);
-//            }
-//        }
-//    }
+
+                if (data) {
+                    selectedFeatures.add(row + 1);
+                }
+
+            }
+            if (selectedFeatures.size() > 0) {
+
+                ArrayList<Integer> currentFeatures = vectorLayerInfo.getSelectedFeatureNumbers();
+                final ArrayList<Integer> finalSelectedFeatures = new ArrayList<>();
+                if (selectionMode.equals("Create new selection")) {
+                    vectorLayerInfo.clearSelectedFeatures();
+                    for (Integer i : selectedFeatures) {
+                        finalSelectedFeatures.add(i);
+                    }
+                } else if (selectionMode.equals("Add to current selection")) {
+                    for (Integer i : currentFeatures) {
+                        finalSelectedFeatures.add(i);
+                    }
+                    for (Integer i : selectedFeatures) {
+                        finalSelectedFeatures.add(i);
+                    }
+                } else if (selectionMode.equals("Remove from current selection")) {
+                    for (Integer i : currentFeatures) {
+                        if (!selectedFeatures.contains(i)) {
+                            finalSelectedFeatures.add(i);
+                        }
+                    }
+                    vectorLayerInfo.clearSelectedFeatures();
+                } else if (selectionMode.equals("Select from current selection")) {
+                    for (Integer i : currentFeatures) {
+                        if (selectedFeatures.contains(i)) {
+                            finalSelectedFeatures.add(i);
+                        }
+                    }
+                    vectorLayerInfo.clearSelectedFeatures();
+                }
+
+                selectRecord(finalSelectedFeatures);
+                selectRowsBasedOnFeatureSelection();
+
+                // filter the results
+                RowFilter<Object, Object> myFilter = new RowFilter<Object, Object>() {
+                    @Override
+                    public boolean include(RowFilter.Entry<? extends Object, ? extends Object> entry) {
+                        int i = (Integer) entry.getIdentifier(); //dataTable.convertRowIndexToView((Integer) entry.getIdentifier());
+                        return finalSelectedFeatures.contains(i + 1);
+                    }
+                };
+                sorter.setRowFilter(myFilter);
+
+                if (host != null) {
+                    //host.showFeedback(messages.getString("CalcComplete"));
+                    String response = "The selection was successful. " + finalSelectedFeatures.size() + " features were selected.";
+                    host.showFeedback(response);
+                }
+            }
+
+        } catch (ScriptException e) {
+            if (host != null) {
+                host.showFeedback(messages.getString("ErrorExecutingScript"));
+                host.logException("Error from AttributesFileViewer", e);
+            }
+        }
+    }
+
+    private ScripterCompletionProvider provider;
+    private AutoCompletion ac;
+    ArrayList<String> listOfImportedItems = new ArrayList<>();
+    ArrayList<String> listOfImportedClasses = new ArrayList<>();
+    ArrayList<String> listOfImportedVariables = new ArrayList<>();
+    ArrayList<String> listOfImportedMethods = new ArrayList<>();
+    HashMap<String, String> listOfMethodReturns = new HashMap<>();
+
+    private void setupAutocomplete() {
+        provider = new ScripterCompletionProvider();
+        provider.setAutoActivationRules(false, ".");
+
+        addLanguageKeywords();
+
+        importVariableAs("pluginHost", WhiteboxPluginHost.class.getCanonicalName());
+        importVariableAs("index", Integer.class.getCanonicalName());
+
+        // Bind each of the field names as variables
+        AttributeFieldTableModel fieldModel = (AttributeFieldTableModel) fieldTable.getModel();
+        int fieldCount = fieldModel.getRowCount();
+
+        for (int i = 0; i < fieldCount; i++) {
+            String fieldName = (String) fieldModel.getValueAt(i,
+                    fieldModel.findColumn(AttributeFieldTableModel.ColumnName.NAME.toString()));
+            DBFField.DBFDataType fieldType = (DBFField.DBFDataType) fieldModel.getValueAt(i,
+                    fieldModel.findColumn(AttributeFieldTableModel.ColumnName.TYPE.toString()));
+
+            String className = "String";
+            switch (fieldType) {
+                case STRING:
+                case MEMO:
+                     className = String.class.getCanonicalName();
+                    break;
+                case DATE:
+                    className = Calendar.class.getCanonicalName();
+                    break;
+                case FLOAT:
+                case NUMERIC:
+                    className = Double.class.getCanonicalName();
+                    break;
+                case BOOLEAN:
+                    className = Boolean.class.getCanonicalName();
+                    break;
+            }
+            
+            importVariableAs(fieldName, className);
+        }
+
+        ac = new AutoCompletion(provider);
+        ac.setAutoCompleteEnabled(true);
+        ac.setAutoActivationEnabled(true);
+        ac.setShowDescWindow(true);
+        ac.setParameterAssistanceEnabled(true);
+        if (editor != null) {
+            ac.install(editor);
+        }
+        
+        if (selectionEditor != null) {
+            ac.install(selectionEditor);
+        }
+    }
+
+    private void addLanguageKeywords() {
+        provider.setParameterizedCompletionParams("(".charAt(0), ", ", ")".charAt(0));
+
+        // Add completions for all groovy keywords. A BasicCompletion is just
+        // a straightforward word completion.
+        provider.addCompletion(new BasicCompletion(provider, "abstract"));
+        provider.addCompletion(new BasicCompletion(provider, "as"));
+        provider.addCompletion(new BasicCompletion(provider, "assert"));
+        provider.addCompletion(new BasicCompletion(provider, "break"));
+        provider.addCompletion(new BasicCompletion(provider, "case"));
+        provider.addCompletion(new BasicCompletion(provider, "catch"));
+        provider.addCompletion(new BasicCompletion(provider, "class"));
+        provider.addCompletion(new BasicCompletion(provider, "const"));
+        provider.addCompletion(new BasicCompletion(provider, "continue"));
+        provider.addCompletion(new BasicCompletion(provider, "def"));
+        provider.addCompletion(new BasicCompletion(provider, "default"));
+        provider.addCompletion(new BasicCompletion(provider, "do"));
+        provider.addCompletion(new BasicCompletion(provider, "else"));
+        provider.addCompletion(new BasicCompletion(provider, "enum"));
+        provider.addCompletion(new BasicCompletion(provider, "extends"));
+        provider.addCompletion(new BasicCompletion(provider, "final"));
+        provider.addCompletion(new BasicCompletion(provider, "finally"));
+        provider.addCompletion(new BasicCompletion(provider, "for"));
+        provider.addCompletion(new BasicCompletion(provider, "goto"));
+        provider.addCompletion(new BasicCompletion(provider, "if"));
+        provider.addCompletion(new BasicCompletion(provider, "implements"));
+        provider.addCompletion(new BasicCompletion(provider, "import"));
+        provider.addCompletion(new BasicCompletion(provider, "in"));
+        provider.addCompletion(new BasicCompletion(provider, "instanceof"));
+        provider.addCompletion(new BasicCompletion(provider, "interface"));
+        provider.addCompletion(new BasicCompletion(provider, "native"));
+        provider.addCompletion(new BasicCompletion(provider, "new"));
+        provider.addCompletion(new BasicCompletion(provider, "package"));
+        provider.addCompletion(new BasicCompletion(provider, "private"));
+        provider.addCompletion(new BasicCompletion(provider, "property"));
+        provider.addCompletion(new BasicCompletion(provider, "protected"));
+        provider.addCompletion(new BasicCompletion(provider, "public"));
+        provider.addCompletion(new BasicCompletion(provider, "return"));
+        provider.addCompletion(new BasicCompletion(provider, "static"));
+        provider.addCompletion(new BasicCompletion(provider, "strictfp"));
+        provider.addCompletion(new BasicCompletion(provider, "super"));
+        provider.addCompletion(new BasicCompletion(provider, "switch"));
+        provider.addCompletion(new BasicCompletion(provider, "synchronized"));
+        provider.addCompletion(new BasicCompletion(provider, "this"));
+        provider.addCompletion(new BasicCompletion(provider, "throw"));
+        provider.addCompletion(new BasicCompletion(provider, "throws"));
+        provider.addCompletion(new BasicCompletion(provider, "transient"));
+        provider.addCompletion(new BasicCompletion(provider, "try"));
+        provider.addCompletion(new BasicCompletion(provider, "void"));
+        provider.addCompletion(new BasicCompletion(provider, "volatile"));
+        provider.addCompletion(new BasicCompletion(provider, "while"));
+
+    }
+
+    private void importVariableAs(String variableName, String className) {
+        if (!listOfImportedVariables.contains(variableName)) {
+            try {
+                if (className != null) {
+                    Class c = Class.forName(className);
+                    if (addVariableToProvider(variableName, c)) {
+                        listOfImportedVariables.add(variableName);
+                    }
+                } else {
+                    if (addVariableToProvider(variableName, null)) {
+                        listOfImportedVariables.add(variableName);
+                    }
+                }
+            } catch (ClassNotFoundException | SecurityException e) {
+                // class not found.
+            }
+        }
+    }
+
+    private void importClass(String className) {
+        if (!listOfImportedClasses.contains(className)) {
+            try {
+                if (!className.endsWith("*")) {
+                    if (addClassToProvider(className)) {
+                        listOfImportedClasses.add(className);
+                    }
+                } else {
+                    // import all of the classes in this package
+                    String packageName = className.replace("*", "");
+                    for (String str : listOfImportedItems) {
+                        if (str.startsWith(packageName) && !listOfImportedClasses.contains(str)) {
+                            if (addClassToProvider(str)) {
+                                listOfImportedClasses.add(str);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // class not found.
+            }
+        }
+    }
+
+    private boolean addClassToProvider(String className) {
+        try {
+            Class c = Class.forName(className);
+
+            Constructor[] con = c.getConstructors();
+            for (int i = 0; i < con.length; i++) {
+                FunctionCompletion fc = new FunctionCompletion(provider, c.getSimpleName(), "none");
+
+                Class<?>[] p = con[i].getParameterTypes();
+                java.util.List<ParameterizedCompletion.Parameter> params = new ArrayList<>();
+                ParameterizedCompletion.Parameter param;
+                for (int j = 0; j < p.length; j++) {
+                    param = new ParameterizedCompletion.Parameter(p[j].getSimpleName(), "arg" + (j + 1));
+                    //param.setDescription("This is the string to print.");
+                    params.add(param);
+                }
+
+                fc.setParams(params);
+                fc.setShortDescription("Constructor");
+                fc.setDefinedIn(con[i].getDeclaringClass().getName());
+                provider.addCompletion(fc);
+            }
+
+            //Class c = Class.forName("whitebox");
+            Method m[] = c.getMethods();
+            for (int i = 0; i < m.length; i++) {
+                FunctionCompletion fc = new FunctionCompletion(provider, c.getSimpleName() + "." + m[i].getName(), m[i].getReturnType().getSimpleName());
+                Class<?>[] p = m[i].getParameterTypes();
+                java.util.List<ParameterizedCompletion.Parameter> params = new ArrayList<>();
+                ParameterizedCompletion.Parameter param;
+                for (int j = 0; j < p.length; j++) {
+                    param = new ParameterizedCompletion.Parameter(p[j].getSimpleName(), "arg" + (j + 1));
+                    params.add(param);
+                }
+                fc.setParams(params);
+                fc.setDefinedIn(m[i].getDeclaringClass().getName());
+                provider.addCompletion(fc);
+                listOfImportedMethods.add(c.getSimpleName() + "." + m[i].getName());
+                listOfMethodReturns.put(c.getSimpleName() + "." + m[i].getName(), m[i].getReturnType().getCanonicalName());
+            }
+
+            Field f[] = c.getFields();
+            for (int i = 0; i < f.length; i++) {
+                VariableCompletion vc = new VariableCompletion(provider, c.getSimpleName() + "." + f[i].getName(), f[i].getType().toString());
+                vc.setDefinedIn(f[i].getDeclaringClass().getName());
+                provider.addCompletion(vc);
+            }
+            return true;
+        } catch (ClassNotFoundException | SecurityException e) {
+            return false;
+        }
+    }
+
+    private boolean addVariableToProvider(String variableName, Class c) {
+        try {
+            if (c != null) {
+
+                String className = c.getCanonicalName();
+                if (!listOfImportedClasses.contains(className)) {
+                    if (addClassToProvider(className)) {
+                        listOfImportedClasses.add(className);
+//                        Package p = c.getPackage();
+//                        importPackage(p);
+                    }
+                }
+
+                VariableCompletion vc = new VariableCompletion(provider, variableName, c.getCanonicalName());
+                provider.addCompletion(vc);
+
+                //provider.addCompletion(new BasicCompletion(provider, variableName));
+                Method m[] = c.getMethods();
+                for (int i = 0; i < m.length; i++) {
+                    StringBuilder name = new StringBuilder(variableName);
+                    name.append(".").append(m[i].getName());
+
+                    FunctionCompletion fc = new FunctionCompletion(provider, name.toString(), m[i].getReturnType().getSimpleName());
+
+                    Class<?>[] p = m[i].getParameterTypes();
+                    java.util.List<ParameterizedCompletion.Parameter> params = new ArrayList<>();
+                    ParameterizedCompletion.Parameter param;
+                    for (int j = 0; j < p.length; j++) {
+                        param = new ParameterizedCompletion.Parameter(p[j].getSimpleName(), "arg" + (j + 1));
+                        params.add(param);
+                    }
+
+                    fc.setParams(params);
+                    fc.setDefinedIn(m[i].getDeclaringClass().getName());
+                    provider.addCompletion(fc);
+                    listOfImportedMethods.add(name.toString());
+                    listOfMethodReturns.put(name.toString(), m[i].getReturnType().getCanonicalName());
+                }
+
+                Field f[] = c.getFields();
+                for (int i = 0; i < f.length; i++) {
+                    StringBuilder name = new StringBuilder(variableName);
+                    name.append(".").append(f[i].getName());
+
+                    vc = new VariableCompletion(provider, name.toString(), f[i].getType().toString());
+                    vc.setDefinedIn(f[i].getDeclaringClass().getName());
+                    provider.addCompletion(vc);
+                }
+            } else {
+                VariableCompletion vc = new VariableCompletion(provider, variableName, "Object");
+                provider.addCompletion(vc);
+            }
+            return true;
+        } catch (SecurityException e) {
+            return false;
+        }
+    }
+
+    Map<String, String> variableClassMap = new HashMap<>();
+
+    private void resetAutocompletion() {
+        listOfImportedClasses.clear();
+        listOfImportedItems.clear();
+        listOfImportedVariables.clear();
+        listOfImportedMethods.clear();
+        listOfMethodReturns.clear();
+        variableClassMap.clear();
+        setupAutocomplete();
+    }
+
 }

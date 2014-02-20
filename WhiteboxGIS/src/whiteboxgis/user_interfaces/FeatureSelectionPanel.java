@@ -29,7 +29,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -130,7 +129,7 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     if (host != null) {
-                        host.delectedAllFeaturesInActiveLayer();
+                        host.deselectAllFeaturesInActiveLayer();
                         updateTable();
                     }
                 }
@@ -248,7 +247,8 @@ public class FeatureSelectionPanel extends JPanel implements PropertyChangeListe
                         comp.setForeground(Color.BLACK);
                     }
                     if (isCellSelected(Index_row, Index_col)) {
-                        comp.setForeground(Color.RED);
+                        comp.setBackground(new Color(250, 200, 200)); //new Color(255, 255, 160));
+                        //comp.setForeground(Color.RED);
                     }
                     return comp;
                 }
