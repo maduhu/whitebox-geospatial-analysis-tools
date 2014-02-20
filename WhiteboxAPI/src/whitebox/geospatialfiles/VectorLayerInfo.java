@@ -523,7 +523,7 @@ public class VectorLayerInfo implements MapLayer {
         selectedFeatureNumbers.clear();
 
 //        int oldValue = this.selectedFeatureNumber;
-        this.selectedFeatureNumber = -1;
+        this.selectedFeatureNumber = -2;
         this.pcs.firePropertyChange("selectedFeatureNumber", -1, selectedFeatureNumber);
     }
 

@@ -676,6 +676,12 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         addToExtentHistory(currentExtent);
     }
     
+    /**
+     * Performs a zoom and center operation
+     * @param x x-coordinate of center point
+     * @param y y-coordinate of center point
+     * @param factor zoom factor
+     */
     public void zoom(double x, double y, double factor) {
         double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
         double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
@@ -683,6 +689,27 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
         currentExtent.setMinY(y - (rangeY * factor) / 2.0);
         currentExtent.setMaxX(x + (rangeX * factor) / 2.0);
         currentExtent.setMaxY(y + (rangeY * factor) / 2.0);
+        addToExtentHistory(currentExtent);
+    }
+    
+    /**
+     * Performs a zoom based on a point but does not re-center the extent.
+     * @param x x-coordinate of center point
+     * @param y y-coordinate of center point
+     * @param factor zoom factor
+     */
+    public void naturalZoom(double x, double y, double factor) {
+        double rangeX = Math.abs(currentExtent.getMaxX() - currentExtent.getMinX());
+        double rangeY = Math.abs(currentExtent.getMaxY() - currentExtent.getMinY());
+        double relativePositionX = Math.abs(x - currentExtent.getMinX()) / rangeX;
+        double relativePositionY = Math.abs(y - currentExtent.getMinY()) / rangeY;
+        double newXRange = rangeX * factor;
+        double newYRange = rangeY * factor;
+        
+        currentExtent.setMinX(x - newXRange * relativePositionX);
+        currentExtent.setMinY(y - newYRange * relativePositionY);
+        currentExtent.setMaxX(x + newXRange * (1.0 - relativePositionX));
+        currentExtent.setMaxY(y + newYRange * (1.0 - relativePositionY));
         addToExtentHistory(currentExtent);
     }
     

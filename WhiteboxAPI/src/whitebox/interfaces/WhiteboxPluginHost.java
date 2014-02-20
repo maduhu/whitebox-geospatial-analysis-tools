@@ -119,7 +119,7 @@ public interface WhiteboxPluginHost extends Communicator {
     /**
      * Used to clear all the selected features from the active vector layer.
      */
-    public void delectedAllFeaturesInActiveLayer();
+    public void deselectAllFeaturesInActiveLayer();
     
     /**
      * Called to save selected features into a separate vector file.
