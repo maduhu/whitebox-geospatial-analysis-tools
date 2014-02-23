@@ -498,7 +498,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
             return htmlTitle; //m.group(1);
         } catch (Exception e) {
             logger.log(Level.SEVERE, fileName, e);
-            return null;
+            return "";
         }
     }
 

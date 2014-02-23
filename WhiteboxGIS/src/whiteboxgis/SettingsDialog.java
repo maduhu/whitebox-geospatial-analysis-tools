@@ -1,4 +1,24 @@
 /*
+I THINK THAT THIS CLASS MAY BE OBSELETE. SEE THE SETTINGSDIALOG IN THE 
+WHITEBOXGIS.USER_INTERFACES PACKAGE INSTEAD. THIS CLASS SHOULD BE EVALUATED
+FOR POSSIBLE DELETION.
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
  * Copyright (C) 2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -99,6 +119,7 @@ public class SettingsDialog extends JDialog implements ActionListener, Adjustmen
     private JComboBox valueFieldCombo;
     private JTabbedPane tabs;
     private Color backColour = new Color(225, 245, 255); //210, 230, 255);
+    private JCheckBox checkScrollZoomDirection = null;
     
     public SettingsDialog(Frame owner, boolean modal, MapLayer layer, MapInfo map) {
         super(owner, modal);

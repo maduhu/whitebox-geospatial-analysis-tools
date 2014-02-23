@@ -1844,6 +1844,8 @@ public class Scripter extends JDialog implements ActionListener, KeyListener {
                 }
                 editor.setText("");
                 sourceFile = null;
+                editorDirty = false;
+                this.setTitle("Whitebox Scripter");
                 break;
             case "exit":
                 if (editorDirty) {

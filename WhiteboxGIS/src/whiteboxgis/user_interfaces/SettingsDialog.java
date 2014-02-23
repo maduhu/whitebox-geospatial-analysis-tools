@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import javax.swing.*;
 import java.text.DecimalFormat;
 import whitebox.interfaces.Communicator;
+import whiteboxgis.MapRenderer2;
 import whiteboxgis.WhiteboxGui;
 
 /**
@@ -55,6 +56,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
     private ResourceBundle messages;
     private String language;
     private String country;
+    
 
     public SettingsDialog(Frame owner, boolean modal) {
         super(owner, modal);
@@ -160,16 +162,27 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         languageChooser.setBackColour(backColour);
         languageChooser.setPreferredWidth(preferredWidth);
         languageChooser.revalidate();
-
         mainBox.add(languageChooser);
 
+        
+        BooleanProperty scrollZoomDirectionProperty = new BooleanProperty(bundle.getString("ScrollZoomDirection"),
+                (host.getScrollZoomDirection() == MapRenderer2.ScrollZoomDirection.REVERSE));
+        scrollZoomDirectionProperty.setName("scrollZoomDirection");
+        scrollZoomDirectionProperty.setLeftMargin(leftMargin);
+        scrollZoomDirectionProperty.setRightMargin(rightMargin);
+        scrollZoomDirectionProperty.setBackColour(Color.WHITE);
+        scrollZoomDirectionProperty.setPreferredWidth(preferredWidth);
+        scrollZoomDirectionProperty.revalidate();
+        scrollZoomDirectionProperty.addPropertyChangeListener("value", this);
+        mainBox.add(scrollZoomDirectionProperty);
+        
 
         BooleanProperty checkForUpdates = new BooleanProperty(bundle.getString("CheckForUpdates"),
                 host.isCheckForUpdates());
         checkForUpdates.setName("checkForUpdates");
         checkForUpdates.setLeftMargin(leftMargin);
         checkForUpdates.setRightMargin(rightMargin);
-        checkForUpdates.setBackColour(Color.WHITE);
+        checkForUpdates.setBackColour(backColour);
         checkForUpdates.setPreferredWidth(preferredWidth);
         checkForUpdates.revalidate();
         checkForUpdates.addPropertyChangeListener("value", this);
@@ -181,17 +194,20 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         receiveAnnouncements.setName("receiveAnnouncements");
         receiveAnnouncements.setLeftMargin(leftMargin);
         receiveAnnouncements.setRightMargin(rightMargin);
-        receiveAnnouncements.setBackColour(backColour);
+        receiveAnnouncements.setBackColour(Color.WHITE);
         receiveAnnouncements.setPreferredWidth(preferredWidth);
         receiveAnnouncements.revalidate();
         receiveAnnouncements.addPropertyChangeListener("value", this);
         mainBox.add(receiveAnnouncements);
 
-        mainBox.add(Box.createVerticalStrut(4));
+        //mainBox.add(Box.createVerticalStrut(4));
         
         DecimalFormat df = new DecimalFormat("###,##0.0");
         
         Box heapBox = Box.createHorizontalBox();
+        heapBox.setOpaque(true);
+        heapBox.setBackground(backColour);
+        heapBox.setPreferredSize(new Dimension(-1, 30));
         heapBox.add(Box.createHorizontalStrut(10));
         String str = "Maximum heap size: " + df.format(Runtime.getRuntime().maxMemory() / 1073741824.0) + "GB";
         heapBox.add(new JLabel(str));
@@ -201,7 +217,7 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         heapBox.add(Box.createHorizontalGlue());
         mainBox.add(heapBox);
 
-        mainBox.add(Box.createVerticalStrut(4));
+        //mainBox.add(Box.createVerticalStrut(4));
         
         Box bitBox = Box.createHorizontalBox();
         bitBox.add(Box.createHorizontalStrut(10));
@@ -216,8 +232,9 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
         bitBox.add(Box.createHorizontalGlue());
         
         Box bitVBox = Box.createVerticalBox();
-        bitVBox.setBackground(backColour);
+        bitVBox.setBackground(Color.WHITE);
         bitVBox.setOpaque(true);
+        bitVBox.setPreferredSize(new Dimension(-1, 30));
         bitVBox.add(Box.createVerticalStrut(4));
         bitVBox.add(bitBox);
         bitVBox.add(Box.createVerticalStrut(4));
@@ -336,6 +353,14 @@ public class SettingsDialog extends JDialog implements Communicator, ActionListe
 
             case "receiveAnnouncements":
                 host.setReceiveAnnouncements((Boolean) evt.getNewValue());
+                break;
+                
+            case "scrollZoomDirection":
+                if ((Boolean) evt.getNewValue()) {
+                    host.setScrollZoomDirection(MapRenderer2.ScrollZoomDirection.REVERSE);
+                } else {
+                    host.setScrollZoomDirection(MapRenderer2.ScrollZoomDirection.NORMAL);
+                }
                 break;
         }
     }

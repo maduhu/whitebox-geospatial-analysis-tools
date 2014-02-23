@@ -151,6 +151,7 @@ public class AttributeFileTableModel extends AbstractTableModel {
             if (row != null && row.length > fieldIndex) {
                 // First column shown is the ID
                 Object ret = row[fieldIndex];
+                if (ret == null) { return null; }
                 if (ret.getClass().equals(String.class)) {
                     ret = ((String)(ret)).trim();
                 }

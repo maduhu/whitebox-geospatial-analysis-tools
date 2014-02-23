@@ -2021,6 +2021,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (props.containsKey("checkForUpdates")) {
                     checkForUpdates = Boolean.parseBoolean(props.getProperty("checkForUpdates"));
                 }
+                
+                // check for scroll zoom direction
+                if (props.containsKey("scrollZoomDirection")) {
+                    int i = Integer.parseInt(props.getProperty("scrollZoomDirection"));
+                    if (i == 0) {
+                        setScrollZoomDirection(MapRenderer2.ScrollZoomDirection.NORMAL);
+                    } else {
+                        setScrollZoomDirection(MapRenderer2.ScrollZoomDirection.REVERSE);
+                    } 
+                }
 
                 // retrieve the plugin usage information
                 String[] pluginNames = props.getProperty("pluginNames").split(",");
@@ -2089,7 +2099,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("country", country);
         props.setProperty("receiveAnnouncements", Boolean.toString(receiveAnnouncements));
         props.setProperty("checkForUpdates", Boolean.toString(checkForUpdates));
-
+        
+        if (scrollZoomDir == MapRenderer2.ScrollZoomDirection.NORMAL) {
+            props.setProperty("scrollZoomDirection", "0");
+        } else {
+            props.setProperty("scrollZoomDirection", "1");
+        }
+                
         // set the recent data layers
         String recentDataLayers = "";
         List<String> layersList = recentFilesMenu.getList();
@@ -2407,7 +2423,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     new ImageIcon(graphicsDirectory + "open.png"));
             JMenuItem saveMap = new JMenuItem(bundle.getString("SaveMap"),
                     new ImageIcon(graphicsDirectory + "SaveMap.png"));
-            JMenuItem closeMap = new JMenuItem(bundle.getString("CloseMap"));
+            JMenuItem closeMap = new JMenuItem(bundle.getString("CloseMap"),
+                    new ImageIcon(graphicsDirectory + "close.png"));
+            
             JMenuItem close = new JMenuItem(bundle.getString("Close"));
 
             JMenuItem layerProperties = new JMenuItem(bundle.getString("LayerDisplayProperties"),
@@ -2702,16 +2720,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             openMap.setActionCommand("openMap");
             openMap.addActionListener(this);
             openMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-            cartoMenu.add(saveMap);
-            saveMap.addActionListener(this);
-            saveMap.addActionListener(this);
-            saveMap.setActionCommand("saveMap");
-            saveMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             cartoMenu.add(closeMap);
             closeMap.setActionCommand("closeMap");
             //closeMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             closeMap.addActionListener(this);
-//            cartoMenu.addSeparator();
+//          cartoMenu.add(saveMap);
+            saveMap.addActionListener(this);
+            saveMap.addActionListener(this);
+            saveMap.setActionCommand("saveMap");
+            saveMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+              
             JMenuItem printMap = new JMenuItem(bundle.getString("PrintMap"), new ImageIcon(graphicsDirectory + "Print.png"));
             cartoMenu.add(printMap);
             printMap.addActionListener(this);
@@ -2953,10 +2971,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             helpMenu.addSeparator();
 
-            JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
-            helpReport.setActionCommand("helpReport");
-            helpReport.addActionListener(this);
-            helpMenu.add(helpReport);
+//            JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
+//            helpReport.setActionCommand("helpReport");
+//            helpReport.addActionListener(this);
+//            helpMenu.add(helpReport);
+
             menubar.add(helpMenu);
 
             this.setJMenuBar(menubar);
@@ -3373,6 +3392,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JButton openMap = makeToolBarButton("open.png", "openMap",
                     bundle.getString("OpenMap"), "Open");
             toolbar.add(openMap);
+            
+            JButton closeMap = makeToolBarButton("close.png", "closeMap",
+                    bundle.getString("CloseMap"), "Close");
+            toolbar.add(closeMap);
+            
             JButton saveMap = makeToolBarButton("SaveMap.png", "saveMap",
                     bundle.getString("SaveMap"), "Save");
             toolbar.add(saveMap);
@@ -7628,6 +7652,17 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
         dispose();
         System.exit(0);
+    }
+    
+    private MapRenderer2.ScrollZoomDirection scrollZoomDir = MapRenderer2.ScrollZoomDirection.NORMAL;
+    
+    public void setScrollZoomDirection(MapRenderer2.ScrollZoomDirection direction) {
+        this.scrollZoomDir = direction;
+        drawingArea.setScrollZoomDirection(direction);
+    }
+    
+    public MapRenderer2.ScrollZoomDirection getScrollZoomDirection() {
+        return this.scrollZoomDir;
     }
 
     @Override

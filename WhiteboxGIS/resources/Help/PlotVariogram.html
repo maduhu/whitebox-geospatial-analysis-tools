@@ -2,31 +2,22 @@
 <html lang="en">
     <head>
         <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
-        <title>Kriging interpolation</title>
+        <title>Plot variogram</title>
         <link rel="stylesheet" type="text/css" href="Help.css">
     </head>
     <body>
-        <h1>Kriging interpolation</h1>
+        <h1>Plot variogram</h1>
 
         <p>
-            This tool can be used to interpolate a regular grid raster from a vector 
-            points file using a kriging interpolation method. The user must specify the 
+            This tool can be used to plot a variogram based on a vector 
+            points file. The user must specify the 
             name of the input vector shapefile and the name of the field within the vector's 
-            attribute table that is used to indicate height. The output file name, and 
-            optionally, the name of the associated error variance file, must also be 
-            provided. The user must also provide either the grid resolution of the output 
-            surface or the name of an existing raster file from which to derive the 
-            geographical extent and grid resolution. If a cell size (grid resolution) is 
-            specified, the output raster will derive its geographical extent from that 
-            of the input vector points file. The interpolation is based on the values 
-            associated with the points contained within a neighbourhood surrounding each 
-            grid cell in the output raster. The neighbourhood extent is determined by the 
-            <i>number of neighbours</i> parameter.</p>
-
-        <p>Kriging methods use the variogram to determine the interpolation weights. The 
+            attribute table that is used to indicate the interpolated variable (taken to be 
+            height). The 
         <b><i>variogram</i></b> measures differences in observed values over a set of separation distance bands, 
         or <b><i>lags</i></b>. The plot of semivariance (a measure of the difference in values) by lag 
         distance derived for a set of point observations is known as the <b><i>experimental variogram</i></b>. 
+        The variogram is central to the <a href="KrigingInterpolation.html">Kriging Interpolation</a> method. 
         In fact, kriging methods do not use this data directly to determine interpolation 
         weights. Instead, a continuous model is fit to these observed data and this forms the 
         basis for weight determination. The continuous model, known as the <b><i>theoretical 
@@ -57,16 +48,16 @@
         <p>Generally, the process of deriving a theoretical variogram model for use in 
         kriging requires a certain amount of experimentation. It is an iterative 
         process that requires modifying the model type, number of lags, and lag size 
-        in order to achieve the best possible fit. The kriging interpolation tool allows 
+        in order to achieve the best possible fit. The <b>Plot Variogram</b> tool allows 
         users to interactively adjust these input parameters and to view the variogram 
-        and variogram surface map before running the interpolation.</p>
+        and variogram surface map. When the user has found a satisfactory model, the tool 
+        can be run and the final variogram report will be output along with the variogram 
+        plot and optionally the variogram map.</p>
 
 
         <h2 class="SeeAlso">See Also:</h2>
         <ul>
-            <li><a href="PlotVariogram.html">Plot Variogram</a></li>
-            <li><a href="InterpolateNN.html">Nearest Neighbour Interpolation</a></li>
-            <li><a href="InterpolateIDW.html">Inverse Distance Weighted (IDW) Intarpolation</a></li>
+            <li><a href="KrigingInterpolation.html">Kriging Interpolation</a></li>
         </ul>
 
         <h2 class="SeeAlso">Scripting:</h2>
@@ -77,11 +68,6 @@
                 # Input data has the shapefile name followed 
                 # by the attribute, separated by a semicolon. 
                 inputData = wd + "spotHeights.shp" + ";" + "HEIGHT"<br>
-                outputFile = wd + "surface.dep"<br>
-                outputErrorFile = wd + "error surface.dep"<br>
-                cellSize = "10.0"<br>
-                baseFile = "not specified"<br>
-                numNeighbours = "15"<br>
                 modelType = "Gaussian"<br>
                 numLags = "12"<br>
                 lagSize = "1000.0"<br>
@@ -90,10 +76,9 @@
                 angle = "not specified"<br>
                 tolerance = "not specified"<br>
                 bandWidth = "not specified"<br>
-                showVariogram = "true"<br>
                 showVariogramMap = "true"<br>
-                args = [inputData, outputFile, outputErrorFile, cellSize, numNeighbours, modelType, numLags, lagSize, applyNugget, anisotropic, angle, tolerance, bandWidth, showVariogram, showVariogramMap]<br>
-                pluginHost.runPlugin("KrigingInterpolation", args, False)<br>
+                args = [inputData, modelType, numLags, lagSize, applyNugget, anisotropic, angle, tolerance, bandWidth, showVariogramMap]<br>
+                pluginHost.runPlugin("PlotVariogram", args, False)<br>
             </code>
         </p>
         <p>This is a Groovy script also using this tool:</p>
@@ -103,11 +88,6 @@
                 // Input data has the shapefile name followed 
                 // by the attribute, separated by a semicolon. 
                 def inputData = wd + "spotHeights.shp" + ";" + "HEIGHT"<br>
-                def outputFile = wd + "surface.dep"<br>
-                def outputErrorFile = wd + "error surface.dep"<br>
-                def cellSize = "10.0"<br>
-                def baseFile = "not specified"<br>
-                def numNeighbours = "15"<br>
                 def modelType = "Gaussian"<br>
                 def numLags = "12"<br>
                 def lagSize = "1000.0"<br>
@@ -116,10 +96,9 @@
                 def angle = "not specified"<br>
                 def tolerance = "not specified"<br>
                 def bandWidth = "not specified"<br>
-                def showVariogram = "true"<br>
                 def showVariogramMap = "true"<br>
-                String[] args = [inputData, outputFile, outputErrorFile, cellSize, numNeighbours, modelType, numLags, lagSize, applyNugget, anisotropic, angle, tolerance, bandWidth, showVariogram, showVariogramMap]<br>
-                pluginHost.runPlugin("KrigingInterpolation", args, false)<br>
+                String[] args = [inputData, modelType, numLags, lagSize, applyNugget, anisotropic, angle, tolerance, bandWidth, showVariogramMap]<br>
+                pluginHost.runPlugin("PlotVariogram", args, false)<br>
             </code>
         </p>
 

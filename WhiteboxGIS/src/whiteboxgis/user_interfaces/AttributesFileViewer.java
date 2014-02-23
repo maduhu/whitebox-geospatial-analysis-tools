@@ -501,6 +501,17 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         scroll.setFoldIndicatorEnabled(true);
 
         panel.add(scroll);
+        
+        
+        String commentMarker = "//";
+        String newline = System.lineSeparator();
+        String default_text = commentMarker + " " + messages.getString("ScriptMessage4") + newline
+                + commentMarker + " " + messages.getString("ScriptMessage1") + newline
+                + commentMarker + " " + messages.getString("ScriptMessage3") + newline
+                + commentMarker + " The last line of the script must evaluate to a Boolean (True or False) value,";
+                
+        default_text += " e.g. index < " + (int)(dataTable.getRowCount() / 2) + newline;
+        selectionEditor.setText(default_text);
 
         return panel;
     }
@@ -677,14 +688,26 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 
     private void toggleComment(int lineNum) {
         try {
-            int start = editor.getLineStartOffset(lineNum);
-            String openingCharacters = editor.getText(start, 2);
-            if (openingCharacters.startsWith("//")) {
-                // remove the line comment tag.
-                editor.replaceRange("", start, start + 2);
+            if (activeTextArea == 0) {
+                int start = editor.getLineStartOffset(lineNum);
+                String openingCharacters = editor.getText(start, 2);
+                if (openingCharacters.startsWith("//")) {
+                    // remove the line comment tag.
+                    editor.replaceRange("", start, start + 2);
+                } else {
+                    // add a line comment tag.
+                    editor.insert("//", start);
+                }
             } else {
-                // add a line comment tag.
-                editor.insert("//", start);
+                int start = selectionEditor.getLineStartOffset(lineNum);
+                String openingCharacters = selectionEditor.getText(start, 2);
+                if (openingCharacters.startsWith("//")) {
+                    // remove the line comment tag.
+                    selectionEditor.replaceRange("", start, start + 2);
+                } else {
+                    // add a line comment tag.
+                    selectionEditor.insert("//", start);
+                }
             }
         } catch (Exception e) {
             host.logException("Error in AttributesFileViewer", e);
@@ -1010,14 +1033,14 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         mi.setActionCommand("saveSelection");
         mi.addActionListener(this);
         menu.add(mi);
-        
+
         mi = new JMenuItem(bundle.getString("CopyToClipboard"));
         mi.setActionCommand("copyToClipboard");
         mi.addActionListener(this);
         menu.add(mi);
-        
+
         menu.addSeparator();
-        
+
         mi = new JMenuItem(bundle.getString("ApplyFilter"));
         mi.setActionCommand("applyFilter");
         mi.addActionListener(this);
@@ -1051,6 +1074,33 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
             addPerimeterField.addActionListener(this);
             menu.add(addPerimeterField);
         }
+        
+        menu.addSeparator();
+        
+        mi = new JMenuItem("Merge Table With Another Table");
+        mi.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (host != null) {
+                    host.launchDialog("MergeTables");
+                }
+            }
+        });
+        menu.add(mi);
+        
+        mi = new JMenuItem("Merge Table With CSV File");
+        mi.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (host != null) {
+                    host.launchDialog("MergeTableWithCSV");
+                }
+            }
+        });
+        menu.add(mi);
+        
 
         menubar.add(menu);
 
@@ -1272,7 +1322,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         switch (actionCommand) {
             case "copytoclipboard":
                 try {
-                    AttributeFileTableModel model = (AttributeFileTableModel)dataTable.getModel();
+                    AttributeFileTableModel model = (AttributeFileTableModel) dataTable.getModel();
                     StringBuilder sb = new StringBuilder();
                     int[] selectedRecords = dataTable.getSelectedRows();
                     int fieldCount = dataTable.getColumnCount();
@@ -1820,12 +1870,12 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
     private void setScripterDefaultText() { //ScriptingLanguage lang) {
 
         String commentMarker = "//";
-
+        String newline = System.lineSeparator();
         String default_text = commentMarker + " "
-                + messages.getString("ScriptMessage1") + "\n"
-                + commentMarker + " " + messages.getString("ScriptMessage2") + "\n"
-                + commentMarker + " " + messages.getString("ScriptMessage3") + "\n"
-                + commentMarker + " " + messages.getString("ScriptMessage4") + "\n";
+                + messages.getString("ScriptMessage1") + newline
+                + commentMarker + " " + messages.getString("ScriptMessage2") + newline
+                + commentMarker + " " + messages.getString("ScriptMessage3") + newline
+                + commentMarker + " " + messages.getString("ScriptMessage4") + newline;
 //        String default_text = lang.getCommentMarker() + " "
 //                + messages.getString("ScriptMessage1") + "\n"
 //                + lang.getCommentMarker() + " " + messages.getString("ScriptMessage2") + "\n"
@@ -1835,7 +1885,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 //            case PYTHON:
 //            case GROOVY:
 //            case JAVASCRIPT:
-        default_text += "index + 1";
+//        default_text += "index + 1";
 //                break;
 //
 //        }

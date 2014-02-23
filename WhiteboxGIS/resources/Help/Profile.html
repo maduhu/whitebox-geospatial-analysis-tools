@@ -16,11 +16,15 @@
         can be generated through on-screen digitizing using the <a href="CreateNewShapefile.html">
         Create New Shapefile</a> tool. See this <a href="tutorials/HowToDigitizeNewVectors.html">link</a> 
         for more detailed instructions on how to carry out on-screen digitizing.</p>
+
+        <p>In addition to the output chart, the user may optionally specify the name of a 
+		comma-separated value (*.csv) text file to output the profile to.</p>
         
         <h2 class="SeeAlso">See Also:</h2>
         <ul>
             <li><a href="CreateNewShapefile.html">Create New Shapefile</a></li>
             <li><a href="tutorials/HowToDigitizeNewVectors.html">How to Digitize New Vectors</a></li>
+            <li><a href="LongProfile.html">Long Profile</a></li>
         </ul>
 
         <h2 class="SeeAlso">Scripting:</h2>
@@ -40,7 +44,8 @@
                 def wd = pluginHost.getWorkingDirectory()<br>
                 def surfaceFile = wd + "surface.dep"<br>
                 def lineFile = wd + "profileLines.shp"<br>
-                String[] args = [surfaceFile, lineFile]<br>
+                def outFile = wd + "profile.csv"<br>
+                String[] args = [surfaceFile, lineFile, outFile]<br>
                 pluginHost.runPlugin("Profile", args, false)<br>
             </code>
         </p>

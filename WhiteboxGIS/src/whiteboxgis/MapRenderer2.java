@@ -3628,7 +3628,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         
-        int notches = e.getWheelRotation();
+        double notches = e.getWheelRotation() * scrollZoomMultiplier;
         
         if (myMode == MOUSE_MODE_MAPAREA) {
             if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
@@ -3640,9 +3640,22 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 } else {
                     int x = (int) ((e.getX() - pageLeft) / scale);
                     int y = (int) ((e.getY() - pageTop) / scale);
-                    map.zoom(x, y, (1 + notches * 0.15));
+                    map.zoom(x, y, (1 + notches * 0.1));
                 }
             }
         }
+    }
+    
+    double scrollZoomMultiplier = 1.0d;
+    public void setScrollZoomDirection(ScrollZoomDirection direction) {
+        if (direction == ScrollZoomDirection.REVERSE) {
+            scrollZoomMultiplier = -1.0d;
+        } else {
+            scrollZoomMultiplier = 1.0d;
+        }
+    }
+    
+    public enum ScrollZoomDirection {
+        NORMAL, REVERSE
     }
 }
