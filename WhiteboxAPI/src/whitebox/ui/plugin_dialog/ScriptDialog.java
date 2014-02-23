@@ -414,6 +414,30 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         mainPanel.add(dcb);
         return dcb;
     }
+    
+    public DialogList addDialogList(String description, String labelText,
+            String[] listItems, boolean allowMultipleSelection) {
+        String[] args = new String[5];
+        args[0] = "list";
+        args[1] = description;
+        args[2] = labelText;
+        StringBuilder items = new StringBuilder();
+        for (int a = 0; a < listItems.length; a++) {
+            if (a > 0) {
+                items.append(",").append(listItems[a]);
+            } else {
+                items.append(listItems[a]);
+            }
+        }
+        args[3] = items.toString();
+        args[4] = Boolean.toString(allowMultipleSelection);
+
+        DialogList dl = new DialogList();
+        dl.setArgs(args);
+        components.add(dl);
+        mainPanel.add(dl);
+        return dl;
+    }
 
     public DialogOption addDialogOption(String description, String labelText,
             String button1String, String button2String) {

@@ -412,7 +412,7 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
             text.setText(file.toString() + spaces);
             String oldValue = this.value;
             this.value = file.toString();
-            firePropertyChange("value", oldValue, value);
+            //firePropertyChange("value", oldValue, value);
         }
     }
 
@@ -460,7 +460,7 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
 
             String oldValue = this.value;
             this.value = file.toString();
-            firePropertyChange("value", oldValue, value);
+            //firePropertyChange("value", oldValue, value);
         }
     }
 
@@ -477,6 +477,6 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

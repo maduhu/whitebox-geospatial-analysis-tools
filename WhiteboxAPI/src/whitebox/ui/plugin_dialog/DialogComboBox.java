@@ -66,6 +66,9 @@ public class DialogComboBox extends JPanel implements ActionListener, DialogComp
     
     @Override
     public String getValue() {
+        if (value == null) {
+            value = (String)comboBox.getSelectedItem();
+        }
         return value.trim();
     }
     
@@ -77,6 +80,14 @@ public class DialogComboBox extends JPanel implements ActionListener, DialogComp
     @Override
     public boolean getOptionalStatus() {
         return false;
+    }
+    
+    public void setListItems(String[] listItems) {
+        comboBox.setModel(new DefaultComboBoxModel(listItems));
+        comboBox.revalidate();
+        comboBox.repaint();
+        comboBox.setSelectedIndex(0);
+        value = (String)comboBox.getSelectedItem();
     }
     
     @Override
