@@ -1,37 +1,39 @@
 <?xml version="1.0"?>
 <VersionInfo>
     <VersionName>"3.1 'Iguazu'"</VersionName>
-    <VersionNumber>"3.1.2"</VersionNumber>
+    <VersionNumber>"3.1.3"</VersionNumber>
     <DownloadLocation>"http://www.uoguelph.ca/~hydrogeo/Whitebox/download.shtml"</DownloadLocation>
     <DownloadArtifact>"http://www.uoguelph.ca/~hydrogeo/Whitebox/WhiteboxGAT.zip"</DownloadArtifact>
-    <Announcements number="15">
+    <Announcements number="16">
         <Announcement>
-            <Date>2014-01-29</Date>
+            <Date>2014-02-23</Date>
             <Language>en</Language>
-            <Title>Whitebox 3.1.2 Has Been Released</Title>
+            <Title>Whitebox 3.1.3 Has Been Released</Title>
             <Message><![CDATA[<p>The following additions/modifications have been made:</p>
-<ul><li>Added a Profile tool for creating topographic profiles from surface rasters.</li>
-<li>Added a kriging interpolation tool. The kriging tool includes an interactive
- semivariogram tool.</li>
-<li>Added the Bare-Earth DEM tool for LiDAR data.</li>
-<li>Added the Canopy Model tool for LiDAR data.</li>
-<li>Added the ElevationAboveStream tool.</li>
-<li>Added the DownslopeDistanceToStream tool.</li>
-<li>Added the GetLasFileStatistics tool for examining LAS (LiDAR) files.</li>
-<li>Added the NearestNeighbourAnalysis tool for identifying clustered point patterns.</li>
-<li>Added the EliminateCoincidentPoints tool.</li>
-<li>Added the ShortAxis tool.</li>
-<li>Added the RunPluginInParallel tool, which can run any one plugin in parallel using a batch 
- file of input parameters.</li>
-<li>The ShapeFile class has a new getKdTree method that returns a kd-tree of feature
- nodes. Each kd-entry value property contains the zero-base feature ID of the node.</li>
-<li>The ScriptDialog class now has an addDialogButton method.</li>
-<li>Fixed a bug with the InterpolationIDW and RasterizeTIN tools that did not allow 
- for the use of a specified base raster for determining resolution and extent.</li>
-<li>Integrated a 'Field Calculator' directly into the attribute table dialog to simplify 
- the process of creating and populating new fields. At the moment the field 
- calculator only works with Groovy as a scripting engine. There appears to be 
- something wrong with the Python engine currently.</li></ul><]]>
+<ul><li>Embedded vector selection by attributes into the attribute table window. Selection 
+is based on Groovy scripting and provides a very powerful method for selection.</li>
+<li>Added MergeTableWithCSV tool for appending data contained within a comma 
+ separated values (CSV) file to a shapefile's attribute table.</li>
+<li>Added MergeTables tool for appending one shapefile's attribute table to another
+ in a one-to-one or many-to-one relation.</li>
+<li>Added several new functions to the attribute table such as the ability to 
+ save selected features to the clipboard, filters, changing field names, etc. 
+ This release sees significant improvements in the handling of attributes.</li>
+<li>Added scroll zooming and improved natural zooming. This is one feature that 
+ once you experience it, you can never go back. I have to wonder why I didn't
+ implement it earlier.</li>
+<li>Added the GeasyTools add-on by Marc Vis and Jan Seibert. This add-on allows 
+ provides some common tools for hydrological analysis including the MDInf 
+ (i.e. multiple direction D-infinity) flow accumulation algorithm.</li>
+<li>Added Plot Variogram tool.</li>
+<li>Added Stream long profile tool.</li>
+<li>Added Distance to Outlet tool for stream-network analysis.</li>
+<li>Added a tool for importing CSV files to vector points.</li>
+<li>Moved the log directory out of the Resources folder to a higher level. This should 
+ make finding logs easier for users.</li>
+<li>Added check for updates and automatic downloading of latest version.</li>
+<li>Fixed a minor bug with the ImportArcASCIIGrid tool that offset each row by one.
+</li></ul><]]>
             </Message>
         </Announcement>
         <Announcement>

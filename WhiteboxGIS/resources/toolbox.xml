@@ -6,6 +6,8 @@
         <toolbox name="RasterVectorConversions" label="Raster/Vector Conversions"></toolbox>
     </toolbox>
     
+    <toolbox name="DatabaseTools" label="Database Tools"></toolbox>
+    
     <toolbox name="FileUtilities" label="File Utilities"></toolbox>
     
     <toolbox name="GISTools" label="GIS Analysis">

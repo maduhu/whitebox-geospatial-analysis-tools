@@ -110,7 +110,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private StatusBar status;
     // common variables
     private static final String versionName = "3.1 'Iguazu'";
-    public static final String versionNumber = "3.1.3";
+    public static final String versionNumber = "3.1.4";
     public static String currentVersionNumber;
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
@@ -2249,7 +2249,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
             };
             textArea.addMouseListener(ml);
-            textArea.setPreferredSize(new Dimension(0, 50));
+            textArea.setPreferredSize(new Dimension(0, 0));
             JScrollPane scrollText = new JScrollPane(textArea);
             scrollText.setMinimumSize(new Dimension(0, 0));
             splitPane3 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, drawingArea, scrollText);
@@ -2292,7 +2292,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             // set the message indicating the number of plugins that were located.
             status.setMessage(" " + plugInfo.size() + " plugins were located");
 
-            //splitPane2.setDividerLocation(0.75); //splitterToolboxLoc);
+            splitPane2.setDividerLocation(0.75); //splitterToolboxLoc);
 
             pack();
             restoreDefaults();
@@ -2306,7 +2306,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                splitPane2.setDividerLocation(0.75);//splitterToolboxLoc);
+                //splitPane2.setDividerLocation(0.75);//splitterToolboxLoc);
                 splitPane3.setDividerLocation(1.0);
             }
         });
@@ -2637,6 +2637,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewMenu.add(zoomToPage);
             zoomToPage.addActionListener(this);
             zoomToPage.setActionCommand("zoomToPage");
+            
+            mi = new JMenuItem(bundle.getString("ZoomToSelection"));
+            mi.addActionListener(this);
+            mi.setActionCommand("zoomToSelection");
+            viewMenu.add(mi);
 
             selectMenuItem.setState(false);
             selectFeatureMenuItem.setState(false);
@@ -3190,7 +3195,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         mi.addActionListener(this);
         mi.setActionCommand("zoomToLayer");
         mapAreaPopup.add(mi);
-
+        
         mi = new JMenuItem(bundle.getString("ZoomToFullExtent"),
                 new ImageIcon(graphicsDirectory + "Globe.png"));
         mi.addActionListener(this);
@@ -6061,6 +6066,55 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             refreshMap(false);
         }
     }
+    
+    private void zoomToSelection() {
+        int mapNum;
+        int mapAreaNum;
+        int layerOverlayNum;
+
+        if (selectedMapAndLayer[0] != -1) {
+            mapNum = selectedMapAndLayer[0];
+            mapAreaNum = selectedMapAndLayer[2];
+            if (selectedMapAndLayer[1] != -1) {
+                layerOverlayNum = selectedMapAndLayer[1];
+            } else {
+                // use the active layer
+                layerOverlayNum = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum).getActiveLayerOverlayNumber();
+            }
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        } else {
+            // use the active layer and map
+            mapNum = activeMap;
+            mapAreaNum = openMaps.get(mapNum).getActiveMapAreaElementNumber();
+            if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+                showFeedback(messages.getString("NoMapAreas"));
+                return;
+            }
+            layerOverlayNum = openMaps.get(mapNum).getActiveMapArea().getActiveLayerOverlayNumber();
+        }
+        if (mapAreaNum < 0) { // there is not mapArea or the only mapArea is part of a CartographicElementGroup.
+            showFeedback(messages.getString("NoMapAreas"));
+            return;
+        }
+        MapArea ma = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
+        if (ma == null) {
+            return;
+        }
+        if (ma.getNumLayers() > 0) {
+            //ma.calculateFullExtent();
+            MapLayer ml = ma.getLayer(layerOverlayNum);
+            if (ml instanceof VectorLayerInfo) {
+                VectorLayerInfo vli = (VectorLayerInfo)ml;
+                BoundingBox db = vli.getSelectedExtent();
+                if (db != null) {
+                    ma.setCurrentExtent(db);
+                    refreshMap(false);
+                }
+            }
+        }
+    }
 
     private void zoomIn() {
         int mapNum;
@@ -7338,6 +7392,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             case "zoomToLayer":
                 zoomToLayer();
+                break;
+            case "zoomToSelection":
+                zoomToSelection();
                 break;
             case "zoomToPage":
                 zoomToPage();

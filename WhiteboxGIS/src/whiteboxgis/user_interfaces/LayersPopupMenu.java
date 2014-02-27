@@ -184,6 +184,14 @@ public class LayersPopupMenu extends JPopupMenu {
             mi.addActionListener(listener);
             mi.setActionCommand("zoomToLayer");
             this.add(mi);
+            
+            mi = new JMenuItem(bundle.getString("ZoomToSelection"));
+            mi.addActionListener(listener);
+            mi.setActionCommand("zoomToSelection");
+            if (((VectorLayerInfo)myLayer).getNumSelectedFeatures() == 0) {
+                mi.setEnabled(false);
+            }
+            this.add(mi);
 
             // THIS FEATURE SHOULD BE ADDED IN FUTURE
 //            mi = new JMenuItem(bundle.getString("ClipLayerToCurrentExtent"));

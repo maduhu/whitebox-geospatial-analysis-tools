@@ -26,6 +26,8 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -43,6 +45,7 @@ import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -348,6 +351,12 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 
         toolbar.addSeparator();
 
+        JButton executeBtn = makeToolBarButton("Execute.png", "execute",
+                bundle.getString("ExecuteCode"), "Execute");
+        toolbar.add(executeBtn);
+
+        toolbar.addSeparator();
+
         JButton openBtn = makeToolBarButton("open.png", "open", bundle.getString("OpenFile"), "Open");
         toolbar.add(openBtn);
 
@@ -375,12 +384,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
                 "Outdent", "Outdent");
         toolbar.add(outdent);
 
-        toolbar.addSeparator();
-
-        JButton executeBtn = makeToolBarButton("Execute.png", "execute",
-                bundle.getString("ExecuteCode"), "Execute");
-        toolbar.add(executeBtn);
-
+        
 //        generateDataButton = makeToolBarButton("GenerateData.png", "generateData",
 //                bundle.getString("GenerateColumnData"), "Generate Data");
 //        toolbar.add(generateDataButton);
@@ -423,6 +427,12 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 
         JToolBar toolbar = new JToolBar();
 
+        JButton executeBtn = makeToolBarButton("Execute.png", "executeSelectionScript",
+                bundle.getString("ExecuteCode"), "Execute");
+        toolbar.add(executeBtn);
+
+        toolbar.addSeparator();
+        
         JButton openBtn = makeToolBarButton("open.png", "openSelectionScript", bundle.getString("OpenFile"), "Open");
         toolbar.add(openBtn);
 
@@ -452,9 +462,13 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 
         toolbar.addSeparator();
 
-        JButton executeBtn = makeToolBarButton("Execute.png", "executeSelectionScript",
-                bundle.getString("ExecuteCode"), "Execute");
-        toolbar.add(executeBtn);
+        toolbar.add(new JLabel("Mode:"));
+        selectionModeCB = new JComboBox();
+        String[] selectionModesNames = {"Create new selection", "Add to current selection", "Remove from current selection", "Select from current selection"};
+        selectionModeCB.setModel(new DefaultComboBoxModel(selectionModesNames));
+        selectionModeCB.revalidate();
+        selectionModeCB.repaint();
+        toolbar.add(selectionModeCB);
 
         toolbar.add(Box.createHorizontalGlue());
 
@@ -466,26 +480,116 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         updateFieldComboBox();
         targetFieldCB2.setMaximumSize(new Dimension(20, 80)); //targetFieldCB.getPreferredSize() );
         toolbar2.add(targetFieldCB2);
-        JButton insertButton = new JButton("Insert");
-        insertButton.addActionListener(new ActionListener() {
+
+//        JButton insertButton = new JButton("Insert");
+//        insertButton.addActionListener(new ActionListener() {
+//
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                String fieldName = targetFieldCB2.getSelectedItem().toString();
+//                selectionEditor.insert(fieldName, selectionEditor.getCaretPosition());
+//            }
+//        });
+//
+//        toolbar2.add(insertButton);
+        toolbar2.add(Box.createHorizontalStrut(5));
+        toolbar2.add(new JLabel("Operators:"));
+        String[] operators = {"& (AND)", "| (OR)", "== (Equal To)", "!= (Not Equal To)", ">", ">=", "<", "<="};
+        final JComboBox operatorCB = new JComboBox(operators);
+        operatorCB.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String fieldName = operatorCB.getSelectedItem().toString();
+                fieldName = fieldName.replace("(AND)", "").replace("(OR)", "").replace("(Equal To)", "").replace("(Not Equal To)", "").trim();
+                fieldName = " " + fieldName + " ";
+                selectionEditor.insert(fieldName, selectionEditor.getCaretPosition());
+            }
+        });
+        operatorCB.setMaximumSize(new Dimension(20, 80));
+        toolbar2.add(operatorCB);
+//        JButton insertButton2 = new JButton("Insert");
+//        insertButton2.addActionListener(new ActionListener() {
+//
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                String fieldName = operatorCB.getSelectedItem().toString();
+//                fieldName = fieldName.replace("(AND)", "").replace("(OR)", "").replace("(Equal To)", "").replace("(Not Equal To)", "").trim();
+//                selectionEditor.insert(fieldName, selectionEditor.getCaretPosition());
+//            }
+//        });
+//
+//        toolbar2.add(insertButton2);
+
+        toolbar2.add(Box.createHorizontalStrut(5));
+        toolbar2.add(new JLabel("Unique Values:"));
+        final JComboBox uniqueValCB = new JComboBox(new String[]{"Unavailable"});
+        uniqueValCB.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String fieldName = uniqueValCB.getSelectedItem().toString();
+                if (!fieldName.toLowerCase().equals("unavailable")) {
+                    selectionEditor.insert(fieldName, selectionEditor.getCaretPosition());
+                }
+            }
+        });
+        uniqueValCB.setMaximumSize(new Dimension(50, 80));
+        toolbar2.add(uniqueValCB);
+
+        targetFieldCB2.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
                 String fieldName = targetFieldCB2.getSelectedItem().toString();
                 selectionEditor.insert(fieldName, selectionEditor.getCaretPosition());
+
+                // update the unique values combobox
+                final AttributeFieldTableModel model = new AttributeFieldTableModel(attributeTable);
+                String dataType = "";
+                int precision = -1;
+                int col = -1;
+                for (int i = 0; i < model.getRowCount(); i++) {
+                    String str = String.valueOf(model.getValueAt(i, 0));
+                    if (str.equals(fieldName)) {
+                        dataType = String.valueOf(model.getValueAt(i, 1)).toLowerCase();
+                        precision = (int) (model.getValueAt(i, 3));
+                        col = i;
+                        break;
+                    }
+                }
+                if (("numeric".equals(dataType) || "float".equals(dataType)) && precision > 0) {
+                    String[] strArray = new String[]{"Unavailable"};
+                    uniqueValCB.setModel(new DefaultComboBoxModel(strArray));
+                    uniqueValCB.revalidate();
+                    uniqueValCB.repaint();
+                } else {
+                    final AttributeFileTableModel dataModel = new AttributeFileTableModel(attributeTable);
+                    Set<String> uniques = new HashSet<>();
+                    for (int row = 0; row < dataModel.getRowCount(); row++) {
+                        String val = String.valueOf(dataModel.getValueAt(row, col + 2)).trim();
+                        if (!val.isEmpty()) {
+                            if ("string".equals(dataType)) {
+                                val = "\"" + val + "\"";
+                            }
+                            uniques.add(val);
+                            if (uniques.size() > 300) {
+                                uniques.clear();
+                                uniques.add("Unavailable");
+                                break;
+                            }
+                        }
+                    }
+                    String[] strArray = new String[uniques.size()];
+                    uniques.toArray(strArray);
+                    Arrays.sort(strArray);
+                    uniqueValCB.setModel(new DefaultComboBoxModel(strArray));
+                    uniqueValCB.revalidate();
+                    uniqueValCB.repaint();
+                }
+
             }
         });
-
-        toolbar2.add(insertButton);
-
-        toolbar2.addSeparator();
-        toolbar2.add(new JLabel("Mode:"));
-        selectionModeCB = new JComboBox();
-        String[] selectionModesNames = {"Create new selection", "Add to current selection", "Remove from current selection", "Select from current selection"};
-        selectionModeCB.setModel(new DefaultComboBoxModel(selectionModesNames));
-        selectionModeCB.revalidate();
-        selectionModeCB.repaint();
-        toolbar2.add(selectionModeCB);
 
         toolbar2.add(Box.createHorizontalGlue());
 
@@ -501,16 +605,15 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         scroll.setFoldIndicatorEnabled(true);
 
         panel.add(scroll);
-        
-        
+
         String commentMarker = "//";
         String newline = System.lineSeparator();
         String default_text = commentMarker + " " + messages.getString("ScriptMessage4") + newline
                 + commentMarker + " " + messages.getString("ScriptMessage1") + newline
                 + commentMarker + " " + messages.getString("ScriptMessage3") + newline
                 + commentMarker + " The last line of the script must evaluate to a Boolean (True or False) value,";
-                
-        default_text += " e.g. index < " + (int)(dataTable.getRowCount() / 2) + newline;
+
+        default_text += " e.g. index < " + (int) (dataTable.getRowCount() / 2) + newline;
         selectionEditor.setText(default_text);
 
         return panel;
@@ -1074,9 +1177,9 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
             addPerimeterField.addActionListener(this);
             menu.add(addPerimeterField);
         }
-        
+
         menu.addSeparator();
-        
+
         mi = new JMenuItem("Merge Table With Another Table");
         mi.addActionListener(new ActionListener() {
 
@@ -1088,7 +1191,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
             }
         });
         menu.add(mi);
-        
+
         mi = new JMenuItem("Merge Table With CSV File");
         mi.addActionListener(new ActionListener() {
 
@@ -1100,7 +1203,6 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
             }
         });
         menu.add(mi);
-        
 
         menubar.add(menu);
 
@@ -2006,10 +2108,11 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
                 }
 
             }
-            if (selectedFeatures.size() > 0) {
 
+            final ArrayList<Integer> finalSelectedFeatures = new ArrayList<>();
+            if (selectedFeatures.size() > 0) {
                 ArrayList<Integer> currentFeatures = vectorLayerInfo.getSelectedFeatureNumbers();
-                final ArrayList<Integer> finalSelectedFeatures = new ArrayList<>();
+
                 if (selectionMode.equals("Create new selection")) {
                     vectorLayerInfo.clearSelectedFeatures();
                     for (Integer i : selectedFeatures) {
@@ -2051,13 +2154,13 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
                 };
                 sorter.setRowFilter(myFilter);
 
-                if (host != null) {
-                    //host.showFeedback(messages.getString("CalcComplete"));
-                    String response = "The selection was successful. " + finalSelectedFeatures.size() + " features were selected.";
-                    host.showFeedback(response);
-                }
             }
 
+            if (host != null) {
+                //host.showFeedback(messages.getString("CalcComplete"));
+                String response = "The selection was successful. " + finalSelectedFeatures.size() + " features were selected.";
+                host.showFeedback(response);
+            }
         } catch (ScriptException e) {
             if (host != null) {
                 host.showFeedback(messages.getString("ErrorExecutingScript"));
@@ -2068,6 +2171,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 
     private ScripterCompletionProvider provider;
     private AutoCompletion ac;
+    private AutoCompletion ac2;
     ArrayList<String> listOfImportedItems = new ArrayList<>();
     ArrayList<String> listOfImportedClasses = new ArrayList<>();
     ArrayList<String> listOfImportedVariables = new ArrayList<>();
@@ -2122,9 +2226,14 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
         if (editor != null) {
             ac.install(editor);
         }
-
+        
+        ac2 = new AutoCompletion(provider);
+        ac2.setAutoCompleteEnabled(true);
+        ac2.setAutoActivationEnabled(true);
+        ac2.setShowDescWindow(true);
+        ac2.setParameterAssistanceEnabled(true);
         if (selectionEditor != null) {
-            ac.install(selectionEditor);
+            ac2.install(selectionEditor);
         }
     }
 

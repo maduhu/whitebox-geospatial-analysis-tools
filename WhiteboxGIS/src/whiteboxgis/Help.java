@@ -354,7 +354,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
                     if (e.getClickCount() == 1 && e.getButton() == 1) {
                         try {
                             String tutorialFile = tutorialFiles[index][0];
-
+                            helpFile = tutorialFile;
                             helpPane.setPage(new URL("file:///" + tutorialFile));
                             //helpPane.navigate(helpFile);
                         } catch (MalformedURLException me) {
@@ -574,6 +574,7 @@ public class Help extends JDialog implements ActionListener, HyperlinkListener {
 
             str = "</p>";
             out.println(str);
+            
 
             str = "</body>\n</html>";
             out.println(str);
