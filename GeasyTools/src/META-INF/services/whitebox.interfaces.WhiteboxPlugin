@@ -1,7 +1,6 @@
 plugins.Digging
 plugins.Distributions
 plugins.DownslopeIndex_Radius
-plugins.ElevAboveCreek
 plugins.ExtractValuesAtXYCoords
 plugins.FlowAccumMDInf
 plugins.MedianUpstreamArea
