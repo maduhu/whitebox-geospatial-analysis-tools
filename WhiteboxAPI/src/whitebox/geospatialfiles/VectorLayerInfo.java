@@ -348,6 +348,51 @@ public class VectorLayerInfo implements MapLayer {
     public BoundingBox getFullExtent() {
         return fullExtent.clone();
     }
+    
+    public BoundingBox getSelectedExtent() {
+        if (selectedFeatureNumbers.isEmpty()) { return null; }
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+        
+        for (Integer i : selectedFeatureNumbers) {
+            BoundingBox recBox = shapefile.getRecord(i - 1).getGeometry().getBox();
+            
+            if (recBox.getMinX() < minX) {
+                minX = recBox.getMinX();
+            }
+            
+            if (recBox.getMaxX() > maxX) {
+                maxX = recBox.getMaxX();
+            }
+            
+            if (recBox.getMinY() < minY) {
+                minY = recBox.getMinY();
+            }
+            
+            if (recBox.getMaxY() > maxY) {
+                maxY = recBox.getMaxY();
+            }
+        }
+        double dx = maxX - minX;
+        double dy = maxY - minY;
+        if (dx > 0 && dy > 0) {
+            minX -= dx * 0.05;
+            maxX += dx * 0.05;
+            minY -= dy * 0.05;
+            maxY += dy * 0.05;
+            return new BoundingBox(minX, minY, maxX, maxY);
+        } else { // it's a single point
+            dx = fullExtent.getMaxX() - fullExtent.getMinX();
+            dy = fullExtent.getMaxY() - fullExtent.getMinY();
+            minX -= dx * 0.05;
+            maxX += dx * 0.05;
+            minY -= dy * 0.05;
+            maxY += dy * 0.05;
+            return new BoundingBox(minX, minY, maxX, maxY);
+        }
+    }
 
     @Override
     public BoundingBox getCurrentExtent() {
