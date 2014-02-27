@@ -256,7 +256,10 @@ public class FillDepressions implements WhiteboxPlugin {
 
             // initialize and fill the priority queue.
             updateProgress("Loop 1: ", -1);
-
+            
+            int numCellsTotal = rows * cols;
+            int numSolvedCells = 0;
+            
             PriorityQueue<GridCell> queue = new PriorityQueue<>((2 * rows + 2 * cols) * 2);
             oldProgress = -1;
             for (row = 0; row < rows; row++) {
@@ -273,11 +276,13 @@ public class FillDepressions implements WhiteboxPlugin {
                                 gc = new GridCell(row, col, z);
                                 queue.add(gc);
                                 output[row][col] = z;
+                                numCellsTotal++;
                                 break;
                             }
                         }
                     } else {
-                        k++;
+                        numSolvedCells++;
+                        //k++;
                         output[row][col] = noData;
                     }
 
@@ -295,7 +300,7 @@ public class FillDepressions implements WhiteboxPlugin {
 
             // now fill!
             updateProgress("Loop 2: ", 0);
-            oldProgress = 0;
+            oldProgress = (int) (100f * numSolvedCells / numCellsTotal);
             do {
                 gc = queue.poll();
                 row = gc.row;
@@ -310,13 +315,14 @@ public class FillDepressions implements WhiteboxPlugin {
                             z_n = z + SMALL_NUM;
                         }
                         output[row_n][col_n] = z_n;
+                        numSolvedCells++;
                         gc = new GridCell(row_n, col_n, z_n);
                         queue.add(gc);
                     }
                 }
-                k++;
-                progress = (int) (100f * k / numCells);
-                if ((progress - oldProgress) == 5) {
+                //k++;
+                progress = (int) (100f * numSolvedCells / numCellsTotal);
+                if ((progress - oldProgress) == 1) {
                     updateProgress(progress);
                     oldProgress = progress;
                     if (myHost.isRequestForOperationCancelSet()) {
