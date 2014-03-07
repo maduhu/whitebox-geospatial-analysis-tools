@@ -46,7 +46,7 @@ public class SampleVector extends JPanel {
     private double margin = 7.0;
     private double sqrSize = 18.0;
     private double spacing = 3.0;
-    private int maxEntries = 25;
+    private int maxEntries = 5;
                         
     public SampleVector(ShapeType shapeType, VectorLayerInfo vli, boolean bentLine) {
         this.st = shapeType;
@@ -97,7 +97,7 @@ public class SampleVector extends JPanel {
             int width = getWidth();
             int height = getHeight();
             double x1, y1;
-            double halfMS = markerSize / 2.0;
+            //double halfMS = markerSize / 2.0;
             Graphics2D g2d = (Graphics2D)g;
             
             RenderingHints rh = new RenderingHints(

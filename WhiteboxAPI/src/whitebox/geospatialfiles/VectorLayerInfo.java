@@ -57,7 +57,7 @@ public class VectorLayerInfo implements MapLayer {
     private BoundingBox fullExtent = null;
     private BoundingBox currentExtent = null;
     private float markerSize = 6.0f;
-    private float lineThickness = 1.0f;
+    private float lineThickness = 0.75f;
     private Color lineColour = Color.black;
     private Color fillColour = Color.red;
     private ShapeType shapeType;
@@ -80,7 +80,7 @@ public class VectorLayerInfo implements MapLayer {
     private double maximumValue = -32768.0;
     private double cartographicGeneralizationLevel = 0.5;
     private int selectedFeatureNumber = -1;
-    private int maxDisplayedEntries = 25;
+    private int maxDisplayedEntries = 5;
     private boolean visibleInLegend = true;
     private boolean isActivelyEdited = false;
     private boolean[] selectedFeatures;
@@ -591,6 +591,7 @@ public class VectorLayerInfo implements MapLayer {
      * Determines if a specified record number is selected.
      *
      * @param recordNumber The one-based record ID.
+     * @return boolean A boolean value.
      */
     public boolean isFeatureSelected(int recordNumber) {
         if (recordNumber >= selectedFeatures.length) {
@@ -689,7 +690,7 @@ public class VectorLayerInfo implements MapLayer {
                     a++;
                 }
 
-                if (!(dataType == 'N') && !(dataType == 'F')) {
+                if (!(dataType == 'N') && !(dataType == 'F') && !(dataType == 'L')) {
                     // sort the data based on the field data
                     Arrays.sort(data, new Comparator<Object[]>() {
                         @Override
@@ -792,13 +793,18 @@ public class VectorLayerInfo implements MapLayer {
                         }
                     } else { // the palette is scaled
                         int value = 0;
+                        int numPaletteEntriesLessOne = numPaletteEntries - 1;
                         //double maxValue = legendEntries.length - 1;
                         for (i = 0; i < numRecords; i++) {
                             if (data[i][1] == null) {
                                 colourData[i] = new Color(255, 255, 255, 0);
                             } else {
                                 value = (Integer) data[i][2];
-                                entryNum = (int) ((value / maxValue) * (numPaletteEntries - 1));
+                                if (gamma == 1) {
+                                    entryNum = (int) ((value / maxValue) * numPaletteEntriesLessOne);
+                                } else {
+                                    entryNum = (int)(Math.pow((value / maxValue), gamma) * numPaletteEntriesLessOne);
+                                }
                                 legendColour = new Color(paletteData[entryNum]);
                                 r1 = legendColour.getRed();
                                 g1 = legendColour.getGreen();
@@ -807,7 +813,7 @@ public class VectorLayerInfo implements MapLayer {
                             }
                         }
                     }
-                } else {  // it's a number
+                } else if (!(dataType == 'L')) {  // it's a number
                     if (paletteScaled) {
                         // it's a numerical field
 
@@ -843,12 +849,19 @@ public class VectorLayerInfo implements MapLayer {
 
                             double range = maximumValue - minimumValue;
                             double value;
+                            int numPaletteEntriesLessOne = numPaletteEntries - 1;
                             for (i = 0; i < numRecords; i++) {
                                 if (data[i][1] == null) {
                                     colourData[i] = new Color(255, 255, 255, 0);
                                 } else {
                                     value = (Double) data[i][1];
-                                    entryNum = (int) (((value - minimumValue) / range) * (numPaletteEntries - 1));
+                                    if (gamma == 1) {
+                                        entryNum = (int) ((value - minimumValue) / range * numPaletteEntriesLessOne);
+                                    } else {
+                                        entryNum = (int)(Math.pow((value - minimumValue) / range, gamma) * numPaletteEntriesLessOne);
+                                    }
+                                
+                                    //entryNum = (int) (((value - minimumValue) / range) * (numPaletteEntries - 1));
                                     if (entryNum < 0) { entryNum = 0; }
                                     if (entryNum > numPaletteEntries - 1) { entryNum = numPaletteEntries - 1; }
                                     clr = new Color(paletteData[entryNum]);
@@ -959,6 +972,53 @@ public class VectorLayerInfo implements MapLayer {
                         }
 
                     }
+                } else { // it's a boolean
+                    legendEntries = new VectorLayerInfo.LegendEntry[2];
+                    if (paletteScaled) {
+                        int numPaletteEntriesLessOne = numPaletteEntries - 1;
+                        legendEntries[0] = new VectorLayerInfo.LegendEntry("False", new Color(paletteData[0]));
+                        legendEntries[1] = new VectorLayerInfo.LegendEntry("True", new Color(paletteData[numPaletteEntriesLessOne]));
+                        boolean value;
+                        for (i = 0; i < numRecords; i++) {
+                            if (data[i][1] == null) {
+                                colourData[i] = new Color(255, 255, 255, 0);
+                            } else {
+                                value = (boolean) data[i][1];
+                                if (value) {
+                                    legendColour = new Color(paletteData[numPaletteEntriesLessOne]);
+                                } else {
+                                    legendColour = new Color(paletteData[0]);
+                                }
+                                r1 = legendColour.getRed();
+                                g1 = legendColour.getGreen();
+                                b1 = legendColour.getBlue();
+                                colourData[i] = new Color(r1, g1, b1, a1);
+                            }
+                        }
+                    } else {
+                        legendEntries[0] = new VectorLayerInfo.LegendEntry("False", new Color(paletteData[0]));
+                        legendEntries[1] = new VectorLayerInfo.LegendEntry("True", new Color(paletteData[1]));
+                        boolean value;
+                        for (i = 0; i < numRecords; i++) {
+                            if (data[i][1] == null) {
+                                colourData[i] = new Color(255, 255, 255, 0);
+                            } else {
+                                value = (boolean) data[i][1];
+                                if (value) {
+                                    legendColour = new Color(paletteData[1]);
+                                } else {
+                                    legendColour = new Color(paletteData[0]);
+                                }
+                                r1 = legendColour.getRed();
+                                g1 = legendColour.getGreen();
+                                b1 = legendColour.getBlue();
+                                colourData[i] = new Color(r1, g1, b1, a1);
+                            }
+                        }
+                    }
+                    
+                    
+                        
                 }
 
             } catch (DBFException dbfe) {

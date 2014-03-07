@@ -542,7 +542,11 @@ public class RasterLayerInfo implements MapLayer {
                     for (col = startCol; col <= endCol; col += resolutionFactor) {
                         value = rawData[col]; //sourceData.getValue(row, col);
                         if (value != noDataValue) {
-                            entryNum = (int) (Math.pow(((value - minVal) / range), gamma) * numPaletteEntriesLessOne);
+                            if (gamma == 1) {
+                                entryNum = (int)((value - minVal) / range * numPaletteEntriesLessOne);
+                            } else {
+                                entryNum = (int)(Math.pow(((value - minVal) / range), gamma) * numPaletteEntriesLessOne);
+                            }
                             if (entryNum < 0) {
                                 entryNum = 0;
                             }
