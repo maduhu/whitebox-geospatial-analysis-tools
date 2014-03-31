@@ -16,17 +16,22 @@
  */
 package plugins;
 
-import java.io.File;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LinearRing;
+import java.util.ArrayList;
+import java.util.List;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-//import whitebox.geospatialfiles.shapefile.attributes.DBFWriter;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.Polygon;
 import whitebox.geospatialfiles.shapefile.ShapeType;
+import whitebox.geospatialfiles.shapefile.ShapefilePoint;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.utilities.BitOps;
+import whitebox.utilities.Topology;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -197,7 +202,7 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
         boolean flag;
         int row, col;
         double xCoord, yCoord;
-        int progress;
+        int progress, oldProgress;
         int i;
         double value, z, zN1, zN2;
         int FID = 0;
@@ -216,6 +221,10 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
 
         inputFile = args[0];
         outputFile = args[1];
+        boolean polygonsContainHoles = true;
+        if (args.length > 2) {
+            polygonsContainHoles = Boolean.parseBoolean(args[2]);
+        }
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputFile == null) || (outputFile == null)) {
@@ -243,8 +252,11 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
             WhiteboxRaster temp1 = new WhiteboxRaster(tempHeader1, "rw", inputFile, WhiteboxRaster.DataType.INTEGER, 0);
             temp1.isTemporaryFile = true;
 
+            GeometryFactory factory = new GeometryFactory();
+            List<com.vividsolutions.jts.geom.Polygon> polyList = new ArrayList<>();
+            List<Double> zVals = new ArrayList<>();
+
             // set up the output files of the shapefile and the dbf
-            
             DBFField fields[] = new DBFField[2];
 
             fields[0] = new DBFField();
@@ -270,6 +282,7 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
 
             int[] parts = {0};
 
+            oldProgress = -1;
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     z = input.getValue(row, col);
@@ -292,7 +305,6 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                                 }
                             }
                             if (flag) {
-
 
                                 currentHalfRow = row - 0.5;
                                 currentHalfCol = col - 0.5;
@@ -412,8 +424,8 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                                     }
 
                                     if (previousTraceDirection != traceDirection) {
-                                        xCoord = west + (currentHalfCol / cols) * EWRange;
-                                        yCoord = north - (currentHalfRow / rows) * NSRange;
+                                        xCoord = west + (currentHalfCol / cols) * EWRange + gridResX;
+                                        yCoord = north - (currentHalfRow / rows) * NSRange - gridResY;
                                         points.addPoint(xCoord, yCoord);
                                     }
 
@@ -441,29 +453,163 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                                 } while (flag);
 
                                 if (numPoints > 1) {
-                                    // add the line to the shapefile.
-                                    Object[] rowData = new Object[2];
-                                    rowData[0] = new Double(FID);
-                                    rowData[1] = new Double(z);
-                                    Polygon poly = new Polygon(parts, points.getPointsArray());
-                                    output.addRecord(poly, rowData);
+//                                    // add the line to the shapefile.
+//                                    Object[] rowData = new Object[2];
+//                                    rowData[0] = (double) FID;
+//                                    rowData[1] = z;
+//                                    Polygon poly = new Polygon(parts, points.getPointsArray());
+//                                    output.addRecord(poly, rowData);
+                                    com.vividsolutions.jts.geom.Polygon poly = factory.createPolygon(points.getCoordinateArraySequence());
+                                    if (!poly.isValid()) {
+                                        // fix the geometry with a buffer(0) as recommended in JTS docs
+                                        com.vividsolutions.jts.geom.Geometry jtsGeom2 = poly.buffer(0d);
+                                        for (int a = 0; a < jtsGeom2.getNumGeometries(); a++) {
+                                            com.vividsolutions.jts.geom.Geometry gN = jtsGeom2.getGeometryN(a);
+                                            if (gN instanceof com.vividsolutions.jts.geom.Polygon) {
+                                                poly = (com.vividsolutions.jts.geom.Polygon) gN.clone();
+                                                polyList.add(poly);
+                                                zVals.add(z);
+                                            }
+                                        }
+                                    } else {
+                                        polyList.add(poly); //factory.createPolygon(points.getCoordinateArraySequence()));
+                                        zVals.add(z);
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
+
                 progress = (int) (100f * row / (rows - 1));
-                updateProgress(progress);
+                if (progress != oldProgress) {
+                    updateProgress(progress);
+                    oldProgress = progress;
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                }
+            }
+
+            // find holes
+            int numPoly = polyList.size();
+            boolean[] isHole = new boolean[numPoly];
+            boolean[] containsHoles = new boolean[numPoly];
+            List<Integer>[] myHoles = new List[numPoly];
+
+            if (polygonsContainHoles) {
+                oldProgress = -1;
+                for (i = 0; i < numPoly; i++) {
+                    com.vividsolutions.jts.geom.Polygon item1 = polyList.get(i);
+                    for (int j = i + 1; j < numPoly; j++) {
+                        com.vividsolutions.jts.geom.Polygon item2 = polyList.get(j);
+                        if (item1.contains(item2)) {
+                            containsHoles[i] = true;
+                            isHole[j] = true;
+                            if (myHoles[i] == null) {
+                                myHoles[i] = new ArrayList<>();
+                            }
+                            myHoles[i].add(j);
+                        }
+                    }
+
+                    progress = (int) (100f * i / (numPoly - 1));
+                    if (progress != oldProgress) {
+                        updateProgress("Searching for polygon holes:", progress);
+                        oldProgress = progress;
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            oldProgress = -1;
+            FID = 0;
+            for (i = 0; i < numPoly; i++) {
+                if (!isHole[i] && containsHoles[i]) {
+                    FID++;
+                    int numHoles = myHoles[i].size();
+
+                    parts = new int[numHoles + 1];
+
+                    Object[] rowData = new Object[2];
+                    rowData[0] = (double) FID;
+                    rowData[1] = zVals.get(i);
+
+                    com.vividsolutions.jts.geom.Polygon p = polyList.get(i);
+                    PointsList points = new PointsList();
+                    Coordinate[] coords = p.getExteriorRing().getCoordinates();
+                    if (!Topology.isClockwisePolygon(coords)) {
+                        for (int j = coords.length - 1; j >= 0; j--) {
+                            points.addPoint(coords[j].x, coords[j].y);
+                        }
+                    } else {
+                        for (Coordinate coord : coords) {
+                            points.addPoint(coord.x, coord.y);
+                        }
+                    }
+
+                    for (int k = 0; k < numHoles; k++) {
+                        parts[k + 1] = points.size();
+
+                        int holeID = myHoles[i].get(k);
+                        p = polyList.get(holeID);
+                        coords = p.getExteriorRing().getCoordinates();
+                        if (Topology.isClockwisePolygon(coords)) {
+                            for (int j = coords.length - 1; j >= 0; j--) {
+                                points.addPoint(coords[j].x, coords[j].y);
+                            }
+                        } else {
+                            for (Coordinate coord : coords) {
+                                points.addPoint(coord.x, coord.y);
+                            }
+                        }
+
+                    }
+
+                    Polygon poly = new Polygon(parts, points.getPointsArray());
+                    output.addRecord(poly, rowData);
+                }
+                if (!isHole[i] && !containsHoles[i]) {
+                    FID++;
+                    parts = new int[]{0};
+                    Object[] rowData = new Object[2];
+                    rowData[0] = (double) FID;
+                    rowData[1] = zVals.get(i);
+                    com.vividsolutions.jts.geom.Polygon p = polyList.get(i);
+                    PointsList points = new PointsList();
+                    Coordinate[] coords = p.getExteriorRing().getCoordinates();
+                    if (!Topology.isClockwisePolygon(coords)) {
+                        for (int j = coords.length - 1; j >= 0; j--) {
+                            points.addPoint(coords[j].x, coords[j].y);
+                        }
+                    } else {
+                        for (int j = 0; j < coords.length; j++) {
+                            points.addPoint(coords[j].x, coords[j].y);
+                        }
+                    }
+
+                    Polygon poly = new Polygon(parts, points.getPointsArray());
+                    output.addRecord(poly, rowData);
+                }
+                progress = (int) (100f * i / (numPoly - 1));
+                if (progress != oldProgress) {
+                    updateProgress("Outputing data:", progress);
+                    oldProgress = progress;
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                }
             }
 
             input.close();
             output.write();
             temp1.close();
-            
+
             // returning a header file string displays the image.
             returnData(outputFile);
 
@@ -483,8 +629,12 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
     // This method is only used during testing.
     public static void main(String[] args) {
         args = new String[3];
-        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp7.dep";
-        args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp7.shp";
+        //args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp7.dep";
+        //args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp7.shp";
+        //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/Waterloo deps.dep";
+        //args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp1.shp";
+        args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGalt deps.dep";
+        args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGalt deps.shp";
 
         RasterToVectorPolygons rtvp = new RasterToVectorPolygons();
         rtvp.setArgs(args);

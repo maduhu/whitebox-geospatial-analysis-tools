@@ -1792,11 +1792,11 @@ public class CoordinateSystemTransformation implements WhiteboxPlugin {
         }
     }
 
-    public static void main(String[] args) {
-        CoordinateSystemTransformation cst = new CoordinateSystemTransformation();
-        cst.testLaunch();
-
-    }
+//    public static void main(String[] args) {
+//        CoordinateSystemTransformation cst = new CoordinateSystemTransformation();
+//        cst.testLaunch();
+//
+//    }
 
     private void testLaunch() {
         JFrame frame = new JFrame();
