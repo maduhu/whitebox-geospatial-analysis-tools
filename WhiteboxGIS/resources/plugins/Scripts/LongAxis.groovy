@@ -20,6 +20,8 @@ import java.awt.event.ActionEvent
 import java.io.File
 import java.util.Date
 import java.util.ArrayList
+import whitebox.algorithms.MinimumBoundingRectangle
+import whitebox.algorithms.MinimumBoundingRectangle.MinimizationCriterion
 import whitebox.interfaces.WhiteboxPluginHost
 import whitebox.geospatialfiles.ShapeFile
 import whitebox.geospatialfiles.shapefile.*
@@ -83,24 +85,12 @@ public class LongAxis implements ActionListener {
     private void execute(String[] args) {
         try {
             int i, progress, oldProgress, numPoints, numParts, n
-            int part, startingPointInPart, endingPointInPart
-            double x, y, midX, midY;
-            double[] axes = new double[2];
-            ShapefileRecordData recordData;
-	  		double[][] geometry
-	  		int[] partData
-	  		int incrementVal = 2
-	  		double slope;
+            double slope;
         	double boxCentreX, boxCentreY;
-        	double psi = 0;
-			double DegreeToRad = Math.PI / 180.0
 			double RadToDegree = 180.0 / Math.PI
-			double[] newBoundingBox = new double[4];
-			double newXAxis = 0;
-        	double newYAxis = 0;
         	double longAxis;
        		double shortAxis;
-       		final double rightAngle = Math.toRadians(90);
+       		//final double rightAngle = Math.toRadians(90);
        		ShapeType outputShapeType = ShapeType.POLYLINE;
        		int[] parts = [0];
 			
@@ -145,112 +135,31 @@ public class LongAxis implements ActionListener {
 
             ShapeFile output = new ShapeFile(outputFile, outputShapeType, fields);
 			
+			MinimumBoundingRectangle mbr = new MinimumBoundingRectangle(MinimizationCriterion.AREA);
+            
             int featureNum = 0;
             oldProgress = -1;
             for (ShapeFileRecord record : input.records) {
             	featureNum++;
                 int recordNum = record.getRecordNumber();
                 double[][] vertices = record.getGeometry().getPoints();
-                int numVertices = vertices.length;
-                double east = Double.NEGATIVE_INFINITY;
-                double west = Double.POSITIVE_INFINITY;
-                double north = Double.NEGATIVE_INFINITY;
-                double south = Double.POSITIVE_INFINITY;
+                mbr.setCoordinates(vertices);
                 double[][] axesEndPoints = new double[2][2];
+				boxCentreX = (mbr.getBoxCentrePoint())[0]
+				boxCentreY = (mbr.getBoxCentrePoint())[1]
+                longAxis = mbr.getLongAxisLength(); 
+                shortAxis = mbr.getShortAxisLength();
+                double slopeDeg = mbr.getLongAxisOrientation()
+                slope = Math.toRadians(slopeDeg)
 
-                for (i = 0; i < numVertices; i++) {
-                    if (vertices[i][0] > east) {
-                        east = vertices[i][0];
-                    }
-                    if (vertices[i][0] < west) {
-                        west = vertices[i][0];
-                    }
-                    if (vertices[i][1] > north) {
-                        north = vertices[i][1];
-                    }
-                    if (vertices[i][1] < south) {
-                        south = vertices[i][1];
-                    }
-
-                }
-
-                midX = west + (east - west) / 2.0;
-                midY = south + (north - south) / 2.0;
-
-
-                double[][] verticesRotated = new double[numVertices][2];
-                axes[0] = 9999999;
-                axes[1] = 9999999;
-                slope = 0;
-                boxCentreX = 0;
-                boxCentreY = 0;
-                // Rotate the edge cells in 0.5 degree increments.
-                for (int m = 0; m <= 180; m++) {
-                    psi = -m * 0.5 * DegreeToRad; // rotation in clockwise direction
-                    // Rotate each edge cell in the array by m degrees.
-                    for (n = 0; n < numVertices; n++) {
-                        x = vertices[n][0] - midX;
-                        y = vertices[n][1] - midY;
-                        verticesRotated[n][0] = (x * Math.cos(psi)) - (y * Math.sin(psi));
-                        verticesRotated[n][1] = (x * Math.sin(psi)) + (y * Math.cos(psi));
-                    }
-                    // calculate the minimum bounding box in this coordinate 
-                    // system and see if it is less
-                    newBoundingBox[0] = Double.MAX_VALUE; // west
-                    newBoundingBox[1] = Double.MIN_VALUE; // east
-                    newBoundingBox[2] = Double.MAX_VALUE; // north
-                    newBoundingBox[3] = Double.MIN_VALUE; // south
-                    for (n = 0; n < numVertices; n++) {
-                        x = verticesRotated[n][0];
-                        y = verticesRotated[n][1];
-                        if (x < newBoundingBox[0]) {
-                            newBoundingBox[0] = x;
-                        }
-                        if (x > newBoundingBox[1]) {
-                            newBoundingBox[1] = x;
-                        }
-                        if (y < newBoundingBox[2]) {
-                            newBoundingBox[2] = y;
-                        }
-                        if (y > newBoundingBox[3]) {
-                            newBoundingBox[3] = y;
-                        }
-                    }
-                    newXAxis = newBoundingBox[1] - newBoundingBox[0];
-                    newYAxis = newBoundingBox[3] - newBoundingBox[2];
-
-                    if ((newXAxis * newYAxis) < (axes[0] * axes[1])) { // minimize the area of the bounding box.
-                        axes[0] = newXAxis;
-                        axes[1] = newYAxis;
-
-                        if (axes[0] > axes[1]) {
-                            slope = -psi;
-                        } else {
-                            slope = -(rightAngle + psi);
-                        }
-                        x = newBoundingBox[0] + newXAxis / 2;
-                        y = newBoundingBox[2] + newYAxis / 2;
-                        boxCentreX = midX + (x * Math.cos(-psi)) - (y * Math.sin(-psi));
-                        boxCentreY = midY + (x * Math.sin(-psi)) + (y * Math.cos(-psi));
-                    }
-                }
-                longAxis = Math.max(axes[0], axes[1]);
-                shortAxis = Math.min(axes[0], axes[1]);
-
-                axesEndPoints[0][0] = boxCentreX + longAxis / 2.0 * Math.cos(slope);
-                axesEndPoints[0][1] = boxCentreY + longAxis / 2.0 * Math.sin(slope);
-                axesEndPoints[1][0] = boxCentreX - longAxis / 2.0 * Math.cos(slope);
-                axesEndPoints[1][1] = boxCentreY - longAxis / 2.0 * Math.sin(slope);
+                axesEndPoints[0][0] = boxCentreX + longAxis / 2.0 * Math.sin(slope);
+                axesEndPoints[0][1] = boxCentreY + longAxis / 2.0 * Math.cos(slope);
+                axesEndPoints[1][0] = boxCentreX - longAxis / 2.0 * Math.sin(slope);
+                axesEndPoints[1][1] = boxCentreY - longAxis / 2.0 * Math.cos(slope);
 
                 Object[] rowData = new Object[3];
                 rowData[0] = new Double(recordNum);
                 rowData[1] = new Double(longAxis);
-                double slopeDeg = (Math.atan(slope) * RadToDegree);
-                if (slopeDeg < 0) {
-                    slopeDeg = 90 + -1 * slopeDeg;
-                } else {
-                    slopeDeg = 90 - slopeDeg;
-                }
                 rowData[2] = new Double(slopeDeg);
                 
                 Geometry poly;

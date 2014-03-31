@@ -21,7 +21,24 @@ greatly increased performance.
 RELEASE NOTES:
 
 Version 3.1.4 ()
+-Updated to Java 8. This is a major change and may result in some compatability issues.
+ it will also mean that users will have to update their versions of Java to run
+ Whitebox. Users will need to update their Java runtime to version 8 to run Whitebox.
+-Added a ClusterAttribute tool that performs k-means clustering on a selected 
+ group of attributes associated with a vector file.
 -Added zoom to selection for vector layers.
+-Added a Clip tool for vector clipping operations.
+-Added floating point line thicknesses and changed the default line thickness to 0.75.
+-Added Export Table to CSV tool.
+-Added Hack Stream Ordering and Topological Stream Ordering tools.
+-Added Total Length of Upstream Channels tool.
+-Added Furtherest Upstream Channel Head Distance tool.
+-Vectors can now be displayed with a palette rendered based on a boolean attribute.
+-Added palette nonlinearity for vectors with a scaled palette.
+-Fixed the raster-to-vector polygon conversion to include polygon holes.
+-Modified the minimum bounding box tool, and all related tools (e.g. elongation ratio,
+ long axis, short axis) to use an analytical solution for finding the MBB.
+-Added a link to the Whitebox blog (http://whiteboxgeospatial.wordpress.com) in the help menu.
 
 Version 3.1.3 (February 23, 2014)
 -Embedded vector selection by attributes into the attribute table window.

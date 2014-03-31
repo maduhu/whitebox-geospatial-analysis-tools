@@ -15,10 +15,10 @@ try {
 	def logFiles = FileUtilities.findAllFilesWithExtension(logDirectory, "xml", false)
 	
 	StringBuilder errorLogs = new StringBuilder()
-	for (String str : logFiles) {
-		def logFile = new File(str)
+	for (int i = logFiles.size() - 1; i >= 0; i--) { //String str : logFiles) {
+		def logFile = new File(logFiles.get(i)) // str)
 		errorLogs.append("\nLOG FILE: " + logFile.getName() + "\n")
-		new File(str).eachLine { line -> errorLogs.append(line.replace("<","!LT!").replace(">","!GT!").replace("\"", "!QUOTE!") + "\n") }
+		logFile.eachLine { line -> errorLogs.append(line.replace("<","!LT!").replace(">","!GT!").replace("\"", "!QUOTE!") + "\n") }
 		errorLogs.append("\n")
 	}
 	

@@ -149,7 +149,12 @@ public class ImportCSV implements ActionListener {
                 }
 				
                 String[] fileLines = ((new File(csvFileName)).text).split("\n")
-                String[] secondLine = fileLines[1].split(",")
+                String[] secondLine
+                if (fileLines.length > 1) {
+                	secondLine = fileLines[1].split(",")
+                } else {
+                	secondLine = fileLines[0].split(",") // actually the first line
+                }
                 numColumnDefinitions = secondLine.length
                 columnDef = new String[numColumnDefinitions]
                 for (i = 0; i < numColumnDefinitions; i++) {
@@ -236,11 +241,12 @@ public class ImportCSV implements ActionListener {
 				csvFile.eachLine { line -> 
 					String str = String.valueOf(line)
 					String[] columnData = str.split(",")
+					int lowerNum = (numColumnDefinitions < columnData.length) ? numColumnDefinitions :  columnData.length
 					boolean headerLine = false
 					if (!checkForHeader) {
 						// see if it is a header line
 						headerLine = true
-						for (i = 0; i < numColumnDefinitions; i++) {
+						for (i = 0; i < lowerNum; i++) {
 		                	if (columnData[i].trim().isDouble()) {
 		                		headerLine = false
 		                	}
