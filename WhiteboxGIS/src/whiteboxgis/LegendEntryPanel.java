@@ -297,6 +297,9 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
 
                     PaletteImage paletteImage = null;
                     paletteImage = new PaletteImage(18, 50, vli.getPaletteFile(), false, PaletteImage.VERTICAL_ORIENTATION);
+                    if (vli.getNonlinearity() != 1) {
+                        paletteImage.setNonlinearity(vli.getNonlinearity());
+                    }
                     box2.add(Box.createHorizontalStrut(5));
                     box2.add(paletteImage);
 

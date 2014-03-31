@@ -60,7 +60,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private JCheckBox checkScalePalette = null;
     private JScrollBar scrollNonlinearity = new JScrollBar(Adjustable.HORIZONTAL, 0, 0, 0, 200);
     private JLabel labelNonlinearity = new JLabel();
-    private DecimalFormat df = new DecimalFormat("#0.0");
+    private DecimalFormat df = new DecimalFormat("#0.00");
     private JTextField titleText = null;
     private JButton minValButton = null;
     private JButton maxValButton = null;
@@ -74,8 +74,10 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private JCheckBox checkFilled = null;
     private JCheckBox checkOutlined = null;
     private JLabel labelLineThickness = new JLabel();
-    private JScrollBar scrollLineThickness = new JScrollBar(Adjustable.HORIZONTAL, 0, 0, 0, 900);
-    private float minLineThickness = 100f;
+    private int scrollbarMax = 200;
+    private JScrollBar scrollLineThickness = new JScrollBar(Adjustable.HORIZONTAL, 0, 0, 0, scrollbarMax);
+    private float minLineThickness = 0.00f;
+    private float maxLineThickness = 10.0f;
     private SampleColour sampleColourPanelLine;
     private SampleColour sampleColourPanelLine2;
     private int sampleWidth = 30;
@@ -468,10 +470,10 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             label.setPreferredSize(new Dimension(180, 24));
             lineThicknessBox.add(label);
             lineThicknessBox.add(Box.createHorizontalGlue());
-            labelLineThickness.setText(bundle.getString("Value") + ": " + Float.toString(vli.getLineThickness()));
+            labelLineThickness.setText(bundle.getString("Value") + ": " + df.format(vli.getLineThickness()));
             lineThicknessBox.add(labelLineThickness);
             lineThicknessBox.add(Box.createHorizontalStrut(10));
-            scrollLineThickness.setValue((int)(vli.getLineThickness() * 100 - minLineThickness));
+            scrollLineThickness.setValue((int)((vli.getLineThickness() - minLineThickness) / (maxLineThickness - minLineThickness) * scrollbarMax));
             scrollLineThickness.setMaximumSize(new Dimension(200, 22));
             scrollLineThickness.addAdjustmentListener(this);
             lineThicknessBox.add(scrollLineThickness);
@@ -670,6 +672,38 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             scalePaletteBox.add(checkScalePalette);
             scalePaletteBox.add(Box.createHorizontalStrut(10));
             
+            final JPanel nonlinearityBox = new JPanel();
+            nonlinearityBox.setLayout(new BoxLayout(nonlinearityBox, BoxLayout.X_AXIS));
+            nonlinearityBox.setBackground(backColour);
+            nonlinearityBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("PaletteNonlinearity") + ":");
+            label.setPreferredSize(new Dimension(180, 24));
+            nonlinearityBox.add(label);
+            nonlinearityBox.add(Box.createHorizontalGlue());
+            String str = df.format(vli.getNonlinearity());
+            labelNonlinearity.setText("Gamma: " + str);
+            nonlinearityBox.add(labelNonlinearity);
+            nonlinearityBox.add(Box.createHorizontalStrut(10));
+            scrollNonlinearity.setValue((int) (vli.getNonlinearity() * 10));
+            scrollNonlinearity.setMaximumSize(new Dimension(200, 22));
+            scrollNonlinearity.addAdjustmentListener(this);
+            nonlinearityBox.add(scrollNonlinearity);
+            nonlinearityBox.add(Box.createHorizontalStrut(10));
+            nonlinearityBox.setVisible(checkScalePalette.isSelected());
+            
+            checkScalePalette.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (checkScalePalette.isSelected()) {
+                        nonlinearityBox.setVisible(true);
+                    } else {
+                        nonlinearityBox.setVisible(false);
+                    }
+                }
+            });
+            
+            
             ShapeType shapeType = vli.getShapeType();
             if (shapeType == ShapeType.POLYLINE || shapeType == ShapeType.POLYLINEM
                     || shapeType == ShapeType.POLYLINEZ) {
@@ -721,8 +755,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             generalizedBox.add(new JLabel(bundle.getString("High")));
             generalizedBox.add(Box.createHorizontalStrut(10));
             
-            if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM ||
-                    st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
+            if (st.getBaseType() == ShapeType.POLYGON || st == ShapeType.MULTIPATCH) {
                 titleBox.setBackground(Color.white);
                 mainBox.add(titleBox);
                 overlayBox.setBackground(backColour);
@@ -747,15 +780,16 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 mainBox.add(paletteBox);
                 scalePaletteBox.setBackground(Color.white);
                 mainBox.add(scalePaletteBox);
+                nonlinearityBox.setBackground(Color.white);
+                mainBox.add(nonlinearityBox);
+                
                 alphaBox.setBackground(backColour);
                 mainBox.add(alphaBox);
                 generalizedBox.setBackground(Color.white);
                 mainBox.add(generalizedBox);
                 mainBox.add(Box.createVerticalStrut(80));
-            } else if (st == ShapeType.POINT ||
-                    st == ShapeType.POINTM || st == ShapeType.POINTZ ||
-                    st == ShapeType.MULTIPOINT || st == ShapeType.MULTIPOINTM ||
-                    st == ShapeType.MULTIPOINTZ) {
+            } else if (st.getBaseType() == ShapeType.POINT ||
+                    st.getBaseType() == ShapeType.MULTIPOINT) {
                 titleBox.setBackground(Color.white);
                 mainBox.add(titleBox);
                 overlayBox.setBackground(backColour);
@@ -778,6 +812,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 mainBox.add(paletteBox);
                 scalePaletteBox.setBackground(backColour);
                 mainBox.add(scalePaletteBox);
+                nonlinearityBox.setBackground(backColour);
+                mainBox.add(nonlinearityBox);
                 markerComboBox.setBackground(Color.white);
                 mainBox.add(markerComboBox);
                 markerBox.setBackground(backColour);
@@ -806,6 +842,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 mainBox.add(paletteBox);
                 scalePaletteBox.setBackground(backColour);
                 mainBox.add(scalePaletteBox);
+                nonlinearityBox.setBackground(backColour);
+                mainBox.add(nonlinearityBox);
                 alphaBox.setBackground(Color.white);
                 mainBox.add(alphaBox);
                 generalizedBox.setBackground(backColour);
@@ -1338,7 +1376,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         
     }
     
-    private ArrayList<double[][]> markers = new ArrayList<double[][]>();
+    private ArrayList<double[][]> markers = new ArrayList<>();
     private void initializeMarkerStyle() {
         VectorLayerInfo vli = (VectorLayerInfo) layer;
         markers = PointMarkers.getAllSymbols(markerSize);
@@ -1351,10 +1389,15 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         MarkerStyle ms = vli.getMarkerStyle();
         markerCombo.setSelectedIndex(ms.ordinal());
         
+        float lineThick = minLineThickness + scrollLineThickness.getValue() / (float)scrollbarMax * (maxLineThickness - minLineThickness);
         MarkerStyleComboBoxRenderer renderer = new MarkerStyleComboBoxRenderer(markers,
-                (float) ((scrollLineThickness.getValue() + minLineThickness) / 100f),
+                lineThick,
                 sampleColourLine, sampleColourFill, markerSize, checkFilled.isSelected(),
                 checkOutlined.isSelected());
+//        MarkerStyleComboBoxRenderer renderer = new MarkerStyleComboBoxRenderer(markers,
+//                (float) ((scrollLineThickness.getValue() + minLineThickness) / 100f),
+//                sampleColourLine, sampleColourFill, markerSize, checkFilled.isSelected(),
+//                checkOutlined.isSelected());
         markerCombo.setRenderer(renderer);
     }
     
@@ -1376,8 +1419,12 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         } else {
             dashCombo.setSelectedIndex(0);
         }
+        float lineThick = minLineThickness + scrollLineThickness.getValue() / ((float) scrollbarMax) * (maxLineThickness - minLineThickness);
         LineStyleComboBoxRenderer renderer = new LineStyleComboBoxRenderer(dashArray,
-                (float) ((scrollLineThickness.getValue() + minLineThickness) / 100f), sampleColourLine);
+                lineThick, sampleColourLine);
+        
+//        LineStyleComboBoxRenderer renderer = new LineStyleComboBoxRenderer(dashArray,
+//                (float) ((scrollLineThickness.getValue() + minLineThickness) / 100f), sampleColourLine);
         dashCombo.setRenderer(renderer);
     }
     
@@ -1422,7 +1469,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             vli.setVisible(checkVisible.isSelected());
             vli.setFilled(checkFilled.isSelected());
             vli.setOutlined(checkOutlined.isSelected());
-            vli.setLineThickness((scrollLineThickness.getValue() + minLineThickness) / 100f);
+            float lineThick = minLineThickness + scrollLineThickness.getValue() / ((float)scrollbarMax) * (maxLineThickness - minLineThickness);
+            vli.setLineThickness(lineThick); //(scrollLineThickness.getValue() + minLineThickness) / 100f);
             vli.setFillColour(sampleColourFill);
             vli.setLineColour(sampleColourLine);
             vli.setMarkerSize(scrollMarkerSize.getValue());
@@ -1459,6 +1507,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                     vli.setFillAttribute("");
                 }
             }
+            
+            vli.setNonlinearity(scrollNonlinearity.getValue() / 10d);
             
             vli.setRecordsColourData();
             
@@ -1608,13 +1658,15 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     
     @Override
     public void adjustmentValueChanged(AdjustmentEvent evt) {
+        String str;
         if (layer instanceof RasterLayerInfo) {
             labelAlpha.setText("Alpha: " + scrollAlpha.getValue());
-            String str = df.format(scrollNonlinearity.getValue() / 10d);
+            str = df.format(scrollNonlinearity.getValue() / 10d);
             labelNonlinearity.setText("Gamma: " + str);
             paletteImage.setNonlinearity(scrollNonlinearity.getValue() / 10d);
         } else if (layer instanceof VectorLayerInfo) {
-            String str = df.format((scrollLineThickness.getValue() + minLineThickness) / 100d);
+            float lineThick = minLineThickness + scrollLineThickness.getValue() / ((float)scrollbarMax) * (maxLineThickness - minLineThickness);
+            str = df.format(lineThick);
             labelLineThickness.setText("Value: " + str);
             str = df.format(scrollMarkerSize.getValue());
             labelMarkerSize.setText("Value: " + str);
@@ -1624,6 +1676,10 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             //initializeMarkerStyle();
             //markerCombo.repaint();
             labelAlpha.setText("Alpha: " + scrollAlpha.getValue());
+            
+            str = df.format(scrollNonlinearity.getValue() / 10d);
+            labelNonlinearity.setText("Gamma: " + str);
+            paletteImage.setNonlinearity(scrollNonlinearity.getValue() / 10d);
         }
     }
     

@@ -43,7 +43,6 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JPopupMenu;
-import javax.swing.Timer;
 import java.awt.font.GlyphVector;
 import whitebox.cartographic.MapArea;
 import whitebox.cartographic.Neatline;
@@ -1033,13 +1032,30 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             GlyphVector gv = newFont.createGlyphVector(g2.getFontRenderContext(), mapTitle.getLabel());
             Shape sp = gv.getOutline();
             g2.translate(x, y);
-            g2.fill(sp);
+
+            if (mapTitle.getRotation() == 0) {
+                g2.fill(sp);
+            } else {
+//                double xr = viewAreaLRX + ht;
+//                double yr = viewAreaLRY - 4;
+//                g2.translate(xr, yr);
+                g2.rotate(Math.toRadians(mapTitle.getRotation()), 0, 0);
+                g2.fill(sp);
+                g2.rotate(Math.toRadians(-mapTitle.getRotation()));
+//                g2.translate(-xr, -yr);
+            }
             g2.translate(-x, -y);
 
             if (mapTitle.isOutlineVisible()) {
                 g2.setColor(mapTitle.getOutlineColour());
                 g2.translate(x, y);
-                g2.draw(sp);
+                if (mapTitle.getRotation() == 0) {
+                    g2.draw(sp);
+                } else {
+                    g2.rotate(Math.toRadians(mapTitle.getRotation()), 0, 0);
+                    g2.draw(sp);
+                    g2.rotate(Math.toRadians(-mapTitle.getRotation()));
+                }
                 g2.translate(-x, -y);
             }
 
@@ -1349,7 +1365,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             int imageHeight = 35;
             int imageWidth = 12;
             top += fontHeight;
-            label = legend.getLabel(); //"Legend";
+            label = legend.getLabel();
             adv = metrics.stringWidth(label);
             g2.drawString(label, legendULX + (legendWidth - adv) / 2, top);
             top += 4;
@@ -1459,8 +1475,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 //g2.setColor(legend.getBackgroundColour());
                                 //g2.fillRect(0, 0, width, height);
 
-                                if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM
-                                        || st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
+                                if (st.getBaseType() == ShapeType.POLYGON) {
                                     //double top = 7.0;
                                     double vecSampleBottom = top + entryHeight; //- 7.0;
                                     //double left = 15.0;
@@ -1557,10 +1572,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                         double r = left + sqrSize + 6;
                                         g2.drawString(vli.getLayerTitle(), (float) (r), (float) (top + sqrSize - vOffset));
                                     }
-                                } else if (st == ShapeType.POINT
-                                        || st == ShapeType.POINTM || st == ShapeType.POINTZ
-                                        || st == ShapeType.MULTIPOINT || st == ShapeType.MULTIPOINTM
-                                        || st == ShapeType.MULTIPOINTZ) {
+                                } else if (st.getBaseType() == ShapeType.POINT
+                                        || st.getBaseType() == ShapeType.MULTIPOINT) {
 
                                     double[][] xyData = PointMarkers.getMarkerData(vli.getMarkerStyle(), vli.getMarkerSize());
 
@@ -1644,8 +1657,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             g2.drawString(label, (float) (r), (float) (b - vOffset));
                                         }
                                     }
-                                } else if (st == ShapeType.POLYLINE || st == ShapeType.POLYLINEM
-                                        | st == ShapeType.POLYLINEZ) {
+                                } else if (st.getBaseType() == ShapeType.POLYLINE) {
 
                                     double vecSampleBottom = top + entryHeight;
                                     double right = left + entryWidth;
@@ -1738,7 +1750,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     }
 
                                 }
-
+                                entryHeight = (int) (numEntries * (sqrSize + spacing) + spacing);
                                 top += entryHeight;
                             }
                         }
@@ -2226,8 +2238,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                     }
                                                 }
 
-                                                if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT
-                                                        && layer.getNumSelectedFeatures() > 0) {
+                                                if (activeLayerBool && backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT) {
+                                                    //&& layer.getNumSelectedFeatures() > 0) {
                                                     BoundingBox bb = record.getGeometry().getBox();
                                                     if (bb.isPointInBox(mapX, mapY)) {
                                                         g2.setColor(selectionBoxColour);
@@ -2353,7 +2365,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             }
                                         }
 
-                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0) { //backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && 
+                                        if (activeLayerBool) { // && layer.getNumSelectedFeatures() > 0) { //backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && 
                                             g2.setColor(selectedFeatureColour);
                                             for (ShapeFileRecord record : records) {
                                                 if (layer.isFeatureSelected(record.getRecordNumber())) {
@@ -2513,19 +2525,6 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     g2.drawString(label, viewAreaLRX - wd, viewAreaULY - 3);
                     g2.drawString(label, viewAreaLRX - wd, viewAreaLRY + ht); //referenceMarkSize - 1);
 
-                    // rotate the font
-                    // Create a rotation transformation for the font.
-                    AffineTransform fontAT = new AffineTransform();
-
-                    // Derive a new font using a rotatation transform
-                    fontAT.rotate(-Math.PI / 2.0);
-                    Font theDerivedFont = labelFont.deriveFont(fontAT);
-
-                    // set the derived font in the Graphics2D context
-                    g2.setFont(theDerivedFont);
-
-                    fontHeight = labelFont.getSize();
-
                     metrics = g2.getFontMetrics(labelFont);
 
                     label = df.format(currentExtent.getMaxY() + (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
@@ -2533,18 +2532,43 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     ht = (float) rect.getHeight();
                     wd = (float) rect.getWidth() + 3;
                     //adv = metrics.stringWidth(label) + 3;
-                    g2.drawString(label, viewAreaULX - 3, viewAreaULY + wd);
-                    g2.drawString(label, viewAreaLRX + ht, viewAreaULY + wd);
+//                    g2.drawString(label, viewAreaLRX + ht, viewAreaULY + wd);
+
+                    double xr = viewAreaULX - 3;
+                    double yr = viewAreaULY + wd;
+                    g2.translate(xr, yr);
+                    g2.rotate(-Math.PI / 2.0, 0, 0);
+                    g2.drawString(label, 0, 0);
+                    g2.rotate(Math.PI / 2);
+                    g2.translate(-xr, -yr);
+
+                    xr = viewAreaLRX + ht;
+                    yr = viewAreaULY + wd;
+                    g2.translate(xr, yr);
+                    g2.rotate(-Math.PI / 2.0, 0, 0);
+                    g2.drawString(label, 0, 0);
+                    g2.rotate(Math.PI / 2);
+                    g2.translate(-xr, -yr);
 
                     label = df.format(currentExtent.getMinY() - (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
                     rect = metrics.getStringBounds(label, g2);
                     ht = (float) rect.getHeight();
 //                    wd = (float)rect.getWidth();
-                    g2.drawString(label, viewAreaULX - 3, viewAreaLRY - 4);
-                    g2.drawString(label, viewAreaLRX + ht, viewAreaLRY - 4);
+                    xr = viewAreaULX - 3;
+                    yr = viewAreaLRY - 4;
+                    g2.translate(xr, yr);
+                    g2.rotate(-Math.PI / 2.0, 0, 0);
+                    g2.drawString(label, 0, 0);
+                    g2.rotate(Math.PI / 2);
+                    g2.translate(-xr, -yr);
 
-                    // put the original font back
-                    g2.setFont(labelFont);
+                    xr = viewAreaLRX + ht;
+                    yr = viewAreaLRY - 4;
+                    g2.translate(xr, yr);
+                    g2.rotate(-Math.PI / 2.0, 0, 0);
+                    g2.drawString(label, 0, 0);
+                    g2.rotate(Math.PI / 2);
+                    g2.translate(-xr, -yr);
 
                 }
 
@@ -3627,9 +3651,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        
+
         double notches = e.getWheelRotation() * scrollZoomMultiplier;
-        
+
         if (myMode == MOUSE_MODE_MAPAREA) {
             if (map.getCartographicElement(whichCartoElement) instanceof MapArea) {
                 MapArea mapArea = (MapArea) map.getCartographicElement(whichCartoElement);
@@ -3645,8 +3669,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             }
         }
     }
-    
+
     double scrollZoomMultiplier = 1.0d;
+
     public void setScrollZoomDirection(ScrollZoomDirection direction) {
         if (direction == ScrollZoomDirection.REVERSE) {
             scrollZoomMultiplier = -1.0d;
@@ -3654,8 +3679,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             scrollZoomMultiplier = 1.0d;
         }
     }
-    
+
     public enum ScrollZoomDirection {
+
         NORMAL, REVERSE
     }
 }

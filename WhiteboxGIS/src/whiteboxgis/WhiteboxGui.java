@@ -2734,7 +2734,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             saveMap.addActionListener(this);
             saveMap.setActionCommand("saveMap");
             saveMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-              
+            cartoMenu.add(saveMap);
+            
+            JMenuItem saveAsMap = new JMenuItem(bundle.getString("SaveAs") + "...");
+            cartoMenu.add(saveAsMap);
+            saveAsMap.addActionListener(this);
+            saveAsMap.setActionCommand("saveMapAs");
+            
+            
             JMenuItem printMap = new JMenuItem(bundle.getString("PrintMap"), new ImageIcon(graphicsDirectory + "Print.png"));
             cartoMenu.add(printMap);
             printMap.addActionListener(this);
@@ -3094,6 +3101,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 new ImageIcon(graphicsDirectory + "SaveMap.png"));
         mi.addActionListener(this);
         mi.setActionCommand("saveMap");
+        mapsPopup.add(mi);
+        
+        mi = new JMenuItem(bundle.getString("SaveAs") + "...");
+        mi.addActionListener(this);
+        mi.setActionCommand("saveMapAs");
         mapsPopup.add(mi);
 
         mi = new JMenuItem(bundle.getString("OpenMap"),
@@ -5284,6 +5296,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return;
         } // do nothing
         // get the title of the active map.
+        if (selectedMapAndLayer[0] == - 1) {
+            selectedMapAndLayer[0] = activeMap;
+        }
         String mapTitle = openMaps.get(selectedMapAndLayer[0]).getMapName();
 
         // Ask the user to specify a file name for saving the active map.
@@ -7501,6 +7516,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 break;
             case "saveMap":
                 saveMap();
+                break;
+            case "saveMapAs":
+                saveMapAs();
                 break;
             case "openMap":
                 openMap();
