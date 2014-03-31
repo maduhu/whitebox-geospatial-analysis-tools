@@ -92,6 +92,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.add("fontColour", gson.toJsonTree(mt.getFontColour()));
                     jo.add("outlineColour", gson.toJsonTree(mt.getOutlineColour()));
                     jo.add("labelFont", gson.toJsonTree(mt.getLabelFont()));
+                    jo.add("rotation", gson.toJsonTree(mt.getRotation()));
                     break;
                 case MAP_TEXT_AREA:
                     MapTextArea mta = (MapTextArea) t;

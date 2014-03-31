@@ -1166,7 +1166,8 @@ public class GeoTiff {
         }
 
         byte b = buffer.get();
-        if (b == 73) {
+        //byte b2 = buffer.get();
+        if (b == 73) { // || (b == 80 & b2 == 67)) {
             byteOrder = ByteOrder.LITTLE_ENDIAN;
         }
         buffer.order(byteOrder);

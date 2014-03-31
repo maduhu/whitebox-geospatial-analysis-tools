@@ -54,6 +54,7 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
     private ColourProperty borderColour;
     private NumericProperty marginSize;
     private FontProperty fontProperty;
+    private NumericProperty rotationValue;
     private ResourceBundle bundle;
     
     public MapTitlePropertyGrid() {
@@ -241,6 +242,18 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             marginSize.revalidate();
             mainBox.add(marginSize);
             
+            rotationValue = new NumericProperty(bundle.getString("Rotation"), 
+                    String.valueOf(mapTitle.getRotation()));
+            rotationValue.setLeftMargin(leftMargin);
+            rotationValue.setRightMargin(rightMargin);
+            rotationValue.setBackColour(backColour);
+            rotationValue.setTextboxWidth(5);
+            rotationValue.setParseIntegersOnly(false);
+            rotationValue.addPropertyChangeListener("value", this);
+            rotationValue.setPreferredWidth(preferredWidth);
+            rotationValue.revalidate();
+            mainBox.add(rotationValue);
+            
             super.revalidate();
         } catch (Exception e) {
             //host.showFeedback(e.getMessage());
@@ -286,6 +299,9 @@ public class MapTitlePropertyGrid extends JPanel implements PropertyChangeListen
             didSomething = true;
         } else if (source == fontProperty) {
             mapTitle.setLabelFont((Font)evt.getNewValue());
+            didSomething = true;
+        } else if (source == rotationValue) {
+            mapTitle.setRotation(Double.parseDouble((String)evt.getNewValue()));
             didSomething = true;
         }
 

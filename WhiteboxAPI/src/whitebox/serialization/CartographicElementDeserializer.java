@@ -139,6 +139,9 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 mt.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
                 mt.setHeight(jo.getAsJsonPrimitive("height").getAsInt());
                 mt.setWidth(jo.getAsJsonPrimitive("width").getAsInt());
+                if (jo.has("rotation")) {
+                    mt.setRotation(jo.getAsJsonPrimitive("rotation").getAsDouble());
+                }
                 return mt;
 
            case "MAP_TEXT_AREA":

@@ -307,6 +307,11 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
         }
         return null;
     }
+    
+    public void setValue(String value) {
+        this.value = value;
+        text.setText(value);
+    }
 
     @Override
     public String getComponentName() {

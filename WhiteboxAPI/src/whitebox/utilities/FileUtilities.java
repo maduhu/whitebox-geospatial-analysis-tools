@@ -89,7 +89,7 @@ public class FileUtilities {
         for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory()) {
                 findFileInDirectory(files[i], shortFileName);
-            } else if (files[i].getName().equals(shortFileName)) {
+            } else if (files[i].getName().toLowerCase().equals(shortFileName.toLowerCase())) {
                 foundFile = files[i].toString();
             }
         }

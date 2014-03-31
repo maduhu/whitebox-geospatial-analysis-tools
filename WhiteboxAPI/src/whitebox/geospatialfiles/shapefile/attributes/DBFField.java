@@ -241,9 +241,7 @@ public class DBFField {
     
     /**
     Sets the data type of the field.
-    
-    @param type of the field. One of the following:<br>
-    String, Boolean, Numeric, Float, Date, Memo
+     * @param value    
      */
     public void setDataType(DBFField.DBFDataType value) {
         

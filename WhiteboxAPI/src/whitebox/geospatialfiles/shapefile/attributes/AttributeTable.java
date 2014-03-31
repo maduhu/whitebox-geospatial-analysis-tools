@@ -24,6 +24,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import static whitebox.geospatialfiles.shapefile.attributes.AttributeTable.SIG_DBASE_III;
 import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.BOOLEAN;
 import static whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType.DATE;
@@ -410,6 +412,367 @@ public class AttributeTable {
                 break;
             }
         }
+    }
+    
+    public Object getValue(int recNum, int fieldNum) throws DBFException {
+        currentRecord = recNum;
+
+        if (currentRecord < 0) {
+            throw new DBFException("Record number is out of bounds.");
+        }
+        if (currentRecord >= this.numberOfRecords) {
+            return null;
+        }
+
+        Object recordObjects[] = new Object[this.fieldArray.length];
+
+        RandomAccessFile rIn = null;
+        ByteBuffer buf;
+        FileChannel inChannel = null;
+
+        try {
+            buf = ByteBuffer.allocate(this.recordLength);
+
+            rIn = new RandomAccessFile(this.fileName, "r");
+
+            inChannel = rIn.getChannel();
+
+            int pos = (32 + (32 * this.fieldArray.length)) + 1 + recNum * this.recordLength;
+            inChannel.position(pos);
+            inChannel.read(buf);
+
+            buf.order(ByteOrder.LITTLE_ENDIAN);
+            buf.rewind();
+
+            if (buf.get() == END_OF_DATA) {
+                return null;
+            } // record has been deleted
+
+            for (int i = 0; i < this.fieldArray.length; i++) {
+
+                switch (this.fieldArray[i].getDataType()) {
+
+                    case STRING:
+
+                        byte b_array[] = new byte[this.fieldArray[i].getFieldLength()];
+                        //dataInputStream.read(b_array);
+                        buf.get(b_array);
+                        String str = new String(b_array, characterSetName);
+                        recordObjects[i] = str.trim();
+                        break;
+
+                    case DATE:
+
+                        byte t_byte_year[] = new byte[4];
+                        //dataInputStream.read(t_byte_year);
+                        buf.get(t_byte_year);
+
+                        byte t_byte_month[] = new byte[2];
+                        //dataInputStream.read(t_byte_month);
+                        buf.get(t_byte_month);
+
+                        byte t_byte_day[] = new byte[2];
+                        //dataInputStream.read(t_byte_day);
+                        buf.get(t_byte_day);
+
+                        try {
+
+                            GregorianCalendar calendar = new GregorianCalendar(
+                                    Integer.parseInt(new String(t_byte_year)),
+                                    Integer.parseInt(new String(t_byte_month)) - 1,
+                                    Integer.parseInt(new String(t_byte_day)));
+
+                            recordObjects[i] = calendar.getTime();
+                        } catch (NumberFormatException e) {
+                            /*
+                             * this field may be empty or may have improper
+                             * value set
+                             */
+                            recordObjects[i] = null;
+                        }
+
+                        break;
+
+                    case FLOAT:
+
+                        try {
+
+                            byte t_float[] = new byte[this.fieldArray[i].getFieldLength()];
+                            //dataInputStream.read(t_float);
+                            buf.get(t_float);
+
+                            t_float = Utils.trimLeftSpaces(t_float);
+                            if (t_float.length > 0 && !Utils.contains(t_float, (byte) '?')) {
+
+                                recordObjects[i] = new Double(new String(t_float)); //Float(new String(t_float));
+                            } else {
+
+                                recordObjects[i] = null;
+                            }
+                        } catch (NumberFormatException e) {
+
+                            throw new DBFException("Failed to parse Float: " + e.getMessage());
+                        }
+
+                        break;
+
+                    case NUMERIC:
+
+                        try {
+
+                            byte t_numeric[] = new byte[this.fieldArray[i].getFieldLength()];
+                            //dataInputStream.read(t_numeric);
+                            buf.get(t_numeric);
+
+                            t_numeric = Utils.trimLeftSpaces(t_numeric);
+
+                            if (t_numeric.length > 0 && !Utils.contains(t_numeric, (byte) '?')) {
+
+                                recordObjects[i] = new Double(new String(t_numeric));
+                            } else {
+
+                                recordObjects[i] = null;
+                            }
+                        } catch (NumberFormatException e) {
+
+                            throw new DBFException("Failed to parse Number: " + e.getMessage());
+                        }
+
+                        break;
+
+                    case BOOLEAN:
+
+                        byte t_logical = buf.get();
+                        if (t_logical == 'Y' || t_logical == 't' || t_logical == 'T' || t_logical == 't') {
+
+                            recordObjects[i] = Boolean.TRUE;
+                        } else {
+
+                            recordObjects[i] = Boolean.FALSE;
+                        }
+                        break;
+
+                    case MEMO:
+                        // TODO Later
+                        recordObjects[i] = "null";
+                        break;
+
+                    default:
+                        recordObjects[i] = "null";
+                }
+            }
+        } catch (EOFException e) {
+            return null;
+        } catch (IOException e) {
+            throw new DBFException(e.getMessage());
+        } finally {
+            if (rIn != null) {
+                try {
+                    rIn.close();
+                } catch (Exception e) {
+                }
+            }
+            if (inChannel != null) {
+                try {
+                    inChannel.close();
+                } catch (Exception e) {
+                }
+            }
+        }
+
+        return recordObjects[fieldNum];
+    }
+    
+    final private Map<String, Integer> fieldMap = new HashMap<>();
+    private void initializeFieldMap() {
+        String[] fieldNames = getAttributeTableFieldNames();
+        for (int i = 0; i < fieldNames.length; i++) {
+            fieldMap.put(fieldNames[i], i);
+        }
+    }
+    
+    public byte getFieldType(int fieldNum) {
+        return fieldArray[fieldNum].getDataType().getSymbol();
+    }
+    
+    public byte getFieldType(String fieldName) {
+        int fieldNum = fieldMap.get(fieldName);
+        return fieldArray[fieldNum].getDataType().getSymbol();
+    }
+    
+    public int getFieldColumnNumberFromName(String fieldName) {
+        return fieldMap.get(fieldName);
+    }
+    
+    public Object getValue(int recNum, String fieldName) throws DBFException {
+        currentRecord = recNum;
+        
+        int fieldNum = fieldMap.get(fieldName);
+
+        if (currentRecord < 0) {
+            throw new DBFException("Record number is out of bounds.");
+        }
+        if (currentRecord >= this.numberOfRecords) {
+            return null;
+        }
+
+        Object recordObjects[] = new Object[this.fieldArray.length];
+
+        RandomAccessFile rIn = null;
+        ByteBuffer buf;
+        FileChannel inChannel = null;
+
+        try {
+            buf = ByteBuffer.allocate(this.recordLength);
+
+            rIn = new RandomAccessFile(this.fileName, "r");
+
+            inChannel = rIn.getChannel();
+
+            int pos = (32 + (32 * this.fieldArray.length)) + 1 + recNum * this.recordLength;
+            inChannel.position(pos);
+            inChannel.read(buf);
+
+            buf.order(ByteOrder.LITTLE_ENDIAN);
+            buf.rewind();
+
+            if (buf.get() == END_OF_DATA) {
+                return null;
+            } // record has been deleted
+
+            for (int i = 0; i < this.fieldArray.length; i++) {
+
+                switch (this.fieldArray[i].getDataType()) {
+
+                    case STRING:
+
+                        byte b_array[] = new byte[this.fieldArray[i].getFieldLength()];
+                        //dataInputStream.read(b_array);
+                        buf.get(b_array);
+                        String str = new String(b_array, characterSetName);
+                        recordObjects[i] = str.trim();
+                        break;
+
+                    case DATE:
+
+                        byte t_byte_year[] = new byte[4];
+                        //dataInputStream.read(t_byte_year);
+                        buf.get(t_byte_year);
+
+                        byte t_byte_month[] = new byte[2];
+                        //dataInputStream.read(t_byte_month);
+                        buf.get(t_byte_month);
+
+                        byte t_byte_day[] = new byte[2];
+                        //dataInputStream.read(t_byte_day);
+                        buf.get(t_byte_day);
+
+                        try {
+
+                            GregorianCalendar calendar = new GregorianCalendar(
+                                    Integer.parseInt(new String(t_byte_year)),
+                                    Integer.parseInt(new String(t_byte_month)) - 1,
+                                    Integer.parseInt(new String(t_byte_day)));
+
+                            recordObjects[i] = calendar.getTime();
+                        } catch (NumberFormatException e) {
+                            /*
+                             * this field may be empty or may have improper
+                             * value set
+                             */
+                            recordObjects[i] = null;
+                        }
+
+                        break;
+
+                    case FLOAT:
+
+                        try {
+
+                            byte t_float[] = new byte[this.fieldArray[i].getFieldLength()];
+                            //dataInputStream.read(t_float);
+                            buf.get(t_float);
+
+                            t_float = Utils.trimLeftSpaces(t_float);
+                            if (t_float.length > 0 && !Utils.contains(t_float, (byte) '?')) {
+
+                                recordObjects[i] = new Double(new String(t_float)); //Float(new String(t_float));
+                            } else {
+
+                                recordObjects[i] = null;
+                            }
+                        } catch (NumberFormatException e) {
+
+                            throw new DBFException("Failed to parse Float: " + e.getMessage());
+                        }
+
+                        break;
+
+                    case NUMERIC:
+
+                        try {
+
+                            byte t_numeric[] = new byte[this.fieldArray[i].getFieldLength()];
+                            //dataInputStream.read(t_numeric);
+                            buf.get(t_numeric);
+
+                            t_numeric = Utils.trimLeftSpaces(t_numeric);
+
+                            if (t_numeric.length > 0 && !Utils.contains(t_numeric, (byte) '?')) {
+
+                                recordObjects[i] = new Double(new String(t_numeric));
+                            } else {
+
+                                recordObjects[i] = null;
+                            }
+                        } catch (NumberFormatException e) {
+
+                            throw new DBFException("Failed to parse Number: " + e.getMessage());
+                        }
+
+                        break;
+
+                    case BOOLEAN:
+
+                        byte t_logical = buf.get();
+                        if (t_logical == 'Y' || t_logical == 't' || t_logical == 'T' || t_logical == 't') {
+
+                            recordObjects[i] = Boolean.TRUE;
+                        } else {
+
+                            recordObjects[i] = Boolean.FALSE;
+                        }
+                        break;
+
+                    case MEMO:
+                        // TODO Later
+                        recordObjects[i] = "null";
+                        break;
+
+                    default:
+                        recordObjects[i] = "null";
+                }
+            }
+        } catch (EOFException e) {
+            return null;
+        } catch (IOException e) {
+            throw new DBFException(e.getMessage());
+        } finally {
+            if (rIn != null) {
+                try {
+                    rIn.close();
+                } catch (Exception e) {
+                }
+            }
+            if (inChannel != null) {
+                try {
+                    inChannel.close();
+                } catch (Exception e) {
+                }
+            }
+        }
+
+        return recordObjects[fieldNum];
     }
     
     private int currentRecord = -1;
@@ -1023,6 +1386,7 @@ public class AttributeTable {
     private void initialize() throws IOException {
         readHeader();
         fieldCount = this.fieldArray.length;
+        initializeFieldMap();
     }
     
     private void writeRecord(RandomAccessFile raf, Object[] values) throws DBFException {

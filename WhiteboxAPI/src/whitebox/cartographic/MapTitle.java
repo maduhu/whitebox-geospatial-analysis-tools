@@ -54,6 +54,7 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     float lineWidth = 0.75f;
     private int selectedOffsetX;
     private int selectedOffsetY;
+    private double rotation = 0;
 
     public MapTitle() {}
     
@@ -305,6 +306,15 @@ public class MapTitle implements CartographicElement, Comparable<CartographicEle
     public void setLineWidth(float lineWidth) {
         this.lineWidth = lineWidth;
     }
+
+    public double getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
+    }
+    
     
     
     @Override

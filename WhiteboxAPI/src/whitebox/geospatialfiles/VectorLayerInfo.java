@@ -164,7 +164,7 @@ public class VectorLayerInfo implements MapLayer {
                 applicationDirectory = new File(applicationDirectory).getParent();
             }
             findPaletteDirectory(new File(applicationDirectory));
-            paletteFile = paletteDirectory + "categorical1.pal";
+            paletteFile = paletteDirectory + "categorical4.pal";
         } catch (Exception e) {
         }
 
@@ -665,30 +665,40 @@ public class VectorLayerInfo implements MapLayer {
 
             try {
 //                DBFReader dbfReader = new DBFReader(dbfFileName);
-                AttributeTable dbfReader = new AttributeTable(dbfFileName);
-                DBFField[] fields = dbfReader.getAllFields();
-                byte dataType = 0;
-                int fieldNum = -1;
-                for (a = 0; a < fields.length; a++) {
-                    if (fields[a].getName().equals(colouringAttribute)) {
-                        dataType = fields[a].getDataType().getSymbol();
-                        fieldNum = a;
-                        break;
-                    }
-                }
+                AttributeTable table = new AttributeTable(dbfFileName);
+//                DBFField[] fields = table.getAllFields();
+//                byte dataType = 0;
+//                int fieldNum = -1;
+//                for (a = 0; a < fields.length; a++) {
+//                    if (fields[a].getName().equals(colouringAttribute)) {
+//                        dataType = fields[a].getDataType().getSymbol();
+//                        fieldNum = a;
+//                        break;
+//                    }
+//                }
+                
+                int fieldNum = table.getFieldColumnNumberFromName(colouringAttribute);
+                byte dataType = table.getFieldType(fieldNum);
+                
                 // read the records
                 Object[][] data = new Object[numRecords][3];
-                Object[] rec;
-                a = 0;
-                while ((rec = dbfReader.nextRecord()) != null) {
+                Object val;
+                for (a = 0; a < numRecords; a++) {
                     data[a][0] = a;
-                    if (rec[fieldNum] != null) {
-                        data[a][1] = rec[fieldNum];
-                    } else {
-                        data[a][1] = null; //new Double(nullDataFlag);
-                    }
-                    a++;
+                    val = table.getValue(a, fieldNum);
+                    data[a][1] = val;
                 }
+//                Object[] rec;
+//                a = 0;
+//                while ((rec = table.nextRecord()) != null) {
+//                    data[a][0] = a;
+//                    if (rec[fieldNum] != null) {
+//                        data[a][1] = rec[fieldNum];
+//                    } else {
+//                        data[a][1] = null; 
+//                    }
+//                    a++;
+//                }
 
                 if (!(dataType == 'N') && !(dataType == 'F') && !(dataType == 'L')) {
                     // sort the data based on the field data
@@ -696,7 +706,11 @@ public class VectorLayerInfo implements MapLayer {
                         @Override
                         public int compare(final Object[] entry1, final Object[] entry2) {
                             // still need to handle date and boolean data types.
-                            if (entry1[1] instanceof Integer) {
+                            if (entry1[1] instanceof String) {
+                                final String val1 = (String) entry1[1];
+                                final String val2 = (String) entry2[1];
+                                return String.valueOf(val1).compareTo(val2);
+                            } else if (entry1[1] instanceof Integer) {
                                 final int val1 = (Integer) entry1[1];
                                 final int val2 = (Integer) entry2[1];
                                 return Integer.valueOf(val1).compareTo(val2);
@@ -708,10 +722,6 @@ public class VectorLayerInfo implements MapLayer {
                                 final float val1 = (Float) entry1[1];
                                 final float val2 = (Float) entry2[1];
                                 return Float.valueOf(val1).compareTo(val2);
-                            } else if (entry1[1] instanceof String) {
-                                final String val1 = (String) entry1[1];
-                                final String val2 = (String) entry2[1];
-                                return String.valueOf(val1).compareTo(val2);
                             } else if (entry1[1] instanceof Date) {
                                 final Date val1 = (Date) entry1[1];
                                 final Date val2 = (Date) entry2[1];
@@ -740,8 +750,10 @@ public class VectorLayerInfo implements MapLayer {
                     // figure out the legend entries.
                     legendEntries = new VectorLayerInfo.LegendEntry[clrNumber + 1];
                     entryNum = (Integer) (data[0][2]) % numPaletteEntries;
-                    if (data[0][1] == null) {
-                        legendEntries[0] = new VectorLayerInfo.LegendEntry("Null", new Color(255, 255, 255, 0));
+                    int offset = 0;
+                    if (data[0][1] == null || String.valueOf(data[0][1]).trim().isEmpty()) {
+                        legendEntries[0] = new VectorLayerInfo.LegendEntry("Not Specified", new Color(255, 255, 255, 0));
+                        offset = -1;
                     } else {
                         legendEntries[0] = new VectorLayerInfo.LegendEntry(String.valueOf(data[0][1]), new Color(paletteData[entryNum]));
                     }
@@ -755,11 +767,11 @@ public class VectorLayerInfo implements MapLayer {
                                 } else {
                                     entryNum = (int) (((Integer) data[i][2] / maxValue) * (numPaletteEntries - 1));
                                 }
-                                if (data[i][1] == null) {
-                                    legendEntries[legendEntryNum] = new VectorLayerInfo.LegendEntry("Null", new Color(255, 255, 255, 0));
-
+                                if (data[i][1] == null || String.valueOf(data[i][1]).trim().isEmpty()) {
+                                    legendEntries[legendEntryNum] = new VectorLayerInfo.LegendEntry("Not Specified", new Color(255, 255, 255, 0));
+                                    
                                 } else {
-                                    legendEntries[legendEntryNum] = new VectorLayerInfo.LegendEntry(String.valueOf(data[i][1]), new Color(paletteData[entryNum]));
+                                    legendEntries[legendEntryNum] = new VectorLayerInfo.LegendEntry(String.valueOf(data[i][1]), new Color(paletteData[entryNum + offset]));
                                 }
                                 legendEntryNum++;
                             }
@@ -779,16 +791,16 @@ public class VectorLayerInfo implements MapLayer {
                     // fill the colourData array.
                     if (!paletteScaled) {
                         for (i = 0; i < numRecords; i++) {
-                            if (data[i][1] == null) {
-                                colourData[i] = new Color(255, 255, 255, 0);
-                            } else {
-                                clrNumber = (Integer) (data[i][2]);
+                            if (data[i][1] != null && !String.valueOf(data[i][1]).trim().isEmpty()) {
+                                clrNumber = (int) (data[i][2]) + offset;
                                 entryNum = clrNumber % numPaletteEntries;
                                 legendColour = new Color(paletteData[entryNum]);
                                 r1 = legendColour.getRed();
                                 g1 = legendColour.getGreen();
                                 b1 = legendColour.getBlue();
                                 colourData[i] = new Color(r1, g1, b1, a1);
+                            } else {
+                                colourData[i] = new Color(255, 255, 255, 0);
                             }
                         }
                     } else { // the palette is scaled
@@ -796,10 +808,8 @@ public class VectorLayerInfo implements MapLayer {
                         int numPaletteEntriesLessOne = numPaletteEntries - 1;
                         //double maxValue = legendEntries.length - 1;
                         for (i = 0; i < numRecords; i++) {
-                            if (data[i][1] == null) {
-                                colourData[i] = new Color(255, 255, 255, 0);
-                            } else {
-                                value = (Integer) data[i][2];
+                            if (data[i][1] != null) {
+                               value = (Integer) data[i][2];
                                 if (gamma == 1) {
                                     entryNum = (int) ((value / maxValue) * numPaletteEntriesLessOne);
                                 } else {
@@ -810,6 +820,8 @@ public class VectorLayerInfo implements MapLayer {
                                 g1 = legendColour.getGreen();
                                 b1 = legendColour.getBlue();
                                 colourData[i] = new Color(r1, g1, b1, a1);
+                            } else {
+                                colourData[i] = new Color(255, 255, 255, 0);
                             }
                         }
                     }
@@ -1395,7 +1407,7 @@ public class VectorLayerInfo implements MapLayer {
         if (!selectedFeatures[recordNumber]) {
             selectedFeatures[recordNumber] = true;
             // add it from the list of selected features
-            selectedFeatureNumbers.add(new Integer(recordNumber));
+            selectedFeatureNumbers.add(recordNumber);
 
             this.pcs.firePropertyChange("selectedFeatureNumber", -2, recordNumber);
         }

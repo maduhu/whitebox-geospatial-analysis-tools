@@ -190,6 +190,7 @@ public class BoundingBox implements Comparable<BoundingBox>, java.io.Serializabl
         }
     }
     
+    
     public boolean within(BoundingBox other) {
         if (isNull()) { return false; }
         if (this.maxY <= other.getMaxY()
@@ -214,16 +215,20 @@ public class BoundingBox implements Comparable<BoundingBox>, java.io.Serializabl
         }
     }
     
+    public boolean entirelyContains(double x, double y) {
+        if (isNull()) { return false; }
+        return y < this.maxY
+                && x < this.maxX
+                && y > this.minY
+                && x > this.minX;
+    }
+    
     public boolean contains(BoundingBox other) {
         if (isNull()) { return false; }
-        if (other.getMaxY() <= this.maxY
+        return other.getMaxY() <= this.maxY
                 && other.getMaxX() <= this.maxX
                 && other.getMinY() >= this.minY
-                && other.getMinX() >= this.minX) {
-            return true;
-        } else {
-            return false;
-        }
+                && other.getMinX() >= this.minX;
     }
     
     public BoundingBox intersect(BoundingBox other) {

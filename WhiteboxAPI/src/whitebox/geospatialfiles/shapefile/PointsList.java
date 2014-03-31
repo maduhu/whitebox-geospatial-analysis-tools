@@ -16,8 +16,10 @@
  */
 package whitebox.geospatialfiles.shapefile;
 
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 import java.util.ArrayList;
 import java.util.Collections;
+import whitebox.structures.BoundingBox;
 
 /**
  *
@@ -27,6 +29,8 @@ public class PointsList {
 
     private ArrayList<ShapefilePoint> myList = new ArrayList<>();
     boolean isClosedForAdding = false;
+    BoundingBox box = new BoundingBox(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, 
+            Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
 
     public PointsList() {
 
@@ -37,6 +41,13 @@ public class PointsList {
             myList.add(sfp);
         }
     }
+    
+    private void updateBox(double x, double y) {
+        if (box.getMinX() > x) box.setMinX(x);
+        if (box.getMaxX() < x) box.setMaxX(x);
+        if (box.getMinY() > y) box.setMinY(y);
+        if (box.getMaxY() < y) box.setMaxY(y);
+    }
 
     public void addPoint(double x, double y) {
         if (isClosedForAdding) {
@@ -44,6 +55,7 @@ public class PointsList {
         }
         ShapefilePoint sfp = new ShapefilePoint(x, y);
         myList.add(sfp);
+        updateBox(x, y);
     }
 
     public void addMPoint(double x, double y, double m) {
@@ -53,6 +65,7 @@ public class PointsList {
         ShapefilePoint sfp = new ShapefilePoint(x, y);
         sfp.m = m;
         myList.add(sfp);
+        updateBox(x, y);
     }
 
     public void addMPoint(double x, double y) {
@@ -61,6 +74,7 @@ public class PointsList {
         }
         ShapefilePoint sfp = new ShapefilePoint(x, y);
         myList.add(sfp);
+        updateBox(x, y);
     }
 
     public void addZPoint(double x, double y, double z, double m) {
@@ -71,6 +85,7 @@ public class PointsList {
         sfp.z = z;
         sfp.m = m;
         myList.add(sfp);
+        updateBox(x, y);
     }
 
     public void addZPoint(double x, double y, double z) {
@@ -80,6 +95,7 @@ public class PointsList {
         ShapefilePoint sfp = new ShapefilePoint(x, y);
         sfp.z = z;
         myList.add(sfp);
+        updateBox(x, y);
     }
 
     public void clear() {
@@ -87,7 +103,23 @@ public class PointsList {
     }
 
     public void removePoint(int i) {
+        ShapefilePoint sfp = myList.get(i);
         myList.remove(i);
+        if (!box.entirelyContains(sfp.x, sfp.y)) {
+            // update the box
+            box = new BoundingBox(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, 
+                Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+            for (ShapefilePoint sfp2 : myList) {
+                if (box.getMinX() > sfp2.x) box.setMinX(sfp2.x);
+                if (box.getMaxX() < sfp2.x) box.setMaxX(sfp2.x);
+                if (box.getMinY() > sfp2.y) box.setMinY(sfp2.y);
+                if (box.getMaxY() < sfp2.y) box.setMaxY(sfp2.y);
+            }
+        }
+    }
+    
+    public BoundingBox getBox() {
+        return box;
     }
 
     public ShapefilePoint getPoint(int i) {
@@ -100,6 +132,17 @@ public class PointsList {
         for (ShapefilePoint sfp : myList) {
             ret[i][0] = sfp.x;
             ret[i][1] = sfp.y;
+            i++;
+        }
+        return ret;
+    }
+    
+    public CoordinateArraySequence getCoordinateArraySequence() {
+        CoordinateArraySequence ret = new CoordinateArraySequence(myList.size());
+        int i = 0;
+        for (ShapefilePoint sfp : myList) {
+            ret.setOrdinate(i, 0, sfp.x);
+            ret.setOrdinate(i, 1, sfp.y);
             i++;
         }
         return ret;

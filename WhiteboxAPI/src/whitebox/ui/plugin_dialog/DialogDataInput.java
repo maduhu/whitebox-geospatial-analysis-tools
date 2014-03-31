@@ -20,6 +20,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import whitebox.interfaces.DialogComponent;
 
 /**
@@ -58,6 +60,29 @@ public class DialogDataInput extends JPanel implements ActionListener, DialogCom
             this.setToolTipText(description);
             text.setToolTipText(description);
             lbl.setToolTipText(description);
+            
+            text.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    update();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    update();
+                }
+
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    update();
+                }
+
+                public void update() {
+                    String oldValue = value;
+                    value = text.getText();
+                    firePropertyChange("value", oldValue, value);
+                }
+            });
             
         } catch (Exception e) {
             System.out.println(e.getCause());

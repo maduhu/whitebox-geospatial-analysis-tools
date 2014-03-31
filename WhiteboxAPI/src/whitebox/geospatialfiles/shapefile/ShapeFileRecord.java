@@ -45,7 +45,7 @@ public class ShapeFileRecord {
      * @param recordNumber
      * @param contentLength content length in 16-bit words.
      * @param shapeType
-     * @param data 
+     * @param rawData 
      */
     public ShapeFileRecord(int recordNumber, int contentLength, ShapeType shapeType, byte[] rawData) {
         this.recordNumber = recordNumber;
