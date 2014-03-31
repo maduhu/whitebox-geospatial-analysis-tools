@@ -743,6 +743,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 
     private void selectRowsBasedOnFeatureSelection() {
         dataTable.clearSelection();
+        if (vectorLayerInfo == null) { return; }
         ArrayList<Integer> selectedFeatures = vectorLayerInfo.getSelectedFeatureNumbers();
         if (selectedFeatures.size() > 0) {
             for (int i : selectedFeatures) {
@@ -1203,6 +1204,18 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
             }
         });
         menu.add(mi);
+        
+        mi = new JMenuItem("Export Table To CSV File");
+        mi.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (host != null) {
+                    host.launchDialog("ExportTableToCSV");
+                }
+            }
+        });
+        menu.add(mi);
 
         menubar.add(menu);
 
@@ -1418,7 +1431,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
+        //Object source = e.getSource();
         String actionCommand = e.getActionCommand().toLowerCase();
         Object[] options = {"Yes", "No", "Cancel"};
         switch (actionCommand) {
@@ -1623,7 +1636,14 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
                 executeScript();
                 break;
             case "executeselectionscript":
-                executeSelectionScript();
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        executeSelectionScript();
+                    }
+                });
+                thread.run();
+                //executeSelectionScript();
                 break;
             case "print":
                 activeTextArea = 0;
@@ -1839,7 +1859,7 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 
                     recNum = record.getRecordNumber() - 1;
                     Object[] recData = this.attributeTable.getRecord(recNum);
-                    recData[recData.length - 1] = new Double(area);
+                    recData[recData.length - 1] = area;
                     this.attributeTable.updateRecord(recNum, recData);
 
                 }
@@ -2082,8 +2102,11 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
 
             final ArrayList<Integer> selectedFeatures = new ArrayList<>();
             sorter.setRowFilter(null);
-            for (int row = 0; row < dataModel.getRowCount(); row++) {
-                bindings.put("index", new Integer(row));
+            int oldProgress = -1;
+            int progress;
+            int numRows = dataModel.getRowCount();
+            for (int row = 0; row < numRows; row++) {
+                bindings.put("index", row);
 
                 // Bind each of the variables from the row
                 for (int i = 0; i < fieldCount; i++) {
@@ -2106,7 +2129,17 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
                 if (data) {
                     selectedFeatures.add(row + 1);
                 }
-
+                if (host != null) {
+                    progress = (int)(100f * row / (numRows - 1));
+                    if (progress != oldProgress) {
+                        oldProgress = progress;
+                        host.updateProgress("Performing Selection:", progress);
+                    }
+                }
+            }
+            
+            if (host != null) {
+                host.updateProgress("Progress:", 0);
             }
 
             final ArrayList<Integer> finalSelectedFeatures = new ArrayList<>();
