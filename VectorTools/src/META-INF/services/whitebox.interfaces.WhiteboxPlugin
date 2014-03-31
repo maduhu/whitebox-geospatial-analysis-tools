@@ -1,6 +1,7 @@
 plugins.Append
 plugins.BufferVector
 plugins.CentroidVector
+plugins.Clip
 plugins.Difference
 plugins.FindPolygonChains
 plugins.Fuse

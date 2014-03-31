@@ -356,7 +356,7 @@ public class Intersect implements WhiteboxPlugin {
 
                         FID++;
                         Object[] rowData = new Object[1];
-                        rowData[0] = new Double(FID);
+                        rowData[0] = (double) FID;
                         writer.addRecord(rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYLINE) {
@@ -396,7 +396,7 @@ public class Intersect implements WhiteboxPlugin {
 
                         FID++;
                         Object[] rowData = new Object[1];
-                        rowData[0] = new Double(FID);
+                        rowData[0] = (double) FID;
                         writer.addRecord(rowData);
                     } else if (gN instanceof com.vividsolutions.jts.geom.Polygon 
                             && outputShapeType == ShapeType.POLYGON) {

@@ -528,9 +528,9 @@ public class ShapeComplexityIndex implements WhiteboxPlugin {
                 recNum = record.getRecordNumber() - 1;
                 Object[] recData = input.getAttributeTable().getRecord(recNum);
                 if (hullArea > 0) {
-                    recData[recData.length - 1] = new Double(1 - featureArea / hullArea);
+                    recData[recData.length - 1] = Math.abs(1 - featureArea / hullArea);
                 } else {
-                    recData[recData.length - 1] = new Double(0);
+                    recData[recData.length - 1] = 0d;
                 }
                 input.getAttributeTable().updateRecord(recNum, recData);
 

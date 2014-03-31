@@ -18,6 +18,8 @@ package plugins;
 
 import java.text.DecimalFormat;
 import java.util.Date;
+import whitebox.algorithms.MinimumBoundingRectangle;
+import whitebox.algorithms.MinimumBoundingRectangle.MinimizationCriterion;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.shapefile.PolygonM;
@@ -545,106 +547,114 @@ public class ElongationRatio implements WhiteboxPlugin {
             field.setFieldLength(10);
             field.setDecimalCount(4);
             input.getAttributeTable().addField(field);
-
+            
+            MinimumBoundingRectangle mbr = new MinimumBoundingRectangle(MinimizationCriterion.AREA);
+            
             // initialize the shapefile.
-            ShapeType inputType = input.getShapeType();
+//            ShapeType inputType = input.getShapeType();
             int oldProgress = -1;
             for (ShapeFileRecord record : input.records) {
-                switch (inputType) {
-                    case POLYGON:
-                        whitebox.geospatialfiles.shapefile.Polygon recPolygon =
-                                (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
-                        vertices = recPolygon.getPoints();
-                        midX = recPolygon.getXMin() + (recPolygon.getXMax() - recPolygon.getXMin()) / 2;
-                        midY = recPolygon.getYMin() + (recPolygon.getYMax() - recPolygon.getYMin()) / 2;
-                        break;
-                    case POLYGONZ:
-                        PolygonZ recPolygonZ = (PolygonZ) (record.getGeometry());
-                        vertices = recPolygonZ.getPoints();
-                        midX = recPolygonZ.getXMin() + (recPolygonZ.getXMax() - recPolygonZ.getXMin()) / 2;
-                        midY = recPolygonZ.getYMin() + (recPolygonZ.getYMax() - recPolygonZ.getYMin()) / 2;
-                        break;
-                    case POLYGONM:
-                        PolygonM recPolygonM = (PolygonM) (record.getGeometry());
-                        vertices = recPolygonM.getPoints();
-                        midX = recPolygonM.getXMin() + (recPolygonM.getXMax() - recPolygonM.getXMin()) / 2;
-                        midY = recPolygonM.getYMin() + (recPolygonM.getYMax() - recPolygonM.getYMin()) / 2;
-                        break;
-                }
-
-                int numVertices = vertices.length;
-                verticesRotated = new double[numVertices][2];
-//                axisDirection = 0;
-                slope = 0;
-                axes[0] = 9999999;
-                axes[1] = 9999999;
-
-
-                // Rotate the edge cells in 0.5 degree increments.
-                for (int m = 0; m <= 180; m++) {
-                    psi = -m * 0.5 * DegreeToRad; // rotation in clockwise direction
-                    // Rotate each edge cell in the array by m degrees.
-                    for (int n = 0; n < numVertices; n++) {
-                        x = vertices[n][0] - midX;
-                        y = vertices[n][1] - midY;
-                        verticesRotated[n][0] = (x * Math.cos(psi)) - (y * Math.sin(psi));
-                        verticesRotated[n][1] = (x * Math.sin(psi)) + (y * Math.cos(psi));
-                    }
-                    // calculate the minimum bounding box in this coordinate 
-                    // system and see if it is less
-                    newBoundingBox[0] = Double.MAX_VALUE; // west
-                    newBoundingBox[1] = Double.MIN_VALUE; // east
-                    newBoundingBox[2] = Double.MAX_VALUE; // north
-                    newBoundingBox[3] = Double.MIN_VALUE; // south
-                    for (int n = 0; n < numVertices; n++) {
-                        x = verticesRotated[n][0];
-                        y = verticesRotated[n][1];
-                        if (x < newBoundingBox[0]) {
-                            newBoundingBox[0] = x;
-                        }
-                        if (x > newBoundingBox[1]) {
-                            newBoundingBox[1] = x;
-                        }
-                        if (y < newBoundingBox[2]) {
-                            newBoundingBox[2] = y;
-                        }
-                        if (y > newBoundingBox[3]) {
-                            newBoundingBox[3] = y;
-                        }
-                    }
-                    newXAxis = newBoundingBox[1] - newBoundingBox[0] + 1;
-                    newYAxis = newBoundingBox[3] - newBoundingBox[2] + 1;
-
-                    if ((axes[0] * axes[1]) > (newXAxis * newYAxis)) {
-                        axes[0] = newXAxis;
-                        axes[1] = newYAxis;
-
-                        if (axes[0] > axes[1]) {
-                            slope = -psi;
-                        } else {
-                            slope = -(rightAngle + psi);
-                        }
-                    }
-                }
-                longAxis = Math.max(axes[0], axes[1]);
-                shortAxis = Math.min(axes[0], axes[1]);
-                elongation = 1 - shortAxis / longAxis;
-
-                bearing = 90 - Math.toDegrees(slope);
+                vertices = record.getGeometry().getPoints();
+                
+                mbr.setCoordinates(vertices);
+                    
+//                switch (inputType) {
+//                    case POLYGON:
+//                        whitebox.geospatialfiles.shapefile.Polygon recPolygon =
+//                                (whitebox.geospatialfiles.shapefile.Polygon) (record.getGeometry());
+//                        vertices = recPolygon.getPoints();
+//                        midX = recPolygon.getXMin() + (recPolygon.getXMax() - recPolygon.getXMin()) / 2;
+//                        midY = recPolygon.getYMin() + (recPolygon.getYMax() - recPolygon.getYMin()) / 2;
+//                        break;
+//                    case POLYGONZ:
+//                        PolygonZ recPolygonZ = (PolygonZ) (record.getGeometry());
+//                        vertices = recPolygonZ.getPoints();
+//                        midX = recPolygonZ.getXMin() + (recPolygonZ.getXMax() - recPolygonZ.getXMin()) / 2;
+//                        midY = recPolygonZ.getYMin() + (recPolygonZ.getYMax() - recPolygonZ.getYMin()) / 2;
+//                        break;
+//                    case POLYGONM:
+//                        PolygonM recPolygonM = (PolygonM) (record.getGeometry());
+//                        vertices = recPolygonM.getPoints();
+//                        midX = recPolygonM.getXMin() + (recPolygonM.getXMax() - recPolygonM.getXMin()) / 2;
+//                        midY = recPolygonM.getYMin() + (recPolygonM.getYMax() - recPolygonM.getYMin()) / 2;
+//                        break;
+//                }
+//
+//                int numVertices = vertices.length;
+//                verticesRotated = new double[numVertices][2];
+////                axisDirection = 0;
+//                slope = 0;
+//                axes[0] = 9999999;
+//                axes[1] = 9999999;
+//
+//
+//                // Rotate the edge cells in 0.5 degree increments.
+//                for (int m = 0; m <= 180; m++) {
+//                    psi = -m * 0.5 * DegreeToRad; // rotation in clockwise direction
+//                    // Rotate each edge cell in the array by m degrees.
+//                    for (int n = 0; n < numVertices; n++) {
+//                        x = vertices[n][0] - midX;
+//                        y = vertices[n][1] - midY;
+//                        verticesRotated[n][0] = (x * Math.cos(psi)) - (y * Math.sin(psi));
+//                        verticesRotated[n][1] = (x * Math.sin(psi)) + (y * Math.cos(psi));
+//                    }
+//                    // calculate the minimum bounding box in this coordinate 
+//                    // system and see if it is less
+//                    newBoundingBox[0] = Double.MAX_VALUE; // west
+//                    newBoundingBox[1] = Double.MIN_VALUE; // east
+//                    newBoundingBox[2] = Double.MAX_VALUE; // north
+//                    newBoundingBox[3] = Double.MIN_VALUE; // south
+//                    for (int n = 0; n < numVertices; n++) {
+//                        x = verticesRotated[n][0];
+//                        y = verticesRotated[n][1];
+//                        if (x < newBoundingBox[0]) {
+//                            newBoundingBox[0] = x;
+//                        }
+//                        if (x > newBoundingBox[1]) {
+//                            newBoundingBox[1] = x;
+//                        }
+//                        if (y < newBoundingBox[2]) {
+//                            newBoundingBox[2] = y;
+//                        }
+//                        if (y > newBoundingBox[3]) {
+//                            newBoundingBox[3] = y;
+//                        }
+//                    }
+//                    newXAxis = newBoundingBox[1] - newBoundingBox[0] + 1;
+//                    newYAxis = newBoundingBox[3] - newBoundingBox[2] + 1;
+//
+//                    if ((axes[0] * axes[1]) > (newXAxis * newYAxis)) {
+//                        axes[0] = newXAxis;
+//                        axes[1] = newYAxis;
+//
+//                        if (axes[0] > axes[1]) {
+//                            slope = -psi;
+//                        } else {
+//                            slope = -(rightAngle + psi);
+//                        }
+//                    }
+//                }
+//                longAxis = Math.max(axes[0], axes[1]);
+//                shortAxis = Math.min(axes[0], axes[1]);
+//                elongation = 1 - shortAxis / longAxis;
+//
+//                bearing = 90 - Math.toDegrees(slope);
+                
+                
 
                 recNum = record.getRecordNumber() - 1;
                 Object[] recData = input.getAttributeTable().getRecord(recNum);
-                recData[recData.length - 2] = new Double(elongation); //(longAxis - shortAxis) / (longAxis + shortAxis));
-                recData[recData.length - 1] = new Double(bearing);
+                recData[recData.length - 2] = mbr.getElongationRatio();
+                recData[recData.length - 1] = mbr.getLongAxisOrientation();
                 input.getAttributeTable().updateRecord(recNum, recData);
 
-                if (cancelOp) {
-                    cancelOperation();
-                    return;
-                }
                 progress = (int) (record.getRecordNumber() / numberOfRecords * 100);
-                if (progress > oldProgress) { 
+                if (progress != oldProgress) { 
                     updateProgress(progress);
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
                 }
                 oldProgress = progress;
             }
@@ -681,7 +691,7 @@ public class ElongationRatio implements WhiteboxPlugin {
      //This method is only used during testing.
     public static void main(String[] args) {
         args = new String[1];
-        args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/medium lakes.shp";
+        args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/depressions no small features.shp";
         
         ElongationRatio er = new ElongationRatio();
         er.setArgs(args);
