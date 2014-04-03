@@ -137,6 +137,8 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
         if (myHost != null && ((progress != previousProgress)
                 || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
+        } else {
+            System.out.println(progressLabel + String.valueOf(progress) + "%");
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
@@ -151,6 +153,8 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
     private void updateProgress(int progress) {
         if (myHost != null && progress != previousProgress) {
             myHost.updateProgress(progress);
+        } else {
+            System.out.println(String.valueOf(progress) + "%");
         }
         previousProgress = progress;
     }
@@ -502,15 +506,18 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                 oldProgress = -1;
                 for (i = 0; i < numPoly; i++) {
                     com.vividsolutions.jts.geom.Polygon item1 = polyList.get(i);
+                    double myZ = zVals.get(i);
                     for (int j = i + 1; j < numPoly; j++) {
-                        com.vividsolutions.jts.geom.Polygon item2 = polyList.get(j);
-                        if (item1.contains(item2)) {
-                            containsHoles[i] = true;
-                            isHole[j] = true;
-                            if (myHoles[i] == null) {
-                                myHoles[i] = new ArrayList<>();
+                        if (zVals.get(j) == myZ) {
+                            com.vividsolutions.jts.geom.Polygon item2 = polyList.get(j);
+                            if (item1.contains(item2)) {
+                                containsHoles[i] = true;
+                                isHole[j] = true;
+                                if (myHoles[i] == null) {
+                                    myHoles[i] = new ArrayList<>();
+                                }
+                                myHoles[i].add(j);
                             }
-                            myHoles[i].add(j);
                         }
                     }
 
@@ -633,8 +640,10 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
         //args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp7.shp";
         //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/Waterloo deps.dep";
         //args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp1.shp";
-        args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGalt deps.dep";
-        args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGalt deps.shp";
+        //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGalt deps.dep";
+        //args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGalt deps.shp";
+        args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/landuse.dep";
+        args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp1.shp";
 
         RasterToVectorPolygons rtvp = new RasterToVectorPolygons();
         rtvp.setArgs(args);
