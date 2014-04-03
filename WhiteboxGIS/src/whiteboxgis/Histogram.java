@@ -351,8 +351,8 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         
         // rotate the font
         Font oldFont = g.getFont();
-        Font f = oldFont.deriveFont(AffineTransform.getRotateInstance(-Math.PI / 2.0));
-        g2d.setFont(f);
+        //Font f = oldFont.deriveFont(AffineTransform.getRotateInstance(-Math.PI / 2.0));
+        //g2d.setFont(f);
         
         int yAxisMidPoint = (int)(topMargin + activeHeight / 2);
         int offset;
@@ -364,10 +364,18 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
             offset = metrics.stringWidth("0.0") + 12 + hgt;
         }
         adv = metrics.stringWidth(label);
-        g2d.drawString(label, leftMargin - offset, yAxisMidPoint + adv / 2);
+        //g2d.drawString(label, leftMargin - offset, yAxisMidPoint + adv / 2);
+        
+        double xr = leftMargin - offset;
+        double yr = yAxisMidPoint + adv / 2;
+        g2d.translate(xr, yr);
+        g2d.rotate(-Math.PI / 2.0, 0, 0);
+        g2d.drawString(label, 0, 0);
+        g2d.rotate(Math.PI / 2);
+        g2d.translate(-xr, -yr);
         
         // replace the rotated font.
-        g2d.setFont(oldFont);
+        //g2d.setFont(oldFont);
 
         if (!cumulative) {
             df = new DecimalFormat("0.0000");
