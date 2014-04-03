@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import javax.swing.JMenu;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
@@ -35,6 +36,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ResourceBundle;
 import javax.swing.JFileChooser;
+import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -75,6 +77,8 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
     
     private void createGui(String stringFileOrURL) {
         try {
+            this.setTitle("Whitebox GAT");
+            
             helpPane.addHyperlinkListener(this);
             helpPane.setContentType("text/html");
 
@@ -111,8 +115,10 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
 
             // text popup menu
             JPopupMenu textPopup = new JPopupMenu();
+            JMenu menu = new JMenu(host.getGuiLabelsBundle().getString("File"));
 
             JMenuItem mi;
+            JMenuItem mi2;
 //        mi = new JMenuItem("Clear");
 //        mi.addActionListener(this);
 //        mi.setActionCommand("clear");
@@ -127,6 +133,11 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
             mi.addActionListener(this);
             mi.setActionCommand("copy");
             textPopup.add(mi);
+            
+            mi2 = new JMenuItem(host.getGuiLabelsBundle().getString("Copy"));
+            mi2.addActionListener(this);
+            mi2.setActionCommand("copy");
+            menu.add(mi2);
 
 //        mi = new JMenuItem("Paste");
 //        mi.addActionListener(this);
@@ -136,27 +147,48 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
             mi.addActionListener(this);
             mi.setActionCommand("selectAll");
             textPopup.add(mi);
+            mi2 = new JMenuItem(host.getGuiLabelsBundle().getString("SelectAll"));
+            mi2.addActionListener(this);
+            mi2.setActionCommand("selectAll");
+            menu.add(mi2);
 
             textPopup.addSeparator();
             mi = new JMenuItem(host.getGuiLabelsBundle().getString("Save"));
             mi.addActionListener(this);
             mi.setActionCommand("save");
             textPopup.add(mi);
+            menu.addSeparator();
+            mi2 = new JMenuItem(host.getGuiLabelsBundle().getString("Save"));
+            mi2.addActionListener(this);
+            mi2.setActionCommand("save");
+            menu.add(mi2);
             
             mi = new JMenuItem(host.getGuiLabelsBundle().getString("SaveAs") + "...");
             mi.addActionListener(this);
             mi.setActionCommand("saveAs");
             textPopup.add(mi);
+            mi2 = new JMenuItem(host.getGuiLabelsBundle().getString("SaveAs") + "...");
+            mi2.addActionListener(this);
+            mi2.setActionCommand("saveAs");
+            menu.add(mi2);
             
             mi = new JMenuItem(host.getGuiLabelsBundle().getString("Print"));
             mi.addActionListener(this);
             mi.setActionCommand("print");
             textPopup.add(mi);
+            mi2 = new JMenuItem(host.getGuiLabelsBundle().getString("Print"));
+            mi2.addActionListener(this);
+            mi2.setActionCommand("print");
+            menu.add(mi2);
 
             textPopup.setOpaque(true);
             textPopup.setLightWeightPopupEnabled(true);
 
             helpPane.setComponentPopupMenu(textPopup);
+            JMenuBar menubar = new JMenuBar();
+            menubar.add(menu);
+            this.setJMenuBar(menubar);
+            
         } catch (Exception e) {
             host.logException("Error in HTMLViewer.", e);
         }

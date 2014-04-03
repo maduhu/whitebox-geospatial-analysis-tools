@@ -2983,10 +2983,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             helpMenu.addSeparator();
 
-//            JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
-//            helpReport.setActionCommand("helpReport");
-//            helpReport.addActionListener(this);
-//            helpMenu.add(helpReport);
+            JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
+            helpReport.setActionCommand("helpReport");
+            helpReport.addActionListener(this);
+            helpMenu.add(helpReport);
 
             menubar.add(helpMenu);
 
