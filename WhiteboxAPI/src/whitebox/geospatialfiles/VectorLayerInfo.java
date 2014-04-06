@@ -57,7 +57,7 @@ public class VectorLayerInfo implements MapLayer {
     private BoundingBox fullExtent = null;
     private BoundingBox currentExtent = null;
     private float markerSize = 6.0f;
-    private float lineThickness = 0.75f;
+    private float lineThickness = 0.5f;
     private Color lineColour = Color.black;
     private Color fillColour = Color.red;
     private ShapeType shapeType;

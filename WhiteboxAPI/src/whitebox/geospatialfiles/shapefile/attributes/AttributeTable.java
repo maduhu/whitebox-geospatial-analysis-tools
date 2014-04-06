@@ -601,7 +601,11 @@ public class AttributeTable {
     }
     
     public int getFieldColumnNumberFromName(String fieldName) {
-        return fieldMap.get(fieldName);
+        if (fieldMap.containsKey(fieldName)) {
+            return fieldMap.get(fieldName);
+        } else {
+            return - 1;
+        }
     }
     
     public Object getValue(int recNum, String fieldName) throws DBFException {
