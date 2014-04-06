@@ -2305,7 +2305,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                     g2.fill(polyline);
                                                 }
 
-                                                if (layer.isOutlined() || (activeLayerBool && isActivelyEdited)) {
+                                                if ((layer.isOutlined() || (activeLayerBool && isActivelyEdited)) && 
+                                                        !(layer.isFeatureSelected(record.getRecordNumber()) & activeLayerBool)) {
                                                     g2.setColor(lineColour);
                                                     myStroke = new BasicStroke(layer.getLineThickness(), BasicStroke.CAP_BUTT,
                                                             BasicStroke.JOIN_ROUND);
@@ -2367,6 +2368,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                                         if (activeLayerBool) { // && layer.getNumSelectedFeatures() > 0) { //backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && 
                                             g2.setColor(selectedFeatureColour);
+                                            myStroke = new BasicStroke(layer.getLineThickness(), BasicStroke.CAP_BUTT,
+                                                            BasicStroke.JOIN_ROUND);
+                                            oldStroke = g2.getStroke();
+                                            g2.setStroke(myStroke);
                                             for (ShapeFileRecord record : records) {
                                                 if (layer.isFeatureSelected(record.getRecordNumber())) {
                                                     partStart = record.getGeometry().getParts();
@@ -2420,6 +2425,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                     }
                                                 }
                                             }
+                                            
+                                            g2.setStroke(oldStroke);
                                         }
                                         break;
 

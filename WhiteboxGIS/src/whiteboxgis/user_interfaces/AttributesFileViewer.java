@@ -1178,6 +1178,20 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
             addPerimeterField.addActionListener(this);
             menu.add(addPerimeterField);
         }
+        
+        menu.addSeparator();
+
+        mi = new JMenuItem("Attribute Histogram");
+        mi.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (host != null) {
+                    host.launchDialog("AttributeHistogram");
+                }
+            }
+        });
+        menu.add(mi);
 
         menu.addSeparator();
 

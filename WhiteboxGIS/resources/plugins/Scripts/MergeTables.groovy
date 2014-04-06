@@ -29,6 +29,7 @@ import whitebox.geospatialfiles.shapefile.*
 import whitebox.geospatialfiles.shapefile.attributes.*
 import whitebox.geospatialfiles.shapefile.attributes.AttributeTable
 import whitebox.geospatialfiles.shapefile.attributes.DBFField
+import whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType
 import whitebox.interfaces.WhiteboxPluginHost
 import whitebox.ui.plugin_dialog.ScriptDialog
 import whitebox.ui.plugin_dialog.*
@@ -129,7 +130,7 @@ public class MergeTables implements ActionListener {
 			AttributeTable table2 = new AttributeTable(databaseFile2)
 			
 			// get the field numbers of the foreign key and include fields
-			int foreignKey = -1
+			int foreignKey = table2.getFieldColumnNumberFromName(foreignKeyString)
 			int[] includedFields = new int[numIncludedFields]
 			String[] fields = table2.getAttributeTableFieldNames()
 			for (int a in 0..<fields.length) {
@@ -139,15 +140,22 @@ public class MergeTables implements ActionListener {
 						includedDBFFields[b] = table2.getField(a)
 					}
 				}
-				if (fields[a].equals(foreignKeyString)) {
-					foreignKey = a
-				}
 			}
 				
-			if (foreignKey == -1) {
-				pluginHost.showFeedback("Could not locate the foreign key (unique ID field).")
-				return
-			}
+//			if (foreignKey == -1) {
+//				pluginHost.showFeedback("Could not locate the foreign key (unique ID field).")
+//				return
+//			}
+			if (foreignKey == null || foreignKey < 0) {
+        		pluginHost.showFeedback("Could not locate the foreign key (unique ID field). Check your spelling.")
+        		return
+        	}
+        	DBFField[] dbfFields = table2.getAllFields()
+			if (dbfFields[foreignKey].getDataType() == DBFDataType.NUMERIC || 
+        	     dbfFields[foreignKey].getDataType() == DBFDataType.FLOAT) {
+        	    pluginHost.showFeedback("The primary and foreign keys must be text strings and not numeric.\nYou can convert the keys using the Field Calculator in the Attribute Table Viewer.")
+        		return
+        	}
 
 			HashMap<String, Object[]> hm = new HashMap<String, Object[]>()
 
@@ -168,22 +176,34 @@ public class MergeTables implements ActionListener {
 			int initialFieldCount = table.getFieldCount()
 
 			// find the primary key
-			int primaryKey = -1
-
-			String[] fieldName = table.getAttributeTableFieldNames()
-			int f = 0
-			fieldName.each() {
-				String str = (String)it
-				if (((String)it).equals(primaryKeyString)) {
-					primaryKey = f
-				}
-				f++
-			}
-			
-			if (primaryKey == -1) {
-				pluginHost.showFeedback("Could not locate the primary key (unique ID field).")
-				return
-			}
+			int primaryKey = table.getFieldColumnNumberFromName(primaryKeyString)
+        	
+        	if (primaryKey == null || primaryKey < 0) {
+        		pluginHost.showFeedback("Could not locate the primary key (unique ID field). Check your spelling.")
+        		return
+        	}
+        	dbfFields = table.getAllFields()
+			if (dbfFields[primaryKey].getDataType() == DBFDataType.NUMERIC || 
+        	     dbfFields[primaryKey].getDataType() == DBFDataType.FLOAT) {
+        	    pluginHost.showFeedback("The primary and foreign keys must be text strings and not numeric.\nYou can convert the primary key using the Field Calculator in the Attribute Table Viewer.")
+        		return
+        	}
+//			int primaryKey = -1
+//
+//			String[] fieldName = table.getAttributeTableFieldNames()
+//			int f = 0
+//			fieldName.each() {
+//				String str = (String)it
+//				if (((String)it).equals(primaryKeyString)) {
+//					primaryKey = f
+//				}
+//				f++
+//			}
+//			
+//			if (primaryKey == -1) {
+//				pluginHost.showFeedback("Could not locate the primary key (unique ID field).")
+//				return
+//			}
 
 			// append the include fields to the table
 			int[] outputFieldNums = new int[numIncludedFields]

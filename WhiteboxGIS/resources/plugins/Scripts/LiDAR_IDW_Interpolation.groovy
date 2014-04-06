@@ -19,6 +19,7 @@ import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
 import java.util.concurrent.Future
 import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.Date
 import java.util.ArrayList
 import whitebox.interfaces.WhiteboxPluginHost
@@ -46,7 +47,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 	private ScriptDialog sd;
 	private String descriptiveName
 	
-	private int numSolvedTiles = 0
+	private AtomicInteger numSolvedTiles = new AtomicInteger(0)
 	
 	public LiDAR_IDW_Interpolation(WhiteboxPluginHost pluginHost, 
 		String[] args, def name, def descriptiveName) {
@@ -538,9 +539,9 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 	            return Boolean.FALSE;
 	        }
 
-			numSolvedTiles++;
-			int progress = (int) (100f * numSolvedTiles / numFiles)
-			pluginHost.updateProgress("Interpolated " + numSolvedTiles + " tiles:", progress)
+			int solved = numSolvedTiles.incrementAndGet() //++;
+			int progress = (int) (100f * solved / numFiles)
+			pluginHost.updateProgress("Interpolated $solved tiles:", progress)
 	        return Boolean.TRUE;
         }                
     }

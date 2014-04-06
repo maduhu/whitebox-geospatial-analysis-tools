@@ -29,6 +29,7 @@ import whitebox.geospatialfiles.shapefile.*
 import whitebox.geospatialfiles.shapefile.attributes.*
 import whitebox.geospatialfiles.shapefile.attributes.AttributeTable
 import whitebox.geospatialfiles.shapefile.attributes.DBFField
+import whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType
 import whitebox.interfaces.WhiteboxPluginHost
 import whitebox.ui.plugin_dialog.ScriptDialog
 import whitebox.ui.plugin_dialog.*
@@ -366,23 +367,31 @@ public class MergeTableWithCSV implements ActionListener {
 			int initialFieldCount = table.getFieldCount()
 
 			// find the primary key
-			int primaryKey = -1
+//			int primaryKey = -1
+//
+//			String[] fieldName = table.getAttributeTableFieldNames()
+//			int f = 0
+//			fieldName.each() {
+//				String str = (String)it
+//				if (((String)it).equals(primaryKeyString)) {
+//					primaryKey = f
+//				}
+//				f++
+//			}
 
-			String[] fieldName = table.getAttributeTableFieldNames()
-			int f = 0
-			fieldName.each() {
-				String str = (String)it
-				if (((String)it).equals(primaryKeyString)) {
-					primaryKey = f
-				}
-				f++
-			}
+			DBFField[] fields = table.getAllFields()
+        	int primaryKey = table.getFieldColumnNumberFromName(primaryKeyString)
+        	
+        	if (primaryKey == null || primaryKey < 0) {
+        		pluginHost.showFeedback("Could not locate the primary key (unique ID field). Check your spelling.")
+        		return
+        	}
+			if (fields[primaryKey].getDataType() == DBFDataType.NUMERIC || 
+        	     fields[primaryKey].getDataType() == DBFDataType.FLOAT) {
+        	    pluginHost.showFeedback("The primary and foreign keys must be text strings and not numeric.\nYou can convert the primary key using the Field Calculator in the Attribute Table Viewer.")
+        		return
+        	}
 			
-			if (primaryKey == -1) {
-				pluginHost.showFeedback("Could not locate the primary key (unique ID field).")
-				return
-			}
-
 			// append the include fields to the table
 			int[] outputFieldNums = new int[numIncludedFields]
 			for (int i in 0..<numIncludedFields) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2014 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -176,7 +176,7 @@ public class ClusterAttributes implements ActionListener {
             	                            "categorical attributes, use the Field Calculator to create new \n" + 
             	                            "Dummy variables from these attributes (i.e. convert them to \n" + 
             	                            "numerical data).")
-            	    break
+            	    return
             	}
 			}
 
@@ -302,12 +302,13 @@ public class ClusterAttributes implements ActionListener {
 				}
 			}
 
+			double[][] clusterCentreTotals
 			int actualIterationNumber = 0
 			XYSeries series = new XYSeries("")
 			pluginHost.updateProgress("Clustering...", 0)
 			oldProgress = -1
 			for (int iter = 0; iter < numIterations; iter++) {
-				double[][] clusterCentreTotals = new double[k][numAttributes]
+				clusterCentreTotals = new double[k][numAttributes]
 				clusterCentreCounts = new int[k]
 				int numChanged = 0
 			
@@ -399,6 +400,7 @@ public class ClusterAttributes implements ActionListener {
 				}
 			}
 			ko--
+
 
 			// output the attribute table
 			DBFField field = new DBFField();
@@ -503,10 +505,86 @@ public class ClusterAttributes implements ActionListener {
 				}
 			}
 			ret.append("</tr>")
-
 			ret.append("</table>")
 
-			ret.append("<br></body></html>")
+			
+			// Create a cluster centre distance table
+			ret.append("<p><table border=\"1\" cellspacing=\"0\" cellpadding=\"3\">").append("\n")
+			if (rescaleMode.equals("normalize")) {
+				ret.append("<caption>Cluster Center Distances (Normalized)</caption>")
+			} else if (rescaleMode.contains("standard")) {
+				ret.append("<caption>Cluster Center Distances (Standardized)</caption>")
+			} else {
+				ret.append("<caption>Cluster Center Distances</caption>")
+			}
+			
+			ret.append("<th></th>")
+			for (m = 0; m < k; m++) {
+				if (!deadCluster[m]) {
+					ret.append("<th>C. ${outClassNum[m]}</th>")
+				}
+			}
+			ret.append("\n")
+			
+			for (m = 0; m < k; m++) {
+				if (!deadCluster[m]) {
+					ret.append("<tr><th>C. ${outClassNum[m]}</th>")
+					for (int p = 0; p < k; p++) {
+						if (!deadCluster[p]) {
+							if (p > m) {
+								ret.append("<td class=\"numberCell\">")
+								dist = 0
+								for (j = 0; j < numAttributes; j++) {
+									dist += (clusterCentres[m][j] - clusterCentres[p][j]) * (clusterCentres[m][j] - clusterCentres[p][j])
+								}
+								ret.append(df.format(Math.sqrt(dist)))
+								ret.append("</td>")
+							} else if (p == m) {
+								ret.append("<td class=\"numberCell\">0.00</td>")
+							} else {
+								ret.append("<td></td>")
+							}
+						}
+					}
+					ret.append("</tr>")
+				}
+			}
+			ret.append("</table></p>")
+
+
+			// calculate the cluster variance
+			double[] clusterVariance = new double[k]
+			double meanVariance
+			for (m = 0; m < k; m++) {
+				if (!deadCluster[m]) {
+					for (i = 0; i < numRecords; i++) {
+						if (classNum[i] == m) {
+							for (j = 0; j < numAttributes; j++) {
+								clusterVariance[m] += (clusterCentres[m][j] - data[i][j]) * (clusterCentres[m][j] - data[i][j])
+							}
+						}
+				    }
+				    clusterVariance[m] = Math.sqrt(clusterVariance[m] / clusterCentreCounts[m])
+				    meanVariance += clusterVariance[m]
+				}
+			}
+
+			ret.append("<p><table border=\"1\" cellspacing=\"0\" cellpadding=\"3\">").append("\n")
+			ret.append("<caption>Cluster Standard Deviation</caption>")
+			ret.append("<th>Cluster</th><th>Std. Dev.</th>\n")
+			for (m = 0; m < k; m++) {
+				if (!deadCluster[m]) {
+					ret.append("<tr><td class=\"numberCell\">${outClassNum[m]}</td>")
+					ret.append("<td class=\"numberCell\">${df.format(clusterVariance[m])}</td></tr>")
+				}
+			}
+			ret.append("</table></p>")
+			ret.append("<p>Mean Cluster Standard Deviation: ${df.format(meanVariance / ko)}</p>")
+
+
+			
+
+			ret.append("</body></html>")
 			pluginHost.returnData(ret.toString());
 			
         } catch (OutOfMemoryError oe) {

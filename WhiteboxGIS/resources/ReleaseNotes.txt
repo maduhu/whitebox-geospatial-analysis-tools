@@ -33,6 +33,8 @@ Version 3.1.4 ()
 -Added Hack Stream Ordering and Topological Stream Ordering tools.
 -Added Total Length of Upstream Channels tool.
 -Added Furtherest Upstream Channel Head Distance tool.
+-Added the Attribute Histogram tool for create histograms based on numeric data 
+ contained in a shapefile's attribute table as well as the Attribute Scattergram tool.
 -Vectors can now be displayed with a palette rendered based on a boolean attribute.
 -Added palette nonlinearity for vectors with a scaled palette.
 -Fixed the raster-to-vector polygon conversion to include polygon holes.
