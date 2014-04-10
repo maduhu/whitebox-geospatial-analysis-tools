@@ -19,6 +19,7 @@ package plugins;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
+import java.util.concurrent.atomic.AtomicInteger;
 //import com.vividsolutions.jts.geom.prep.PreparedPolygon;
 //import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import java.util.concurrent.*;
@@ -46,6 +47,11 @@ public class Clip implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+    
+    private AtomicInteger numSolutions = new AtomicInteger(0);
+    private AtomicInteger oldProgress = new AtomicInteger(-1);
+    private int numFeatures = 0;
+	
 
     /**
      * Used to retrieve the plugin tool's name. This is a short, unique name
@@ -237,7 +243,7 @@ public class Clip implements WhiteboxPlugin {
                 return;
             }
 
-            int numFeatures = input.getNumberOfRecords();
+            numFeatures = input.getNumberOfRecords();
             AttributeTable table = input.getAttributeTable();
             DBFField[] fields = table.getAllFields();
             ShapeFile output = new ShapeFile(outputFile, shapeType, fields);
@@ -366,7 +372,7 @@ public class Clip implements WhiteboxPlugin {
                 }
             }
 
-            updateProgress("Loop 2 running concurrently; please wait...", 0);
+            //updateProgress("Loop 2 running concurrently; please wait...", 0);
 
             List<Future<WorkData>> results = executor.invokeAll(tasks);
             executor.shutdown();
@@ -384,7 +390,7 @@ public class Clip implements WhiteboxPlugin {
                 i++;
                 progress = (int) (100f * i / (numFeatures - 1));
                 if (progress != oldProgress) {
-                    updateProgress("Loop 2 of 2:", progress);
+                    updateProgress("Writing Output:", progress);
                     oldProgress = progress;
 
                     // check to see if the user has requested a cancellation
@@ -509,6 +515,13 @@ public class Clip implements WhiteboxPlugin {
                         ret.addGeometry(wbGeometry);
                     }
                 }
+            }
+            
+            int solved = numSolutions.incrementAndGet();
+            int progress = (int) (100f * solved / (numFeatures - 1));
+            if (progress > oldProgress.intValue()) {
+                updateProgress("Loop 2 of 2:", progress);
+                oldProgress.set(progress);
             }
             return ret;
         }
