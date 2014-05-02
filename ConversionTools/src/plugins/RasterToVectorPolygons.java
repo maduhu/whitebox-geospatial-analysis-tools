@@ -18,16 +18,17 @@ package plugins;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LinearRing;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import whitebox.algorithms.Clump;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.geospatialfiles.shapefile.PointsList;
 import whitebox.geospatialfiles.shapefile.Polygon;
 import whitebox.geospatialfiles.shapefile.ShapeType;
-import whitebox.geospatialfiles.shapefile.ShapefilePoint;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.utilities.BitOps;
@@ -200,6 +201,41 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
     @Override
     public void run() {
 
+        /*  Diagram 1: 
+         *  Cell Numbering
+         *  _____________
+         *  |     |     |
+         *  |  0  |  1  |
+         *  |_____|_____|
+         *  |     |     |
+         *  |  2  |  3  |
+         *  |_____|_____|
+         * 
+         */
+
+        /*  Diagram 2:
+         *  Edge Numbering (shared edges between cells)
+         *  _____________
+         *  |     |     |
+         *  |     3     |
+         *  |__2__|__0__|
+         *  |     |     |
+         *  |     1     |
+         *  |_____|_____|
+         * 
+         */
+
+        /* Diagram 3:
+         * Cell Edge Numbering
+         * 
+         *  ___0___
+         * |       |
+         * |       |
+         * 3       1
+         * |       |
+         * |___2___|
+         * 
+         */
         amIActive = true;
         String inputFile;
         String outputFile;
@@ -225,10 +261,6 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
 
         inputFile = args[0];
         outputFile = args[1];
-        boolean polygonsContainHoles = true;
-        if (args.length > 2) {
-            polygonsContainHoles = Boolean.parseBoolean(args[2]);
-        }
 
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputFile == null) || (outputFile == null)) {
@@ -237,20 +269,33 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
         }
 
         try {
-            WhiteboxRaster input = new WhiteboxRaster(inputFile, "r");
-            int rows = input.getNumberRows();
-            int cols = input.getNumberColumns();
-            double noData = input.getNoDataValue();
-            double gridResX = input.getCellSizeX();
-            double gridResY = input.getCellSizeY();
-
-            double east = input.getEast() - gridResX / 2.0;
-            double west = input.getWest() + gridResX / 2.0;
-            double EWRange = east - west;
-            double north = input.getNorth() - gridResY / 2.0;
-            double south = input.getSouth() + gridResY / 2.0;
-            double NSRange = north - south;
-
+            WhiteboxRaster input1 = new WhiteboxRaster(inputFile, "r");
+            int rows = input1.getNumberRows();
+            int cols = input1.getNumberColumns();
+            long numCells = rows * cols;
+            double noData = input1.getNoDataValue();
+            double gridResX = input1.getCellSizeX();
+            double gridResY = input1.getCellSizeY();
+            
+            double east = input1.getEast() - gridResX / 2.0;
+            double west = input1.getWest() + gridResX / 2.0;
+            double EWRange = east - west + gridResX;
+            double north = input1.getNorth() - gridResY / 2.0;
+            double south = input1.getSouth() + gridResY / 2.0;
+            double NSRange = north - south + gridResY;
+            
+            
+            // clump the input raster
+            updateProgress("Clumping raster, please wait...", 0);
+            Clump clump = new Clump(input1, false, true);
+            clump.setOutputHeader(input1.getHeaderFile().replace(".dep", "_clumped.dep"));
+            WhiteboxRaster input = clump.run();
+            input.isTemporaryFile = true;
+            
+            int numRegions = (int)input.getMaximumValue() + 1;
+            double[] zValues = new double[numRegions];
+            
+            
             // create a temporary raster image.
             String tempHeader1 = inputFile.replace(".dep", "_temp1.dep");
             WhiteboxRaster temp1 = new WhiteboxRaster(tempHeader1, "rw", inputFile, WhiteboxRaster.DataType.INTEGER, 0);
@@ -258,7 +303,7 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
 
             GeometryFactory factory = new GeometryFactory();
             List<com.vividsolutions.jts.geom.Polygon> polyList = new ArrayList<>();
-            List<Double> zVals = new ArrayList<>();
+            List<Integer> regionValues = new ArrayList<>();
 
             // set up the output files of the shapefile and the dbf
             DBFField fields[] = new DBFField[2];
@@ -276,21 +321,17 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
             fields[1].setDecimalCount(2);
 
             ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON, fields);
-//
-//            String DBFName = output.getDatabaseFile();
-//            DBFWriter writer = new DBFWriter(new File(DBFName)); /*
-//             * this DBFWriter object is now in Syc Mode
-//             */
-//
-//            writer.setFields(fields);
 
-            int[] parts = {0};
+            int[] parts;
 
             oldProgress = -1;
             for (row = 0; row < rows; row++) {
                 for (col = 0; col < cols; col++) {
                     z = input.getValue(row, col);
                     if (z > 0 && z != noData) {
+                        int region = (int)z;
+                        zValues[region] = input1.getValue(row, col);
+                        
                         zN1 = input.getValue(row - 1, col);
                         zN2 = input.getValue(row, col - 1);
 
@@ -319,7 +360,6 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                                 FID++;
                                 PointsList points = new PointsList();
 
-                                //flag = true;
                                 do {
 
                                     // Get the data for the 2 x 2 
@@ -337,99 +377,127 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                                     previousTraceDirection = traceDirection;
                                     traceDirection = -1;
 
-                                    // traceDirection 0
-                                    if (inputValueData[1] != inputValueData[3]
-                                            && inputValueData[1] == z) {
-                                        // has the bottom edge of the top-right cell been traversed?
-                                        i = (int) temp1.getValue(rowVals[0], colVals[1]);
-                                        if (!BitOps.checkBit(i, 2)) {
-                                            temp1.setValue(rowVals[0], colVals[1], BitOps.setBit(i, 2));
-                                            traceDirection = 0;
-                                        }
+                                    // The scan order is used to prefer accute angles during 
+                                    // the vectorizing. This is important for reducing the
+                                    // occurance of bow-tie or figure-8 (self-intersecting) polygons.
+                                    byte[] scanOrder = new byte[4];
+                                    switch (previousTraceDirection) {
+                                        case 0:
+                                            scanOrder = new byte[]{3, 1, 2, 0};
+                                            break;
+                                        case 1:
+                                            scanOrder = new byte[]{0, 2, 3, 1};
+                                            break;
+                                        case 2:
+                                            scanOrder = new byte[]{3, 1, 0, 2};
+                                            break;
+                                        case 3:
+                                            scanOrder = new byte[]{2, 0, 1, 3};
+                                            break;
                                     }
 
-                                    if (inputValueData[1] != inputValueData[3]
-                                            && inputValueData[3] == z) {
-                                        // has the top edge of the bottom-right cell been traversed?
-                                        i = (int) temp1.getValue(rowVals[1], colVals[1]);
-                                        if (!BitOps.checkBit(i, 0)) {
-                                            temp1.setValue(rowVals[1], colVals[1], BitOps.setBit(i, 0));
-                                            traceDirection = 0;
-                                        }
-                                    }
+                                    for (int a = 0; a < 4; a++) {
+                                        switch (scanOrder[a]) {
+                                            case 0:
+                                                // traceDirection 0
+                                                if (inputValueData[1] != inputValueData[3]
+                                                        && inputValueData[1] == z) {
+                                                    // has the bottom edge of the top-right cell been traversed?
+                                                    i = (int) temp1.getValue(rowVals[0], colVals[1]);
+                                                    if (!BitOps.checkBit(i, 2)) {
+                                                        temp1.setValue(rowVals[0], colVals[1], BitOps.setBit(i, 2));
+                                                        traceDirection = 0;
+                                                    }
+                                                }
 
-                                    if (traceDirection == -1) {
-                                        // traceDirection 1
-                                        if (inputValueData[2] != inputValueData[3]
-                                                && inputValueData[2] == z) {
-                                            // has the right edge of the bottom-left cell been traversed?
-                                            i = (int) temp1.getValue(rowVals[1], colVals[0]);
-                                            if (!BitOps.checkBit(i, 1)) {
-                                                temp1.setValue(rowVals[1], colVals[0], BitOps.setBit(i, 1));
-                                                traceDirection = 1;
-                                            }
-                                        }
+                                                if (inputValueData[1] != inputValueData[3]
+                                                        && inputValueData[3] == z) {
+                                                    // has the top edge of the bottom-right cell been traversed?
+                                                    i = (int) temp1.getValue(rowVals[1], colVals[1]);
+                                                    if (!BitOps.checkBit(i, 0)) {
+                                                        temp1.setValue(rowVals[1], colVals[1], BitOps.setBit(i, 0));
+                                                        traceDirection = 0;
+                                                    }
+                                                }
+                                                break;
 
-                                        if (inputValueData[2] != inputValueData[3]
-                                                && inputValueData[3] == z) {
-                                            // has the left edge of the bottom-right cell been traversed?
-                                            i = (int) temp1.getValue(rowVals[1], colVals[1]);
-                                            if (!BitOps.checkBit(i, 3)) {
-                                                temp1.setValue(rowVals[1], colVals[1], BitOps.setBit(i, 3));
-                                                traceDirection = 1;
-                                            }
-                                        }
-                                    }
+                                            case 1:
+                                                // traceDirection 1
+                                                if (inputValueData[2] != inputValueData[3]
+                                                        && inputValueData[2] == z) {
+                                                    // has the right edge of the bottom-left cell been traversed?
+                                                    i = (int) temp1.getValue(rowVals[1], colVals[0]);
+                                                    if (!BitOps.checkBit(i, 1)) {
+                                                        temp1.setValue(rowVals[1], colVals[0], BitOps.setBit(i, 1));
+                                                        traceDirection = 1;
+                                                    }
+                                                }
 
-                                    if (traceDirection == -1) {
-                                        // traceDirection 2
-                                        if (inputValueData[0] != inputValueData[2]
-                                                && inputValueData[0] == z) {
-                                            // has the bottom edge of the top-left cell been traversed?
-                                            i = (int) temp1.getValue(rowVals[0], colVals[0]);
-                                            if (!BitOps.checkBit(i, 2)) {
-                                                temp1.setValue(rowVals[0], colVals[0], BitOps.setBit(i, 2));
-                                                traceDirection = 2;
-                                            }
-                                        }
+                                                if (inputValueData[2] != inputValueData[3]
+                                                        && inputValueData[3] == z) {
+                                                    // has the left edge of the bottom-right cell been traversed?
+                                                    i = (int) temp1.getValue(rowVals[1], colVals[1]);
+                                                    if (!BitOps.checkBit(i, 3)) {
+                                                        temp1.setValue(rowVals[1], colVals[1], BitOps.setBit(i, 3));
+                                                        traceDirection = 1;
+                                                    }
+                                                }
+                                                break;
 
-                                        if (inputValueData[0] != inputValueData[2]
-                                                && inputValueData[2] == z) {
-                                            // has the top edge of the bottom-left cell been traversed?
-                                            i = (int) temp1.getValue(rowVals[1], colVals[0]);
-                                            if (!BitOps.checkBit(i, 0)) {
-                                                temp1.setValue(rowVals[1], colVals[0], BitOps.setBit(i, 0));
-                                                traceDirection = 2;
-                                            }
-                                        }
-                                    }
+                                            case 2:
+                                                // traceDirection 2
+                                                if (inputValueData[0] != inputValueData[2]
+                                                        && inputValueData[0] == z) {
+                                                    // has the bottom edge of the top-left cell been traversed?
+                                                    i = (int) temp1.getValue(rowVals[0], colVals[0]);
+                                                    if (!BitOps.checkBit(i, 2)) {
+                                                        temp1.setValue(rowVals[0], colVals[0], BitOps.setBit(i, 2));
+                                                        traceDirection = 2;
+                                                    }
+                                                }
 
-                                    if (traceDirection == -1) {
-                                        // traceDirection 3
-                                        if (inputValueData[0] != inputValueData[1]
-                                                && inputValueData[0] == z) {
-                                            // has the right edge of the top-left cell been traversed?
-                                            i = (int) temp1.getValue(rowVals[0], colVals[0]);
-                                            if (!BitOps.checkBit(i, 1)) {
-                                                temp1.setValue(rowVals[0], colVals[0], BitOps.setBit(i, 1));
-                                                traceDirection = 3;
-                                            }
-                                        }
+                                                if (inputValueData[0] != inputValueData[2]
+                                                        && inputValueData[2] == z) {
+                                                    // has the top edge of the bottom-left cell been traversed?
+                                                    i = (int) temp1.getValue(rowVals[1], colVals[0]);
+                                                    if (!BitOps.checkBit(i, 0)) {
+                                                        temp1.setValue(rowVals[1], colVals[0], BitOps.setBit(i, 0));
+                                                        traceDirection = 2;
+                                                    }
+                                                }
+                                                break;
 
-                                        if (inputValueData[0] != inputValueData[1]
-                                                && inputValueData[1] == z) {
-                                            // has the left edge of the top-right cell been traversed?
-                                            i = (int) temp1.getValue(rowVals[0], colVals[1]);
-                                            if (!BitOps.checkBit(i, 3)) {
-                                                temp1.setValue(rowVals[0], colVals[1], BitOps.setBit(i, 3));
-                                                traceDirection = 3;
-                                            }
+                                            case 3:
+                                                // traceDirection 3
+                                                if (inputValueData[0] != inputValueData[1]
+                                                        && inputValueData[0] == z) {
+                                                    // has the right edge of the top-left cell been traversed?
+                                                    i = (int) temp1.getValue(rowVals[0], colVals[0]);
+                                                    if (!BitOps.checkBit(i, 1)) {
+                                                        temp1.setValue(rowVals[0], colVals[0], BitOps.setBit(i, 1));
+                                                        traceDirection = 3;
+                                                    }
+                                                }
+
+                                                if (inputValueData[0] != inputValueData[1]
+                                                        && inputValueData[1] == z) {
+                                                    // has the left edge of the top-right cell been traversed?
+                                                    i = (int) temp1.getValue(rowVals[0], colVals[1]);
+                                                    if (!BitOps.checkBit(i, 3)) {
+                                                        temp1.setValue(rowVals[0], colVals[1], BitOps.setBit(i, 3));
+                                                        traceDirection = 3;
+                                                    }
+                                                }
+
+                                        }
+                                        if (traceDirection != -1) {
+                                            break;
                                         }
                                     }
 
                                     if (previousTraceDirection != traceDirection) {
-                                        xCoord = west + (currentHalfCol / cols) * EWRange + gridResX;
-                                        yCoord = north - (currentHalfRow / rows) * NSRange - gridResY;
+                                        xCoord = west + (currentHalfCol / cols) * EWRange;
+                                        yCoord = north - (currentHalfRow / rows) * NSRange;
                                         points.addPoint(xCoord, yCoord);
                                     }
 
@@ -451,33 +519,39 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                                             break;
                                     }
                                     numPoints++;
-                                    if (numPoints > 1000000) {
+                                    if (numPoints > numCells) { // stopping condtion in case things get crazy
                                         flag = false;
                                     }
                                 } while (flag);
 
                                 if (numPoints > 1) {
-//                                    // add the line to the shapefile.
-//                                    Object[] rowData = new Object[2];
-//                                    rowData[0] = (double) FID;
-//                                    rowData[1] = z;
-//                                    Polygon poly = new Polygon(parts, points.getPointsArray());
-//                                    output.addRecord(poly, rowData);
                                     com.vividsolutions.jts.geom.Polygon poly = factory.createPolygon(points.getCoordinateArraySequence());
                                     if (!poly.isValid()) {
                                         // fix the geometry with a buffer(0) as recommended in JTS docs
                                         com.vividsolutions.jts.geom.Geometry jtsGeom2 = poly.buffer(0d);
-                                        for (int a = 0; a < jtsGeom2.getNumGeometries(); a++) {
+                                        int numGs = jtsGeom2.getNumGeometries();
+                                        for (int a = 0; a < numGs; a++) {
                                             com.vividsolutions.jts.geom.Geometry gN = jtsGeom2.getGeometryN(a);
                                             if (gN instanceof com.vividsolutions.jts.geom.Polygon) {
                                                 poly = (com.vividsolutions.jts.geom.Polygon) gN.clone();
+                                                poly.setSRID(regionValues.size());
                                                 polyList.add(poly);
-                                                zVals.add(z);
+                                                regionValues.add((int)z);
                                             }
                                         }
                                     } else {
-                                        polyList.add(poly); //factory.createPolygon(points.getCoordinateArraySequence()));
-                                        zVals.add(z);
+                                        int numGs = poly.getNumGeometries();
+                                        for (int a = 0; a < numGs; a++) {
+                                            com.vividsolutions.jts.geom.Geometry gN = poly.getGeometryN(a);
+                                            if (gN instanceof com.vividsolutions.jts.geom.Polygon) {
+                                                poly = (com.vividsolutions.jts.geom.Polygon) gN.clone();
+                                                poly.setSRID(regionValues.size());
+                                                polyList.add(poly);
+                                                regionValues.add((int)z);
+                                            }
+                                        }
+//                                        polyList.add(poly); //factory.createPolygon(points.getCoordinateArraySequence()));
+//                                        zVals.add(z);
                                     }
                                 }
                             }
@@ -487,7 +561,7 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
 
                 progress = (int) (100f * row / (rows - 1));
                 if (progress != oldProgress) {
-                    updateProgress(progress);
+                    updateProgress("Tracing polygons:", progress);
                     oldProgress = progress;
                     if (cancelOp) {
                         cancelOperation();
@@ -496,57 +570,59 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                 }
             }
 
-            // find holes
-            int numPoly = polyList.size();
-            boolean[] isHole = new boolean[numPoly];
-            boolean[] containsHoles = new boolean[numPoly];
-            List<Integer>[] myHoles = new List[numPoly];
+            temp1.close();
+            input.close();
+            input1.close();
 
-            if (polygonsContainHoles) {
-                oldProgress = -1;
-                for (i = 0; i < numPoly; i++) {
-                    com.vividsolutions.jts.geom.Polygon item1 = polyList.get(i);
-                    double myZ = zVals.get(i);
-                    for (int j = i + 1; j < numPoly; j++) {
-                        if (zVals.get(j) == myZ) {
-                            com.vividsolutions.jts.geom.Polygon item2 = polyList.get(j);
-                            if (item1.contains(item2)) {
-                                containsHoles[i] = true;
-                                isHole[j] = true;
-                                if (myHoles[i] == null) {
-                                    myHoles[i] = new ArrayList<>();
-                                }
-                                myHoles[i].add(j);
-                            }
-                        }
-                    }
+            Collections.sort(polyList, new Comparator<com.vividsolutions.jts.geom.Polygon>() {
 
-                    progress = (int) (100f * i / (numPoly - 1));
-                    if (progress != oldProgress) {
-                        updateProgress("Searching for polygon holes:", progress);
-                        oldProgress = progress;
-                        if (cancelOp) {
-                            cancelOperation();
-                            return;
-                        }
-                    }
+                @Override
+                public int compare(com.vividsolutions.jts.geom.Polygon o1, com.vividsolutions.jts.geom.Polygon o2) {
+                    Double area1 = o1.getArea();
+                    Double area2 = o2.getArea();
+                    return area2.compareTo(area1);
                 }
+                
+            });
+            
+            
+            int numPoly = polyList.size();
+            int[] regionData = new int[numPoly];
+            double[] zData = new double[numPoly];
+            for (i = 0; i < numPoly; i++) {
+                regionData[i] = regionValues.get(polyList.get(i).getSRID());
+                zData[i] = zValues[regionData[i]];
             }
-
+            
+            boolean[] outputted = new boolean[numPoly];
+            
             oldProgress = -1;
             FID = 0;
             for (i = 0; i < numPoly; i++) {
-                if (!isHole[i] && containsHoles[i]) {
+                if (!outputted[i]) {
+                    outputted[i] = true;
+                    
+                    List<Integer> polyPartNums = new ArrayList<>();
+                    polyPartNums.add(i);
+                    for (int j = i + 1; j < numPoly; j++) {
+                        if (regionData[j] == regionData[i]) {
+                            polyPartNums.add(j);
+                            outputted[j] = true;
+                        }
+                    }
+                    
                     FID++;
-                    int numHoles = myHoles[i].size();
+                    
+                    
+                    int numHoles = polyPartNums.size() - 1;
 
-                    parts = new int[numHoles + 1];
+                    parts = new int[polyPartNums.size()];
 
                     Object[] rowData = new Object[2];
                     rowData[0] = (double) FID;
-                    rowData[1] = zVals.get(i);
+                    rowData[1] = zData[i];
 
-                    com.vividsolutions.jts.geom.Polygon p = polyList.get(i);
+                    com.vividsolutions.jts.geom.Polygon p = polyList.get(polyPartNums.get(0));
                     PointsList points = new PointsList();
                     Coordinate[] coords = p.getExteriorRing().getCoordinates();
                     if (!Topology.isClockwisePolygon(coords)) {
@@ -562,8 +638,7 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                     for (int k = 0; k < numHoles; k++) {
                         parts[k + 1] = points.size();
 
-                        int holeID = myHoles[i].get(k);
-                        p = polyList.get(holeID);
+                        p = polyList.get(polyPartNums.get(k + 1));
                         coords = p.getExteriorRing().getCoordinates();
                         if (Topology.isClockwisePolygon(coords)) {
                             for (int j = coords.length - 1; j >= 0; j--) {
@@ -579,32 +654,12 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
 
                     Polygon poly = new Polygon(parts, points.getPointsArray());
                     output.addRecord(poly, rowData);
-                }
-                if (!isHole[i] && !containsHoles[i]) {
-                    FID++;
-                    parts = new int[]{0};
-                    Object[] rowData = new Object[2];
-                    rowData[0] = (double) FID;
-                    rowData[1] = zVals.get(i);
-                    com.vividsolutions.jts.geom.Polygon p = polyList.get(i);
-                    PointsList points = new PointsList();
-                    Coordinate[] coords = p.getExteriorRing().getCoordinates();
-                    if (!Topology.isClockwisePolygon(coords)) {
-                        for (int j = coords.length - 1; j >= 0; j--) {
-                            points.addPoint(coords[j].x, coords[j].y);
-                        }
-                    } else {
-                        for (int j = 0; j < coords.length; j++) {
-                            points.addPoint(coords[j].x, coords[j].y);
-                        }
-                    }
-
-                    Polygon poly = new Polygon(parts, points.getPointsArray());
-                    output.addRecord(poly, rowData);
+                    
+      
                 }
                 progress = (int) (100f * i / (numPoly - 1));
                 if (progress != oldProgress) {
-                    updateProgress("Outputing data:", progress);
+                    updateProgress("Writing data:", progress);
                     oldProgress = progress;
                     if (cancelOp) {
                         cancelOperation();
@@ -612,17 +667,16 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
                     }
                 }
             }
-
-            input.close();
+            
             output.write();
-            temp1.close();
-
+            
             // returning a header file string displays the image.
             returnData(outputFile);
 
         } catch (OutOfMemoryError oe) {
             myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {
+            e.printStackTrace();
             myHost.showFeedback("An error has occurred during operation. See log file for details.");
             myHost.logException("Error in " + getDescriptiveName(), e);
         } finally {
@@ -635,14 +689,17 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
 
     // This method is only used during testing.
     public static void main(String[] args) {
-        args = new String[3];
+        args = new String[2];
         //args[0] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp7.dep";
         //args[1] = "/Users/johnlindsay/Documents/Research/Contracts/NRCan 2012/Data/tmp7.shp";
         //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/Waterloo deps.dep";
         //args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp1.shp";
         //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGalt deps.dep";
         //args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGalt deps.shp";
-        args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/landuse.dep";
+        //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/landuse.dep";
+        //args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp1.shp";
+        args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/STB-EOS_2012_CI_UTM17_30m_v2_clipped.dep";
+        //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp2.dep";
         args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp1.shp";
 
         RasterToVectorPolygons rtvp = new RasterToVectorPolygons();
