@@ -6,6 +6,7 @@ import java.util.ArrayList
 import java.util.HashSet
 import java.util.concurrent.Future
 import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import whitebox.interfaces.WhiteboxPluginHost
@@ -36,8 +37,10 @@ public class VectorAttributeGridding implements ActionListener {
 	private WhiteboxPluginHost pluginHost
 	private ScriptDialog sd
 	private String descriptiveName
+	private AtomicInteger numSolved = new AtomicInteger(0)
+	private int rows
+	//private int numSolvedTiles = 0
 	
-	private int numSolvedTiles = 0
 	public VectorAttributeGridding(WhiteboxPluginHost pluginHost, String[] args, String name, String descriptiveName) {
 
 		this.pluginHost = pluginHost
@@ -110,7 +113,7 @@ public class VectorAttributeGridding implements ActionListener {
 		try {
 
 			double nodata = -32768.0
-			int rows, cols
+			int cols
 			
 			if (args.length != 5) {
 				pluginHost.showFeedback("Incorrect number of arguments given to tool.")
@@ -302,6 +305,7 @@ public class VectorAttributeGridding implements ActionListener {
         	
         @Override
 	    public RowNumberAndData call() {
+	    	int solved = 0
 	    	// check to see if the user has requested a cancellation
 			if (pluginHost.isRequestForOperationCancelSet()) {
 				if (!cancelledMessageGiven) { 
@@ -319,7 +323,6 @@ public class VectorAttributeGridding implements ActionListener {
 
 	       	KdTree tree = input.getKdTree()
 
-	       	//String fieldName = "ELONGATION" // this should be a user input
 	       	int numFeatures = input.getNumberOfRecords()
 	       	AttributeTable table = input.getAttributeTable()
 	       	double[] fieldData = new double[numFeatures]
@@ -330,12 +333,9 @@ public class VectorAttributeGridding implements ActionListener {
 			
 			List<KdTree.Entry<Integer>> results
 			double x, y
-			//double y = output.getYCoordinateFromRow(row)
-			//int col, row
 			for (int row in 0..<nRows) {
 				y = north - halfCellSizeY - (startingRow + row) * cellSizeY
 				for (int col in 0..<cols) {
-					//x = output.getXCoordinateFromColumn(col)
 					x = west + halfCellSizeX + col * cellSizeX;
 			        double[] entry = new double[2]
 			        entry[0] = x
@@ -368,9 +368,14 @@ public class VectorAttributeGridding implements ActionListener {
 					}
 					return
 				}
+
+				solved = numSolved.incrementAndGet()
 			}
   			
 	        def ret = new RowNumberAndData(startingRow, retData)
+	        
+	        int progress = (int) (100f * solved / rows)
+			pluginHost.updateProgress("Interpolated $solved rows:", progress)
 	        
     	    return ret
         }               
