@@ -97,6 +97,7 @@ import whitebox.structures.InteroperableGeospatialDataFormat;
 import whitebox.interfaces.InteropPlugin.InteropPluginType;
 import whitebox.utilities.StringUtilities;
 import whitebox.plugins.ReturnedDataEvent;
+import whiteboxgis.user_interfaces.ViewTextDialog;
 
 /**
  *
@@ -109,8 +110,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     private StatusBar status;
     // common variables
-    private static final String versionName = "3.1 'Iguazu'";
-    public static final String versionNumber = "3.1.4";
+    private static final String versionName = "3.2.0 'Iguazu'";
+    public static final String versionNumber = "3.2.0";
     public static String currentVersionNumber;
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
@@ -129,7 +130,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private String propsFile;
     private String userName;
     private int splitterLoc1 = 250;
-    private int splitterToolboxLoc;
+//    private int splitterToolboxLoc;
     private int tbTabsIndex = 0;
     private int qlTabsIndex = 0;
     private int[] selectedMapAndLayer = new int[3];
@@ -139,10 +140,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private JList allTools;
     private JList recentTools;
     private JList mostUsedTools;
-    private JTextArea textArea = new JTextArea();
+//    private JTextArea textArea = new JTextArea();
     private JSplitPane splitPane;
     private JSplitPane splitPane2;
-    private JSplitPane splitPane3;
+//    private JSplitPane splitPane3;
     private JTabbedPane tabs = new JTabbedPane();
     private JTree tree = null;
     private JTabbedPane qlTabs = null;
@@ -154,7 +155,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //    private JPopupMenu layersPopup = null;
     private JPopupMenu mapsPopup = null;
     private JPopupMenu mapAreaPopup = null;
-    private JPopupMenu textPopup = null;
+//    private JPopupMenu textPopup = null;
     private JToggleButton pan = null;
     private JToggleButton zoomIntoBox = null;
     private JToggleButton zoomOut = null;
@@ -418,7 +419,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     status.setMessage(str);
                 }
             }
-            
+
             pan();
 
         } catch (IOException | SecurityException e) {
@@ -1216,9 +1217,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     final ScriptEngine newEngine = mgr.getEngineByName(scriptingLanguage);
                     //}
 
-                    PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
-                    newEngine.getContext().setWriter(out);
-
+//                    PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
+//                    newEngine.getContext().setWriter(out);
                     if (scriptingLanguage.equals("python")) {
                         newEngine.put("__file__", scriptFile);
                     }
@@ -1227,14 +1227,15 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     newEngine.put("args", args);
 
                     // run the script
-                    PrintWriter errOut = new PrintWriter(new TextAreaWriter(textArea));
+//                    PrintWriter errOut = new PrintWriter(new TextAreaWriter(textArea));
                     try {
                         // read the contents of the file
                         final String scriptContents = new String(Files.readAllBytes(Paths.get(scriptFile)));
 
                         Object result = newEngine.eval(scriptContents);
                     } catch (IOException | ScriptException e) {
-                        errOut.append(e.getMessage() + "\n");
+                        showFeedback(e.getMessage());
+//                        errOut.append(e.getMessage() + "\n");
                     }
                 }
 
@@ -1325,9 +1326,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     engine = mgr.getEngineByName(scriptingLanguage);
                 }
 
-                PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
-                engine.getContext().setWriter(out);
-
+//                PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
+//                engine.getContext().setWriter(out);
                 if (scriptingLanguage.equals("python")) {
                     engine.put("__file__", scriptFile);
                 }
@@ -1388,9 +1388,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 engine = mgr.getEngineByName(scriptingLanguage);
             }
 
-            PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
-            engine.getContext().setWriter(out);
-
+//            PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
+//            engine.getContext().setWriter(out);
             if (scriptingLanguage.equals("python")) {
                 engine.put("__file__", scriptFile);
             }
@@ -1476,11 +1475,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         newMap(mapName);
                     } else {
                         // display the text area, if it's not already.
-                        if (splitPane3.getDividerLocation() / splitPane3.getHeight() < 0.75) {
-                            splitPane3.setDividerLocation(0.75);
-                        }
-                        textArea.setText("");
-                        textArea.setText(retStr);
+//                        if (splitPane3.getDividerLocation() / splitPane3.getHeight() < 0.75) {
+//                            splitPane3.setDividerLocation(0.75);
+//                        }
+//                        textArea.setText("");
+//                        textArea.setText(retStr);
+                        viewTextDialog(retStr);
                     }
                 } else if (ret instanceof JPanel) {
                     // Create a dialog and place it in that. Then display the dialog.
@@ -1512,6 +1512,25 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } finally {
             suppressReturnedData = false;
             fireReturnedDataEvent(new ReturnedDataEvent(this, ret));
+        }
+    }
+
+    private void viewTextDialog(String text) {
+        ViewTextDialog vtd = new ViewTextDialog(this, false);
+        if (!text.isEmpty()) {
+            vtd.setText(text);
+        }
+        vtd.setVisible(true);
+    }
+
+    private void viewHtmlDialog(String text) {
+        try {
+            JFrame frame = new HTMLViewer(this, text);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frame.setSize(600, 600);
+            frame.setVisible(true);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "WhiteboxGui.returnData", e);
         }
     }
 
@@ -1679,9 +1698,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 engine = mgr.getEngineByName(scriptingLanguage);
             }
 
-            PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
-            engine.getContext().setWriter(out);
-
+//            PrintWriter out = new PrintWriter(new TextAreaWriter(textArea));
+//            engine.getContext().setWriter(out);
             if (scriptingLanguage.equals("python")) {
                 engine.put("__file__", scriptFile);
             }
@@ -1909,7 +1927,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 }
 
                 splitterLoc1 = Integer.parseInt(props.getProperty("splitterLoc1"));
-                splitterToolboxLoc = Integer.parseInt(props.getProperty("splitterToolboxLoc"));
+//                splitterToolboxLoc = Integer.parseInt(props.getProperty("splitterToolboxLoc"));
                 tbTabsIndex = Integer.parseInt(props.getProperty("tbTabsIndex"));
                 qlTabsIndex = Integer.parseInt(props.getProperty("qlTabsIndex"));
                 defaultQuantPalette = props.getProperty("defaultQuantPalette");
@@ -2021,7 +2039,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 if (props.containsKey("checkForUpdates")) {
                     checkForUpdates = Boolean.parseBoolean(props.getProperty("checkForUpdates"));
                 }
-                
+
                 // check for scroll zoom direction
                 if (props.containsKey("scrollZoomDirection")) {
                     int i = Integer.parseInt(props.getProperty("scrollZoomDirection"));
@@ -2029,7 +2047,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         setScrollZoomDirection(MapRenderer2.ScrollZoomDirection.NORMAL);
                     } else {
                         setScrollZoomDirection(MapRenderer2.ScrollZoomDirection.REVERSE);
-                    } 
+                    }
                 }
 
                 // retrieve the plugin usage information
@@ -2060,7 +2078,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         } else {
             setWorkingDirectory(resourcesDirectory + "samples");
             splitterLoc1 = 250;
-            splitterToolboxLoc = 250;
+//            splitterToolboxLoc = 250;
             tbTabsIndex = 0;
             qlTabsIndex = 0;
             defaultQuantPalette = "spectrum.pal";
@@ -2099,13 +2117,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("country", country);
         props.setProperty("receiveAnnouncements", Boolean.toString(receiveAnnouncements));
         props.setProperty("checkForUpdates", Boolean.toString(checkForUpdates));
-        
+
         if (scrollZoomDir == MapRenderer2.ScrollZoomDirection.NORMAL) {
             props.setProperty("scrollZoomDirection", "0");
         } else {
             props.setProperty("scrollZoomDirection", "1");
         }
-                
+
         // set the recent data layers
         String recentDataLayers = "";
         List<String> layersList = recentFilesMenu.getList();
@@ -2239,29 +2257,29 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             drawingArea.setScaleText(scaleText);
             drawingArea.setHost(this);
 
-            textArea.setLineWrap(false);
-            textArea.setWrapStyleWord(false);
-            textArea.setFont(new Font(defaultFont.getName(), Font.PLAIN, 12));
-            MouseListener ml = new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    TextAreaMousePress(e);
-                }
-            };
-            textArea.addMouseListener(ml);
-            textArea.setPreferredSize(new Dimension(0, 0));
-            JScrollPane scrollText = new JScrollPane(textArea);
-            scrollText.setMinimumSize(new Dimension(0, 0));
-            splitPane3 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, drawingArea, scrollText);
-            splitPane3.setResizeWeight(1.0);
-            splitPane3.setOneTouchExpandable(true);
+//            textArea.setLineWrap(false);
+//            textArea.setWrapStyleWord(false);
+//            textArea.setFont(new Font(defaultFont.getName(), Font.PLAIN, 12));
+//            MouseListener ml = new MouseAdapter() {
+//                @Override
+//                public void mousePressed(MouseEvent e) {
+//                    textAreaMousePress(e);
+//                }
+//            };
+//            textArea.addMouseListener(ml);
+//            textArea.setPreferredSize(new Dimension(0, 0));
+//            JScrollPane scrollText = new JScrollPane(textArea);
+//            scrollText.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+//            scrollText.setMinimumSize(new Dimension(0, 0));
+//            splitPane3 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, drawingArea, scrollText);
+//            splitPane3.setResizeWeight(1.0);
+//            splitPane3.setOneTouchExpandable(true);
             //splitPane3.setDividerLocation(1.0);
-
             tb = createTabbedPane();
             tb.setMaximumSize(new Dimension(150, 50));
             tb.setPreferredSize(new Dimension(splitterLoc1, 50));
             tb.setSelectedIndex(tbTabsIndex);
-            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tb, splitPane3);
+            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tb, drawingArea); //splitPane3);
             splitPane.setResizeWeight(0);
             splitPane.setOneTouchExpandable(false);
             splitPane.setDividerSize(3);
@@ -2295,23 +2313,22 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             splitPane2.setDividerLocation(0.75); //splitterToolboxLoc);
 
             pack();
-            restoreDefaults();
+//            restoreDefaults();
         } catch (SecurityException | IllegalArgumentException | InvocationTargetException e) {
             logger.log(Level.SEVERE, "WhiteboxGui.createGui", e);
             showFeedback(e.toString());
         }
     }
 
-    private void restoreDefaults() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                //splitPane2.setDividerLocation(0.75);//splitterToolboxLoc);
-                splitPane3.setDividerLocation(1.0);
-            }
-        });
-    }
-
+//    private void restoreDefaults() {
+//        SwingUtilities.invokeLater(new Runnable() {
+//            @Override
+//            public void run() {
+//                //splitPane2.setDividerLocation(0.75);//splitterToolboxLoc);
+//                splitPane3.setDividerLocation(1.0);
+//            }
+//        });
+//    }
     private void displayAnnouncements() {
         if (announcements.size() < 1) {
             return;
@@ -2425,7 +2442,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     new ImageIcon(graphicsDirectory + "SaveMap.png"));
             JMenuItem closeMap = new JMenuItem(bundle.getString("CloseMap"),
                     new ImageIcon(graphicsDirectory + "close.png"));
-            
+
             JMenuItem close = new JMenuItem(bundle.getString("Close"));
 
             JMenuItem layerProperties = new JMenuItem(bundle.getString("LayerDisplayProperties"),
@@ -2637,7 +2654,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewMenu.add(zoomToPage);
             zoomToPage.addActionListener(this);
             zoomToPage.setActionCommand("zoomToPage");
-            
+
             mi = new JMenuItem(bundle.getString("ZoomToSelection"));
             mi.addActionListener(this);
             mi.setActionCommand("zoomToSelection");
@@ -2712,6 +2729,27 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             options.addActionListener(this);
             options.setActionCommand("options");
 
+            viewMenu.addSeparator();
+            JMenuItem textViewer = new JMenuItem("Text Viewer");
+            viewMenu.add(textViewer);
+            textViewer.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    viewTextDialog("");
+                }
+            });
+
+            JMenuItem htmlViewer = new JMenuItem("HTML Viewer");
+            viewMenu.add(htmlViewer);
+            htmlViewer.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    viewHtmlDialog("");
+                }
+            });
+
             menubar.add(viewMenu);
 
             // Cartographic menu
@@ -2735,13 +2773,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             saveMap.setActionCommand("saveMap");
             saveMap.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             cartoMenu.add(saveMap);
-            
+
             JMenuItem saveAsMap = new JMenuItem(bundle.getString("SaveAs") + "...");
             cartoMenu.add(saveAsMap);
             saveAsMap.addActionListener(this);
             saveAsMap.setActionCommand("saveMapAs");
-            
-            
+
             JMenuItem printMap = new JMenuItem(bundle.getString("PrintMap"), new ImageIcon(graphicsDirectory + "Print.png"));
             cartoMenu.add(printMap);
             printMap.addActionListener(this);
@@ -3102,7 +3139,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         mi.addActionListener(this);
         mi.setActionCommand("saveMap");
         mapsPopup.add(mi);
-        
+
         mi = new JMenuItem(bundle.getString("SaveAs") + "...");
         mi.addActionListener(this);
         mi.setActionCommand("saveMapAs");
@@ -3207,7 +3244,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         mi.addActionListener(this);
         mi.setActionCommand("zoomToLayer");
         mapAreaPopup.add(mi);
-        
+
         mi = new JMenuItem(bundle.getString("ZoomToFullExtent"),
                 new ImageIcon(graphicsDirectory + "Globe.png"));
         mi.addActionListener(this);
@@ -3245,60 +3282,59 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         mi.setActionCommand("deleteMapArea");
         mapAreaPopup.add(mi);
 
-        // text popup menu
-        textPopup = new JPopupMenu();
-
-        mi = new JMenuItem(bundle.getString("Open"));
-        mi.addActionListener(this);
-        mi.setActionCommand("openText");
-        textPopup.add(mi);
-
-        mi = new JMenuItem(bundle.getString("Save"));
-        mi.addActionListener(this);
-        mi.setActionCommand("saveText");
-        textPopup.add(mi);
-
-        mi = new JMenuItem(bundle.getString("Close"));
-        mi.addActionListener(this);
-        mi.setActionCommand("closeText");
-        textPopup.add(mi);
-
-        textPopup.addSeparator();
-
-        mi = new JMenuItem(bundle.getString("Clear"));
-        mi.addActionListener(this);
-        mi.setActionCommand("clearText");
-        textPopup.add(mi);
-
-        mi = new JMenuItem(bundle.getString("Cut"));
-        mi.addActionListener(this);
-        mi.setActionCommand("cutText");
-        textPopup.add(mi);
-        mi = new JMenuItem(bundle.getString("Copy"));
-        mi.addActionListener(this);
-        mi.setActionCommand("copyText");
-        textPopup.add(mi);
-
-        mi = new JMenuItem(bundle.getString("Paste"));
-        mi.addActionListener(this);
-        mi.setActionCommand("pasteText");
-        textPopup.add(mi);
-
-        mi = new JMenuItem(bundle.getString("SelectAll"));
-        mi.addActionListener(this);
-        mi.setActionCommand("selectAllText");
-        textPopup.add(mi);
-
-        textPopup.addSeparator();
-        wordWrap = new JCheckBoxMenuItem(bundle.getString("WordWrap"));
-        wordWrap.addActionListener(this);
-        wordWrap.setActionCommand("wordWrap");
-        wordWrap.setState(false);
-        textPopup.add(wordWrap);
-
-        textPopup.setOpaque(true);
-        textPopup.setLightWeightPopupEnabled(true);
-
+//        // text popup menu
+//        textPopup = new JPopupMenu();
+//
+//        mi = new JMenuItem(bundle.getString("Open"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("openText");
+//        textPopup.add(mi);
+//
+//        mi = new JMenuItem(bundle.getString("Save"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("saveText");
+//        textPopup.add(mi);
+//
+//        mi = new JMenuItem(bundle.getString("Close"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("closeText");
+//        textPopup.add(mi);
+//
+//        textPopup.addSeparator();
+//
+//        mi = new JMenuItem(bundle.getString("Clear"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("clearText");
+//        textPopup.add(mi);
+//
+//        mi = new JMenuItem(bundle.getString("Cut"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("cutText");
+//        textPopup.add(mi);
+//        mi = new JMenuItem(bundle.getString("Copy"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("copyText");
+//        textPopup.add(mi);
+//
+//        mi = new JMenuItem(bundle.getString("Paste"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("pasteText");
+//        textPopup.add(mi);
+//
+//        mi = new JMenuItem(bundle.getString("SelectAll"));
+//        mi.addActionListener(this);
+//        mi.setActionCommand("selectAllText");
+//        textPopup.add(mi);
+//
+//        textPopup.addSeparator();
+//        wordWrap = new JCheckBoxMenuItem(bundle.getString("WordWrap"));
+//        wordWrap.addActionListener(this);
+//        wordWrap.setActionCommand("wordWrap");
+//        wordWrap.setState(false);
+//        textPopup.add(wordWrap);
+//
+//        textPopup.setOpaque(true);
+//        textPopup.setLightWeightPopupEnabled(true);
     }
 
     public void setCartoElementToolbarVisibility(boolean value) {
@@ -3409,11 +3445,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JButton openMap = makeToolBarButton("open.png", "openMap",
                     bundle.getString("OpenMap"), "Open");
             toolbar.add(openMap);
-            
+
             JButton closeMap = makeToolBarButton("close.png", "closeMap",
                     bundle.getString("CloseMap"), "Close");
             toolbar.add(closeMap);
-            
+
             JButton saveMap = makeToolBarButton("SaveMap.png", "saveMap",
                     bundle.getString("SaveMap"), "Save");
             toolbar.add(saveMap);
@@ -3833,13 +3869,12 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //            tree.collapsePath(parent);
 //        }
 //    }
-    private void TextAreaMousePress(MouseEvent e) {
-
-        if (e.getButton() == 3 || e.isPopupTrigger()) {
-            textPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
-        }
-    }
-
+//    private void textAreaMousePress(MouseEvent e) {
+//
+//        if (e.getButton() == 3 || e.isPopupTrigger()) {
+//            textPopup.show((JComponent) e.getSource(), e.getX(), e.getY());
+//        }
+//    }
     public void layersTabMousePress(MouseEvent e, int mapNum, int mapArea, int layerNum) {
         // update the selected map and layer
         selectedMapAndLayer[0] = mapNum;
@@ -6081,7 +6116,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             refreshMap(false);
         }
     }
-    
+
     private void zoomToSelection() {
         int mapNum;
         int mapAreaNum;
@@ -6121,7 +6156,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             //ma.calculateFullExtent();
             MapLayer ml = ma.getLayer(layerOverlayNum);
             if (ml instanceof VectorLayerInfo) {
-                VectorLayerInfo vli = (VectorLayerInfo)ml;
+                VectorLayerInfo vli = (VectorLayerInfo) ml;
                 BoundingBox db = vli.getSelectedExtent();
                 if (db != null) {
                     ma.setCurrentExtent(db);
@@ -6503,122 +6538,121 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     }
     String currentTextFile = null;
 
-    private void openText() {
-
-        JFileChooser fc = new JFileChooser();
-        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fc.setMultiSelectionEnabled(false);
-        fc.setAcceptAllFileFilterUsed(true);
-        fc.setCurrentDirectory(new File(workingDirectory));
-
-        FileFilter ft = new FileNameExtensionFilter("Whitebox Raster Files", "dep");
-        fc.addChoosableFileFilter(ft);
-        ft = new FileNameExtensionFilter("Text Files", "txt");
-        fc.addChoosableFileFilter(ft);
-
-        int result = fc.showOpenDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
-            currentTextFile = file.toString();
-            String fileDirectory = file.getParentFile() + pathSep;
-            if (!fileDirectory.equals(workingDirectory)) {
-                setWorkingDirectory(fileDirectory);
-            }
-            // display the text area, if it's not already.
-            if (splitPane3.getDividerLocation() / splitPane3.getHeight() < 0.75) {
-                splitPane3.setDividerLocation(0.75);
-            }
-
-            textArea.setText("");
-
-            // Read in data file to JTextArea
-            try {
-                String strLine;
-                FileInputStream in = new FileInputStream(file);
-                BufferedReader br = new BufferedReader(new InputStreamReader(in));
-                while ((strLine = br.readLine()) != null) {
-                    textArea.append(strLine + "\n");
-                }
-                br.close();
-                in.close();
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "WhiteboxGui.openText", e);
-                //System.out.println("Error: " + e.getMessage());
-            }
-        }
-
-    }
-
-    private void saveText() {
-        if (currentTextFile == null) {
-            JFileChooser fc = new JFileChooser();
-            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fc.setMultiSelectionEnabled(false);
-            fc.setAcceptAllFileFilterUsed(true);
-            fc.setFileHidingEnabled(true);
-
-            FileFilter ft = new FileNameExtensionFilter("Text Files", "txt");
-            fc.addChoosableFileFilter(ft);
-            ft = new FileNameExtensionFilter("Whitebox Raster Files", "dep");
-            fc.addChoosableFileFilter(ft);
-
-            fc.setCurrentDirectory(new File(workingDirectory));
-            int result = fc.showSaveDialog(this);
-            File file = null;
-            if (result == JFileChooser.APPROVE_OPTION) {
-                file = fc.getSelectedFile();
-                if (file.exists()) {
-                    Object[] options = {"Yes", "No"};
-                    int n = JOptionPane.showOptionDialog(this,
-                            "The file already exists.\n"
-                            + "Would you like to overwrite it?",
-                            "Whitebox GAT Message",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE,
-                            null, //do not use a custom Icon
-                            options, //the titles of buttons
-                            options[0]); //default button title
-
-                    if (n == JOptionPane.YES_OPTION) {
-                        file.delete();
-                        new File(file.toString().replace(".dep", ".tas")).delete();
-                    } else if (n == JOptionPane.NO_OPTION) {
-                        return;
-                    }
-                }
-                currentTextFile = file.toString();
-            } else {
-                return;
-            }
-        }
-
-        File file = new File(currentTextFile);
-        FileWriter fw = null;
-        BufferedWriter bw = null;
-        PrintWriter out = null;
-        try {
-            fw = new FileWriter(file, false);
-            bw = new BufferedWriter(fw);
-            out = new PrintWriter(bw, true);
-
-            out.print(textArea.getText());
-
-            bw.close();
-            fw.close();
-        } catch (java.io.IOException e) {
-            logger.log(Level.SEVERE, "WhiteboxGui.saveText", e);
-            //System.err.println("Error: " + e.getMessage());
-        } catch (Exception e) { //Catch exception if any
-            logger.log(Level.SEVERE, "WhiteboxGui.saveText", e);
-            //System.err.println("Error: " + e.getMessage());
-        } finally {
-            if (out != null || bw != null) {
-                out.flush();
-                out.close();
-            }
-        }
-    }
-
+//    private void openText() {
+//
+//        JFileChooser fc = new JFileChooser();
+//        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+//        fc.setMultiSelectionEnabled(false);
+//        fc.setAcceptAllFileFilterUsed(true);
+//        fc.setCurrentDirectory(new File(workingDirectory));
+//
+//        FileFilter ft = new FileNameExtensionFilter("Whitebox Raster Files", "dep");
+//        fc.addChoosableFileFilter(ft);
+//        ft = new FileNameExtensionFilter("Text Files", "txt");
+//        fc.addChoosableFileFilter(ft);
+//
+//        int result = fc.showOpenDialog(this);
+//        if (result == JFileChooser.APPROVE_OPTION) {
+//            File file = fc.getSelectedFile();
+//            currentTextFile = file.toString();
+//            String fileDirectory = file.getParentFile() + pathSep;
+//            if (!fileDirectory.equals(workingDirectory)) {
+//                setWorkingDirectory(fileDirectory);
+//            }
+//            // display the text area, if it's not already.
+//            if (splitPane3.getDividerLocation() / splitPane3.getHeight() < 0.75) {
+//                splitPane3.setDividerLocation(0.75);
+//            }
+//
+//            textArea.setText("");
+//
+//            // Read in data file to JTextArea
+//            try {
+//                String strLine;
+//                FileInputStream in = new FileInputStream(file);
+//                BufferedReader br = new BufferedReader(new InputStreamReader(in));
+//                while ((strLine = br.readLine()) != null) {
+//                    textArea.append(strLine + "\n");
+//                }
+//                br.close();
+//                in.close();
+//            } catch (Exception e) {
+//                logger.log(Level.SEVERE, "WhiteboxGui.openText", e);
+//                //System.out.println("Error: " + e.getMessage());
+//            }
+//        }
+//
+//    }
+//
+//    private void saveText() {
+//        if (currentTextFile == null) {
+//            JFileChooser fc = new JFileChooser();
+//            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+//            fc.setMultiSelectionEnabled(false);
+//            fc.setAcceptAllFileFilterUsed(true);
+//            fc.setFileHidingEnabled(true);
+//
+//            FileFilter ft = new FileNameExtensionFilter("Text Files", "txt");
+//            fc.addChoosableFileFilter(ft);
+//            ft = new FileNameExtensionFilter("Whitebox Raster Files", "dep");
+//            fc.addChoosableFileFilter(ft);
+//
+//            fc.setCurrentDirectory(new File(workingDirectory));
+//            int result = fc.showSaveDialog(this);
+//            File file = null;
+//            if (result == JFileChooser.APPROVE_OPTION) {
+//                file = fc.getSelectedFile();
+//                if (file.exists()) {
+//                    Object[] options = {"Yes", "No"};
+//                    int n = JOptionPane.showOptionDialog(this,
+//                            "The file already exists.\n"
+//                            + "Would you like to overwrite it?",
+//                            "Whitebox GAT Message",
+//                            JOptionPane.YES_NO_OPTION,
+//                            JOptionPane.QUESTION_MESSAGE,
+//                            null, //do not use a custom Icon
+//                            options, //the titles of buttons
+//                            options[0]); //default button title
+//
+//                    if (n == JOptionPane.YES_OPTION) {
+//                        file.delete();
+//                        new File(file.toString().replace(".dep", ".tas")).delete();
+//                    } else if (n == JOptionPane.NO_OPTION) {
+//                        return;
+//                    }
+//                }
+//                currentTextFile = file.toString();
+//            } else {
+//                return;
+//            }
+//        }
+//
+//        File file = new File(currentTextFile);
+//        FileWriter fw = null;
+//        BufferedWriter bw = null;
+//        PrintWriter out = null;
+//        try {
+//            fw = new FileWriter(file, false);
+//            bw = new BufferedWriter(fw);
+//            out = new PrintWriter(bw, true);
+//
+//            out.print(textArea.getText());
+//
+//            bw.close();
+//            fw.close();
+//        } catch (java.io.IOException e) {
+//            logger.log(Level.SEVERE, "WhiteboxGui.saveText", e);
+//            //System.err.println("Error: " + e.getMessage());
+//        } catch (Exception e) { //Catch exception if any
+//            logger.log(Level.SEVERE, "WhiteboxGui.saveText", e);
+//            //System.err.println("Error: " + e.getMessage());
+//        } finally {
+//            if (out != null || bw != null) {
+//                out.flush();
+//                out.close();
+//            }
+//        }
+//    }
     private void showAboutDialog() {
         AboutWhitebox about = new AboutWhitebox(this, true, graphicsDirectory,
                 versionName, versionNumber);
@@ -7486,31 +7520,31 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 rc.setLocation(250, 250);
                 rc.setVisible(true);
                 break;
-            case "selectAllText":
-                textArea.selectAll();
-                break;
-            case "copyText":
-                textArea.copy();
-                break;
-            case "pasteText":
-                textArea.paste();
-                break;
-            case "cutText":
-                textArea.cut();
-                break;
-            case "clearText":
-                textArea.setText("");
-                break;
-            case "openText":
-                openText();
-                break;
-            case "saveText":
-                saveText();
-                break;
-            case "closeText":
-                textArea.setText("");
-                currentTextFile = null;
-                break;
+//            case "selectAllText":
+//                textArea.selectAll();
+//                break;
+//            case "copyText":
+//                textArea.copy();
+//                break;
+//            case "pasteText":
+//                textArea.paste();
+//                break;
+//            case "cutText":
+//                textArea.cut();
+//                break;
+//            case "clearText":
+//                textArea.setText("");
+//                break;
+//            case "openText":
+//                openText();
+//                break;
+//            case "saveText":
+//                saveText();
+//                break;
+//            case "closeText":
+//                textArea.setText("");
+//                currentTextFile = null;
+//                break;
             case "printMap":
                 printMap();
                 break;
@@ -7571,10 +7605,10 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             case "removeAllLayers":
                 removeAllLayers();
                 break;
-            case "wordWrap":
-                textArea.setLineWrap(wordWrap.getState());
-                textArea.setWrapStyleWord(wordWrap.getState());
-                break;
+//            case "wordWrap":
+//                textArea.setLineWrap(wordWrap.getState());
+//                textArea.setWrapStyleWord(wordWrap.getState());
+//                break;
             case "viewAttributeTable":
                 showAttributesFile();
                 break;
@@ -7728,14 +7762,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         dispose();
         System.exit(0);
     }
-    
+
     private MapRenderer2.ScrollZoomDirection scrollZoomDir = MapRenderer2.ScrollZoomDirection.NORMAL;
-    
+
     public void setScrollZoomDirection(MapRenderer2.ScrollZoomDirection direction) {
         this.scrollZoomDir = direction;
         drawingArea.setScrollZoomDirection(direction);
     }
-    
+
     public MapRenderer2.ScrollZoomDirection getScrollZoomDirection() {
         return this.scrollZoomDir;
     }

@@ -18,6 +18,7 @@ import whitebox.ui.plugin_dialog.*
 import whitebox.utilities.FileUtilities;
 import whitebox.geospatialfiles.VectorLayerInfo
 import whitebox.geospatialfiles.shapefile.attributes.*
+import whitebox.geospatialfiles.shapefile.attributes.DBFField.DBFDataType
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord
 import whitebox.utilities.Topology
 import whitebox.structures.KdTree
@@ -117,7 +118,6 @@ public class VectorAttributeGridding implements ActionListener {
 			}
 			
 			// read the input parameters
-			//String inputShapefile = args[0]
 			String[] inputData = args[0].split(";")
 			if (inputData[0] == null || inputData[0].isEmpty()) {
 				pluginHost.showFeedback("Input shapefile and attribute not specified.")
@@ -129,7 +129,7 @@ public class VectorAttributeGridding implements ActionListener {
 			}
 			String inputShapefile = inputData[0]
 			String fieldName = inputData[1]
-			
+
 			double cellSize = -1.0
 			if (args[1] != null && !args[1].isEmpty() && !args[1].toLowerCase().equals("not specified")) {
 				cellSize = Double.parseDouble(args[1])
@@ -144,6 +144,18 @@ public class VectorAttributeGridding implements ActionListener {
 
 			ShapeFile input = new ShapeFile(inputShapefile)
 
+			// see if the input attributes is numerical
+            DBFField[] fields = input.getAttributeTable().getAllFields()
+        	int fieldNum = input.getAttributeTable().getFieldColumnNumberFromName(fieldName)
+			if (fields[fieldNum].getDataType() != DBFDataType.NUMERIC && 
+        	     fields[fieldNum].getDataType() != DBFDataType.FLOAT) {
+        	    pluginHost.showFeedback("The input attribute must be of numeric type. If you have \n" +
+        	                            "categorical attributes, use the Field Calculator to create a new \n" + 
+        	                            "Dummy variable from this attribute (i.e. convert it to \n" + 
+        	                            "numerical data).")
+        	    return
+        	}
+			
 			WhiteboxRaster output
 			if ((cellSize > 0) || ((cellSize < 0) & (inputBaseRaster.toLowerCase().contains("not specified")))) {
                 if ((cellSize < 0) & (inputBaseRaster.toLowerCase().contains("not specified"))) {

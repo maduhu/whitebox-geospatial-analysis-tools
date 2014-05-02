@@ -97,7 +97,7 @@ public class ClusterAttributes implements ActionListener {
             // Specifying the source file allows the 'view code' 
             // button on the tool dialog to be displayed.
             def pathSep = File.separator
-            def scriptFile = pluginHost.getResourcesDirectory() + "plugins" + pathSep + "Scripts" + pathSep + "Medoid.groovy"
+            def scriptFile = pluginHost.getResourcesDirectory() + "plugins" + pathSep + "Scripts" + pathSep + name + ".groovy"
             sd.setSourceFile(scriptFile)
 			
             // add some components to the dialog

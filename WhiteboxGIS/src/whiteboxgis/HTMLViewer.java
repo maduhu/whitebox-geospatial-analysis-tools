@@ -31,10 +31,14 @@ import javax.swing.event.HyperlinkListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PrinterException;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
@@ -42,6 +46,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import whiteboxgis.user_interfaces.Scripter;
 import whitebox.interfaces.WhiteboxPluginHost;
+import static whiteboxgis.WhiteboxGui.logger;
 
 /**
  *
@@ -53,6 +58,8 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
     private int helpHistoryIndex = 0;
     JEditorPane helpPane = new JEditorPane();
     WhiteboxPluginHost host;
+    private String workingDirectory = "";
+    private String currentFile = "";
 
     public HTMLViewer(WhiteboxPluginHost host, String stringFileOrURL) throws Exception {
 
@@ -71,14 +78,15 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
         }
 
         this.host = host;
+        this.workingDirectory = host.getWorkingDirectory();
 
         createGui(stringFileOrURL);
     }
-    
+
     private void createGui(String stringFileOrURL) {
         try {
             this.setTitle("Whitebox GAT");
-            
+
             helpPane.addHyperlinkListener(this);
             helpPane.setContentType("text/html");
 
@@ -106,7 +114,7 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
                 } catch (IOException e) {
                     System.err.println(e.getStackTrace());
                 }
-
+                currentFile = stringFileOrURL;
                 this.setTitle("HTML Viewer: " + (new File(stringFileOrURL)).getName());
             } else {
                 helpPane.setText(stringFileOrURL);
@@ -133,7 +141,7 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
             mi.addActionListener(this);
             mi.setActionCommand("copy");
             textPopup.add(mi);
-            
+
             mi2 = new JMenuItem(host.getGuiLabelsBundle().getString("Copy"));
             mi2.addActionListener(this);
             mi2.setActionCommand("copy");
@@ -153,16 +161,27 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
             menu.add(mi2);
 
             textPopup.addSeparator();
+            
+            mi = new JMenuItem(host.getGuiLabelsBundle().getString("Open"));
+            mi.addActionListener(this);
+            mi.setActionCommand("open");
+            textPopup.add(mi);
+
+            menu.addSeparator();
+            mi2 = new JMenuItem(host.getGuiLabelsBundle().getString("Open"));
+            mi2.addActionListener(this);
+            mi2.setActionCommand("open");
+            menu.add(mi2);
+            
             mi = new JMenuItem(host.getGuiLabelsBundle().getString("Save"));
             mi.addActionListener(this);
             mi.setActionCommand("save");
             textPopup.add(mi);
-            menu.addSeparator();
             mi2 = new JMenuItem(host.getGuiLabelsBundle().getString("Save"));
             mi2.addActionListener(this);
             mi2.setActionCommand("save");
             menu.add(mi2);
-            
+
             mi = new JMenuItem(host.getGuiLabelsBundle().getString("SaveAs") + "...");
             mi.addActionListener(this);
             mi.setActionCommand("saveAs");
@@ -171,7 +190,7 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
             mi2.addActionListener(this);
             mi2.setActionCommand("saveAs");
             menu.add(mi2);
-            
+
             mi = new JMenuItem(host.getGuiLabelsBundle().getString("Print"));
             mi.addActionListener(this);
             mi.setActionCommand("print");
@@ -188,7 +207,7 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
             JMenuBar menubar = new JMenuBar();
             menubar.add(menu);
             this.setJMenuBar(menubar);
-            
+
         } catch (Exception e) {
             host.logException("Error in HTMLViewer.", e);
         }
@@ -297,10 +316,46 @@ public class HTMLViewer extends JFrame implements HyperlinkListener, ActionListe
         save();
     }
 
+    private void open() {
+        JFileChooser fc = new JFileChooser();
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fc.setMultiSelectionEnabled(false);
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setCurrentDirectory(new File(workingDirectory));
+
+        FileFilter ft = new FileNameExtensionFilter("HTML Files", "html");
+        fc.addChoosableFileFilter(ft);
+
+        int result = fc.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            currentFile = file.toString();
+            String fileDirectory = file.getParentFile() + File.separator;
+            if (!fileDirectory.equals(workingDirectory)) {
+                host.setWorkingDirectory(fileDirectory);
+            }
+
+            try {
+                if (!currentFile.toLowerCase().startsWith("http://")) {
+                    helpPane.setPage(new URL("file:///" + currentFile));
+                } else {
+                    helpPane.setPage(new URL(currentFile));
+                }
+            } catch (IOException e) {
+                System.err.println(e.getStackTrace());
+            }
+
+        }
+
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String actionCommand = e.getActionCommand();
         switch (actionCommand.toLowerCase()) {
+            case "open":
+                open();
+                break;
             case "print":
                 try {
                     helpPane.print();
