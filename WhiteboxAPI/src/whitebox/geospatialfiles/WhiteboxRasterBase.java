@@ -464,6 +464,9 @@ public abstract class WhiteboxRasterBase {
      * @param value A float specifying the value used. Default value is -32768.
      */
     public void setNoDataValue(double value) {
+        if (Double.isNaN(value)) {
+            noDataValue = -32768;
+        }
         noDataValue = value;
     }
 
@@ -779,6 +782,9 @@ public abstract class WhiteboxRasterBase {
                         byteOrderRead = true;
                     } else if (str[0].toLowerCase().contains("nodata")) {
                         this.noDataValue = Float.parseFloat(str[dataCol]);
+                        if (Double.isNaN(this.noDataValue)) {
+                            this.noDataValue = -32768.0;
+                        }
                     } else if (str[0].toLowerCase().contains("metadata entry")) {
                         if (str.length > 1) {
                             this.addMetadataEntry(str[dataCol]);
@@ -815,7 +821,7 @@ public abstract class WhiteboxRasterBase {
 
         }
     }
-    
+
     public void resetDisplayMinMaxValues() {
         this.displayMaximum = this.maximumValue;
         this.displayMinimum = this.minimumValue;
@@ -1112,9 +1118,9 @@ public abstract class WhiteboxRasterBase {
     }
 
     /**
-     * This method should be used when you need to access an entire column of data
-     * at a time. It has less overhead that the getValue method and can be used
-     * to efficiently scan through a raster image column by column.
+     * This method should be used when you need to access an entire column of
+     * data at a time. It has less overhead that the getValue method and can be
+     * used to efficiently scan through a raster image column by column.
      *
      * @param col An int stating the zero-based column to be returned.
      * @return An array of doubles containing the values store in the specified
@@ -1143,7 +1149,7 @@ public abstract class WhiteboxRasterBase {
             }
 
             rIn = new RandomAccessFile(dataFile, "r");
-            
+
             buf = ByteBuffer.allocate((int) (cellSizeInBytes));
             FileChannel inChannel = rIn.getChannel();
 
@@ -1168,7 +1174,7 @@ public abstract class WhiteboxRasterBase {
                         inChannel.read(buf, pos);
                         buf.rewind();
                         FloatBuffer fb = buf.asFloatBuffer();
-                        retVals[i] = (double)fb.get(0);
+                        retVals[i] = (double) fb.get(0);
                     }
                     break;
                 case INTEGER:
@@ -1177,7 +1183,7 @@ public abstract class WhiteboxRasterBase {
                         inChannel.read(buf, pos);
                         buf.rewind();
                         ShortBuffer sb = buf.asShortBuffer();
-                        retVals[i] = (double)sb.get(0);
+                        retVals[i] = (double) sb.get(0);
                     }
                     break;
                 case BYTE:
@@ -1376,7 +1382,7 @@ public abstract class WhiteboxRasterBase {
             file.delete();
         }
     }
-    
+
     public void readStatsFile() {
         File file = new File(statsFile);
         if (!file.exists()) {

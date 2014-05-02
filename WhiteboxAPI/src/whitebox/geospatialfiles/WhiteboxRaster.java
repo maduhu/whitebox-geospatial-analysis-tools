@@ -530,7 +530,6 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
 
                 readDataBlock();
             }
-
             return grid[(int) (cellNum - blockStartingCell)];
         } else {
             if (!isReflectedAtEdges) {
@@ -576,6 +575,9 @@ public class WhiteboxRaster extends WhiteboxRasterBase {
 //        try {
         if (saveChanges && column >= 0 && column < this.numberColumns
                 && row >= 0 && row < this.numberRows) {
+            if (Double.isNaN(value)) {
+                value = noDataValue;
+            }
             // what is the cell number?
             long cellNum = (long) (row) * numberColumns + column;
 

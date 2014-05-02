@@ -554,7 +554,18 @@ public class GeoTiff {
     public double getNoData() {
         if (findTag(Tag.GDALNoData) != null) {
             if (findTag(Tag.GDALNoData).valueS != null) {
-                return Double.parseDouble(findTag(Tag.GDALNoData).valueS);
+                String retStr = findTag(Tag.GDALNoData).valueS;
+                if (retStr.trim().toLowerCase().equals("nan")) {
+                    return Double.NaN;
+                } else if (retStr.trim().toLowerCase().contains("inf")) {
+                    if (retStr.trim().toLowerCase().contains("n")) {
+                        return Double.NEGATIVE_INFINITY;
+                    } else {
+                        return Double.POSITIVE_INFINITY;
+                    }
+                } else {
+                    return Double.parseDouble(retStr);
+                }
             } else {
                 return -32768;
             }
