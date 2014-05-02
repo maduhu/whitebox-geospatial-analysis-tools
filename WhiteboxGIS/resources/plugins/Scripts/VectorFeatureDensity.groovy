@@ -6,6 +6,7 @@ import java.util.ArrayList
 import java.util.HashSet
 import java.util.concurrent.Future
 import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import whitebox.interfaces.WhiteboxPluginHost
@@ -35,8 +36,8 @@ public class VectorFeatureDensity implements ActionListener {
 	private WhiteboxPluginHost pluginHost
 	private ScriptDialog sd;
 	private String descriptiveName
-	
-	private int numSolvedTiles = 0
+	private AtomicInteger numSolved = new AtomicInteger(0)
+	private int rows
 	
 	public VectorFeatureDensity(WhiteboxPluginHost pluginHost, 
 		String[] args, def name, def descriptiveName) {
@@ -119,7 +120,7 @@ public class VectorFeatureDensity implements ActionListener {
 		try {
 
 			double nodata = -32768.0
-			int rows, cols
+			int cols
 			
 			if (args.length != 5) {
 				pluginHost.showFeedback("Incorrect number of arguments given to tool.")
@@ -286,7 +287,7 @@ public class VectorFeatureDensity implements ActionListener {
         	
         @Override
 	    public RowNumberAndData call() {
-//	    	try {
+			int solved = 0
 	    	// check to see if the user has requested a cancellation
 			if (pluginHost.isRequestForOperationCancelSet()) {
 				if (!cancelledMessageGiven) { 
@@ -339,15 +340,16 @@ public class VectorFeatureDensity implements ActionListener {
 					}
 					return
 				}
+				solved = numSolved.incrementAndGet()
 			}
   			
 	        def ret = new RowNumberAndData(startingRow, retData)
+
+	        
+	        int progress = (int) (100f * solved / rows)
+			pluginHost.updateProgress("Interpolated $solved rows:", progress)
 	        
     	    return ret
-
-//	    	} catch (Exception e) {
-//				pluginHost.returnData(e.printStackTrace())
-//	    	}
         }               
     }
 
