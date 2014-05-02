@@ -170,7 +170,7 @@ public class Clump implements WhiteboxPlugin {
         String outputHeader = null;
         int row, col;
         float progress = 0;
-        double maxPatchValue = -1;
+        double maxPatchValue = 0;
         int x, y;
         boolean blnFoundNeighbour;
         boolean blnIncludeDiagNeighbour = false;

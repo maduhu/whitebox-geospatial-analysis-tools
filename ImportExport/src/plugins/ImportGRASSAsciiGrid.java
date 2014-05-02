@@ -29,6 +29,7 @@ import whitebox.geospatialfiles.WhiteboxRaster;
 import whitebox.interfaces.InteropPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.interfaces.WhiteboxPlugin;
+import whitebox.utilities.StringUtilities;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
@@ -348,6 +349,7 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
 
                     // Create the whitebox raster object.
                     WhiteboxRaster wbr = new WhiteboxRaster(whiteboxHeaderFile, "rw");
+                    wbr.reinitialize(whiteboxNoData);
 
                     // Read File Line By Line, this time ingesting the data block
                     // and outputing it to the whitebox raster object.
@@ -385,13 +387,16 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                         } else {
                             // read the data
                             for (i = 0; i < str.length; i++) {
-                                z = Double.parseDouble(str[i]);
-                                if (z != arcNoData) {
-                                    wbr.setValue(row, col, z);
+                                if (StringUtilities.isNumeric(str[i])) {
+                                    z = Double.parseDouble(str[i]);
+                                    if (z != arcNoData) {
+                                        wbr.setValue(row, col, z);
+                                    } else {
+                                        wbr.setValue(row, col, whiteboxNoData);
+                                    }
                                 } else {
                                     wbr.setValue(row, col, whiteboxNoData);
                                 }
-
                                 col++;
                                 if (col == cols) {
                                     col = 0;
@@ -399,6 +404,7 @@ public class ImportGRASSAsciiGrid implements WhiteboxPlugin, InteropPlugin {
                                     progress = (int) (100f * row / (rows - 1));
                                     updateProgress(progress);
                                 }
+
                             }
                         }
                     }

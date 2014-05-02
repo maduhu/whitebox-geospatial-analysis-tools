@@ -15,6 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Modified by John Lindsay, April 17, 2014. */
+
 package plugins;
 
 import java.util.Date;
@@ -199,33 +202,22 @@ public class FlowAccumMDInf implements WhiteboxPlugin {
         
         float progress = 0;
         
-        if (args.length <= 0) {
+        if (args.length == 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
         
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                demHeader = args[i];
-            } else if (i == 1) {
-                upSlopeHeader = args[i];
-            } else if (i == 2) {
-                creekHeader = args[i];
-            } else if (i == 3) {
-                localInHeader = args[i];
-            } else if (i == 4) {
-                mdInfPower = Double.parseDouble(args[i]);
-            } else if (i == 5) {
-                outputType = args[i].toLowerCase();
-            } else if (i == 6) {
-                logTransform = Boolean.parseBoolean(args[i]);
-            } else if (i == 7) {
-                if (!args[i].toLowerCase().equals("not specified")) {
-                    caThreshold = Double.parseDouble(args[i]);
-                } else {
-                    caThreshold = -9999;
-                }
-            }
+        demHeader = args[0];
+        upSlopeHeader = args[1];
+        creekHeader = args[2];
+        localInHeader = args[3];
+        mdInfPower = Double.parseDouble(args[4]);
+        outputType = args[5].toLowerCase();
+        logTransform = Boolean.parseBoolean(args[6]);
+        if (!args[7].toLowerCase().equals("not specified")) {
+            caThreshold = Double.parseDouble(args[7]);
+        } else {
+            caThreshold = -9999;
         }
         
         // check to see that the inputHeader and outputHeader are not null.
