@@ -25,9 +25,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import javax.swing.*;
@@ -104,7 +107,7 @@ public class ViewTextDialog extends JDialog implements ActionListener, KeyListen
                     textAreaMousePress(e);
                 }
             });
-            
+
             JMenu fileMenu = new JMenu(bundle.getString("File"));
             JMenuItem open = new JMenuItem(bundle.getString("Open"));
             open.setActionCommand("openText");
@@ -141,12 +144,12 @@ public class ViewTextDialog extends JDialog implements ActionListener, KeyListen
             menubar.add(fileMenu);
 
             JMenu editMenu = new JMenu(bundle.getString("Edit"));
-            
+
             JMenuItem mi = new JMenuItem(bundle.getString("Clear"));
             mi.addActionListener(this);
             mi.setActionCommand("clearText");
             editMenu.add(mi);
-        
+
             JMenuItem cut = new JMenuItem(bundle.getString("Cut"));
             cut.setActionCommand("cutText");
             cut.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -174,8 +177,7 @@ public class ViewTextDialog extends JDialog implements ActionListener, KeyListen
                 }
             });
             editMenu.add(selectAll);
-            
-            
+
             editMenu.addSeparator();
             wordWrap2 = new JCheckBoxMenuItem(bundle.getString("WordWrap"));
             wordWrap2.addActionListener(this);
@@ -257,7 +259,7 @@ public class ViewTextDialog extends JDialog implements ActionListener, KeyListen
         currentTextFile = null;
         saveText();
     }
-    
+
     private void saveText() {
         if (currentTextFile == null) {
             JFileChooser fc = new JFileChooser();
@@ -298,6 +300,34 @@ public class ViewTextDialog extends JDialog implements ActionListener, KeyListen
                 currentTextFile = file.toString();
             } else {
                 return;
+            }
+
+        }
+
+        File file = new File(currentTextFile);
+        file.delete();
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        PrintWriter out = null;
+        try {
+            fw = new FileWriter(file, false);
+            bw = new BufferedWriter(fw);
+            out = new PrintWriter(bw, true);
+
+            out.print(textArea.getText());
+
+            bw.close();
+            fw.close();
+
+            editorDirty = false;
+        } catch (java.io.IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        } catch (Exception e) { //Catch exception if any
+            System.err.println("Error: " + e.getMessage());
+        } finally {
+            if (out != null || bw != null) {
+                out.flush();
+                out.close();
             }
         }
     }
@@ -341,7 +371,7 @@ public class ViewTextDialog extends JDialog implements ActionListener, KeyListen
         }
 
     }
-    
+
     private void print() {
         try {
             textArea.print();
@@ -441,12 +471,12 @@ public class ViewTextDialog extends JDialog implements ActionListener, KeyListen
 
     @Override
     public void keyTyped(KeyEvent e) {
-        
+
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-        
+
     }
 
     @Override

@@ -20,7 +20,7 @@ greatly increased performance.
 
 RELEASE NOTES:
 
-Version 3.1.4 ()
+Version 3.2.0 (May 4, 2014)
 -Updated to Java 8. This is a major change and may result in some compatability issues.
  It will also mean that users will have to update their versions of Java to run
  Whitebox. Users will need to update their Java runtime to version 8 to run Whitebox.
