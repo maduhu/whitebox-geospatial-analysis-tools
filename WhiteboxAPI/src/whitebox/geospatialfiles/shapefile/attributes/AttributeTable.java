@@ -164,8 +164,7 @@ public class AttributeTable {
     
     /**
      * Retrieves all fields in this database.
-     * @return DBFField array
-     * @throws DBFException 
+     * @return DBFField array 
      */
     public DBFField[] getAllFields() {
 

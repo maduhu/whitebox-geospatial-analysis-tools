@@ -85,6 +85,8 @@ public class PointZ implements Geometry {
         return new BoundingBox(x, y, x, y);
     }
     
+    
+    
     @Override
     public double[][] getPoints() {
         double[][] points = new double[1][2];
@@ -140,5 +142,13 @@ public class PointZ implements Geometry {
         com.vividsolutions.jts.geom.Point[] retArray = new com.vividsolutions.jts.geom.Point[1];
         retArray[0] = factory.createPoint(coordArray);
         return retArray;
+    }
+
+    public double[] getzArray() {
+        return new double[] {z};
+    }
+
+    public double[] getmArray() {
+        return new double[] {m};
     }
 }

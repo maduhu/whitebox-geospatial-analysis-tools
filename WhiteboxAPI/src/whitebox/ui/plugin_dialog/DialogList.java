@@ -22,11 +22,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import java.io.File;
 import javax.swing.*;
 import javax.swing.border.*;
-import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
-import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.DialogComponent;
 
 /**

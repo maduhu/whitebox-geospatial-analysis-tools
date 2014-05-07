@@ -83,6 +83,7 @@ public class DialogComboBox extends JPanel implements ActionListener, DialogComp
     }
     
     public void setListItems(String[] listItems) {
+        comboBox.removeAllItems();
         comboBox.setModel(new DefaultComboBoxModel(listItems));
         comboBox.revalidate();
         comboBox.repaint();
