@@ -81,15 +81,17 @@ public class MergeTables implements ActionListener {
 			DialogList includedFields = sd.addDialogList("Select the fields to include in the merge.", "Select the fields to include in the merge.", listItems, true)
 
             def lstrDF = { evt -> if (evt.getPropertyName().equals("value")) { 
-            		String fileName = (df.getValue()).replace(".shp", ".dbf")
-            		if (fileName != null && !fileName.isEmpty()) { 
-            			def file = new File(fileName)
-            			if (file.exists()) {
-	            			AttributeTable table = new AttributeTable(fileName)
-	            			String[] fields = table.getAttributeTableFieldNames()
-	            			foreignKey.setListItems(fields)
-	            			includedFields.setListItems(fields)
-            			}
+            		if (df.getValue() != null && !(df.getValue().isEmpty())) {
+	            		String fileName = (df.getValue()).replace(".shp", ".dbf")
+	            		if (fileName != null && !fileName.isEmpty()) { 
+	            			def file = new File(fileName)
+	            			if (file.exists()) {
+		            			AttributeTable table = new AttributeTable(fileName)
+		            			String[] fields = table.getAttributeTableFieldNames()
+		            			foreignKey.setListItems(fields)
+		            			includedFields.setListItems(fields)
+	            			}
+	            		}
             		}
             	}
             } as PropertyChangeListener

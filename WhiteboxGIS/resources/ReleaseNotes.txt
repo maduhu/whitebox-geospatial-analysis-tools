@@ -20,6 +20,10 @@ greatly increased performance.
 
 RELEASE NOTES:
 
+Version 3.2.1 ()
+-Added Interior Point tool.
+-Added Singlepart to Multipart Tool.
+
 Version 3.2.0 (May 4, 2014)
 -Updated to Java 8. This is a major change and may result in some compatability issues.
  It will also mean that users will have to update their versions of Java to run
