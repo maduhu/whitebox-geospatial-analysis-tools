@@ -22,7 +22,13 @@ RELEASE NOTES:
 
 Version 3.2.1 ()
 -Added Interior Point tool.
--Added Singlepart to Multipart Tool.
+-Added Single-part to Multi-part and Multi-part to Single-part tools.
+-Added List Unique Values tool to list all of the unique values in a categorical 
+ field contained within a vector's attribute table. It will also report category
+ frequency.
+-Updated the centroid (vector) tool with the option to handle multi-part polyline 
+ and polygon features as a single entity or to extract centroids for each part, 
+ as well as, the ability to extract centroids for groups of points.
 
 Version 3.2.0 (May 4, 2014)
 -Updated to Java 8. This is a major change and may result in some compatability issues.

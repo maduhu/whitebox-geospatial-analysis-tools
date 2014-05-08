@@ -427,7 +427,7 @@ public class ClusterAttributes implements ActionListener {
 			ret.append('<html lang="en">')
 			
 			ret.append("<head>")
-			ret.append("<title>Depression Analysis Summary</title>").append("\n")
+			ret.append("<title>Cluster Analysis Summary</title>").append("\n")
 			
 			ret.append("<style>")
 			ret.append("table {margin-left: 15px;} ")

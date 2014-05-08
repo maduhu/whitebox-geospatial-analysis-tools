@@ -30,6 +30,109 @@ public class Topology {
                 (coords[0].y == coords[lastIndex].y);
     }
     
+    public static boolean isClockwisePolygon(double[][] coords) {
+        // Note: holes are polygons that have verticies in counter-clockwise order
+
+        // This approach is based on the method described by Paul Bourke, March 1998
+        // http://paulbourke.net/geometry/clockwise/index.html
+
+        double x0, y0, x1, y1, x2, y2;
+        int n1 = 0, n2 = 0, n3 = 0;
+        int numPoints = coords.length;
+        
+        // are the first and last points the same? If so, remove the last point.
+        if ((coords[0][0] == coords[numPoints - 1][0]) && (coords[0][1] == coords[numPoints - 1][1])) {
+            double[][] coords2 = new double[numPoints - 1][2];
+            for (int p = 0; p < numPoints - 1; p++) {
+                coords2[p][0] = coords[p][0];
+                coords2[p][1] = coords[p][1];
+            }
+            numPoints--;
+            coords = new double[numPoints][2];
+            for (int p = 0; p < numPoints; p++) {
+                coords[p][0] = coords2[p][0];
+                coords[p][1] = coords2[p][1];
+            }
+        }
+        
+        if (numPoints < 3) {
+            throw new IllegalArgumentException("Degenerate polygon with less than three points.");
+        }
+
+        // first see if it is a convex or concave polygon
+        // calculate the cross product for each adjacent edge.
+        double[] crossproducts = new double[numPoints];
+
+        for (int j = 0; j < numPoints; j++) {
+            n2 = j;
+            if (j == 0) {
+                n1 = numPoints - 1;
+                n3 = j + 1;
+            } else if (j == numPoints - 1) {
+                n1 = j - 1;
+                n3 = 0;
+            } else {
+                n1 = j - 1;
+                n3 = j + 1;
+            }
+            x0 = coords[n1][0];
+            y0 = coords[n1][1];
+            x1 = coords[n2][0];
+            y1 = coords[n2][1];
+            x2 = coords[n3][0];
+            y2 = coords[n3][1];
+            crossproducts[j] = (x1 - x0) * (y2 - y1) - (y1 - y0) * (x2 - x1);
+        }
+        boolean testSign;
+        if (crossproducts[0] >= 0) {
+            testSign = true; // positive
+        } else {
+            testSign = false; // negative
+        }
+        boolean isConvex = true;
+        for (int j = 1; j < numPoints; j++) {
+            if (crossproducts[j] >= 0 && !testSign) {
+                isConvex = false;
+                break;
+            } else if (crossproducts[j] < 0 && testSign) {
+                isConvex = false;
+                break;
+            }
+        }
+
+        // now see if it is clockwise or counter-clockwise
+        if (isConvex) {
+            if (testSign) { // positive means counter-clockwise
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            // calculate the polygon area. If it is positive is is in clockwise order, else counter-clockwise.
+            double area = 0;
+            for (int j = 0; j < numPoints; j++) {
+                n1 = j;
+                if (j < numPoints - 1) {
+                    n2 = j + 1;
+                } else {
+                    n2 = 0;
+                }
+                x1 = coords[n1][0];
+                y1 = coords[n1][1];
+                x2 = coords[n2][0];
+                y2 = coords[n2][1];
+
+                area += (x1 * y2) - (x2 * y1);
+            }
+            // if this were the true area, we'd half it, but we're only interested in the sign.
+            if (area < 0) { // a positive area indicates counter-clockwise order
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+    
     public static boolean isClockwisePolygon(Coordinate[] coords) {
         // Note: holes are polygons that have verticies in counter-clockwise order
 

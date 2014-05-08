@@ -2294,6 +2294,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             xPoints[k - pointSt] = (float) (viewAreaULX + (points[k][0] - leftCoord) / EWRange * viewAreaWidth);
                                                             yPoints[k - pointSt] = (float) (viewAreaULY + (topCoord - points[k][1]) / NSRange * viewAreaHeight);
                                                         }
+                                                        //System.out.println(r + " " + p);
                                                         polyline.moveTo(xPoints[0], yPoints[0]);
 
                                                         for (int index = 1; index < xPoints.length; index++) {

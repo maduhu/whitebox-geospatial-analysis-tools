@@ -50,8 +50,8 @@ import groovy.transform.CompileStatic
 // script to be integrated into the tool tree panel. 
 // Comment them out if you want to remove the script.
 def name = "SinglepartsToMultiparts"
-def descriptiveName = "Singleparts to Multiparts"
-def description = "Converts a vector to consist of multipart features."
+def descriptiveName = "Single-parts to Multi-parts"
+def description = "Converts a vector to consist of multi-part features."
 def toolboxes = ["VectorTools", "ConversionTools"]
 
 public class SinglepartsToMultiparts implements ActionListener {
@@ -98,6 +98,8 @@ public class SinglepartsToMultiparts implements ActionListener {
             				ShapeFile sf = new ShapeFile(fileName)
             				if (sf.getShapeType().getBaseType() == ShapeType.POLYGON) {
             					cb.setVisible(true)
+            				} else {
+            					cb.setVisible(false)
             				}
 	            			//AttributeTable table = new AttributeTable(fileName)
 	            			String[] fields = sf.getAttributeTable().getAttributeTableFieldNames()
@@ -160,7 +162,260 @@ public class SinglepartsToMultiparts implements ActionListener {
 
 				ShapeFile output
 
-				if (shapeType.getBaseType() != ShapeType.POINT) {
+				if (shapeType.getBaseType() == ShapeType.POINT) {
+					// points need cannot handle multipart features. Have to use multipoints
+					if (shapeType.getDimension() == ShapeTypeDimension.XY) {
+						output = new ShapeFile(outputFile, ShapeType.MULTIPOINT, fields);
+					} else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
+						output = new ShapeFile(outputFile, ShapeType.MULTIPOINTZ, fields);
+					} else { // ShapeTypeDimension.M
+						output = new ShapeFile(outputFile, ShapeType.MULTIPOINTM, fields);
+					}
+					
+					int FID = 1
+					int j = 0
+					oldProgress = -1
+						
+					int numParts = 0
+					def partsList = new ArrayList<Integer>()
+					int lastPartStartingValue = 0
+					PointsList points = new PointsList()
+					for (int f in 0..<numFeatures) {
+						whitebox.geospatialfiles.shapefile.Geometry g = input.getRecord(f).getGeometry()
+						
+						double[][] xyPoints = g.getPoints()
+						if (shapeType.getDimension() == ShapeTypeDimension.XY) {
+							for (int p in 0..<xyPoints.length) {
+								points.addPoint(xyPoints[p][0], xyPoints[p][1]) 
+							}
+						} else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
+							double[] zVals = ((GeometryZ)g).getzArray()
+							double[] mVals = ((GeometryZ)g).getmArray()
+							for (int p in 0..<xyPoints.length) {
+								points.addZPoint(xyPoints[p][0], xyPoints[p][1], zVals[p], mVals[p]) 
+							}
+						} else if (shapeType.getDimension() == ShapeTypeDimension.M) {
+							double[] mVals = ((GeometryM)g).getmArray()
+							for (int p in 0..<xyPoints.length) {
+								points.addMPoint(xyPoints[p][0], xyPoints[p][1], mVals[p]) 
+							}
+						}
+						
+						int[] parts = g.getParts()
+						numParts += parts.length
+						for (int p in 0..<parts.length) {
+							partsList.add(parts[p] + lastPartStartingValue)									
+						}
+						lastPartStartingValue += xyPoints.length
+
+						progress = (int)(100f * f / (numFeatures - 1))
+	        			if (progress > oldProgress) {
+	        				pluginHost.updateProgress(progress)
+	        				oldProgress = progress
+	        				// check to see if the user has requested a cancellation
+							if (pluginHost.isRequestForOperationCancelSet()) {
+								pluginHost.showFeedback("Operation cancelled")
+								return
+							}
+	        			}
+					}
+					
+					int[] parts = new int[numParts]
+					for (int p in 0..<numParts) {
+						parts[p] = partsList.get(p)
+					}
+
+					Object[] recData = new Object[1]
+        			recData[0] = new Double(1)
+        		
+					whitebox.geospatialfiles.shapefile.Geometry g
+					
+					switch (shapeType.getDimension()) {
+						case ShapeTypeDimension.XY:
+							g = new MultiPoint(points.getPointsArray())
+        					break
+        				case ShapeTypeDimension.Z:
+							g = (whitebox.geospatialfiles.shapefile.Geometry)(new MultiPointZ(points.getPointsArray(), points.getZArray(), points.getMArray()))
+        					break
+        				case ShapeTypeDimension.M:
+							g = new MultiPointM(points.getPointsArray(), points.getMArray())
+        					break
+					}
+
+					output.addRecord(g, recData)
+
+				} else if (shapeType.getBaseType() == ShapeType.POLYGON && 
+				      searchForHoles) {
+
+				    output = new ShapeFile(outputFile, shapeType, fields);
+					int FID = 1
+					int j = 0
+					oldProgress = -1
+					
+					// retrieve the JTS geometries
+					ArrayList<com.vividsolutions.jts.geom.Polygon> polyList = new ArrayList<>()
+					com.vividsolutions.jts.geom.Polygon poly
+					for (int f in 0..<numFeatures) {
+						whitebox.geospatialfiles.shapefile.Geometry g = input.getRecord(f).getGeometry()
+						com.vividsolutions.jts.geom.Geometry[] jtsG = g.getJTSGeometries()
+						for (com.vividsolutions.jts.geom.Geometry jg : jtsG) {
+							poly = (com.vividsolutions.jts.geom.Polygon)jg
+							polyList.add(poly)
+							poly.setSRID(polyList.size())
+						}
+
+						progress = (int)(100f * f / (numFeatures - 1))
+            			if (progress > oldProgress) {
+            				pluginHost.updateProgress(progress)
+            				oldProgress = progress
+            				// check to see if the user has requested a cancellation
+							if (pluginHost.isRequestForOperationCancelSet()) {
+								pluginHost.showFeedback("Operation cancelled")
+								return
+							}
+            			}
+					}
+
+					int numParts = polyList.size()
+
+					// sort the polygons by area
+					Collections.sort(polyList, new Comparator<com.vividsolutions.jts.geom.Polygon>() {
+
+		                @Override
+		                public int compare(com.vividsolutions.jts.geom.Polygon o1, com.vividsolutions.jts.geom.Polygon o2) {
+		                    Double area1 = o1.getArea();
+		                    Double area2 = o2.getArea();
+		                    return area2.compareTo(area1);
+		                }
+		                
+		            });
+
+					int[] containingPoly = new int[numParts]
+					// initialize containingPoly with -1s
+					for (int m = 0; m < numParts; m++) {
+		            	containingPoly[m] = -1
+		            }
+		            // iterate through, finding polys that are contained in larger polys
+		            for (int m = numParts - 1; m >= 0; m--) {
+		                com.vividsolutions.jts.geom.Polygon item1 = polyList.get(m);
+		               	for (int n = m - 1; n >= 0; n--) {
+		                    com.vividsolutions.jts.geom.Polygon item2 = polyList.get(n);
+		                    if (item2.contains(item1)) {
+								containingPoly[m] = n
+		                        break
+		                    }
+		                }
+		            }
+					// figure out if they are holes or islands
+		            boolean[] isHole = new boolean[numParts]
+		            for (int m = 0; m < numParts; m++) {
+		            	if (containingPoly[m] > -1) {
+		            		if (!isHole[containingPoly[m]]) {
+		            			isHole[m] = true
+		            		}
+		            	}
+		            }
+		            
+					def partsList = new ArrayList<Integer>()
+					int[] parts = new int[numParts]
+					int lastPartStartingValue = 0
+					PointsList points = new PointsList()
+					for (int f in 0..<numParts) {
+						Coordinate[] coords = polyList.get(f).getExteriorRing().getCoordinates()
+						if (shapeType.getDimension() == ShapeTypeDimension.XY) {
+							if (!isHole[f]) {
+			                    if (!Topology.isClockwisePolygon(coords)) {
+			                        for (int k = coords.length - 1; k >= 0; k--) {
+			                            points.addPoint(coords[k].x, coords[k].y);
+			                        }
+			                    } else {
+			                        for (Coordinate coord : coords) {
+			                            points.addPoint(coord.x, coord.y);
+			                        }
+			                    }
+							} else {
+								if (Topology.isClockwisePolygon(coords)) {
+			                        for (int k = coords.length - 1; k >= 0; k--) {
+			                            points.addPoint(coords[k].x, coords[k].y);
+			                        }
+			                    } else {
+			                        for (Coordinate coord : coords) {
+			                            points.addPoint(coord.x, coord.y);
+			                        }
+			                    }
+							}
+						} else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
+							if (!isHole[f]) {
+			                    if (!Topology.isClockwisePolygon(coords)) {
+			                        for (int k = coords.length - 1; k >= 0; k--) {
+			                            points.addZPoint(coords[k].x, coords[k].y, coords[k].z);
+			                        }
+			                    } else {
+			                        for (Coordinate coord : coords) {
+			                            points.addZPoint(coord.x, coord.y, coord.z);
+			                        }
+			                    }
+							} else {
+								if (Topology.isClockwisePolygon(coords)) {
+			                        for (int k = coords.length - 1; k >= 0; k--) {
+			                            points.addZPoint(coords[k].x, coords[k].y, coords[k].z);
+			                        }
+			                    } else {
+			                        for (Coordinate coord : coords) {
+			                            points.addZPoint(coord.x, coord.y, coord.z);
+			                        }
+			                    }
+							}
+						} else if (shapeType.getDimension() == ShapeTypeDimension.M) {
+							if (!isHole[f]) {
+			                    if (!Topology.isClockwisePolygon(coords)) {
+			                        for (int k = coords.length - 1; k >= 0; k--) {
+			                            points.addMPoint(coords[k].x, coords[k].y, coords[k].z);
+			                        }
+			                    } else {
+			                        for (Coordinate coord : coords) {
+			                            points.addMPoint(coord.x, coord.y, coord.z);
+			                        }
+			                    }
+							} else {
+								if (Topology.isClockwisePolygon(coords)) {
+			                        for (int k = coords.length - 1; k >= 0; k--) {
+			                            points.addMPoint(coords[k].x, coords[k].y, coords[k].z);
+			                        }
+			                    } else {
+			                        for (Coordinate coord : coords) {
+			                            points.addMPoint(coord.x, coord.y, coord.z);
+			                        }
+			                    }
+							}
+						}
+						
+						parts[f] = lastPartStartingValue
+	                    lastPartStartingValue = points.size()
+	                    
+					}
+					
+					Object[] recData = new Object[1]
+        			recData[0] = new Double(FID)
+        			FID++
+        			
+					whitebox.geospatialfiles.shapefile.Geometry g
+					
+					switch (shapeType) {
+						case ShapeType.POLYGON:
+							g = new Polygon(parts, points.getPointsArray())
+        					break
+        				case ShapeType.POLYGONZ:
+							g = (whitebox.geospatialfiles.shapefile.Geometry)(new PolygonZ(parts, points.getPointsArray(), points.getZArray()))
+        					break
+        				case ShapeType.POLYGONM:
+							g = new PolygonM(parts, points.getPointsArray(), points.getMArray())
+        					break
+					}
+
+					output.addRecord(g, recData)
+					
+				} else {
 					output = new ShapeFile(outputFile, shapeType, fields);
 					oldProgress = -1
 					
@@ -249,89 +504,6 @@ public class SinglepartsToMultiparts implements ActionListener {
 					}
 
 					output.addRecord(g, recData)
-
-				} else {
-					// points need cannot handle multipart features. Have to use multipoints
-					if (shapeType.getDimension() == ShapeTypeDimension.XY) {
-						output = new ShapeFile(outputFile, ShapeType.MULTIPOINT, fields);
-					} else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
-						output = new ShapeFile(outputFile, ShapeType.MULTIPOINTZ, fields);
-					} else { // ShapeTypeDimension.M
-						output = new ShapeFile(outputFile, ShapeType.MULTIPOINTM, fields);
-					}
-					
-					int FID = 1
-					int j = 0
-					oldProgress = -1
-						
-					int numParts = 0
-					def partsList = new ArrayList<Integer>()
-					int lastPartStartingValue = 0
-					PointsList points = new PointsList()
-					for (int f in 0..<numFeatures) {
-						whitebox.geospatialfiles.shapefile.Geometry g = input.getRecord(f).getGeometry()
-						
-						double[][] xyPoints = g.getPoints()
-						if (shapeType.getDimension() == ShapeTypeDimension.XY) {
-							for (int p in 0..<xyPoints.length) {
-								points.addPoint(xyPoints[p][0], xyPoints[p][1]) 
-							}
-						} else if (shapeType.getDimension() == ShapeTypeDimension.Z) {
-							double[] zVals = ((GeometryZ)g).getzArray()
-							double[] mVals = ((GeometryZ)g).getmArray()
-							for (int p in 0..<xyPoints.length) {
-								points.addZPoint(xyPoints[p][0], xyPoints[p][1], zVals[p], mVals[p]) 
-							}
-						} else if (shapeType.getDimension() == ShapeTypeDimension.M) {
-							double[] mVals = ((GeometryM)g).getmArray()
-							for (int p in 0..<xyPoints.length) {
-								points.addMPoint(xyPoints[p][0], xyPoints[p][1], mVals[p]) 
-							}
-						}
-						
-						int[] parts = g.getParts()
-						numParts += parts.length
-						for (int p in 0..<parts.length) {
-							partsList.add(parts[p] + lastPartStartingValue)									
-						}
-						lastPartStartingValue += xyPoints.length
-
-						progress = (int)(100f * f / (numFeatures - 1))
-	        			if (progress > oldProgress) {
-	        				pluginHost.updateProgress(progress)
-	        				oldProgress = progress
-	        				// check to see if the user has requested a cancellation
-							if (pluginHost.isRequestForOperationCancelSet()) {
-								pluginHost.showFeedback("Operation cancelled")
-								return
-							}
-	        			}
-					}
-					
-					int[] parts = new int[numParts]
-					for (int p in 0..<numParts) {
-						parts[p] = partsList.get(p)
-					}
-
-					Object[] recData = new Object[1]
-        			recData[0] = new Double(1)
-        		
-					whitebox.geospatialfiles.shapefile.Geometry g
-					
-					switch (shapeType.getDimension()) {
-						case ShapeTypeDimension.XY:
-							g = new MultiPoint(points.getPointsArray())
-        					break
-        				case ShapeTypeDimension.Z:
-							g = (whitebox.geospatialfiles.shapefile.Geometry)(new MultiPointZ(points.getPointsArray(), points.getZArray(), points.getMArray()))
-        					break
-        				case ShapeTypeDimension.M:
-							g = new MultiPointM(points.getPointsArray(), points.getMArray())
-        					break
-					}
-
-					output.addRecord(g, recData)
-
 				}
 				
             	output.write()

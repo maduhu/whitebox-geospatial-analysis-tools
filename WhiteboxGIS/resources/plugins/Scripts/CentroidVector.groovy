@@ -26,28 +26,30 @@ import java.io.File
 import java.util.Date
 import java.util.ArrayList
 import java.util.Arrays
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import whitebox.interfaces.WhiteboxPluginHost
 import whitebox.geospatialfiles.ShapeFile
 import whitebox.geospatialfiles.shapefile.*
 import whitebox.geospatialfiles.shapefile.attributes.*
-import whitebox.ui.plugin_dialog.ScriptDialog
+import whitebox.ui.plugin_dialog.*
 import whitebox.utilities.FileUtilities;
 import groovy.transform.CompileStatic
 
 // The following four variables are required for this 
 // script to be integrated into the tool tree panel. 
 // Comment them out if you want to remove the script.
-def name = "InteriorPoint"
-def descriptiveName = "Interior Point"
-def description = "Identifies an interior point from a vector features."
+def name = "CentroidVector"
+def descriptiveName = "Centroid (Vector)"
+def description = "Identifies the centroid point of a group of input vector features."
 def toolboxes = ["VectorTools"]
 
-public class InteriorPoint implements ActionListener {
+public class CentroidVector implements ActionListener {
     private WhiteboxPluginHost pluginHost
     private ScriptDialog sd;
     private String descriptiveName
 	
-    public InteriorPoint(WhiteboxPluginHost pluginHost, 
+    public CentroidVector(WhiteboxPluginHost pluginHost, 
         String[] args, def name, def descriptiveName) {
         this.pluginHost = pluginHost
         this.descriptiveName = descriptiveName
@@ -72,10 +74,27 @@ public class InteriorPoint implements ActionListener {
             sd.setSourceFile(scriptFile)
 			
             // add some components to the dialog
-            sd.addDialogFile("Input polygon vector file", "Input Polygon Vector File:", "open", "Vector Files (*.shp), SHP", true, false)
+            DialogFile df = sd.addDialogFile("Input polygon vector file", "Input Polygon Vector File:", "open", "Vector Files (*.shp), SHP", true, false)
             sd.addDialogFile("Output points file", "Output Points Vector File:", "save", "Vector Files (*.shp), SHP", true, false)
-            sd.addDialogCheckBox("Create one point for each part in a multipart feature?", "Create multiple points for multipart features?", false)
-			
+            DialogCheckBox cb = sd.addDialogCheckBox("Create one point for each part in a multipart feature?", "Create multiple points for multipart features?", false)
+			cb.setVisible(false)
+			def lstrDF = { evt -> if (evt.getPropertyName().equals("value")) { 
+            		String fileName = df.getValue()
+            		if (fileName != null && !fileName.isEmpty()) { 
+            			def file = new File(fileName)
+            			if (file.exists()) {
+            				ShapeFile sf = new ShapeFile(fileName)
+            				if (sf.getShapeType().getBaseType() == ShapeType.POLYGON) {
+            					cb.setVisible(true)
+            				} else {
+            					cb.setVisible(false)
+            				}
+            			}
+            		}
+            	}
+            } as PropertyChangeListener
+            df.addPropertyChangeListener(lstrDF)
+
             // resize the dialog to the standard size and display it
             sd.setSize(800, 400)
             sd.visible = true
@@ -90,7 +109,7 @@ public class InteriorPoint implements ActionListener {
         try {
             int i, n, progress, oldProgress
             
-            if (args.length != 3) {
+            if (args.length < 2) {
                 pluginHost.showFeedback("Incorrect number of arguments given to tool.")
                 return
             }
@@ -98,14 +117,13 @@ public class InteriorPoint implements ActionListener {
             // read the input parameters
             String inputFile = args[0]
             String outputFile = args[1]
-            boolean breakApartMultipart = Boolean.parseBoolean(args[2])
+            boolean breakApartMultipart = false
+            if (args.length >= 3) {
+            	breakApartMultipart = Boolean.parseBoolean(args[2])
+            }
             
            	def input = new ShapeFile(inputFile);\
 			def shapeType = input.getShapeType()
-			if (shapeType.getBaseType() != ShapeType.POLYGON) {
-			    pluginHost.showFeedback("The input shapefile must have a POLYGON shape type.");
-			    return;
-			}
 			
 			def numRecs = input.getNumberOfRecords();
 			AttributeTable table = input.getAttributeTable()
@@ -120,37 +138,74 @@ public class InteriorPoint implements ActionListener {
 			Coordinate pCoord
 			oldProgress = -1
 			progress = 0;
-			for (i = 0; i < numRecs; i++) {
-				ShapeFileRecord record = input.getRecord(i)
-			    if (record.getShapeType() != ShapeType.NULLSHAPE) {
-			        jtsGeometries = record.getGeometry().getJTSGeometries();
-			        if (breakApartMultipart) {
-			            for (n = 0; n < jtsGeometries.length; n++) {
-				            p = jtsGeometries[n].getInteriorPoint() 
-				            pCoord = p.getCoordinate();
-				            whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(pCoord.x, pCoord.y);
-				    		Object[] rowData = table.getRecord(i);
-				    		output.addRecord(wbGeometry, rowData);
+			if (shapeType.getBaseType() != ShapeType.POINT) {
+				for (i = 0; i < numRecs; i++) {
+					ShapeFileRecord record = input.getRecord(i)
+				    if (record.getShapeType() != ShapeType.NULLSHAPE) {
+				        jtsGeometries = record.getGeometry().getJTSGeometries();
+				        if (breakApartMultipart) {
+				            for (n = 0; n < jtsGeometries.length; n++) {
+					            p = jtsGeometries[n].getCentroid();
+					            pCoord = p.getCoordinate();
+					            whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(pCoord.x, pCoord.y);
+					    		Object[] rowData = table.getRecord(i);
+					    		output.addRecord(wbGeometry, rowData);
+					        }
+				        } else {
+				        	jtsCollection = new GeometryCollection(jtsGeometries, factory)
+					        p = jtsCollection.getCentroid()
+					        pCoord = p.getCoordinate();
+					        whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(pCoord.x, pCoord.y);
+						    Object[] rowData = table.getRecord(i);
+						    output.addRecord(wbGeometry, rowData);
 				        }
-			        } else {
-			        	jtsCollection = new GeometryCollection(jtsGeometries, factory)
-				        p = jtsCollection.getInteriorPoint() 
-				        pCoord = p.getCoordinate();
-				        whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(pCoord.x, pCoord.y);
-					    Object[] rowData = table.getRecord(i);
-					    output.addRecord(wbGeometry, rowData);
-			        }
-			    }
-			    progress = (int)(100f * i / (numRecs - 1))
-			    if (progress > oldProgress) {
-			        pluginHost.updateProgress(progress)
-					oldProgress = progress
-					// check to see if the user has requested a cancellation
-					if (pluginHost.isRequestForOperationCancelSet()) {
-						pluginHost.showFeedback("Operation cancelled")
-						return
-					}
-			    }
+				    }
+				    progress = (int)(100f * i / (numRecs - 1))
+				    if (progress > oldProgress) {
+				        pluginHost.updateProgress(progress)
+						oldProgress = progress
+						// check to see if the user has requested a cancellation
+						if (pluginHost.isRequestForOperationCancelSet()) {
+							pluginHost.showFeedback("Operation cancelled")
+							return
+						}
+				    }
+				}
+			} else {
+				com.vividsolutions.jts.geom.Geometry[] geomList = new com.vividsolutions.jts.geom.Geometry[numRecs]
+				for (i = 0; i < numRecs; i++) {
+					ShapeFileRecord record = input.getRecord(i)
+				    if (record.getShapeType() != ShapeType.NULLSHAPE) {
+				        jtsGeometries = record.getGeometry().getJTSGeometries();
+				        geomList[i] = jtsGeometries[0]
+				    }
+				    progress = (int)(100f * i / (numRecs - 1))
+				    if (progress > oldProgress) {
+				        pluginHost.updateProgress(progress)
+						oldProgress = progress
+						// check to see if the user has requested a cancellation
+						if (pluginHost.isRequestForOperationCancelSet()) {
+							pluginHost.showFeedback("Operation cancelled")
+							return
+						}
+				    }
+				}
+				jtsCollection = new GeometryCollection(geomList, factory)
+			    p = jtsCollection.getCentroid()
+		        pCoord = p.getCoordinate();
+		        whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(pCoord.x, pCoord.y);
+			    fields = new DBFField[1];
+
+	            fields[0] = new DBFField();
+	            fields[0].setName("FID");
+	            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
+	            fields[0].setFieldLength(10);
+	            fields[0].setDecimalCount(0);
+			    output = new ShapeFile(outputFile, ShapeType.POINT, fields);
+				
+				Object[] rowData = new Object[1]
+			    rowData[0] = new Double(1)
+			    output.addRecord(wbGeometry, rowData);   
 			}
 			
 			output.write()
@@ -188,5 +243,5 @@ public class InteriorPoint implements ActionListener {
 if (args == null) {
     pluginHost.showFeedback("Plugin arguments not set.")
 } else {
-    def f = new InteriorPoint(pluginHost, args, name, descriptiveName)
+    def f = new CentroidVector(pluginHost, args, name, descriptiveName)
 }
