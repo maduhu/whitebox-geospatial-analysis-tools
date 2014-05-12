@@ -27,6 +27,7 @@ import java.util.Arrays
 import javax.swing.*
 import org.apache.commons.io.FilenameUtils
 import whitebox.interfaces.WhiteboxPluginHost
+import whitebox.geospatialfiles.WhiteboxRaster
 import whitebox.geospatialfiles.WhiteboxRasterInfo
 import whitebox.ui.plugin_dialog.*
 import whitebox.utilities.FileUtilities
@@ -234,6 +235,7 @@ public class RetrieveSRTMData implements ActionListener {
 					def shortName = "${northStr}${westStr}"
 					
 					if (!foundRegion) {
+						//pluginHost.showFeedback(shortName)
 						// which region is the data in?
 						for (int i = 0; i < directories.size(); i++) {
 							region = directories[i]
@@ -246,6 +248,9 @@ public class RetrieveSRTMData implements ActionListener {
 							int ret = d.download(shortName)
 							if (ret == 0) {
 								regionNum = i
+								region = directories[regionNum]
+								foundRegion = true
+								//pluginHost.showFeedback(directories[i])
 								String extractedFile = extractFolder(zipFileName)
 								// import the file
 								args = [extractedFile, outDir] 
@@ -257,13 +262,13 @@ public class RetrieveSRTMData implements ActionListener {
 							}
 						}
 	
-						if (regionNum < 0) {
-							pluginHost.showFeedback("The data could not be located on the server.")
-	                		return
-						}
+//						if (regionNum < 0) {
+//							pluginHost.showFeedback("The data could not be located on the server.")
+//	                		return
+//						}
 						
-						region = directories[regionNum]
-						foundRegion = true
+//						region = directories[regionNum]
+//						foundRegion = true
 					} else {
 						String downloadArtifact = "${startDir}/${region}/${shortName}.hgt.zip"
 						String zipFileName = wd + "${shortName}.zip" 
@@ -300,18 +305,18 @@ public class RetrieveSRTMData implements ActionListener {
 							//return
 						} else if (ret == 3) {
 							// try it a second time
-							if (d.download(shortName) == 0) {
-								String extractedFile = extractFolder(zipFileName)
-								// import the file
-								args = [extractedFile, outDir] 
-								pluginHost.runPlugin("ImportSRTM", args, false, true)
-								deleteFolder(new File("${outDir}${shortName}${File.separator}"))
-								(new File(zipFileName)).delete()
-								importedFiles.add("${outDir}${shortName}.dep")
-								
-							} else {
-								pluginHost.showFeedback("There was a server access error when trying to download ${shortName}.\nThe SRTM FTP server may be down. Try again later.")
-							}
+//							if (d.download(shortName) == 0) {
+//								String extractedFile = extractFolder(zipFileName)
+//								// import the file
+//								args = [extractedFile, outDir] 
+//								pluginHost.runPlugin("ImportSRTM", args, false, true)
+//								deleteFolder(new File("${outDir}${shortName}${File.separator}"))
+//								(new File(zipFileName)).delete()
+//								importedFiles.add("${outDir}${shortName}.dep")
+//								
+//							} else {
+//								//pluginHost.showFeedback("There was a server access error when trying to download ${shortName}.\nThe SRTM FTP server may be down. Try again later.")
+//							}
 							//return
 						} else {
 							pluginHost.showFeedback("There was a problem downloading the data for ${shortName}")
@@ -346,10 +351,7 @@ public class RetrieveSRTMData implements ActionListener {
 
 			if (!fillDataHoles && !mosaicImages) {
 				for (String ifile : importedFiles) {
-					def wbr = new WhiteboxRasterInfo(ifile)
-					wbr.setPreferredPalette("high_relief.pal")
-					wbr.writeHeaderFile()
-					wbr.close()
+					fixElevations(ifile)
 					pluginHost.returnData(ifile) 
 					pluginHost.zoomToFullExtent()
 				}
@@ -365,10 +367,7 @@ public class RetrieveSRTMData implements ActionListener {
 					(new File(f)).delete()
 					(new File(f.replace(".dep", ".tas"))).delete()
 					if (!mosaicImages || numTiles == 1) {
-						def wbr = new WhiteboxRasterInfo(fillFile)
-						wbr.setPreferredPalette("high_relief.pal")
-						wbr.writeHeaderFile()
-						wbr.close()
+						fixElevations(fillFile)
 						pluginHost.returnData(fillFile)
 						pluginHost.zoomToFullExtent()
 					}
@@ -401,11 +400,7 @@ public class RetrieveSRTMData implements ActionListener {
 					(new File(filledFiles.get(k))).delete()
 					(new File(filledFiles.get(k).replace(".dep", ".tas"))).delete()
 				}
-		
-				def wbr = new WhiteboxRasterInfo(outputFile)
-				wbr.setPreferredPalette("high_relief.pal")
-				wbr.writeHeaderFile()
-				wbr.close()
+				fixElevations(outputFile)
 				pluginHost.returnData(outputFile)
 				pluginHost.zoomToFullExtent()
 			}
@@ -435,6 +430,40 @@ public class RetrieveSRTMData implements ActionListener {
             final Thread t = new Thread(r)
             t.start()
     	}
+    }
+
+	@CompileStatic
+    void fixElevations(String fileName) {
+    	def wbr = new WhiteboxRaster(fileName, "rw")
+		int cols = wbr.getNumberColumns()
+		int rows = wbr.getNumberRows()
+		double nodata = wbr.getNoDataValue()
+		double[] data
+		double z
+		int row, col
+		int oldProgress = -1
+		int progress
+        for (row = 0; row < rows; row++) {
+        	for (col = 0; col < cols; col++) {
+        		z = wbr.getValue(row, col)
+            	if (z <= 0 && z != nodata) {
+            		wbr.setValue(row, col, nodata)
+            	}
+            }
+            
+            progress = (int)(100f * row / (row - 1))
+			if (progress > oldProgress) {
+				pluginHost.updateProgress(progress)
+				oldProgress = progress
+				if (pluginHost.isRequestForOperationCancelSet()) {
+					pluginHost.showFeedback("Operation cancelled")
+					return
+				}
+			}
+        }
+		wbr.setPreferredPalette("high_relief.pal")
+		wbr.findMinAndMaxVals()
+		wbr.close()
     }
 
 	// This method is from NeilMonday, http://stackoverflow.com/questions/981578/how-to-unzip-files-recursively-in-java
