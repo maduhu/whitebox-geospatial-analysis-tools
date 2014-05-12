@@ -124,7 +124,7 @@ public class RetrieveSRTMData implements ActionListener {
     private void execute(String[] args) {
         try {
             WhiteboxGui wg = (WhiteboxGui)(pluginHost)
-			int north, south, east, west
+			int north, south, east, west, progress, oldProgress
 			String wd = pluginHost.getWorkingDirectory()
 			
 			if (args.length < 5) {
@@ -182,7 +182,19 @@ public class RetrieveSRTMData implements ActionListener {
 				}
 			}
 			
-			
+			int regionNum = -1
+			String region = ""
+			boolean foundRegion = false
+			oldProgress = -1
+			int numDownloadedTiles = 0
+
+			String startDir = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3"
+			String[] directories = ["North_America", "South_America", "Eurasia", "Africa", "Australia", "Islands"]
+			if (!is3Arcsecond) {
+				startDir = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM1"
+				directories = ["Region_01", "Region_02", "Region_03", "Region_04", "Region_05", "Region_06", "Region_07"]
+			}
+					
 			def importedFiles = new ArrayList<String>()
 			for (int lat in south..north) {
 				for (int lon in west..east) {
@@ -220,14 +232,39 @@ public class RetrieveSRTMData implements ActionListener {
 					}
 					
 					def shortName = "${northStr}${westStr}"
-					String startDir = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3"
-					String[] directories = ["North_America", "South_America", "Eurasia", "Africa", "Australia", "Islands"]
-					if (!is3Arcsecond) {
-						startDir = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM1"
-						directories = ["Region_01", "Region_02", "Region_03", "Region_04", "Region_05", "Region_06", "Region_07"]
-					}
-
-					for (String region : directories) {
+					
+					if (!foundRegion) {
+						// which region is the data in?
+						for (int i = 0; i < directories.size(); i++) {
+							region = directories[i]
+							String downloadArtifact = "${startDir}/${region}/${shortName}.hgt.zip"
+							String zipFileName = wd + "${shortName}.zip" 
+							String outDir = (new File(zipFileName)).getParentFile()
+							if (!outDir.endsWith(File.separator)) { outDir = outDir + File.separator }
+							
+							Downloader d = new Downloader(wg, zipFileName, downloadArtifact)
+							int ret = d.download(shortName)
+							if (ret == 0) {
+								regionNum = i
+								String extractedFile = extractFolder(zipFileName)
+								// import the file
+								args = [extractedFile, outDir] 
+								pluginHost.runPlugin("ImportSRTM", args, false, true)
+								deleteFolder(new File("${outDir}${shortName}${File.separator}"))
+								(new File(zipFileName)).delete()
+								importedFiles.add("${outDir}${shortName}.dep")
+								break
+							}
+						}
+	
+						if (regionNum < 0) {
+							pluginHost.showFeedback("The data could not be located on the server.")
+	                		return
+						}
+						
+						region = directories[regionNum]
+						foundRegion = true
+					} else {
 						String downloadArtifact = "${startDir}/${region}/${shortName}.hgt.zip"
 						String zipFileName = wd + "${shortName}.zip" 
 						String outDir = (new File(zipFileName)).getParentFile()
@@ -281,6 +318,19 @@ public class RetrieveSRTMData implements ActionListener {
 							return
 						}
 					}
+
+					numDownloadedTiles++
+					progress = (int)(100f * numDownloadedTiles / numTiles)
+					if (progress > oldProgress) {
+						pluginHost.updateProgress("Downloading tiles from FTP site:", progress)
+						oldProgress = progress
+						
+						// check to see if the user has requested a cancellation
+						if (pluginHost.isRequestForOperationCancelSet()) {
+							pluginHost.showFeedback("Operation cancelled")
+							return
+						}
+					}
 				}
 			}
 
@@ -321,6 +371,11 @@ public class RetrieveSRTMData implements ActionListener {
 						wbr.close()
 						pluginHost.returnData(fillFile)
 						pluginHost.zoomToFullExtent()
+					}
+					// check to see if the user has requested a cancellation
+					if (pluginHost.isRequestForOperationCancelSet()) {
+						pluginHost.showFeedback("Operation cancelled")
+						return
 					}
 				}
 			}
