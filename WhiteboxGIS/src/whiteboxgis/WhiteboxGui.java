@@ -110,8 +110,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private static PluginService pluginService = null;
     private StatusBar status;
     // common variables
-    private static final String versionName = "3.2.0 'Iguazu'";
-    public static final String versionNumber = "3.2.0";
+    private static final String versionName = "3.2 'Iguazu'";
+    public static final String versionNumber = "3.2.1";
     public static String currentVersionNumber;
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;
@@ -2604,7 +2604,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mi.addActionListener(this);
             mi.setActionCommand("exportLayer");
             layersMenu.add(mi);
-
+                
+            layersMenu.addSeparator();
+            
             menubar.add(layersMenu);
 
             // View menu
@@ -5808,7 +5810,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         drawingArea.repaint();
     }
 
-    private void demoteLayer() {
+    public void demoteLayer() {
         int mapNum;
         int mapAreaNum;
         int layerNum;
@@ -5849,7 +5851,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     /**
      * Changes the palette of a displayed raster layer.
      */
-    private void changePalette() {
+    public void changePalette() {
         int mapNum;
         int mapAreaNum;
         int layerNum;
@@ -5905,7 +5907,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void reversePalette() {
+    public void reversePalette() {
         int mapNum;
         int mapAreaNum;
         int layerOverlayNum;
@@ -5941,7 +5943,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void zoomToFullExtent() {
+    @Override
+    public void zoomToFullExtent() {
         int mapNum;
         int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
@@ -5970,7 +5973,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void fitToData() {
+    public void fitToData() {
         int mapNum;
         int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
@@ -5998,7 +6001,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void fitToPage() {
+    public void fitToPage() {
         int mapNum;
         int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
@@ -6030,7 +6033,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         refreshMap(false);
     }
 
-    private void maximizeMapAreaScreenSize() {
+    public void maximizeMapAreaScreenSize() {
         int mapNum;
         int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {
@@ -6058,7 +6061,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void zoomToPage() {
+    public void zoomToPage() {
         int mapNum;
         if (selectedMapAndLayer[0] != -1) {
             mapNum = selectedMapAndLayer[0];
@@ -6073,7 +6076,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         refreshMap(false);
     }
 
-    private void zoomToLayer() {
+    public void zoomToLayer() {
         int mapNum;
         int mapAreaNum;
         int layerOverlayNum;
@@ -6117,7 +6120,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void zoomToSelection() {
+    public void zoomToSelection() {
         int mapNum;
         int mapAreaNum;
         int layerOverlayNum;
@@ -6165,8 +6168,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
         }
     }
-
-    private void zoomIn() {
+    
+    @Override
+    public void zoomIn() {
         int mapNum;
         int mapAreaNum;
 
@@ -6194,8 +6198,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             refreshMap(false);
         }
     }
-
-    private void zoomOut() {
+    
+    @Override
+    public void zoomOut() {
         int mapNum;
         int mapAreaNum;
         if (selectedMapAndLayer[0] != -1) {

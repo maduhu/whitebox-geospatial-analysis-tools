@@ -293,10 +293,14 @@ public class Hillshade implements WhiteboxPlugin {
                 updateProgress(progress);
             }
 
-            // trim the display min and max values by 1%
+            // trim the display min and max values by clipPercent
+            double clipPercent = 0.01;
+            if (args.length >= 6) {
+                clipPercent = Double.parseDouble(args[5]) / 100.0;
+            }
             int newMin = 0;
             int newMax = 0;
-            double targetCellNum = numCells * 0.01;
+            double targetCellNum = numCells * clipPercent;
             long sum = 0;
             for (int c = 0; c < 256; c++) {
                 sum += histo[c];

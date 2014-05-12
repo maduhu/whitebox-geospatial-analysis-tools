@@ -123,7 +123,7 @@ public class ImportArcAsciiGrid implements ActionListener {
                 
 				// set up the output file
 				String inputFileExtension = FileUtilities.getFileExtension(arcFileName)
-				String outputFile = arcFileName.replace(inputFileExtension, ".dep")
+				String outputFile = arcFileName.replace(".${inputFileExtension}", ".dep")
 				
 				int rows, cols
 				double north, south, east, west
@@ -135,6 +135,9 @@ public class ImportArcAsciiGrid implements ActionListener {
                 oldProgress = -1
 				WhiteboxRaster output;
 				arcFile.eachLine { line -> 
+					if (pluginHost.isRequestForOperationCancelSet()) {
+						return
+					}
 					String str = ((String)(line)).trim().toLowerCase()
 					if (str.startsWith("ncols")) {
 						cols = Integer.parseInt(str.replace("ncols", "").trim())

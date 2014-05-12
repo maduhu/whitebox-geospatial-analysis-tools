@@ -322,6 +322,10 @@ public class AttributesFileViewer extends JDialog implements ActionListener, Pro
             }
         }
     }
+    
+    public void setActiveTab(int activeTab) {
+        tabs.setSelectedIndex(activeTab);
+    }
 
     private JPanel getFieldCalculator() {
         JPanel panel = new JPanel();

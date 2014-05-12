@@ -211,10 +211,18 @@ public class ImportSRTM implements WhiteboxPlugin, InteropPlugin {
             showFeedback("One or more of the input parameters have not been set properly.");
             return;
         }
-
+        
         imageFiles = inputFilesString.split(";");
         numImages = imageFiles.length;
-
+        
+        String outDir = (new File(imageFiles[0])).getParentFile().toString();
+        if (args.length > 1) {
+            outDir = args[1];
+        }
+        
+        if (!outDir.endsWith(File.separator)) { outDir = outDir + File.separator;
+        
+        }
         try {
 
             for (i = 0; i < numImages; i++) {
@@ -279,7 +287,8 @@ public class ImportSRTM implements WhiteboxPlugin, InteropPlugin {
                 double north = south + 1.0 + cellSize; // coordinate of ur cell edge
                 double east = west + 1.0 + cellSize; // coordinate of ur cell edge
 
-                String whiteboxHeaderFile = imageFiles[i].replace(fileExtension, "dep");
+                //String whiteboxHeaderFile = imageFiles[i].replace(fileExtension, "dep");
+                String whiteboxHeaderFile = outDir + shortFileName + ".dep";
                 if (i == 0) {
                     returnHeaderFile = whiteboxHeaderFile;
                 }

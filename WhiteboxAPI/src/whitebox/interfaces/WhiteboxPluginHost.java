@@ -78,6 +78,7 @@ public interface WhiteboxPluginHost extends Communicator {
     
     /**
      * Used to refresh a displayed map.
+     * @param updateLayersTab boolean
      */
     public void refreshMap(boolean updateLayersTab);
     
@@ -137,4 +138,25 @@ public interface WhiteboxPluginHost extends Communicator {
      * @return ArrayList of MapLayers
      */
     public ArrayList<MapLayer> getAllMapLayers();
+    
+    /**
+     * Used to change the map extent to the full extent encompassing all open layers.
+     */
+    public void zoomToFullExtent();
+    
+    /**
+     * Used to zoom out of the map.
+     */
+    public void zoomIn();
+    
+    /**
+     * Used to zoom into the map.
+     */
+    public void zoomOut();
+    
+    public void zoomToLayer();
+    
+    public void zoomToPage();
+    
+    public void zoomToSelection();
 }
