@@ -235,7 +235,6 @@ public class RetrieveSRTMData implements ActionListener {
 					def shortName = "${northStr}${westStr}"
 					
 					if (!foundRegion) {
-						//pluginHost.showFeedback(shortName)
 						// which region is the data in?
 						for (int i = 0; i < directories.size(); i++) {
 							region = directories[i]
@@ -435,34 +434,41 @@ public class RetrieveSRTMData implements ActionListener {
 	@CompileStatic
     void fixElevations(String fileName) {
     	def wbr = new WhiteboxRaster(fileName, "rw")
-		int cols = wbr.getNumberColumns()
-		int rows = wbr.getNumberRows()
-		double nodata = wbr.getNoDataValue()
-		double[] data
-		double z
-		int row, col
-		int oldProgress = -1
-		int progress
-        for (row = 0; row < rows; row++) {
-        	for (col = 0; col < cols; col++) {
-        		z = wbr.getValue(row, col)
-            	if (z <= 0 && z != nodata) {
-            		wbr.setValue(row, col, nodata)
-            	}
-            }
-            
-            progress = (int)(100f * row / (row - 1))
-			if (progress > oldProgress) {
-				pluginHost.updateProgress(progress)
-				oldProgress = progress
-				if (pluginHost.isRequestForOperationCancelSet()) {
-					pluginHost.showFeedback("Operation cancelled")
-					return
+    	if (wbr.getMinimumValue() < 0.01) { 
+    		// fix ocean values so they are nodata
+			int cols = wbr.getNumberColumns()
+			int rows = wbr.getNumberRows()
+			double nodata = wbr.getNoDataValue()
+			double[] data
+			double z
+			int row, col
+			int oldProgress = -1
+			int progress
+	        for (row = 0; row < rows; row++) {
+	        	for (col = 0; col < cols; col++) {
+	        		z = wbr.getValue(row, col)
+	            	if (z <= 0.01 && z > -0.01 && z != nodata) {
+	            		/* due to limits of floating point 
+	            		 *  representation you can't simply 
+	            		 *  check for zero values. */
+	      
+	            		wbr.setValue(row, col, nodata)
+	            	}
+	            }
+	            
+	            progress = (int)(100f * row / (row - 1))
+				if (progress > oldProgress) {
+					pluginHost.updateProgress(progress)
+					oldProgress = progress
+					if (pluginHost.isRequestForOperationCancelSet()) {
+						pluginHost.showFeedback("Operation cancelled")
+						return
+					}
 				}
-			}
-        }
-		wbr.setPreferredPalette("high_relief.pal")
-		wbr.findMinAndMaxVals()
+	        }
+			wbr.findMinAndMaxVals()
+    	}
+    	wbr.setPreferredPalette("high_relief.pal")
 		wbr.close()
     }
 
