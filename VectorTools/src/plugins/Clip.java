@@ -460,7 +460,7 @@ public class Clip implements WhiteboxPlugin {
                     for (int a = 0; a < numGeometries; a++) {
                         com.vividsolutions.jts.geom.Geometry gN = outputGeom.getGeometryN(a);
 
-                        if (shapeType == ShapeType.POLYGON) {
+                        if (shapeType == ShapeType.POLYGON && gN instanceof com.vividsolutions.jts.geom.Polygon) {
                             com.vividsolutions.jts.geom.Polygon p = (com.vividsolutions.jts.geom.Polygon) gN;
                             ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
@@ -493,7 +493,8 @@ public class Clip implements WhiteboxPlugin {
 
                             PointsList pl = new PointsList(pnts);
                             wbGeometry = new whitebox.geospatialfiles.shapefile.Polygon(parts, pl.getPointsArray());
-                        } else if (shapeType == ShapeType.POLYLINE) {
+                            ret.addGeometry(wbGeometry);
+                        } else if (shapeType == ShapeType.POLYLINE && gN instanceof LineString) {
                             LineString ls = (LineString) gN;
                             ArrayList<ShapefilePoint> pnts = new ArrayList<>();
 
@@ -506,13 +507,14 @@ public class Clip implements WhiteboxPlugin {
 
                             PointsList pl = new PointsList(pnts);
                             wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
+                            ret.addGeometry(wbGeometry);
 
-                        } else { //if (shapeType == ShapeType.POINT) {
+                        } else if (shapeType == ShapeType.POINT && gN instanceof com.vividsolutions.jts.geom.Point) { //if (shapeType == ShapeType.POINT) {
                             com.vividsolutions.jts.geom.Point p = (com.vividsolutions.jts.geom.Point) gN;
                             wbGeometry = new whitebox.geospatialfiles.shapefile.Point(p.getX(), p.getY());
-
+                            ret.addGeometry(wbGeometry);
                         }
-                        ret.addGeometry(wbGeometry);
+                        //ret.addGeometry(wbGeometry);
                     }
                 }
             }
