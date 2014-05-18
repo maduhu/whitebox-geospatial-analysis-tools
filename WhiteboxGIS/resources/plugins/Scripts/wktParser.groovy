@@ -1,12 +1,13 @@
 import whitebox.geospatialfiles.ShapeFile
 import whitebox.geospatialfiles.shapefile.*
-import com.vividsolutions.jts.io.WKTReader
+//import com.vividsolutions.jts.io.WKTReader
 
 def wd = pluginHost.getWorkingDirectory()
-//def prjFileName = wd + "rivers.prj"
+//def prjFileName = wd + "StatsCanada_2006_CartoProv.prj"
 def prjFileName = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGaltGuelph Moraine Shape/ParisGalt.prj"
 //def prjFileName = wd + "StatsCan_2006_Ont.prj"
-WKTReader wktReader = new WKTReader()
+
+//WKTReader wktReader = new WKTReader()
 
 def prjFile = new File(prjFileName)
 

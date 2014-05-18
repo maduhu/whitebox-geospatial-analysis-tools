@@ -221,8 +221,7 @@ public class LiDAR_CanopyModel implements ActionListener {
 		return results
     }
 
-	@CompileStatic
-    class DoWork implements Callable<Boolean> {
+	class DoWork implements Callable<Boolean> {
 		private int tileNum
 		private boolean[] classValuesToExclude
 		private BoundingBox[] bb

@@ -467,7 +467,7 @@ public class PaletteManager extends JFrame implements ActionListener, MouseMotio
 
         } catch (Exception e) {
             System.err.println("Caught exception: " + e.toString());
-            System.err.println(e.getStackTrace());
+            System.err.println(Arrays.toString(e.getStackTrace()));
         } finally {
             if (rIn != null) {
                 try {

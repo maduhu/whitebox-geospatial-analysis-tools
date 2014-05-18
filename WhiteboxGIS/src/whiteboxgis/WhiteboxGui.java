@@ -3952,8 +3952,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             // not in any toolbox.
             ArrayList<String> t = findToolsInToolbox("topmost");
             if (t.size() > 0) {
-                for (int k = 0; k < t.size(); k++) {
-                    String[] toolDetails = t.get(k).split(";");
+                for (String t1 : t) {
+                    String[] toolDetails = t1.split(";");
                     IconTreeNode childTreeNode2 = new IconTreeNode(toolDetails[0]);
                     if (toolDetails[1].equals("false")) {
                         childTreeNode2.setIconName("tool");
@@ -3977,7 +3977,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                             DefaultMutableTreeNode n = (DefaultMutableTreeNode) selPath.getLastPathComponent();
                             if (n.getChildCount() == 0) {
                                 label = selPath.getLastPathComponent().toString();
-                                if (e.isPopupTrigger()) {
+                                if (e.isPopupTrigger() || e.getButton() == 3) {
                                     if (isToolAScript(label)) {
                                         JPopupMenu pm = new JPopupMenu();
                                         final String scriptName = getScriptFile(label);
@@ -3988,8 +3988,21 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                                 editScript(scriptName);
                                             }
                                         });
-                                        mi.setActionCommand("editScript");
+                                        //mi.setActionCommand("editScript");
                                         pm.add(mi);
+                                        
+                                        mi = new JMenuItem(bundle.getString("UpdateScript"));
+                                        mi.addActionListener(new ActionListener() {
+                                            @Override
+                                            public void actionPerformed(ActionEvent e) {
+                                                String[] args = new String[1];
+                                                args[0] = FileUtilities.getShortFileName(scriptName);
+                                                String updateScript = resourcesDirectory + "plugins" + pathSep + "Scripts" + pathSep + "UpdateScriptFile.groovy";
+                                                executeScriptFile(updateScript, args, false);
+                                            }
+                                        });
+                                        pm.add(mi);
+                                        
                                         pm.show((JComponent) e.getSource(), e.getX(), e.getY());
 
                                     }

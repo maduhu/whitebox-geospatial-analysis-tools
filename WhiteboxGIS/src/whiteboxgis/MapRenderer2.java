@@ -2507,7 +2507,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 if (numLayers > 0) {
                     Font labelFont = mapArea.getLabelFont(); //new Font("SanSerif", Font.PLAIN, 10);
                     XYUnits = mapArea.getXYUnits().trim();
-                    if (!XYUnits.isEmpty()) {
+                    if (!XYUnits.isEmpty() && !XYUnits.equals("\u00B0")) {
                         String tmpStr = " " + XYUnits;
                         XYUnits = tmpStr;
                     }

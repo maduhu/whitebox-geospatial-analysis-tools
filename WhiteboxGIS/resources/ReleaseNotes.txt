@@ -11,9 +11,9 @@ SYSTEM REQUIREMENTS:
 
 Whitebox GAT requires a minimum of 2 GB of system memory (RAM) to operate, although 
 8 GB is preferable. Depending on the size of the data being analyzed more memory 
-may be required. In addition, the Java Runtime Environment (JRE) 7 or higher must 
+may be required. In addition, the Java Runtime Environment (JRE) 8 or higher must 
 be installed and properly configured for Whitebox GAT to operate. Whitebox will
-run on any computer running the Java Runtime Environment (JRE) 7.0 or higher, 
+run on any computer running the Java Runtime Environment (JRE) 8.0 or higher, 
 including computers running MS Windows, MacOS, and Linux operating systems. A solid 
 state drive (SSD) is recommended for those working on massive data files, as it 
 greatly increased performance.
@@ -25,6 +25,8 @@ Version 3.2.1 ()
  the USGS FTP site, import the tiles into Whitebox GAT, and optionally fill 
  missing data holes and mosaic the tiles.
 -Added Interior Point tool.
+-Added CreateRectangularGridTool for creating a vector grid of polygons based on 
+ a rectangular grid.
 -Added Single-part to Multi-part and Multi-part to Single-part tools.
 -Added List Unique Values tool to list all of the unique values in a categorical 
  field contained within a vector's attribute table. It will also report category
@@ -37,6 +39,10 @@ Version 3.2.1 ()
  layer is not currently displayed, it will be. The reason I added this tool is 
  because many people search for feature selection in the toolbox rather than 
  in the attribute table dialog.
+-The Hillshade tool will now automatically calculate an appropriate z conversion 
+ value when it detects that the DEM is in geographic coordinates with XY units 
+ of degrees. I also fixed the Slope, Aspect, and all the Curvature tools to do 
+ this as well.
 
 Version 3.2.0 (May 4, 2014)
 -Updated to Java 8. This is a major change and may result in some compatability issues.

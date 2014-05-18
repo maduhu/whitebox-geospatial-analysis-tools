@@ -538,7 +538,7 @@ public class MapProperties extends JDialog implements ActionListener, Adjustment
         obj.setPreferredSize(new Dimension(this.getPreferredSize().width - 8, 300));
         return obj;
     }
-    private static Map<String, Float[]> pageSizes = new HashMap<String, Float[]>();
+    private static Map<String, Float[]> pageSizes = new HashMap<>();
 
     private static void createPageSizeMap() {
 

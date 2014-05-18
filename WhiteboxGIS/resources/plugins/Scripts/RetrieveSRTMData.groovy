@@ -79,23 +79,22 @@ public class RetrieveSRTMData implements ActionListener {
             // add some components to the dialog
             sd.addDialogComboBox("SRTM Dataset", "SRTM Dataset:", ["3-arcsecond (Global)", "1-arcsecond (US only)"], 0)
             
-            String[] lats = new String[181]
-            for (int a in 0..180) {
-				int k = -1 * (a - 90)
-				//println k
-				lats[a] = "${k}"
+            String[] lats = new String[119]
+            int lat = 61
+            for (int a in 0..118) {
+				lats[a] = "${lat}"
+				lat--
 			}
-            sd.addDialogComboBox("Starting latitude", "Starting Latitude:", lats, 48)
-            sd.addDialogComboBox("Ending latitude", "Ending Latitude:", lats, 45)
+            sd.addDialogComboBox("Starting latitude", "Starting Latitude:", lats, 18)
+            sd.addDialogComboBox("Ending latitude", "Ending Latitude:", lats, 17)
 
             String[] longs = new String[361]
             for (int a in 0..360) {
 				int k = -1 * (a - 180)
-				//println k
 				longs[a] = "${k}"
 			}
             sd.addDialogComboBox("Starting longitude", "Starting Longitude:", longs, 261)
-            sd.addDialogComboBox("Ending longitude", "Ending Longitude:", longs, 257)
+            sd.addDialogComboBox("Ending longitude", "Ending Longitude:", longs, 260)
             
             sd.addDialogCheckBox("Fill missing data holes?", "Fill missing data holes?", true)
 			DialogCheckBox cb = sd.addDialogCheckBox("Mosaic DEM tiles?", "Mosaic DEM tiles?", true)
@@ -401,7 +400,7 @@ public class RetrieveSRTMData implements ActionListener {
 				}
 				fixElevations(outputFile)
 				pluginHost.returnData(outputFile)
-				pluginHost.zoomToFullExtent()
+				//pluginHost.zoomToFullExtent()
 			}
 
         } catch (OutOfMemoryError oe) {
@@ -456,7 +455,7 @@ public class RetrieveSRTMData implements ActionListener {
 	            	}
 	            }
 	            
-	            progress = (int)(100f * row / (row - 1))
+	            progress = (int)(100f * row / (rows - 1))
 				if (progress > oldProgress) {
 					pluginHost.updateProgress(progress)
 					oldProgress = progress
@@ -469,6 +468,9 @@ public class RetrieveSRTMData implements ActionListener {
 			wbr.findMinAndMaxVals()
     	}
     	wbr.setPreferredPalette("high_relief.pal")
+    	wbr.setXYUnits("degrees")
+    	wbr.setZUnits("metres")
+    	wbr.setProjection("geographic coordinates")
 		wbr.close()
     }
 
