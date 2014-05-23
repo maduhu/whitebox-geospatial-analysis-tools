@@ -47,11 +47,10 @@ public class Clip implements WhiteboxPlugin {
 
     private WhiteboxPluginHost myHost = null;
     private String[] args;
-    
+
     private AtomicInteger numSolutions = new AtomicInteger(0);
     private AtomicInteger oldProgress = new AtomicInteger(-1);
     private int numFeatures = 0;
-	
 
     /**
      * Used to retrieve the plugin tool's name. This is a short, unique name
@@ -373,7 +372,6 @@ public class Clip implements WhiteboxPlugin {
             }
 
             //updateProgress("Loop 2 running concurrently; please wait...", 0);
-
             List<Future<WorkData>> results = executor.invokeAll(tasks);
             executor.shutdown();
 
@@ -508,17 +506,16 @@ public class Clip implements WhiteboxPlugin {
                             PointsList pl = new PointsList(pnts);
                             wbGeometry = new whitebox.geospatialfiles.shapefile.PolyLine(parts, pl.getPointsArray());
                             ret.addGeometry(wbGeometry);
-
                         } else if (shapeType == ShapeType.POINT && gN instanceof com.vividsolutions.jts.geom.Point) { //if (shapeType == ShapeType.POINT) {
                             com.vividsolutions.jts.geom.Point p = (com.vividsolutions.jts.geom.Point) gN;
                             wbGeometry = new whitebox.geospatialfiles.shapefile.Point(p.getX(), p.getY());
                             ret.addGeometry(wbGeometry);
                         }
-                        //ret.addGeometry(wbGeometry);
+
                     }
                 }
             }
-            
+
             int solved = numSolutions.incrementAndGet();
             int progress = (int) (100f * solved / (numFeatures - 1));
             if (progress > oldProgress.intValue()) {
