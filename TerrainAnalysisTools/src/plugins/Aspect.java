@@ -227,6 +227,15 @@ public class Aspect implements WhiteboxPlugin {
             double eightGridRes = 8 * gridRes;
             
             double noData = inputFile.getNoDataValue();
+            
+            if (inputFile.getXYUnits().toLowerCase().contains("deg") || 
+                    inputFile.getProjection().toLowerCase().contains("geog")) {
+                // calculate a new z-conversion factor
+                double midLat = (inputFile.getNorth() - inputFile.getSouth()) / 2.0;
+                if (midLat <= 90 && midLat >= -90) {
+                    zConvFactor = 1.0 / (113200 * Math.cos(Math.toRadians(midLat)));
+                }
+            }
 
             WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
             outputFile.setPreferredPalette("circular_bw.pal");

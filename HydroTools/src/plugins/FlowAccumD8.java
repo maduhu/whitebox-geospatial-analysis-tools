@@ -386,6 +386,8 @@ public class FlowAccumD8 implements WhiteboxPlugin {
                         }
                     }
                 }
+            } else {
+                output.setNonlinearity(0.2);
             }
 
             output.addMetadataEntry("Created by the "

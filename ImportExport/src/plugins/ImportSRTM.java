@@ -337,6 +337,9 @@ public class ImportSRTM implements WhiteboxPlugin, InteropPlugin {
                 output.addMetadataEntry("Created by the "
                         + getDescriptiveName() + " tool.");
                 output.addMetadataEntry("Created on " + new Date());
+                output.setXYUnits("degrees");
+                output.setProjection("geographic coordinates");
+                output.setZUnits("metres");
                 output.writeHeaderFile();
                 output.close();
                 

@@ -230,7 +230,7 @@ public class Hillshade implements WhiteboxPlugin {
 
             WhiteboxRaster inputFile = new WhiteboxRaster(inputHeader, "r");
             inputFile.isReflectedAtEdges = true;
-
+            
             int rows = inputFile.getNumberRows();
             int cols = inputFile.getNumberColumns();
             gridRes = inputFile.getCellSizeX();
@@ -238,8 +238,17 @@ public class Hillshade implements WhiteboxPlugin {
             //double Rad180 = 180 * degToRad;
             //double Rad90 = 90 * degToRad;
 
-
             double noData = inputFile.getNoDataValue();
+            
+            if (inputFile.getXYUnits().toLowerCase().contains("deg") || 
+                    inputFile.getProjection().toLowerCase().contains("geog")) {
+                // calculate a new z-conversion factor
+                double midLat = (inputFile.getNorth() - inputFile.getSouth()) / 2.0;
+                if (midLat <= 90 && midLat >= -90) {
+                    midLat = Math.toRadians(midLat);
+                    zFactor = 1.0 / (113200 * Math.cos(midLat));
+                }
+            }
 
             WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.INTEGER, outNoData);
             outputFile.setNoDataValue(outNoData);

@@ -2981,6 +2981,8 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             deleteFeatureMenuItem.setEnabled(false);
 
             toolsMenu.add(editVectorMenu);
+            
+//            toolsMenu.addSeparator();
 
             // Help menu
             helpMenu = new JMenu(bundle.getString("Help"));
@@ -3045,12 +3047,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         for (MenuExtension me : menuExtensions) {
             final String fileName = me.getScriptFile();
             JMenuItem mi = new JMenuItem(me.getLabel());
-            mi.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    String[] args = new String[0];
-                    executeScriptFile(fileName, args, false);
-                }
+            mi.addActionListener((ActionEvent e) -> {
+                String[] args = new String[0];
+                executeScriptFile(fileName, args, false);
             });
             if (me.getAcceleratorKeyStroke() != null) {
                 mi.setAccelerator(me.getAcceleratorKeyStroke());

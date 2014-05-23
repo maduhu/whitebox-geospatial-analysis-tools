@@ -31,6 +31,21 @@ Version 3.2.1 ()
 -Added List Unique Values tool to list all of the unique values in a categorical 
  field contained within a vector's attribute table. It will also report category
  frequency.
+-Added a fast depression breaching tool. Depression breaching is a far superior 
+ method for pre-processing a DEM for hydrological analysis (e.g. mapping 
+ watersheds). One of the reasons that people continue to fill depressions instead 
+ of breaching is that filling is computationally much more efficient than 
+ breaching. Well this tool is just about as fast as Whitebox's depression filling 
+ tool. So now you have no excuse. This should be your default tool for hydrological
+ processing of DEMs. It's result is not as good as the optimal breaching tool but
+ it is far more efficient and still much better than filling. Please breach.
+-Added the tool BurnStreamAtRoads, which will carve a stream path through road
+ embankments at the site of road/stream crossings.
+-Added the ability to update individual scripts from the source code repository. 
+ This way, if you modify the code for a tool and break it, you can always 
+ revert it back to the source on the main trunk. There's also now a menu entry 
+ that will update all scripts for which there are newer versions within the 
+ code repository and new scripts.
 -Updated the centroid (vector) tool with the option to handle multi-part polyline 
  and polygon features as a single entity or to extract centroids for each part, 
  as well as, the ability to extract centroids for groups of points.

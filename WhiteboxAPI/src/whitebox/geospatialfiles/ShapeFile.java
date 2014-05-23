@@ -1584,6 +1584,14 @@ public class ShapeFile {
 
     }
     
+    private String getTabString(int i) {  
+	StringBuilder sb = new StringBuilder();
+	for (int j = 0; j < i; j++) {
+            sb.append("\t");
+	}
+	return sb.toString();
+    }
+    
     public boolean areGeometriesEqual(ShapeFile other) {
         if (other.getNumberOfRecords() != this.getNumberOfRecords()) {
             return false;

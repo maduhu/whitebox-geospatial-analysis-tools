@@ -472,7 +472,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setRenderingHints(rh);
 
-            if (printingMap) {
+            if (printingMap || !map.isPageVisible()) {
                 g2.setColor(Color.WHITE);
             } else {
                 g2.setColor(new Color(160, 160, 160));

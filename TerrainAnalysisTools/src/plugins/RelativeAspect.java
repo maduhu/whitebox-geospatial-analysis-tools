@@ -232,6 +232,15 @@ public class RelativeAspect implements WhiteboxPlugin {
             gridRes = DEM.getCellSizeX();
             eightGridRes = 8 * gridRes;
             
+            if (DEM.getXYUnits().toLowerCase().contains("deg") || 
+                    DEM.getProjection().toLowerCase().contains("geog")) {
+                // calculate a new z-conversion factor
+                double midLat = (DEM.getNorth() - DEM.getSouth()) / 2.0;
+                if (midLat <= 90 && midLat >= -90) {
+                    zFactor = 1.0 / (113200 * Math.cos(Math.toRadians(midLat)));
+                }
+            }
+            
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
             output.setPreferredPalette("grey.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CONTINUOUS);

@@ -198,16 +198,10 @@ public class ProfCurv implements WhiteboxPlugin {
             return;
         }
         
-        for (int i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                zConvFactor = Double.parseDouble(args[i]);
-            }
-        }
-
+        inputHeader = args[0];
+        outputHeader = args[1];
+        zConvFactor = Double.parseDouble(args[2]);
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -235,6 +229,15 @@ public class ProfCurv implements WhiteboxPlugin {
             double fourTimesGridResSquared = gridResSquared * 4;
             double curv;
             double noData = inputFile.getNoDataValue();
+            
+            if (inputFile.getXYUnits().toLowerCase().contains("deg") || 
+                    inputFile.getProjection().toLowerCase().contains("geog")) {
+                // calculate a new z-conversion factor
+                double midLat = (inputFile.getNorth() - inputFile.getSouth()) / 2.0;
+                if (midLat <= 90 && midLat >= -90) {
+                    zConvFactor = 1.0 / (113200 * Math.cos(Math.toRadians(midLat)));
+                }
+            }
 
             WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
             outputFile.setPreferredPalette("blue_white_red.pal");

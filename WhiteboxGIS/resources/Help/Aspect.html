@@ -14,7 +14,12 @@
             the name of the input DEM and the output aspect raster image. The Z Conversion
             Factor is only important when the vertical and horizontal units are not the
             same in the DEM. When this is the case, the algorithm will multiply each
-            elevation in the DEM by the Z Conversion Factor. Aspect grids are best
+            elevation in the DEM by the Z Conversion Factor. If the DEM is in the geographic coordinate system (latitude 
+and longitude), with XY units measured in degrees, an appropriate Z Conversion 
+Factor would be a value of approximately 0.000003, although this will vary 
+somewhat by latitude. If the XY units of the raster are set to degrees or the 
+projection set to geographic coordinates, the tool will automatically 
+calculate an appropriate value for the Z Conversion Factor. Aspect grids are best
             visualized using the <i><b>circular_bw</b></i> palette.</p>
 
         <p><br>

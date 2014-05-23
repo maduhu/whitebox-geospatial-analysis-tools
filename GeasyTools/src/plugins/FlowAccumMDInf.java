@@ -377,6 +377,8 @@ public class FlowAccumMDInf implements WhiteboxPlugin {
                     progress = (float) (100f * row / (numRows - 1));
                     updateProgress("Loop 4 of 4:", (int) progress);
                 }
+            } else {
+                upSlope.setNonlinearity(0.2);
             }
             
             upSlope.addMetadataEntry("Created by the " + getDescriptiveName() + " tool.");

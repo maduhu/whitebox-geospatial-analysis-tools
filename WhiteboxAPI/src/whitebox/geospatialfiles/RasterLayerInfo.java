@@ -90,6 +90,7 @@ public class RasterLayerInfo implements MapLayer {
         this.rows = source.getNumberRows();
         this.cols = source.getNumberColumns();
         this.setDataScale(source.getDataScale());
+        this.gamma = source.getNonlinearity();
         minVal = source.getDisplayMinimum();
         maxVal = source.getDisplayMaximum();
 
@@ -147,7 +148,7 @@ public class RasterLayerInfo implements MapLayer {
         this.setDataScale(source.getDataScale());
         minVal = source.getDisplayMinimum();
         maxVal = source.getDisplayMaximum();
-
+        this.gamma = source.getNonlinearity();
         if (source.getEast() > source.getWest()) {
             increasesEastward = true;
         } else {
@@ -218,8 +219,13 @@ public class RasterLayerInfo implements MapLayer {
     }
 
     public void setNonlinearity(double value) {
-        gamma = value;
+        if (gamma != value) {
+            gamma = value;
+            source.setNonlinearity(value);
+            source.writeHeaderFile();
+        }
     }
+    
     private String paletteFile = "";
 
     public String getPaletteFile() {

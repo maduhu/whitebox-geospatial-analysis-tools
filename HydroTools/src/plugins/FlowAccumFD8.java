@@ -364,6 +364,8 @@ public class FlowAccumFD8 implements WhiteboxPlugin {
                     progress = (float) (100f * row / (rows - 1));
                     updateProgress("Loop " + loopNum + ":", (int) progress);
                 }
+            } else {
+                output.setNonlinearity(0.2);
             }
 
             output.addMetadataEntry("Created by the "

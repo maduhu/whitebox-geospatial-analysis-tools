@@ -255,6 +255,9 @@ public class MapArea implements CartographicElement, Comparable<CartographicElem
     }
 
     public void setXYUnits(String XYUnits) {
+        if (XYUnits.toLowerCase().contains("deg")) {
+            XYUnits = "\u00b0";
+        }
         this.XYUnits = XYUnits;
     }
     

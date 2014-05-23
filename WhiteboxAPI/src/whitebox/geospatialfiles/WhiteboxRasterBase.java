@@ -264,7 +264,7 @@ public abstract class WhiteboxRasterBase {
      * <b><i>CONTINUOUS</i></b>,
      * <i><b>CATEGORICAL</i></b>, <i><b>BOOLEAN</i></b>, or <i><b>RGB</i></b>.
      *
-     * @param DataScale The specified data type.
+     * @param dataScale The specified data type.
      */
     public void setDataScale(DataScale dataScale) {
         this.dataScale = dataScale;
@@ -418,6 +418,24 @@ public abstract class WhiteboxRasterBase {
      */
     public void setDisplayMaximum(double DisplayMaximum) {
         displayMaximum = DisplayMaximum;
+    }
+    
+    protected double nonlinearity = 1.0;
+    
+    /**
+     * Returns the palette non-linearity value (gamma).
+     * @return double palette non-linearity
+     */
+    public double getNonlinearity() {
+        return nonlinearity;
+    }
+    
+    /**
+     * Sets the palette non-linearity value (gamma)
+     * @param value 
+     */
+    public void setNonlinearity(double value) {
+        this.nonlinearity = value;
     }
 
     protected String preferredPalette = "grey.pal";
@@ -789,6 +807,8 @@ public abstract class WhiteboxRasterBase {
                         if (str.length > 1) {
                             this.addMetadataEntry(str[dataCol]);
                         }
+                    } else if (str[0].toLowerCase().contains("palette nonlinearity")) {
+                        this.nonlinearity = Double.parseDouble(str[dataCol]);
                     }
                 }
                 if (this.displayMinimum == Float.POSITIVE_INFINITY) {
@@ -908,6 +928,8 @@ public abstract class WhiteboxRasterBase {
             str1 = "NoData:\t" + Double.toString(this.noDataValue);
             out.println(str1);
             str1 = "Byte Order:\t" + this.byteOrder;
+            out.println(str1);
+            str1 = "Palette Nonlinearity:\t" + this.nonlinearity;
             out.println(str1);
 
             // Write the metadata entries to the file

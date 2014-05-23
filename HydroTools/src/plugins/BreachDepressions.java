@@ -305,7 +305,7 @@ public class BreachDepressions implements WhiteboxPlugin {
 
             // find all the cells with no downslope neighbours and put them into the queue
             //PriorityQueue<DepGridCell> pq = new PriorityQueue<DepGridCell>((2 * rows + 2 * cols) * 2);
-            ArrayList<DepGridCell> pq2 = new ArrayList<DepGridCell>();
+            ArrayList<DepGridCell> pq2 = new ArrayList<>();
 
             updateProgress("Loop 1 of 2:", -1);
             for (row = 1; row < (rows - 1); row++) {
@@ -403,7 +403,7 @@ public class BreachDepressions implements WhiteboxPlugin {
                     if (atLeastOneSourceCell) {
 
                         PriorityQueue<CostDistCell> activeCellList =
-                                new PriorityQueue<CostDistCell>(maxDist * 4);
+                                new PriorityQueue<>(maxDist * 4);
 
                         // find all the cells that neighbour the target
                         // cells and add them to the activeCellList
