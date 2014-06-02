@@ -85,7 +85,7 @@ public class BurnStreamsAtRoads implements ActionListener {
             DialogFile dfIn2 = sd.addDialogFile("Input vector streams file; must be of a PolyLine ShapeType.", "Input Streams File:", "open", "Vector Files (*.shp), SHP", true, false)
 			DialogFile dfIn3 = sd.addDialogFile("Input vector roads file; must be of a PolyLine ShapeType.", "Input Roads File:", "open", "Vector Files (*.shp), SHP", true, false)
 			DialogFile dfOut = sd.addDialogFile("Output DEM file", "Output DEM File:", "save", "Raster Files (*.dep), DEP", true, false)
-           	DialogDataInput di = sd.addDialogDataInput("Average road width", "Average road width:", "", true, false)
+           	DialogDataInput di = sd.addDialogDataInput("Average road width in grid cells (pixels)", "Average road width (pixels):", "", true, false)
             
             // resize the dialog to the standard size and display it
             sd.setSize(800, 400)
@@ -125,7 +125,7 @@ public class BurnStreamsAtRoads implements ActionListener {
             String streamsFile = args[1]
             String roadsFile = args[2]
             String outputFile = args[3]
-            double roadWidth = Double.parseDouble(args[4])
+            double roadWidth = Double.parseDouble(args[4]) / 2.0
 
             ShapeFile streams = new ShapeFile(streamsFile)
 			ShapeType shapeType = streams.getShapeType()
@@ -235,7 +235,7 @@ public class BurnStreamsAtRoads implements ActionListener {
 			
 			// breach the road embankments along the stream segments
 			numFeatures = streamSegments.getNumGeometries()
-            oldProgress = -1
+			oldProgress = -1
 			for (int a = 0; a < numFeatures; a++) {
 				double dX, dY, targetZ
 				int endingRow, endingCol, startingRow, startingCol
@@ -287,6 +287,12 @@ public class BurnStreamsAtRoads implements ActionListener {
 					}
             	}
 			}
+
+			output.addMetadataEntry("Created by the "
+	                    + descriptiveName + " tool.")
+	        output.addMetadataEntry("Created on " + new Date())
+			output.close()
+			output.close()
 
 			pluginHost.returnData(outputFile)
 			

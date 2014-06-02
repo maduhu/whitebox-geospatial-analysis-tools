@@ -423,6 +423,14 @@ public class LiDAR_BareEarthDEM implements ActionListener {
                         	image.setValue(row, col, noData);
                         }
                     }
+
+                    if (numFiles == 1) {
+                    	progress = (int)(100f * row / (nrows - 1))
+                    	if (progress > oldProgress) {
+                    		oldProgress = progress
+                    		pluginHost.updateProgress("Interpolation Progress:", progress)
+                    	}
+                    }
                     
                     // check to see if the user has requested a cancellation
 					if (pluginHost.isRequestForOperationCancelSet()) {
@@ -430,43 +438,6 @@ public class LiDAR_BareEarthDEM implements ActionListener {
 						return Boolean.FALSE
 					}
                 }
-
-//				String segFile = image.getHeaderFile().replace(".dep", "_segFile.dep")
-//				WhiteboxRaster seg = new WhiteboxRaster(segFile, "rw", 
-//  		  	  		image.getHeaderFile(), DataType.FLOAT, noData)
-//
-//				//int[] dX = [ 1, 1, 1, 0, -1, -1, -1, 0 ]
-//				//int[] dY = [ -1, 0, 1, 1, 1, 0, -1, -1 ]
-//				int[] dX = [ 1, 0, -1, 0 ]
-//				int[] dY = [ 0, 1, 0, -1 ]
-//				int m, n
-//				double zN
-//				oldProgress = -1;
-//	            int currentVal = 1
-//                for (row in 0..(nrows - 1)) {
-//                    for (col in 0..(ncols - 1)) {
-//                    	z = image.getValue(row, col)
-//                    	if (z != noData) {
-//                    		for (int p in 0..3) {
-//                    			m = col + dX[p]
-//                    			n = row + dY[p]
-//								zN = image.getValue(n, m)
-//                    			if (zN - z > 0.7279404685324047 && zN != noData) {
-//                    				seg.setValue(row, col, 1)
-//                    				break
-//                    			}
-//                    		}
-//                    	}
-//                    }
-//                    // check to see if the user has requested a cancellation
-//					if (pluginHost.isRequestForOperationCancelSet()) {
-//						pluginHost.showFeedback("Operation cancelled")
-//						return Boolean.FALSE
-//					}
-//                }
-//
-//                seg.close()
-//                pluginHost.returnData(segFile)
 
                 image.addMetadataEntry("Created by the " + descriptiveName + " tool.");
                 image.addMetadataEntry("Created on " + new Date());

@@ -3924,6 +3924,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             } else {
                 setAsActiveLayer();
             }
+            if (e.getClickCount() == 2) {
+                showLayerProperties();
+            }
             refreshMap(true);
         } //else if (e.getClickCount() == 1) {
 //            updateLayersTab();

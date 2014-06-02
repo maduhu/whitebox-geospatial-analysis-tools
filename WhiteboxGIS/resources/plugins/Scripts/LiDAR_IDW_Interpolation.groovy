@@ -521,6 +521,14 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
                             image.setValue(row, col, noData);
                         }
                     }
+
+                    if (numFiles == 1) {
+                    	progress = (int)(100f * row / (nrows - 1))
+                    	if (progress > oldProgress) {
+                    		oldProgress = progress
+                    		pluginHost.updateProgress("Interpolation Progress:", progress)
+                    	}
+                    }
                     
                     // check to see if the user has requested a cancellation
 					if (pluginHost.isRequestForOperationCancelSet()) {

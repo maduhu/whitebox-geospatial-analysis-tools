@@ -405,6 +405,14 @@ public class LiDAR_CanopyModel implements ActionListener {
 							}
                         }
                     }
+
+                    if (numFiles == 1) {
+                    	progress = (int)(100f * row / (nrows - 1))
+                    	if (progress > oldProgress) {
+                    		oldProgress = progress
+                    		pluginHost.updateProgress("Interpolation Progress:", progress)
+                    	}
+                    }
                     
                     // check to see if the user has requested a cancellation
 					if (pluginHost.isRequestForOperationCancelSet()) {
@@ -413,126 +421,6 @@ public class LiDAR_CanopyModel implements ActionListener {
 					}
                 }
                 
-//	    	// check to see if the user has requested a cancellation
-//			if (pluginHost.isRequestForOperationCancelSet()) {
-//				return Boolean.FALSE
-//			}
-//			
-//	    	String inputFile = inputFiles[tileNum]
-//	    	int numFiles = inputFiles.length
-//	    	double x, y, z;
-//			double easting, northing;
-//			double scanAngle;
-//			final double noData = -32768;
-//			int row, col, i;
-//			List<KdTree.Entry<InterpolationRecord>> results;
-//		
-//			LASReader las;
-//			BoundingBox expandedBB = new BoundingBox(bb[tileNum].getMinX() - resolution, bb[tileNum].getMinY() - resolution, bb[tileNum].getMaxX() + resolution, bb[tileNum].getMaxY() + resolution);
-//			
-//			// count how many valid points there are
-//			int numPoints = 0;
-//			ArrayList<PointRecord> recs = new ArrayList<>();
-//			for (int a = 0; a < numFiles; a++) {
-//				if (bb[a].entirelyContainedWithin(expandedBB) || 
-//				  bb[a].intersectsAnEdgeOf(expandedBB)) {
-//				 	las = new LASReader(inputFiles[a])
-//				 	ArrayList<PointRecord> points = las.getPointRecordsInBoundingBox(expandedBB)
-//			 		for (PointRecord point : points) {
-//				 		if (!point.isPointWithheld()) {
-//                            recs.add(point);
-//                        }
-//			 		}
-//				 	points.clear();
-//				}
-//			}
-//			
-//			numPoints = recs.size();
-//			KdTree<InterpolationRecord> pointsTree = new KdTree.SqrEuclid<InterpolationRecord>(2, new Integer(numPoints))
-//
-//			double[] entry;
-//			PointRecColours pointColours;
-//			for (PointRecord point : recs) {
-//				entry = [point.getY(), point.getX()]
-//				pointsTree.addPoint(entry, new InterpolationRecord(point.getZ(), point.getScanAngle()));
-//			}
-//            recs.clear();
-//			
-//            // create the output grid
-//            String outputHeader = inputFile.replace(".las", suffix + ".dep");
-//
-//	        // see if the output files already exist, and if so, delete them.
-//	        if ((new File(outputHeader)).exists()) {
-//	            (new File(outputHeader)).delete();
-//	            (new File(outputHeader.replace(".dep", ".tas"))).delete();
-//	        }
-//	
-//	        // What are north, south, east, and west and how many rows and 
-//	        // columns should there be?
-//	        double west = bb[tileNum].getMinX() - 0.5 * resolution;
-//	        double north = bb[tileNum].getMaxY() + 0.5 * resolution;
-//	        int nrows = (int) (Math.ceil((north - bb[tileNum].getMinY()) / resolution));
-//	        int ncols = (int) (Math.ceil((bb[tileNum].getMaxX() - west) / resolution));
-//	        double south = north - nrows * resolution;
-//	        double east = west + ncols * resolution;
-//	
-//	        try {
-//	            // Create the whitebox raster object.
-//                WhiteboxRaster image = new WhiteboxRaster(outputHeader, 
-//                	north, south, east, west, nrows, ncols, 
-//                	WhiteboxRasterBase.DataScale.CONTINUOUS,
-//                    WhiteboxRasterBase.DataType.FLOAT, noData, noData);
-//                image.setPreferredPalette("spectrum.plt")
-//                
-//                InterpolationRecord value;
-//                double dist, val, minVal, maxVal;
-//                double maxDist = Math.sqrt(2) * resolution / 2.0d;
-//                double maxDistSqr = maxDist * maxDist;
-//	            double minDist, minDistVal;
-//	            double halfResolution = resolution / 2;
-//	            int oldProgress = -1;
-//	            int progress;
-//                for (row = 0; row < nrows; row++) {
-//                    for (col = 0; col < ncols; col++) {
-//                        easting = image.getXCoordinateFromColumn(col);
-//                        northing = image.getYCoordinateFromRow(row);
-//                        entry = [northing, easting];
-//                        results = pointsTree.neighborsWithinRange(entry, maxDist);
-//                        if (results.size() > 0) {
-//	                        minVal = Double.POSITIVE_INFINITY
-//	                        maxVal = Double.NEGATIVE_INFINITY
-//	                        minDist = Double.POSITIVE_INFINITY
-//	                        for (i = 0; i < results.size(); i++) {
-//	                        	value = (InterpolationRecord)results.get(i).value
-//	                        	dist = results.get(i).distance
-//	                        	val = value.value
-//	                            if (dist < minDist) {
-//                                	minDist = dist
-//                            		minDistVal = val 
-//                                }
-//                                if (val < minVal) { minVal = val }
-//                                if (val > maxVal) { maxVal = val }\
-//	                        }
-//	                        if (maxVal - minVal > minHeight) { 
-//	                        	// assign the cell the nearest elevation
-//	                        	z = maxVal - minVal
-//	                        } else {
-//	                        	// assign the cell the lowest elevation
-//	                        	z = noData
-//	                        }
-//	                        image.setValue(row, col, z);
-//                        } else {
-//                        	image.setValue(row, col, noData);
-//                        }
-//                    }
-//                    
-//                    // check to see if the user has requested a cancellation
-//					if (pluginHost.isRequestForOperationCancelSet()) {
-//						pluginHost.showFeedback("Operation cancelled")
-//						return Boolean.FALSE
-//					}
-//                }
-
                 image.addMetadataEntry("Created by the " + descriptiveName + " tool.");
                 image.addMetadataEntry("Created on " + new Date());
                 image.close();

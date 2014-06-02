@@ -75,7 +75,8 @@ public class FastBreachDepressions implements ActionListener {
 			// add some components to the dialog
 			sd.addDialogFile("Input DEM raster", "Input DEM Raster:", "open", "Raster Files (*.dep), DEP", true, false)
             sd.addDialogFile("Output DEM file", "Output DEM File:", "save", "Raster Files (*.dep), DEP", true, false)
-			DialogCheckBox dcb1 = sd.addDialogCheckBox("Output flow pointer (direction) file", "Output flow pointer file", false)
+			DialogDataInput di = sd.addDialogDataInput("Maximum breach channel length (pixels). Leave blank for none.", "Max. breach length (pixels; optional):", "", true, true)
+            DialogCheckBox dcb1 = sd.addDialogCheckBox("Output flow pointer (direction) file", "Output flow pointer file", false)
             DialogCheckBox dcb2 = sd.addDialogCheckBox("Perform flow accumulation after breaching", "Perform flow accumulation", false)
             dcb2.setVisible(false)
 
@@ -120,17 +121,23 @@ public class FastBreachDepressions implements ActionListener {
 			// read the input parameters
 			String demFile = args[0]
 			String outputFile = args[1]
+			int maxLength = -1
+			boolean maxLengthUsed = false
+			if (!(args[2].trim()).isEmpty() && !(args[2].toLowerCase().equals("not specified"))) {
+				maxLength = Integer.parseInt(args[2])
+				maxLengthUsed = true
+			}
 			String pointerFile = ""
 			String flowAccumFile = ""
 			boolean outputPointer = false
-			if (args.length >= 3 && !(args[2].trim()).isEmpty()) {
-				outputPointer = Boolean.parseBoolean(args[2]) //true
+			if (args.length >= 4 && !(args[3].trim()).isEmpty()) {
+				outputPointer = Boolean.parseBoolean(args[3])
 				pointerFile = outputFile.replace(".dep", "_flow_pntr.dep")
 			}
 
 			boolean performFlowAccumulation = false
-			if (args.length >= 4 && !(args[3].trim()).isEmpty() && outputPointer) {
-				performFlowAccumulation = Boolean.parseBoolean(args[3])
+			if (args.length >= 5 && !(args[4].trim()).isEmpty() && outputPointer) {
+				performFlowAccumulation = Boolean.parseBoolean(args[4])
 				flowAccumFile = outputFile.replace(".dep", "_flow_accum.dep")
 			}
 			
@@ -225,69 +232,155 @@ public class FastBreachDepressions implements ActionListener {
 			// now breach
 			oldProgress = (int) (100f * numSolvedCells / numCellsTotal);
             pluginHost.updateProgress("Loop 2 of 3: ", oldProgress);
-            while (queue.isEmpty() == false) {
-                gc = queue.poll();
-                row = gc.row;
-                col = gc.col;
-                z = gc.z;
-                
-                for (int i = 0; i < 8; i++) {
-                    rowN = row + dY[i];
-                    colN = col + dX[i];
-                    zN = output[rowN][colN];
-                    if ((zN != nodata) && (inQueue.getValue(rowN, colN) == false)) {
-                        flowdir.setValue(rowN, colN, backLink[i])
-                        if (pits.getValue(rowN, colN) == true) {
-                        	// trace the flowpath back until you find a lower cell
-                        	//numCellsInPath = 0
-                        	zTest = zN
-                        	r = rowN
-                        	c = colN
-                        	flag = true
-                        	while (flag) {
-                        		zTest -= SMALL_NUM // ensures a small increment slope
-                        		dir = flowdir.getValue(r, c)
-                        		if (dir > 0) {
-                        			r += dY[dir - 1]
-	                            	c += dX[dir - 1]
-	                            	zN2 = output[r][c]
-	                            	if (zN2 <= zTest || zN2 == nodata) {
-	                            		// a lower grid cell has been found
-	                            		flag = false
-	                            	} else {
-	                            		output[r][c] = zTest
-	                            		// this cell is already in the 
-	                            		// queue but with a higher elevation
-	                            		gc = new GridCell(r, c, zTest);
-                        				queue.add(gc);
-                        				numCellsTotal++
-	                            	}
-                        		} else {
-                        			flag = false
-                        		}
-                        		//numCellsInPath++
-                        	}
-                        	pits.setValue(rowN, colN, false)
-                        }
-                        numSolvedCells++;
-                        gc = new GridCell(rowN, colN, zN);
-                        queue.add(gc);
-                        inQueue.setValue(rowN, colN, true)
-                    }
-                }
-                progress = (int) (100f * numSolvedCells / numCellsTotal);
-                if (progress > oldProgress) {
-                    pluginHost.updateProgress("Loop 2 of 3", progress)
-                    oldProgress = progress;
-                    // check to see if the user has requested a cancellation
-					if (pluginHost.isRequestForOperationCancelSet()) {
-						pluginHost.showFeedback("Operation cancelled")
-						return
-					}
-                }
+
+            if (!maxLengthUsed) {
+	            while (queue.isEmpty() == false) {
+	                gc = queue.poll();
+	                row = gc.row;
+	                col = gc.col;
+	                z = gc.z;
+	                
+	                for (int i = 0; i < 8; i++) {
+	                    rowN = row + dY[i];
+	                    colN = col + dX[i];
+	                    zN = output[rowN][colN];
+	                    if ((zN != nodata) && (inQueue.getValue(rowN, colN) == false)) {
+	                        flowdir.setValue(rowN, colN, backLink[i])
+	                        if (pits.getValue(rowN, colN) == true) {
+	                        	// trace the flowpath back until you find a lower cell
+	                        	zTest = zN
+	                        	r = rowN
+	                        	c = colN
+	                        	flag = true
+	                        	while (flag) {
+	                        		zTest -= SMALL_NUM // ensures a small increment slope
+	                        		dir = flowdir.getValue(r, c)
+	                        		if (dir > 0) {
+	                        			r += dY[dir - 1]
+		                            	c += dX[dir - 1]
+		                            	zN2 = output[r][c]
+		                            	if (zN2 <= zTest || zN2 == nodata) {
+		                            		// a lower grid cell has been found
+		                            		flag = false
+		                            	} else {
+		                            		output[r][c] = zTest
+		                            		// this cell is already in the 
+		                            		// queue but with a higher elevation
+		                            		gc = new GridCell(r, c, zTest);
+	                        				queue.add(gc);
+	                        				numCellsTotal++
+		                            	}
+	                        		} else {
+	                        			flag = false
+	                        		}
+	                        	}
+	                        	pits.setValue(rowN, colN, false)
+	                        }
+	                        numSolvedCells++;
+	                        gc = new GridCell(rowN, colN, zN);
+	                        queue.add(gc);
+	                        inQueue.setValue(rowN, colN, true)
+	                    }
+	                }
+	                progress = (int) (100f * numSolvedCells / numCellsTotal);
+	                if (progress > oldProgress) {
+	                    pluginHost.updateProgress("Loop 2 of 3", progress)
+	                    oldProgress = progress;
+	                    // check to see if the user has requested a cancellation
+						if (pluginHost.isRequestForOperationCancelSet()) {
+							pluginHost.showFeedback("Operation cancelled")
+							return
+						}
+	                }
+	            }
+            } else {
+            	while (queue.isEmpty() == false) {
+	                gc = queue.poll();
+	                row = gc.row;
+	                col = gc.col;
+	                z = gc.z;
+	                
+	                for (int i = 0; i < 8; i++) {
+	                    rowN = row + dY[i];
+	                    colN = col + dX[i];
+	                    zN = output[rowN][colN];
+	                    if ((zN != nodata) && (inQueue.getValue(rowN, colN) == false)) {
+	                        flowdir.setValue(rowN, colN, backLink[i])
+	                        if (pits.getValue(rowN, colN) == true) {
+	                        	// trace the flowpath back until you find a lower cell
+	                        	numCellsInPath = 0
+	                        	zTest = zN
+	                        	r = rowN
+	                        	c = colN
+	                        	flag = true
+	                        	while (flag) {
+	                        		zTest -= SMALL_NUM // ensures a small increment slope
+	                        		dir = flowdir.getValue(r, c)
+	                        		if (dir > 0) {
+	                        			r += dY[dir - 1]
+		                            	c += dX[dir - 1]
+		                            	zN2 = output[r][c]
+		                            	if (zN2 <= zTest || zN2 == nodata) {
+		                            		// a lower grid cell has been found
+		                            		flag = false
+		                            	}
+	                        		} else {
+	                        			flag = false
+	                        		}
+	                        		numCellsInPath++
+	                        		if (numCellsInPath > maxLength) { flag = false }
+	                        	}
+
+								if (numCellsInPath <= maxLength) {
+									zTest = zN
+		                        	r = rowN
+		                        	c = colN
+		                        	flag = true
+		                        	while (flag) {
+		                        		zTest -= SMALL_NUM // ensures a small increment slope
+		                        		dir = flowdir.getValue(r, c)
+		                        		if (dir > 0) {
+		                        			r += dY[dir - 1]
+			                            	c += dX[dir - 1]
+			                            	zN2 = output[r][c]
+			                            	if (zN2 <= zTest || zN2 == nodata) {
+			                            		// a lower grid cell has been found
+			                            		flag = false
+			                            	} else {
+			                            		output[r][c] = zTest
+			                            		// this cell is already in the 
+			                            		// queue but with a higher elevation
+			                            		gc = new GridCell(r, c, zTest);
+		                        				queue.add(gc);
+		                        				numCellsTotal++
+			                            	}
+		                        		} else {
+		                        			flag = false
+		                        		}
+		                        	}
+								}
+	                        	pits.setValue(rowN, colN, false)
+	                        }
+	                        numSolvedCells++;
+	                        gc = new GridCell(rowN, colN, zN);
+	                        queue.add(gc);
+	                        inQueue.setValue(rowN, colN, true)
+	                    }
+	                }
+	                progress = (int) (100f * numSolvedCells / numCellsTotal);
+	                if (progress > oldProgress) {
+	                    pluginHost.updateProgress("Loop 2 of 3", progress)
+	                    oldProgress = progress;
+	                    // check to see if the user has requested a cancellation
+						if (pluginHost.isRequestForOperationCancelSet()) {
+							pluginHost.showFeedback("Operation cancelled")
+							return
+						}
+	                }
+	            }
             }
 
-			// output the data
+            // output the data
 			WhiteboxRaster outputRaster = new WhiteboxRaster(outputFile, "rw", 
   		  	     demFile, DataType.FLOAT, nodata)
 			outputRaster.setPreferredPalette(paletteName)
