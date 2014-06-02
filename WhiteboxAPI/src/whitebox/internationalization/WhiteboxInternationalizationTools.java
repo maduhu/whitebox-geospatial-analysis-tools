@@ -24,6 +24,8 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -74,9 +76,13 @@ public final class WhiteboxInternationalizationTools {
         //String bundleFile = "/Users/johnlindsay/Documents/messages_fr_CA.properties";
         //String outputFile = "/Users/johnlindsay/Documents/messages_fr_CA2.properties";
         
-        String inputFile = "/Users/johnlindsay/Documents/russian plugin translations.txt";
-        String bundleFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_ru_RU.properties";
-        String outputFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_ru_RU2.properties";
+//        String inputFile = "/Users/johnlindsay/Documents/russian plugin translations.txt";
+//        String bundleFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_ru_RU.properties";
+//        String outputFile = "/Users/johnlindsay/Documents/GuiLabelsBundle_ru_RU2.properties";
+        
+        String inputFile = "/Users/johnlindsay/Documents/portuguese translations.txt";
+        String bundleFile = "/Users/johnlindsay/Documents/plugins_pt_BR.properties";
+        String outputFile = "/Users/johnlindsay/Documents/plugins_pt_BR2.properties";
         
         
         int numLinesInOutput = 0;
@@ -85,6 +91,7 @@ public final class WhiteboxInternationalizationTools {
         FileWriter fw = null;
         BufferedWriter bw = null;
         PrintWriter out = null;
+        //BufferedWriter out = null;
         String delimiter = "=";
         try {
             // Open the file that is the first command line parameter
@@ -92,7 +99,7 @@ public final class WhiteboxInternationalizationTools {
             // Get the object of DataInputStream
             in = new DataInputStream(fstream);
 
-            br = new BufferedReader(new InputStreamReader(in));
+            br = new BufferedReader(new InputStreamReader(in, "UTF8"));
 
             String line;
             String[] str;
@@ -107,7 +114,7 @@ public final class WhiteboxInternationalizationTools {
             // Get the object of DataInputStream
             in = new DataInputStream(fstream);
 
-            br = new BufferedReader(new InputStreamReader(in));
+            br = new BufferedReader(new InputStreamReader(in, "UTF8"));
 
             //Read File Line By Line
             int i = 0;
@@ -126,7 +133,7 @@ public final class WhiteboxInternationalizationTools {
             // Get the object of DataInputStream
             in = new DataInputStream(fstream);
 
-            br = new BufferedReader(new InputStreamReader(in));
+            br = new BufferedReader(new InputStreamReader(in, "UTF8"));
 
             //Read File Line By Line
             delimiter = "\t";
@@ -159,9 +166,11 @@ public final class WhiteboxInternationalizationTools {
             File file = new File(outputFile);
             if (file.exists()) { file.delete(); }
 
-            fw = new FileWriter(file, false);
-            bw = new BufferedWriter(fw);
-            out = new PrintWriter(bw, true);
+//            fw = new FileWriter(file, false);
+//            bw = new BufferedWriter(fw);
+//            out = new PrintWriter(bw, true);
+            //out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile),"UTF-8"));
+            out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "ISO-8859-1"));
             
             for (int a = 0; a < numLinesInOutput; a++) {
                 if (outputText[a][1] != null && 

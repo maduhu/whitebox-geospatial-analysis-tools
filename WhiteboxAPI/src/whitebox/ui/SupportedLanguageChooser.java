@@ -41,9 +41,9 @@ public abstract class SupportedLanguageChooser {
         String[] languages = { "Català (Spain)", "Deutsch (Germany)", "Elliniká (Greece)", 
             "English (Canada)", "English (UK)", "English (US)", "Español (Spain)", 
             "Français (Canada)", "Italiano (Italy)", "Persian (Iran)", "Polski (Poland)",
-            "Russian (Russia)", "简体字 (simplified)", "正體字 (traditional)"};
+            "Portuguese (Brazil)", "Russian (Russia)", "简体字 (simplified)", "正體字 (traditional)"};
         String[] codes = { "ca_ES", "de_DE", "el_GR", "en_CA", 
-            "en_GB", "en_US", "es_ES", "fr_CA", "it_IT", "fa_IR", "pl_PL", "ru_RU",
+            "en_GB", "en_US", "es_ES", "fr_CA", "it_IT", "fa_IR", "pl_PL", "pt_BR", "ru_RU",
             "zh_CN", "zh_TW" };
         
         int selectedIndex = 0;
@@ -64,6 +64,9 @@ public abstract class SupportedLanguageChooser {
                     Object item = e.getItem();
                     String code;
                     switch (item.toString().toLowerCase()) {
+                        case "portuguese (brazil)":
+                            code = "pt_BR";
+                            break;
                         case "简体字 (simplified)":
                             code = "zh_CN";
                             break;

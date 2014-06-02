@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Dr. John Lindsay <jlindsay@uoguelph.ca>
+ * Copyright (C) 2014 Dr. John Lindsay <jlindsay@uoguelph.ca>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,20 +27,14 @@ import whitebox.interfaces.CartographicElement;
  *
  * @author johnlindsay
  */
-public class MapTextArea implements CartographicElement, Comparable<CartographicElement>, java.io.Serializable {
+public class MapLabel implements CartographicElement, Comparable<CartographicElement>, java.io.Serializable {
 
     private String cartoElementType = "MapTextArea";
     boolean visible = true;
     boolean selected = false;
     String name = "MapTextArea";
     int number = -1;
-    String label = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, "
-            + "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
-            + "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris "
-            + "nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in "
-            + "reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla "
-            + "pariatur. Excepteur sint occaecat cupidatat non proident, sunt in "
-            + "culpa qui officia deserunt mollit anim id est laborum.";
+    String label = "";
     boolean borderVisible = false;
     boolean backgroundVisible = false;
     int upperLeftX = 0;
@@ -59,24 +53,19 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     private int selectedOffsetY;
     private float interlineSpace = 1.25f;
 
-    public MapTextArea() {
+    public MapLabel() {
         measureFontSizes();
-//        findAvailableFonts();
     }
 
-    public MapTextArea(String name) {
+    public MapLabel(String name) {
         this.name = name;
         measureFontSizes();
-//        findAvailableFonts();
     }
 
-    public MapTextArea(String label, String name) {
+    public MapLabel(String label, String name) {
         this.label = label;
-        //GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        //Font[] availableFonts = e.getAllFonts();
         this.name = name;
         measureFontSizes();
-//        findAvailableFonts();
     }
     
     static int[] fontHeights = new int[300];
@@ -305,10 +294,6 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     public void setInterlineSpace(float interlineSpace) {
         this.interlineSpace = interlineSpace;
     }
-
-//    public Font[] getAvailableFonts() {
-//        return availableFonts;
-//    }
     
     @Override
     public int compareTo(CartographicElement other) {
@@ -410,14 +395,6 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
 
     @Override
     public CartographicElement.CartographicElementType getCartographicElementType() {
-        return CartographicElement.CartographicElementType.MAP_TEXT_AREA;
+        return CartographicElement.CartographicElementType.MAP_LABEL;
     }
-    
-//    private void findAvailableFonts() {
-//        GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
-//        availableFonts = e.getAllFonts();
-////        for (Font f : availableFonts) {
-////            System.out.println(f.getFontName());
-////        }
-//    }
 }
