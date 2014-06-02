@@ -79,7 +79,7 @@ public class RasterStreamsToVector implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "StreamAnalysis" };
+    	String[] ret = { "StreamAnalysis", "RasterVectorConversions" };
     	return ret;
     }
 
