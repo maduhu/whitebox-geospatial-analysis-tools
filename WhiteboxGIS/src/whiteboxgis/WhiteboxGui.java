@@ -3984,24 +3984,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                         JPopupMenu pm = new JPopupMenu();
                                         final String scriptName = getScriptFile(label);
                                         JMenuItem mi = new JMenuItem(bundle.getString("EditScript"));
-                                        mi.addActionListener(new ActionListener() {
-                                            @Override
-                                            public void actionPerformed(ActionEvent e) {
-                                                editScript(scriptName);
-                                            }
+                                        mi.addActionListener((ActionEvent e1) -> {
+                                            editScript(scriptName);
                                         });
                                         //mi.setActionCommand("editScript");
                                         pm.add(mi);
                                         
                                         mi = new JMenuItem(bundle.getString("UpdateScript"));
-                                        mi.addActionListener(new ActionListener() {
-                                            @Override
-                                            public void actionPerformed(ActionEvent e) {
-                                                String[] args = new String[1];
-                                                args[0] = FileUtilities.getShortFileName(scriptName);
-                                                String updateScript = resourcesDirectory + "plugins" + pathSep + "Scripts" + pathSep + "UpdateScriptFile.groovy";
-                                                executeScriptFile(updateScript, args, false);
-                                            }
+                                        mi.addActionListener((ActionEvent e1) -> {
+                                            String[] args = new String[1];
+                                            args[0] = FileUtilities.getShortFileName(scriptName);
+                                            String updateScript = resourcesDirectory + "plugins" + pathSep + "Scripts" + pathSep + "UpdateScriptFile.groovy";
+                                            executeScriptFile(updateScript, args, false);
                                         });
                                         pm.add(mi);
                                         

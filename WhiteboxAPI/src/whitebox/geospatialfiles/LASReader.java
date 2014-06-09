@@ -244,7 +244,7 @@ public class LASReader {
             x = rec.getX();
             y = rec.getY();
             if (maxYbb < y || maxXbb < x || minYbb > y || minXbb > x) {
-                // do nothing
+                // do nothing it's outside the bounds
             } else {
                 ret.add(rec);
             }

@@ -79,6 +79,8 @@ public class LiDAR_BareEarthDEM implements ActionListener {
 			// add some components to the dialog
 			sd.addDialogMultiFile("Select the input LAS files", "Input LAS Files:", "LAS Files (*.las), LAS")
 			sd.addDialogDataInput("Output File Suffix (e.g. bare earth)", "Output File Suffix (e.g. bare earth)", "bare earth", false, false)
+			sd.addDialogDataInput("IDW Exponent", "IDW Exponent", "2", true, false)
+			sd.addDialogDataInput("Max Search Distance (m)", "Max Search Distance (m)", "", true, false)
 			sd.addDialogDataInput("Grid Resolution (m)", "Grid Resolution:", "", true, false)
 			sd.addDialogDataInput("Threshold in the slope between points to define an off-terrain point.", "Inter-point Slope Threshold:", "30.0", true, false)
 			sd.addDialogDataInput("Max Scan Angle Deviation (optional)", "Max Scan Angle Deviation (optional)", "", true, true)
@@ -96,7 +98,7 @@ public class LiDAR_BareEarthDEM implements ActionListener {
 	private void execute(String[] args) {
 		long start = System.currentTimeMillis()  
 	  try {
-	  	if (args.length != 5) {
+	  	if (args.length != 7) {
 			pluginHost.showFeedback("Incorrect number of arguments given to tool.")
 			return
 		}
@@ -107,12 +109,14 @@ public class LiDAR_BareEarthDEM implements ActionListener {
 		if (args[1] != null) {
 			suffix = " " + args[1].trim();
 		}
-        double resolution = Double.parseDouble(args[2]);
-        double maxSlope = Double.parseDouble(args[3]);
+        double weight = Double.parseDouble(args[2]);
+		double maxDist = Double.parseDouble(args[3]);
+		double resolution = Double.parseDouble(args[4]);
+        double maxSlope = Double.parseDouble(args[5]);
         double maxScanAngleDeviation = 1000.0d
-        if (args[4] != null && !args[4].isEmpty()) {
-        	if (!args[4].toLowerCase().equals("not specified")) {
-        		maxScanAngleDeviation= Double.parseDouble(args[4])
+        if (args[6] != null && !args[6].isEmpty()) {
+        	if (!args[6].toLowerCase().equals("not specified")) {
+        		maxScanAngleDeviation= Double.parseDouble(args[6])
         	}
         }
         if (maxScanAngleDeviation < 1.0) { maxScanAngleDeviation = 1.0; }
@@ -155,7 +159,8 @@ public class LiDAR_BareEarthDEM implements ActionListener {
 		ArrayList<DoWork> tasks = new ArrayList<>();
 		for (i = 0; i < numFiles; i++) {
 			tasks.add(new DoWork(i, inputFiles, suffix, 
-	      		 bb, resolution, maxSlope, maxScanAngleDeviation))
+	      		 bb, resolution, maxSlope, maxScanAngleDeviation,
+	      		 weight, maxDist))
 		}
 
 		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -236,10 +241,13 @@ public class LiDAR_BareEarthDEM implements ActionListener {
 	    private double resolution
 	    private double maxSlope
 	    private double maxScanAngleDeviation
+	    private double weight
+		private double maxDist
 		
 	    DoWork(int tileNum, String[] inputFiles, String suffix, 
 	      BoundingBox[] bb, double resolution, double maxSlope,
-	      double maxScanAngleDeviation) {
+	      double maxScanAngleDeviation, double weight, 
+	      double maxDist) {
 			this.tileNum = tileNum;
 			this.inputFiles = inputFiles.clone();
 			this.suffix = suffix;
@@ -247,6 +255,8 @@ public class LiDAR_BareEarthDEM implements ActionListener {
 			this.resolution = resolution;
 			this.maxSlope = maxSlope;
 			this.maxScanAngleDeviation = maxScanAngleDeviation
+			this.weight = weight
+			this.maxDist = maxDist
        	}
         	
         @Override
@@ -332,8 +342,8 @@ public class LiDAR_BareEarthDEM implements ActionListener {
                 double slopeThreshold = maxSlope / radToDeg
 	            InterpolationRecord value;
                 double dist, val, minVal, maxVal;
-                double maxDist = Math.sqrt(2) * resolution / 2.0d;
-                double maxDistSqr = maxDist * maxDist;
+//                double maxDist = Math.sqrt(2) * resolution / 2.0d;
+//                double maxDistSqr = maxDist * maxDist;
 	            double minDist, minDistVal;
 	            double halfResolution = resolution / 2;
 	            int oldProgress = -1;
@@ -398,23 +408,57 @@ public class LiDAR_BareEarthDEM implements ActionListener {
 								}
 							}
 
-							// now find the nearest ground point and assign it as the z
-	                        minDist = Double.POSITIVE_INFINITY
+//							// now find the nearest ground point and assign it as the z
+//	                        minDist = Double.POSITIVE_INFINITY
+//	                        z = noData
+//	                        n = 0
+//	                        for (i = 0; i < results.size(); i++) {
+//	                        	rec1 = (InterpolationRecord)results.get(i).value
+//	                        	if (!nongroundBitArray.getValue(rec1.getIndex())) {
+//	                        		dist = results.get(i).distance
+//		                        	val = rec1.value
+//		                            if (dist < minDist) { 
+//		                            	minDist = dist
+//		                            	z = val
+//		                            }
+//		                            n++
+//	                        	}
+//	                        }
+
+							// now perform an IDW interpolation
 	                        z = noData
 	                        n = 0
+	                        double sumWeights = 0
+//	                        double weight = 2.0
+	                        ArrayList<Double> weights = new ArrayList<>()
+	                        ArrayList<Double> vals = new ArrayList<>()
 	                        for (i = 0; i < results.size(); i++) {
 	                        	rec1 = (InterpolationRecord)results.get(i).value
 	                        	if (!nongroundBitArray.getValue(rec1.getIndex())) {
-	                        		dist = results.get(i).distance
-		                        	val = rec1.value
-		                            if (dist < minDist) { 
-		                            	minDist = dist
-		                            	z = val
-		                            }
-		                            n++
+	                        		if (results.get(i).distance > 0) {
+		                        		dist = 1 / Math.pow(Math.sqrt(results.get(i).distance), weight)
+			                        	weights.add(dist)
+			                            sumWeights += dist
+			                            vals.add(rec1.value)
+			                            n++
+	                        		} else {
+	                        			weights = new ArrayList<>()
+	                        			vals = new ArrayList<>()
+	                        			weights.add(1.0d)
+			                            sumWeights += 1.0
+			                            vals.add(rec1.value)
+			                            n = 1
+	                        			break
+	                        		}
 	                        	}
 	                        }
-							
+	                        if (n > 0) {
+	                        	z = 0
+	                        	for (int s = 0; s < n; s++) {
+	                        		z += (weights.get(s) * vals.get(s)) / sumWeights
+	                        	}
+	                        }
+	                        
 	                        image.setValue(row, col, z);
                         } else if (results.size() == 1) {
                         	value = (InterpolationRecord)results.get(0).value
