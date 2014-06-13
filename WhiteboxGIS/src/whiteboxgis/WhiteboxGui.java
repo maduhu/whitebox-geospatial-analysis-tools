@@ -1789,6 +1789,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     /**
      * Used to communicate a request to cancel an operation
+     * @return boolean
      */
     @Override
     public boolean isRequestForOperationCancelSet() {
@@ -2462,31 +2463,22 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             fileMenu = new JMenu(bundle.getString("File"));
             recentFilesMenu.setNumItemsToStore(numberOfRecentItemsToStore);
             recentFilesMenu.setText(bundle.getString("RecentDataLayers"));
-            recentFilesMenu.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    addLayer(e.getActionCommand());
-                }
+            recentFilesMenu.addActionListener((ActionEvent e) -> {
+                addLayer(e.getActionCommand());
             });
             fileMenu.add(recentFilesMenu);
 
             recentMapsMenu.setNumItemsToStore(numberOfRecentItemsToStore);
             recentMapsMenu.setText(bundle.getString("RecentMaps"));
-            recentMapsMenu.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    openMap(e.getActionCommand());
-                }
+            recentMapsMenu.addActionListener((ActionEvent e) -> {
+                openMap(e.getActionCommand());
             });
             fileMenu.add(recentMapsMenu);
 
             recentDirectoriesMenu.setNumItemsToStore(numberOfRecentItemsToStore);
             recentDirectoriesMenu.setText(bundle.getString("RecentWorkingDirectories"));
-            recentDirectoriesMenu.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    setWorkingDirectory(e.getActionCommand());
-                }
+            recentDirectoriesMenu.addActionListener((ActionEvent e) -> {
+                setWorkingDirectory(e.getActionCommand());
             });
             fileMenu.add(recentDirectoriesMenu);
 
@@ -2734,22 +2726,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             viewMenu.addSeparator();
             JMenuItem textViewer = new JMenuItem("Text Viewer");
             viewMenu.add(textViewer);
-            textViewer.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    viewTextDialog("");
-                }
+            textViewer.addActionListener((ActionEvent e) -> {
+                viewTextDialog("");
             });
 
             JMenuItem htmlViewer = new JMenuItem("HTML Viewer");
             viewMenu.add(htmlViewer);
-            htmlViewer.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    viewHtmlDialog("");
-                }
+            htmlViewer.addActionListener((ActionEvent e) -> {
+                viewHtmlDialog("");
             });
 
             menubar.add(viewMenu);
