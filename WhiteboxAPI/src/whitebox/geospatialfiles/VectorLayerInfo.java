@@ -146,6 +146,10 @@ public class VectorLayerInfo implements MapLayer {
             int g = (int) (255 * generator.nextFloat());
             int b = (int) (255 * generator.nextFloat());
             fillColour = new Color(r, g, b);
+            if (shapefile.getNumberOfRecords() > 100000) {
+                outlined = false;
+                markerSize = 3.0f;
+            }
         }
         this.xyUnits = shapefile.getXYUnits();
         this.attributeTableFields = shapefile.getAttributeTableFields();

@@ -299,7 +299,7 @@ public class LASReader {
     }
     
     private void readPointRecords() {
-        int pos = (int)(offsetToPointData + startingPoint * pointDataRecLength);
+        long pos = offsetToPointData + (long)startingPoint * (long)pointDataRecLength;
         int pos2 = 0;
         byte returnNumberByte = 0;
         byte classificationByte = 0;
@@ -392,7 +392,7 @@ public class LASReader {
     
     private void readPointRecColours() {
         if (pointDataFormatID == 2 || pointDataFormatID == 3 || pointDataFormatID == 5) {
-            int pos = (int) (offsetToPointData + startingPoint * pointDataRecLength);
+            long pos = offsetToPointData + (long)startingPoint * (long)pointDataRecLength;
             int pos2 = 0;
             int offsetToColourData = 0;
             if (pointDataFormatID == 2) {
