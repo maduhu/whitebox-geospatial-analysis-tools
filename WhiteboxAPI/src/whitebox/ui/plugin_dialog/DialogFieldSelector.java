@@ -70,11 +70,8 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
             df = new DialogFile(hostDialog);
             df.setArgs(args);
             df.addPropertyChangeListener("value", this);
-            df.setTextFieldActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent evt) {
-                    okPressed();
-                }
+            df.setTextFieldActionListener((ActionEvent evt) -> {
+                okPressed();
             });
             box.add(df);
 
@@ -94,11 +91,8 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
                 list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
             }
 
-            ListSelectionListener listSelectionListener = new ListSelectionListener() {
-                @Override
-                public void valueChanged(ListSelectionEvent listSelectionEvent) {
-                    raisePropertyChangedEvent("");
-                }
+            ListSelectionListener listSelectionListener = (ListSelectionEvent listSelectionEvent) -> {
+                raisePropertyChangedEvent("");
             };
             list.addListSelectionListener(listSelectionListener);
 
