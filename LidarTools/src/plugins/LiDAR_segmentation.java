@@ -33,6 +33,7 @@ import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import whitebox.interfaces.WhiteboxPlugin;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.structures.KdTree;
+import whitebox.structures.BooleanBitArray1D;
 
 /**
  *
@@ -47,6 +48,7 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
     double threshold;
     double searchDist;
     long numClassifiedPoints = 0;
+    BooleanBitArray1D done;
 
     /**
      * Used to retrieve the plugin tool's name. This is a short, unique name
@@ -236,6 +238,7 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
             LASReader las = new LASReader(inputFile);
             numPoints = (int) las.getNumPointRecords();
             data = new LidarData[numPoints];
+            done = new BooleanBitArray1D(numPoints);
 
             // Read the valid points into the k-dimensional tree.
             pointsTree = new KdTree.SqrEuclid<>(2, numPoints);
@@ -264,6 +267,8 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
             }
 
             int currentClass = 0;
+//            long oldNumClassifiedPoints = 0;
+//            List<Long> histo = new ArrayList<>();
             do {
                 // find the first unclassified point
                 int startingPoint = -1;
@@ -284,8 +289,10 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
                 do {
                     flag = false;
                     for (Integer s : seeds) {
-                        data[s].setClassValue(currentClass);
-                        scanNeighbours(s);
+                        if (!done.getValue(s)) {
+                            data[s].setClassValue(currentClass);
+                            scanNeighbours(s);
+                        }
                     }
                     seeds.clear();
                     if (seedPoints.size() > 0) {
@@ -305,7 +312,16 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
                         }
                     }
                 } while (flag);
+//                histo.add(numClassifiedPoints - oldNumClassifiedPoints);
+//                oldNumClassifiedPoints = numClassifiedPoints;
             } while (numClassifiedPoints < numPoints);
+            
+//            int classVal = 1;
+//            for (Long val : histo) {
+//                System.out.println("Class " + String.valueOf(classVal) + ": " + String.valueOf(val));
+//            }
+            
+            // output
             DBFField fields[] = new DBFField[3];
 
             fields[0] = new DBFField();
@@ -377,7 +393,14 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
     private void scanNeighbours(int refPointNum) {
         depth++;
         if (depth > maxDepth) {
-            seedPoints.add(refPointNum);
+            if (seedPoints.size() < 80000) {
+                seedPoints.add(refPointNum);
+            }
+            depth--;
+            return;
+        }
+        
+        if (done.getValue(refPointNum)) {
             depth--;
             return;
         }
@@ -397,27 +420,9 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
                     }
                 }
             }
-        }       
+        }
+        done.setValue(refPointNum, true);
         depth--;
-    }
-
-    //this is only used for debugging the tool
-    public static void main(String[] args) {
-        LiDAR_segmentation seg = new LiDAR_segmentation();
-        args = new String[4];
-        args[0] = "/Users/johnlindsay/Documents/Data/Rashaads Sites/CVC_all.las";
-        args[1] = "/Users/johnlindsay/Documents/Data/Rashaads Sites/CVC ground points.shp";
-        args[2] = "15.0"; // degree slope
-        args[3] = "0.25"; // meter search window
-        
-//        args[0] = "/Users/johnlindsay/Documents/Data/LAS files/423_4695.las";
-//        args[1] = "/Users/johnlindsay/Documents/Data/LAS files/423_4695 ground points2.shp";
-//        args[2] = "20.0"; // degree slope
-//        args[3] = "2.0"; // meter search window
-        
-        seg.setArgs(args);
-        seg.run();
-
     }
 
     class LidarData {
@@ -442,4 +447,23 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
             }
         }
     }
+    
+    //this is only used for debugging the tool
+    public static void main(String[] args) {
+        LiDAR_segmentation seg = new LiDAR_segmentation();
+        args = new String[4];
+//        args[0] = "/Users/jlindsay/Documents/Data/Rashaad's Sites/CVC_all.las";
+//        args[1] = "/Users/jlindsay/Documents/Data/Rashaad's Sites/CVC ground points.shp";
+//        args[2] = "15.0"; // degree slope
+//        args[3] = "0.25"; // meter search window
+        
+        args[0] = "/Users/jlindsay/Documents/Data/LAS classified/416_4696.las"; //423_4695.las";
+        args[1] = "/Users/jlindsay/Documents/Data/LAS classified/416_4696 ground points.shp";
+        args[2] = "20.0"; // degree slope
+        args[3] = "2.0"; // meter search window
+        
+        seg.setArgs(args);
+        seg.run();
+    }
+
 }

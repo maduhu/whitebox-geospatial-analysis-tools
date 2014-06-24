@@ -224,8 +224,12 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                 
                 LASReader las = new LASReader(pointFiles[j]);
                 
-                long oneHundredthTotal = las.getNumPointRecords() / 100;
-
+                numPointsInFile = las.getNumPointRecords();
+                if (numPointsInFile > 70000000) {
+                    showFeedback("Error: The number of points exceeds the limit on the number of features that a shapefile can contain.");
+                    return;
+                }
+                
                 // create the new shapefile
                 String outputFile = pointFiles[j].replace(".las", ".shp");
                 File file = new File(outputFile);
@@ -284,11 +288,11 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                 progress = (int)((j + 1) * 100d / numPointFiles);
                 updateProgress("Loop " + (j + 1) + " of " + numPointFiles + ":", progress);
                 
-                numPointsInFile = las.getNumPointRecords();
+                
                 // first count how many valid points there are.
                 numPoints = 0;
-                n = 0;
                 progress = 0;
+                int oldProgress = -1;
                 for (a = 0; a < numPointsInFile; a++) {
                     point = las.getPointRecord(a);
                     if (!point.isPointWithheld()) {
@@ -316,14 +320,13 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                         
                         numPoints++;
                     }
-                    n++;
-                    if (n >= oneHundredthTotal) {
-                        n = 0;
+                    progress = (int)(100f * a / numPointsInFile);
+                    if (progress != oldProgress) {
+                        oldProgress = progress;
                         if (cancelOp) {
                             cancelOperation();
                             return;
                         }
-                        progress++;
                         updateProgress("Loop " + (j + 1) + " of " + numPointFiles + ":", progress);
                     }
                 }
@@ -332,7 +335,8 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                 
             }
 
-            returnData(pointFiles[0].replace(".las", ".shp"));
+//            returnData(pointFiles[0].replace(".las", ".shp"));
+            showFeedback("Operation Complete.");
             
         } catch (OutOfMemoryError oe) {
             myHost.showFeedback("An out-of-memory error has occurred during operation.");
