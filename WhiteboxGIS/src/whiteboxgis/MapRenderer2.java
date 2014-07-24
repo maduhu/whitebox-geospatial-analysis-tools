@@ -1397,8 +1397,14 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             if (!g2.drawImage(img, left, top, imageWidth, imageHeight, this)) {
                                 // do nothing
                             }
-
+                            
+                            BasicStroke myStroke = new BasicStroke(legend.getLineWidth());
+                            Stroke oldStroke2 = g2.getStroke();
+                            g2.setStroke(myStroke);
+  
                             g2.drawRect(left, top, imageWidth, imageHeight);
+                            
+                            g2.setStroke(oldStroke2);
 
                             String maxVal = df.format(rli.getDisplayMaxVal());
                             String minVal = df.format(rli.getDisplayMinVal());
@@ -1424,8 +1430,14 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 if (!g2.drawImage(img, left, top, imageWidth, imageHeight, this)) {
                                     // do nothing
                                 }
-
+                                
+                                BasicStroke myStroke = new BasicStroke(legend.getLineWidth());
+                                Stroke oldStroke2 = g2.getStroke();
+                                g2.setStroke(myStroke);
+  
                                 g2.drawRect(left, top, imageWidth, imageHeight);
+                                
+                                g2.setStroke(oldStroke2);
 
                                 String maxVal = df.format(vli.getMaximumValue());
                                 String minVal = df.format(vli.getMinimumValue());

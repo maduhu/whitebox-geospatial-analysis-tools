@@ -46,8 +46,6 @@ public class GetLasFileSummary implements ActionListener {
 	private ScriptDialog sd;
 	private String descriptiveName
 	
-	private int numSolvedTiles = 0
-	
 	public GetLasFileSummary(WhiteboxPluginHost pluginHost, 
 		String[] args, def name, def descriptiveName) {
 		this.pluginHost = pluginHost
@@ -178,6 +176,8 @@ public class GetLasFileSummary implements ActionListener {
 				int onlyRet = 0
 				
 				PointRecord point
+				int progress
+				int oldProgress = -1
 				for (int n = 0; n < totalPoints; n++) {
 					point = las.getPointRecord(n)
 					byte scanAngle = point.getScanAngle()
@@ -203,6 +203,17 @@ public class GetLasFileSummary implements ActionListener {
 					} else {
 						intermediateRet++
 					}
+
+					progress = (int)(100f * n / (totalPoints - 1))
+            		if (progress != oldProgress) {
+						pluginHost.updateProgress(progress)
+            			oldProgress = progress
+            			// check to see if the user has requested a cancellation
+						if (pluginHost.isRequestForOperationCancelSet()) {
+							pluginHost.showFeedback("Operation cancelled")
+							return
+						}
+            		}
 				}
 
 				double rangeX = las.getMaxX() - las.getMinX()

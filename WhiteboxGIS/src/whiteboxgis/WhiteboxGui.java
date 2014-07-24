@@ -4421,7 +4421,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 //    }
     @Override
     public int showFeedback(String message) {
-        if (suppressReturnedData) {
+        if (suppressReturnedData  || multiOperationsuppressReturnedData) {
             return - 1; // returns can be disruptive for scripts
         }
         JOptionPane.showMessageDialog(this, message);
@@ -4430,7 +4430,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
     @Override
     public int showFeedback(String message, int optionType, int messageType) {
-        if (suppressReturnedData) {
+        if (suppressReturnedData || multiOperationsuppressReturnedData) {
             return - 1; // returns can be disruptive for scripts
         }
         Object[] options;
@@ -4649,7 +4649,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void addLayer() {
+    public void addLayer() {
         try {
             // set the filter.
             ArrayList<ExtensionFileFilter> filters = new ArrayList<>();
@@ -4852,7 +4852,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void addLayer(String fileName) {
+    public void addLayer(String fileName) {
         try {
             int mapNum;
             int mapAreaNum;
@@ -4995,7 +4995,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         }
     }
 
-    private void addLayer(MapLayer mapLayer) {
+    public void addLayer(MapLayer mapLayer) {
         try {
             int mapNum;
             int mapAreaNum;

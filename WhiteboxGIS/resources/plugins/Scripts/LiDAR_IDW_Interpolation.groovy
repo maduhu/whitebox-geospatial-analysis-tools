@@ -548,7 +548,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 
 			int solved = numSolvedTiles.incrementAndGet() //++;
 			int progress = (int) (100f * solved / numFiles)
-			pluginHost.updateProgress("Interpolated $solved tiles:", progress)
+			pluginHost.updateProgress("Interpolated ${solved} tiles:", progress)
 	        return Boolean.TRUE;
         }                
     }

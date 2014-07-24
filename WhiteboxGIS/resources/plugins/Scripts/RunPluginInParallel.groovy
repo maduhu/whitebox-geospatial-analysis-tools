@@ -24,6 +24,7 @@ import whitebox.interfaces.ReturnedDataListener
 import whitebox.ui.plugin_dialog.*
 import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
+import java.util.concurrent.atomic.AtomicInteger
 import groovy.transform.CompileStatic
 
 def name = "RunPluginInParallel"
@@ -36,6 +37,9 @@ public class RunPluginInParallel implements ActionListener {
     private ScriptDialog sd
     private String descriptiveName
     private String basisFunctionType = ""
+	private int numTasks = 1;
+	private AtomicInteger numSolvedTasks = new AtomicInteger(0)
+	private int oldProgress = -1
 	
     public RunPluginInParallel(WhiteboxPluginHost pluginHost, 
         String[] args, def name, def descriptiveName) {
@@ -104,24 +108,44 @@ public class RunPluginInParallel implements ActionListener {
 
 		try {
 			ArrayList<String[]> pluginArgs = new ArrayList<>()
-			new File(argsFile).eachLine { line -> 
-				String str = String.valueOf(line)
-				if (str != null && !(str.trim()).isEmpty()) {
-					String[] s = str.replace("\"", "").split(",")
-					for (int j in 0..(s.length - 1)) {
-						s[j] = s[j].trim()
+			File file = new File(argsFile)
+			if (file.exists()) {
+				new File(argsFile).eachLine { line -> 
+					String str = String.valueOf(line)
+					if (str != null && !(str.trim()).isEmpty()) {
+						String[] s = str.replace("\"", "").split(",")
+						for (int j in 0..(s.length - 1)) {
+							s[j] = s[j].trim()
+						}
+						pluginArgs.add(s)
 					}
-					pluginArgs.add(s)
 				}
+			} else if (argsFile.contains("\n")) {
+				// The second parameter is actually a string
+				// containing the parameters
+				String[] lines = argsFile.split("\n")
+				lines.each() { line ->
+					String str = String.valueOf(line)
+					if (str != null && !(str.trim()).isEmpty()) {
+						String[] s = str.replace("\"", "").split(",")
+						for (int j in 0..(s.length - 1)) {
+							s[j] = s[j].trim()
+						}
+						pluginArgs.add(s)
+					}
+				}
+			} else {
+				pluginHost.showFeedback("There is something incorrect with the second parameter.")
+				return
 			}
 
-			int numTasks = pluginArgs.size()
+			numTasks = pluginArgs.size()
 			
 			pluginHost.updateProgress("Please wait...", 0)
 			ArrayList<DoWork> tasks = new ArrayList<>();
 			for (int i in 0..(numTasks - 1)) {
 				String[] pArgs = pluginArgs.get(i)
-				tasks.add(new DoWork(pluginName, pArgs, pluginHost))
+				tasks.add(new DoWork(pluginName, pArgs, suppressReturns, pluginHost))
 			}
 			
 			/* If each of the operating plugins are simutaneously updating 
@@ -142,38 +166,40 @@ public class RunPluginInParallel implements ActionListener {
 	  	    List<Future<Boolean>> results = getExecutorResults(executor, tasks);
 			executor.shutdown();
 			
-			int i = 0
-			int progress
-			int oldProgress = -1
+//			int i = 0
+//			int progress
+//			int oldProgress = -1
 			int numSuccessful = 0
 			for (Future<Boolean> result : results) {
 				Boolean data = result.get()
 				if (data) { numSuccessful ++ }
-				i++
-				// update progress bar
-				progress = (int)(100f * i / numTasks)
-				if (progress > oldProgress) {
-					pluginHost.updateProgress("Progress:", progress)
-					oldProgress = progress
-				}
-				// check to see if the user has requested a cancellation
-				if (pluginHost.isRequestForOperationCancelSet()) {
-					pluginHost.showFeedback("Operation cancelled")
-					return
-				}
+//				i++
+//				// update progress bar
+//				progress = (int)(100f * i / numTasks)
+//				if (progress > oldProgress) {
+//					pluginHost.updateProgress("Progress:", progress)
+//					oldProgress = progress
+//				}
+//				// check to see if the user has requested a cancellation
+//				if (pluginHost.isRequestForOperationCancelSet()) {
+//					pluginHost.showFeedback("Operation cancelled")
+//					return
+//				}
 			}
 		
 			((WhiteboxGui)pluginHost).removeReturnedDataEventListener(rl)
-			
+
+
+			// re-enable returned data.
+			((WhiteboxGui)pluginHost).isPluginReturnDataSuppressed(false)
+				
 			if (!suppressReturns) { 
-				// re-enable returned data.
-				((WhiteboxGui)pluginHost).isPluginReturnDataSuppressed(false)
 				ArrayList returns = rl.getReturns()
 				for (Object obj : returns) {
 					pluginHost.returnData(obj)
 				}
+				((WhiteboxGui)pluginHost).removeReturnedDataEventListener(rl)
 			}
-			
 			
 			if (numSuccessful == numTasks) {
 				pluginHost.showFeedback("Operations Complete. All of the operations were successful.")
@@ -182,6 +208,7 @@ public class RunPluginInParallel implements ActionListener {
 			}
 		
 		} catch (Exception e) {
+			((WhiteboxGui)pluginHost).isPluginReturnDataSuppressed(false)
 			pluginHost.showFeedback("An error has occurred during operation. See log file for details.")
 			pluginHost.logException("Error in " + descriptiveName, e)
 		} finally {
@@ -206,11 +233,13 @@ public class RunPluginInParallel implements ActionListener {
 		private String[] args
 		private String pluginName
 		private WhiteboxPluginHost pluginHost
+		private boolean suppressReturns = true
 		
-	    public DoWork(String pluginName, String[] args, WhiteboxPluginHost pluginHost) {
+	    public DoWork(String pluginName, String[] args, boolean suppressReturns, WhiteboxPluginHost pluginHost) {
 	    	this.args = args
 	    	this.pluginName = pluginName
 	        this.pluginHost = pluginHost
+	        this.suppressReturns = suppressReturns
 	   	}
 	    	
 	    @Override
@@ -218,7 +247,19 @@ public class RunPluginInParallel implements ActionListener {
 	    	try {
 	    		if (pluginHost.isRequestForOperationCancelSet()) { return }
 	    		pluginHost.runPlugin(pluginName, args, false)
-		    	return true
+		    	int solved = numSolvedTasks.incrementAndGet()
+				int progress = (int) (100f * solved / numTasks)
+				if (progress != oldProgress) {
+					// re-enable the progress bar.
+					((WhiteboxGui)pluginHost).setUpdateProgressEnabled(true)
+		
+					pluginHost.updateProgress("Solved ${solved} tasks of ${numTasks}:", progress)
+
+					// disable the progress bar.
+					((WhiteboxGui)pluginHost).setUpdateProgressEnabled(false)
+		
+				}
+		    	return Boolean.TRUE
 	    	} catch (Exception e) {
 	    		return false
 	    	}

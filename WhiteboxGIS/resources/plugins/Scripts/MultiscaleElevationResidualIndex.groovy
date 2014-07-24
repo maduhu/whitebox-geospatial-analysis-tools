@@ -122,14 +122,6 @@ public class MultiscaleElevationResidualIndex implements ActionListener {
 
 			numScales = radii.size()
 
-//			WhiteboxRaster integralImage = new WhiteboxRaster(outputFile.replace(".dep", "_temp.dep"), "rw", 
-//  		  	  inputFile, DataType.FLOAT, nodata)
-//  		  	integralImage.isTemporaryFile = true
-//
-//  		  	WhiteboxRaster integralImageN = new WhiteboxRaster(outputFile.replace(".dep", "_temp2.dep"), "rw", 
-//  		  	  inputFile, DataType.INTEGER, nodata)
-//  		  	integralImageN.isTemporaryFile = true
-
 			double[][] integralImage = new double[rows][cols]
 			int[][] integralImageN = new int[rows][cols]
 			
@@ -150,13 +142,9 @@ public class MultiscaleElevationResidualIndex implements ActionListener {
   					}
   					sum += z
   					if (row > 0) {
-//  						integralImage.setValue(row, col, sum + integralImage.getValue(row - 1, col))
-//  						integralImageN.setValue(row, col, sumN + integralImageN.getValue(row - 1, col))
 						integralImage[row][col] = sum + integralImage[row - 1][col]
 						integralImageN[row][col] = (int)(sumN + integralImageN[row - 1][col])
   					} else {
-//  						integralImage.setValue(row, col, sum)
-//  						integralImageN.setValue(row, col, sumN)
 						integralImage[row][col] = sum
 						integralImageN[row][col] = (int)sumN
   					}
@@ -212,14 +200,6 @@ public class MultiscaleElevationResidualIndex implements ActionListener {
 
 							numCells = (int)(integralImageN[y2][x2] + integralImageN[y1][x1] - integralImageN[y1][x2] - integralImageN[y2][x1])
 	
-	
-//							a = integralImage.getValue(y1, x1)
-//							b = integralImage.getValue(y1, x2)
-//							c = integralImage.getValue(y2, x2)
-//							d = integralImage.getValue(y2, x1)
-//
-//							numCells = (int)(integralImageN.getValue(y2, x2) + integralImageN.getValue(y1, x1) - integralImageN.getValue(y1, x2) - integralImageN.getValue(y2, x1))
-//	
 							outValue = z - ((c + a - b - d) / numCells * range + minValue)
 							if (outValue > 0) {
 								value++
@@ -243,9 +223,6 @@ public class MultiscaleElevationResidualIndex implements ActionListener {
 			}
 
 			image.close()
-
-//			integralImage.close()
-//			integralImageN.close()
 
 			output.addMetadataEntry("Created by the " + descriptiveName + " tool.")
 	        output.addMetadataEntry("Created on " + new Date())

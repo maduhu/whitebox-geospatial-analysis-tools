@@ -30,6 +30,7 @@ import java.util.concurrent.Future
 import java.util.concurrent.*
 import whitebox.interfaces.WhiteboxPluginHost
 import whitebox.geospatialfiles.ShapeFile
+import whitebox.geospatialfiles.ShapeFileInfo
 import whitebox.geospatialfiles.shapefile.*
 import whitebox.ui.plugin_dialog.*
 import whitebox.utilities.FileUtilities;
@@ -139,7 +140,7 @@ public class InterpolationIDW implements ActionListener {
             			String fileName = strArray[0]
             			File file = new File(fileName)
             			if (file.exists()) {
-	            			ShapeFile shapefile = new ShapeFile(fileName)
+	            			ShapeFileInfo shapefile = new ShapeFileInfo(fileName)
 		            		if (shapefile.getShapeType().getDimension() == ShapeTypeDimension.Z) {
 		            			dcb.setVisible(true)
 		            		} else {
@@ -228,15 +229,16 @@ public class InterpolationIDW implements ActionListener {
             	useZValues = false
             }
 			int heightField = -1
+			String heightFieldName = ""
             if (inputData.length == 2 && !inputData[1].trim().isEmpty()) {
-            	String heightFieldName = inputData[1].trim()
-            	String[] fieldNames = input.getAttributeTableFields()
-            	for (int i = 0; i < fieldNames.length; i++) {
-            		if (fieldNames[i].trim().equals(heightFieldName)) {
-            			heightField = i
-            			break
-            		}
-            	}
+            	heightFieldName = inputData[1].trim()
+//            	String[] fieldNames = input.getAttributeTableFields()
+//            	for (int i = 0; i < fieldNames.length; i++) {
+//            		if (fieldNames[i].trim().equals(heightFieldName)) {
+//            			heightField = i
+//            			break
+//            		}
+//            	}
             } else if (!useZValues) {
             	pluginHost.showFeedback("A field within the input file's attribute table must be selected to assign point heights.")
             	return
@@ -252,7 +254,7 @@ public class InterpolationIDW implements ActionListener {
 			if (!useZValues) {
 				for (ShapeFileRecord record : input.records) {
 					recData = table.getRecord(i)
-					z = (Double)(recData[heightField])
+					z = (Double)table.getValue(i, heightFieldName);
 					point = record.getGeometry().getPoints()
 					for (int p = 0; p < point.length; p++) {
 						x = point[p][0]

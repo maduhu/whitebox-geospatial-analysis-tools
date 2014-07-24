@@ -14,7 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
+import java.util.Arrays
 import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
 import java.lang.Math.*
@@ -104,53 +105,113 @@ public class EstimateHeightsFromParallax implements ActionListener {
 
 			String[] inputFiles = inputFileString.split(";")
 
-			DBFField[] fields = new DBFField[1];
-
-            fields[0] = new DBFField();
-            fields[0].setName("FID");
-            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
-            fields[0].setFieldLength(10);
-            fields[0].setDecimalCount(0);
-            
-            ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
-
-			int fileNum = 0
-			for (String inputFile : inputFiles) {
+			// see whether all the input files have the same attributes lists
+			DBFField[] fields
+			String[] fieldNames
+			boolean allFieldsEqual = true
+			for (int f = 0; f < inputFiles.length; f++) {
+				String inputFile = inputFiles[f].trim()
 				if (!inputFile.isEmpty()) {
-					ShapeFile input = new ShapeFile(inputFile)
-					if (input.getShapeType().getBaseType() != ShapeType.POINT) {
-						pluginHost.showFeedback("ERROR: One of the input files is not of a POINT ShapeType.")
-						return
-					}
-	            	double[][] point
-	            	for (ShapeFileRecord record : input.records) {
-	            		
-						point = record.getGeometry().getPoints()
-						for (int p = 0; p < point.length; p++) {
-							x = point[p][0]
-							y = point[p][1]
-
-							wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);                  
-                			Object[] rowData = new Object[1]
-                			rowData[0] = new Double(1)
-                			output.addRecord(wbGeometry, rowData);
+					AttributeTable table = new AttributeTable(inputFile.replace(".shp", ".dbf"))
+					
+					if (f == 0) {
+						fieldNames = table.getAttributeTableFieldNames()
+					} else {
+						if (!Arrays.equals(fieldNames, table.getAttributeTableFieldNames())) {
+							allFieldsEqual = false
 						}
 					}
 				}
-				fileNum++
-				progress = (int)(100f * fileNum / inputFiles.length)
-        		if (progress != oldProgress) {
-					pluginHost.updateProgress(progress)
-        			oldProgress = progress
-        		}
-        		// check to see if the user has requested a cancellation
-				if (pluginHost.isRequestForOperationCancelSet()) {
-					pluginHost.showFeedback("Operation cancelled")
-					return
-				}
 			}
 
-			output.write();
+			if (!allFieldsEqual) {
+				fields = new DBFField[1];
+	
+	            fields[0] = new DBFField();
+	            fields[0].setName("FID");
+	            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
+	            fields[0].setFieldLength(10);
+	            fields[0].setDecimalCount(0);
+	            
+	            ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
+	
+				int fileNum = 0
+				for (String inputFile : inputFiles) {
+					if (!inputFile.isEmpty()) {
+						ShapeFile input = new ShapeFile(inputFile)
+						if (input.getShapeType().getBaseType() != ShapeType.POINT) {
+							pluginHost.showFeedback("ERROR: One of the input files is not of a POINT ShapeType.")
+							return
+						}
+		            	double[][] point
+		            	for (ShapeFileRecord record : input.records) {
+		            		
+							point = record.getGeometry().getPoints()
+							for (int p = 0; p < point.length; p++) {
+								x = point[p][0]
+								y = point[p][1]
+	
+								wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);                  
+	                			Object[] rowData = new Object[1]
+	                			rowData[0] = new Double(1)
+	                			output.addRecord(wbGeometry, rowData);
+							}
+						}
+					}
+					fileNum++
+					progress = (int)(100f * fileNum / inputFiles.length)
+	        		if (progress != oldProgress) {
+						pluginHost.updateProgress(progress)
+	        			oldProgress = progress
+	        		}
+	        		// check to see if the user has requested a cancellation
+					if (pluginHost.isRequestForOperationCancelSet()) {
+						pluginHost.showFeedback("Operation cancelled")
+						return
+					}
+				}
+				output.write();
+			} else {
+				AttributeTable firstTable = new AttributeTable(inputFiles[0].replace(".shp", ".dbf"))
+				fields = firstTable.getAllFields()
+				ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
+				int fileNum = 0
+				for (String inputFile : inputFiles) {
+					if (!inputFile.isEmpty()) {
+						ShapeFile input = new ShapeFile(inputFile)
+						AttributeTable table = input.getAttributeTable()
+						if (input.getShapeType().getBaseType() != ShapeType.POINT) {
+							pluginHost.showFeedback("ERROR: One of the input files is not of a POINT ShapeType.")
+							return
+						}
+		            	double[][] point
+		            	int k = 0
+		            	for (ShapeFileRecord record : input.records) {
+		            		point = record.getGeometry().getPoints()
+							for (int p = 0; p < point.length; p++) {
+								x = point[p][0]
+								y = point[p][1]
+	
+								wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);                  
+	                			output.addRecord(wbGeometry, table.getRecord(k));
+	                			k++
+							}
+						}
+					}
+					fileNum++
+					progress = (int)(100f * fileNum / inputFiles.length)
+	        		if (progress != oldProgress) {
+						pluginHost.updateProgress(progress)
+	        			oldProgress = progress
+	        		}
+	        		// check to see if the user has requested a cancellation
+					if (pluginHost.isRequestForOperationCancelSet()) {
+						pluginHost.showFeedback("Operation cancelled")
+						return
+					}
+				}
+				output.write();
+			}
 
 			// display the output image
             pluginHost.returnData(outputFile)
