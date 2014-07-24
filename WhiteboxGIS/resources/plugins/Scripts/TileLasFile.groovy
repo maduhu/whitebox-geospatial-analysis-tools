@@ -207,14 +207,23 @@ public class TileLasFile implements ActionListener {
 				}
 			}
 
-			//tileData = new short[0] // eliminate the large memory requirement
+			int minRow = 999999
+			int minCol = 999999
+			for (tileNum = 0; tileNum < numTiles; tileNum++) {
+				if (outputTile[tileNum]) {
+					row = (int)Math.floor(tileNum / cols)
+					col = tileNum % cols
+					if (row < minRow) { minRow = row }
+					if (col < minCol) { minCol = col }
+				}
+			}
 
 			int numTilesCreated = 0
 			for (tileNum = 0; tileNum < numTiles; tileNum++) {
 				if (outputTile[tileNum]) {
 					row = (int)Math.floor(tileNum / cols)
 					col = tileNum % cols
-					String outputFile = lasFile.replace(".las", "_Row${row + 1}_Col${col + 1}.shp")
+					String outputFile = lasFile.replace(".las", "_Row${row - minRow + 1}_Col${col - minCol + 1}.shp")
 					ShapeFile sf = new ShapeFile(outputFile, ShapeType.POINT, fields)
 					for (int p = firstPointNum[tileNum]; p <= lastPointNum[tileNum]; p++) {
 						if (tileData[p] == tileNum) {
@@ -244,45 +253,6 @@ public class TileLasFile implements ActionListener {
         		}
 			}
 			
-			
-//			for (int p = 0; p < totalPoints; p++) {
-//				PointRecord point = las.getPointRecord(p)
-//				x = point.getX()
-//				y = point.getY()
-//				col = (int)Math.floor((x - originX) / widthX) - startXGrid // relative to the grid edge
-//				row = (int)Math.floor((y - originY) / widthY) - startYGrid // relative to the grid edge
-//				tileNum = row * cols + col
-//				
-//				if (outputTile[tileNum]) {
-//					if (outputFiles[tileNum] == null) {
-//						String outputFile = lasFile.replace(".las", "_Row${row + 1}_Col${col + 1}.shp")
-//						outputFiles[tileNum] = new ShapeFile(outputFile, ShapeType.POINT, fields)
-//					}
-//					whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);                  
-//	                Object[] rowData = new Object[2]
-//	                rowData[0] = new Double(point.getZ())
-//	                rowData[1] = new Double(point.getIntensity())
-//	                outputFiles[tileNum].addRecord(wbGeometry, rowData);
-//	
-//	                if (p >= lastPointNum[tileNum]) {
-//	                	outputFiles[tileNum].write()
-//	                	outputFiles[tileNum] = null
-//	                	numTilesCreated++
-//	                }
-//				}
-//				
-//                progress = (int)(100f * p / (totalPoints - 1))
-//    			if (progress != oldProgress) {
-//					pluginHost.updateProgress("Loop 3 of 3:", progress)
-//        			oldProgress = progress
-//        			// check to see if the user has requested a cancellation
-//					if (pluginHost.isRequestForOperationCancelSet()) {
-//						pluginHost.showFeedback("Operation cancelled")
-//						return
-//					}
-//        		}        		
-//			}
-
 			// create the index shapefile
 			fields = new DBFField[4]
 
@@ -333,8 +303,8 @@ public class TileLasFile implements ActionListener {
 			            Polygon poly = new Polygon(parts, points.getPointsArray());
 			            Object[] rowData = new Object[4];
 			            rowData[0] = new Double(tileNum + 1);
-			            rowData[1] = new Double(row + 1);
-			            rowData[2] = new Double(col + 1);
+			            rowData[1] = new Double(row - minRow + 1);
+			            rowData[2] = new Double(col - minCol + 1);
 			            rowData[3] = new Double(numPointsInTile[tileNum]);
 			            indexFile.addRecord(poly, rowData);
 					}

@@ -168,6 +168,9 @@ public class IsolateGroundPoints implements ActionListener {
 				return
 			}
 
+			double minElevDiff = 1.0
+			double elevDiff
+
 			BooleanBitArray1D isOffTerrain
 			int numPoints = -1
 			if (inputFile.toLowerCase().endsWith(".las")) {
@@ -232,8 +235,9 @@ public class IsolateGroundPoints implements ActionListener {
 		                				lowerZ = z
 		                				higherPointIndex = value.index
 		                			}
-		                			slope = (higherZ - lowerZ) / dist
-									if (slope > slopeThreshold) {
+		                			elevDiff = higherZ - lowerZ
+									slope = elevDiff / dist //(higherZ - lowerZ) / dist
+		                			if (slope > slopeThreshold && elevDiff > minElevDiff) {
 										isOffTerrain.setValue(higherPointIndex, true)
 									}
 		                		}
@@ -379,8 +383,9 @@ public class IsolateGroundPoints implements ActionListener {
 	                				lowerZ = z
 	                				higherPointIndex = value.index
 	                			}
-	                			slope = (higherZ - lowerZ) / dist
-								if (slope > slopeThreshold) {
+	                			elevDiff = higherZ - lowerZ
+								slope = elevDiff / dist //(higherZ - lowerZ) / dist
+	                			if (slope > slopeThreshold && elevDiff > minElevDiff) {
 									isOffTerrain.setValue(higherPointIndex, true)
 								}
 	                		}
