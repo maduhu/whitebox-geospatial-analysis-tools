@@ -225,7 +225,7 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
         String outputFile = args[1];
         threshold = Double.parseDouble(args[2]);
         // convert the threshold from degrees to tan slope
-        threshold = Math.tan(Math.toRadians(threshold));
+        //threshold = Math.tan(Math.toRadians(threshold));
         searchDist = Double.parseDouble(args[3]);
 
         // check to see that the input and output are not null.
@@ -298,7 +298,9 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
                     if (seedPoints.size() > 0) {
                         flag = true;
                         seedPoints.stream().forEach((s) -> {
-                            seeds.add(s);
+                            if (!done.getValue(s)) {
+                                seeds.add(s);
+                            }
                         });
                         seedPoints.clear();
                     }
@@ -387,8 +389,8 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
     }
 
     private long depth = 0;
-    private long maxDepth = 1000;
-    private List<Integer> seedPoints = new ArrayList<>();
+    private final long maxDepth = 1000;
+    private final List<Integer> seedPoints = new ArrayList<>();
 
     private void scanNeighbours(int refPointNum) {
         depth++;
@@ -396,6 +398,11 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
             if (seedPoints.size() < 80000) {
                 seedPoints.add(refPointNum);
             }
+            depth--;
+            return;
+        }
+        
+        if (done.getValue(refPointNum)) {
             depth--;
             return;
         }
@@ -413,8 +420,9 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
             int pointNum = results.get(i).value;
             if (pointNum != data[refPointNum].pointNum) {
                 if (data[pointNum].classValue == -1) {
-                    double dist = Math.sqrt(results.get(i).distance);
-                    if (Math.abs(data[pointNum].z - data[refPointNum].z) / dist <= threshold) {
+                    //double dist = Math.sqrt(results.get(i).distance);
+                    //if (Math.abs(data[pointNum].z - data[refPointNum].z) / dist <= threshold) {
+                    if (Math.abs(data[pointNum].z - data[refPointNum].z) <= threshold) {
                         data[pointNum].setClassValue(classValue);
                         scanNeighbours(pointNum);
                     }

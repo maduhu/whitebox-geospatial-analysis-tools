@@ -16,6 +16,11 @@
  */
 package whitebox.utilities;
 
+//import java.util.zip.ZipInputStream;
+//import java.util.zip.ZipEntry;
+//import java.net.MalformedURLException;
+//import java.net.URLDecoder;
+//import java.util.TreeSet;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -185,7 +190,7 @@ public class ClassEnumerator {
         ArrayList<String> classes = new ArrayList<>();
 
         String relPath = pkgname.replace('.', '/');
-
+        
         // Get a File object for the package
         URL resource = ClassLoader.getSystemClassLoader().getResource(relPath);
         if (resource == null) {
@@ -202,6 +207,63 @@ public class ClassEnumerator {
         }
 
         return classes;
+
+//        try {
+//            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+//            assert classLoader != null;
+//            String path = pkgname.replace('.', '/');
+//            Enumeration resources = classLoader.getResources(path);
+//            ArrayList<String> dirs = new ArrayList();
+//            while (resources.hasMoreElements()) {
+//                URL resource = (URL) resources.nextElement();
+//                dirs.add(URLDecoder.decode(resource.getFile(), "UTF-8"));
+//            }
+//            TreeSet classes = new TreeSet();
+//            for (String directory : dirs) {
+//                classes.addAll(findClasses(directory, pkgname));
+//            }
+//            ArrayList classList = new ArrayList();
+//            for (Object clazz : classes) {
+//                classList.add(Class.forName((String) clazz));
+//            }
+//            return classList;
+//        } catch (Exception e) {
+//            return null;
+//            // do nothing
+//        }
+//////    }
+
+//    private static TreeSet findClasses(String path, String packageName) throws MalformedURLException, IOException {
+//        TreeSet classes = new TreeSet();
+//        if (path.startsWith("file:") && path.contains("!")) {
+//            String[] split = path.split("!");
+//            URL jar = new URL(split[0]);
+//            ZipInputStream zip = new ZipInputStream(jar.openStream());
+//            ZipEntry entry;
+//            while ((entry = zip.getNextEntry()) != null) {
+//                if (entry.getName().endsWith(".class")) {
+//                    String className = entry.getName().replaceAll("[$].*", "").replaceAll("[.]class", "").replace('/', '.');
+//                    if (className.startsWith(packageName)) {
+//                        classes.add(className);
+//                    }
+//                }
+//            }
+//        }
+//        File dir = new File(path);
+//        if (!dir.exists()) {
+//            return classes;
+//        }
+//        File[] files = dir.listFiles();
+//        for (File file : files) {
+//            if (file.isDirectory()) {
+//                assert !file.getName().contains(".");
+//                classes.addAll(findClasses(file.getAbsolutePath(), packageName + "." + file.getName()));
+//            } else if (file.getName().endsWith(".class")) {
+//                String className = packageName + '.' + file.getName().substring(0, file.getName().length() - 6);
+//                classes.add(className);
+//            }
+//        }
+//        return classes;
     }
 
     public static ArrayList<Class<?>> getClassesForPackage(Package pkg) {

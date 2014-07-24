@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import whitebox.interfaces.DialogComponent;
 import whitebox.interfaces.Communicator;
 import whitebox.structures.ExtensionFileFilter;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /**
  *
@@ -205,6 +207,8 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
     }
     
     private void openFiles() {
+        String oldValue = getValue();
+            
         JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setMultiSelectionEnabled(true);
@@ -234,7 +238,12 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
                 model.add(model.getSize(), shortFileName);
             }
             list.setModel(model);
+            
+            String newValue = getValue();
+            firePropertyChange("value", oldValue, newValue);
+            
         }
+        
     }
     
     @Override
@@ -244,10 +253,15 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
         if (actionCommand.equals("open")) {
             openFiles();
         } else if (actionCommand.equals("delete")) {
+            String oldValue = getValue();
+        
             int i = list.getSelectedIndex();
             value.remove(i);
             model.remove(i);
             list.setModel(model);
+            
+            String newValue = getValue();
+            firePropertyChange("value", oldValue, newValue);
         }
     }
 }

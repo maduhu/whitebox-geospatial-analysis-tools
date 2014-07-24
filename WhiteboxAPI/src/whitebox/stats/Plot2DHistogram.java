@@ -138,8 +138,6 @@ public class Plot2DHistogram extends JPanel implements ActionListener, Printable
             yBin = (int)((y - yMin) / yBinSize);
             if (xBin < xBinNumber && yBin < yBinNumber) {
                 featureSpace[xBin][yBin]++;
-            } else {
-                row = row;
             }
         }
         
@@ -147,8 +145,8 @@ public class Plot2DHistogram extends JPanel implements ActionListener, Printable
     
     private void setUp() {
         try {
-            width = featureSpace[0].length;
-            height = featureSpace.length;
+            height = featureSpace[0].length;
+            width = featureSpace.length;
             numPix = width * height;
             createPopupMenus();
         } catch (Exception e) {
@@ -173,7 +171,7 @@ public class Plot2DHistogram extends JPanel implements ActionListener, Printable
         int numPeaks = 0;
 
         // apply a 3x3 mean filter to remove insignificant local peaks
-        double[][] featureSpace2 = new double[height][width];
+        double[][] featureSpace2 = new double[width][height];
         double cellTotal = 0;
         int numNeighbours = 0;
         for (int r = 0; r < height; r++) {
@@ -247,8 +245,8 @@ public class Plot2DHistogram extends JPanel implements ActionListener, Printable
                     }
                     if (flag) {
                         // it's a peak
-                        peaks[k][0] = (int)(r + xMin);
-                        peaks[k][1] = (int)(c + yMin);
+                        peaks[k][0] = c;
+                        peaks[k][1] = r;
                         peaks[k][2] = featureSpace[c][r];
                         k++;
                         //peaks.add(new Dimension(r + image1Min, c + image2Min));
@@ -518,37 +516,33 @@ public class Plot2DHistogram extends JPanel implements ActionListener, Printable
 
         // x-axis labels
         String label;
-        label = df.format(yMin);
+        label = df.format(xMin);
         g2d.drawString(label, leftMargin, bottomY + hgt + 4);
-        label = df.format(yMax);
+        label = df.format(xMax);
         adv = metrics.stringWidth(label);
         g2d.drawString(label, rightX - adv, bottomY + hgt + 4);
-        label = yAxisTitle;
         adv = metrics.stringWidth(label);
         int xAxisMidPoint = (int) (leftMargin + activeWidth / 2);
-        g2d.drawString(label, xAxisMidPoint - adv / 2, bottomY + 2 * hgt + 4);
+        g2d.drawString(xAxisTitle, xAxisMidPoint - adv / 2, bottomY + 2 * hgt + 4);
 
         // y-axis labels
-        // rotate the font
         Font oldFont = g.getFont();
-        Font f = oldFont.deriveFont(AffineTransform.getRotateInstance(-Math.PI / 2.0));
-        g2d.setFont(f);
+       
+        int offset = metrics.stringWidth("0") + 12 + hgt;
+        double xr = leftMargin - offset;
+        double yr = (int) (topMargin + activeHeight / 2);
+        g2d.translate(xr, yr);
+        g2d.rotate(-Math.PI / 2.0, 0, 0);
+        g2d.drawString(yAxisTitle, 0, 0);
+        g2d.rotate(Math.PI / 2);
+        g2d.translate(-xr, -yr);
 
-        int yAxisMidPoint = (int) (topMargin + activeHeight / 2);
-        int offset;
-        label = xAxisTitle;
-        offset = metrics.stringWidth("0") + 12 + hgt;
-        adv = metrics.stringWidth(label);
-        g2d.drawString(label, leftMargin - offset, yAxisMidPoint + adv / 2);
-
-        // replace the rotated font.
-        g2d.setFont(oldFont);
 
         df = new DecimalFormat("0");
-        label = df.format(xMin);
+        label = df.format(yMin);
         adv = metrics.stringWidth(label);
         g2d.drawString(label, leftMargin - adv - 12, bottomY + hgt / 2);
-        label = df.format(xMax);
+        label = df.format(yMax);
         adv = metrics.stringWidth(label);
         g2d.drawString(label, leftMargin - adv - 12, topMargin + hgt / 2);
 
@@ -605,8 +599,8 @@ public class Plot2DHistogram extends JPanel implements ActionListener, Printable
             int crossHairSize = 4;
             int row, col;
             for (int j = 0; j < peaks.length; j++) {
-                row = (int) (bottomY - (peaks[j][0] - xMin) / ((double) xMax - xMin) * activeHeight);
-                col = (int) (leftMargin + (peaks[j][1] - yMin) / ((double) yMax - yMin) * activeWidth);
+                col = (int) (leftMargin + (double)peaks[j][0] / width * activeWidth);
+                row = (int) (bottomY - (double)peaks[j][1] / height * activeHeight);
                 g2d.drawLine(col - crossHairSize, row, col + crossHairSize, row);
                 g2d.drawLine(col, row - crossHairSize, col, row + crossHairSize);
             }
@@ -629,9 +623,9 @@ public class Plot2DHistogram extends JPanel implements ActionListener, Printable
             int x = (int) (((double) posX - leftMargin) / activeWidth * (width - 1));
             int y = (int) (((1 - ((double) posY - topMargin) / activeHeight) * (height - 1)));
             df = new DecimalFormat("0");
-            int val1 = featureSpace[y][x];
+            int val1 = featureSpace[x][y];
             String val = df.format(val1);
-            label = "x: " + (x + yMin) + " y: " + (y + xMin) + " Value: " + val;
+            label = "x: " + (x + xMin) + " y: " + (y + yMin) + " Value: " + val;
             adv = metrics.stringWidth(label);
             g2d.setColor(Color.black);
             g2d.drawString(label, 10, getHeight() - hgt - 10);

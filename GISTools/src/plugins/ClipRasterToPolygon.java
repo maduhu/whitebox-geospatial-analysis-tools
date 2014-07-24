@@ -309,7 +309,9 @@ public class ClipRasterToPolygon implements WhiteboxPlugin {
                     output = new WhiteboxRaster(outputHeader, "rw",
                             inputFiles[k], dataType, noData);
                 }
-
+                
+                output.setPreferredPalette(input.getPreferredPalette());
+                
                 pq.clear();
                 RowPriorityGridCell cell;
                 int numRecords = clip.getNumberOfRecords();

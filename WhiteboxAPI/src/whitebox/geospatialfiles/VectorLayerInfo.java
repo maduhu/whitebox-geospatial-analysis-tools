@@ -146,7 +146,7 @@ public class VectorLayerInfo implements MapLayer {
             int g = (int) (255 * generator.nextFloat());
             int b = (int) (255 * generator.nextFloat());
             fillColour = new Color(r, g, b);
-            if (shapefile.getNumberOfRecords() > 100000) {
+            if (shapefile.getNumberOfRecords() > 10000) {
                 outlined = false;
                 markerSize = 3.0f;
             }
@@ -173,6 +173,11 @@ public class VectorLayerInfo implements MapLayer {
         }
 
         selectedFeatures = new boolean[shapefile.getNumberOfRecords() + 1];
+    }
+    
+    public void refreshAttributeTable() {
+        shapefile.refreshAttributeTable();
+        this.attributeTableFields = shapefile.getAttributeTableFields();
     }
 
     public int getAlpha() {

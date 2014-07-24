@@ -180,11 +180,11 @@ public class ShapeFile {
     public final void setDatabaseFile(String databaseFile) {
         this.databaseFile = databaseFile;
     }
-    
+
     public String getIndexFile() {
         return indexFile;
     }
-    
+
     private static ShapeType[] st = new ShapeType[]{ShapeType.NULLSHAPE, ShapeType.POINT,
         ShapeType.UNUSED1, ShapeType.POLYLINE, ShapeType.UNUSED2, ShapeType.POLYGON,
         ShapeType.UNUSED3, ShapeType.UNUSED4, ShapeType.MULTIPOINT,
@@ -875,9 +875,7 @@ public class ShapeFile {
                         shapeType, rec);
                 records.add(sfr);
 
-
                 // update the min and max coordinates
-
                 switch (shapeType) {
                     case POINT:
                         Point recPoint = (Point) rec;
@@ -1055,9 +1053,7 @@ public class ShapeFile {
                         shapeType, rec);
                 records.add(sfr);
 
-
                 // update the min and max coordinates
-
                 switch (shapeType) {
                     case POINT:
                         Point recPoint = (Point) rec;
@@ -1222,6 +1218,7 @@ public class ShapeFile {
 
     /**
      * Used to retrieve a particular record.
+     *
      * @param recordNumber The zero-based record number.
      * @return A ShapeFileRecord corresponding with the record number.
      */
@@ -1242,7 +1239,7 @@ public class ShapeFile {
                 i++;
             }
             tempShape.write();
-            
+
             Path source = Paths.get(tempFile);
             Path target = Paths.get(fileName);
             Files.move(source, target, REPLACE_EXISTING);
@@ -1250,7 +1247,7 @@ public class ShapeFile {
             source = Paths.get(tempShape.getDatabaseFile());
             target = Paths.get(this.databaseFile);
             Files.move(source, target, REPLACE_EXISTING);
-            
+
             source = Paths.get(tempShape.getIndexFile());
             target = Paths.get(this.indexFile);
             Files.move(source, target, REPLACE_EXISTING);
@@ -1281,7 +1278,7 @@ public class ShapeFile {
         ByteBuffer buf;
 
         try {
-            
+
             records.clear();
 
             // See if the data file exists.
@@ -1430,7 +1427,6 @@ public class ShapeFile {
                 AttributeTable reader = new AttributeTable(databaseFile);
 
                 //DBFReader reader = new DBFReader( inputStream); 
-
                 // get the field count if you want for some reasons like the following
                 //
                 int numberOfFields = reader.getFieldCount();
@@ -1462,8 +1458,6 @@ public class ShapeFile {
 //                    System.out.println(rowObjects[i]);
 //                }
 //            }
-
-
 //        } catch (DBFException dbfe) {
 //            System.out.println(dbfe);
 //            return null;
@@ -1551,7 +1545,6 @@ public class ShapeFile {
                         line = line.replace("(", "[");
                         line = line.replace(")", "]");
 
-
 //                        String[] str = line.split(",");
 //                        for (int i = 0; i < str.length; i++) {
 //                            System.out.println(str[i]);
@@ -1583,24 +1576,24 @@ public class ShapeFile {
         }
 
     }
-    
-    private String getTabString(int i) {  
-	StringBuilder sb = new StringBuilder();
-	for (int j = 0; j < i; j++) {
+
+    private String getTabString(int i) {
+        StringBuilder sb = new StringBuilder();
+        for (int j = 0; j < i; j++) {
             sb.append("\t");
-	}
-	return sb.toString();
+        }
+        return sb.toString();
     }
-    
+
     public boolean areGeometriesEqual(ShapeFile other) {
         if (other.getNumberOfRecords() != this.getNumberOfRecords()) {
             return false;
         }
-        
+
         if (other.getShapeType() != this.getShapeType()) {
             return false;
         }
-        
+
         int numRecords = this.getNumberOfRecords();
         double[][] thisPoints;
         double[][] otherPoints;
@@ -1611,45 +1604,45 @@ public class ShapeFile {
                 return false;
             } else {
                 for (int b = 0; b < thisPoints.length; b++) {
-                    if (thisPoints[b][0] != otherPoints[b][0] ||
-                            thisPoints[b][1] != otherPoints[b][1]) {
+                    if (thisPoints[b][0] != otherPoints[b][0]
+                            || thisPoints[b][1] != otherPoints[b][1]) {
                         return false;
                     }
                 }
             }
         }
-        
+
         return true;
     }
-    
+
     public void refreshAttributeTable() {
         try {
             this.attributeTable = new AttributeTable(databaseFile);
         } catch (Exception e) {
-            
+
         }
     }
-    
+
     public KdTree<Integer> getKdTree() {
         // figure out how many nodes there are
         int nodes = 0;
-        for (ShapeFileRecord rec: records) {
+        for (ShapeFileRecord rec : records) {
             double[][] points = rec.getGeometry().getPoints();
             nodes += points.length;
         }
         KdTree<Integer> kdTree = new KdTree.SqrEuclid<>(2, new Integer(nodes));
-        
-        for (ShapeFileRecord rec: records) {
+
+        for (ShapeFileRecord rec : records) {
             double[][] points = rec.getGeometry().getPoints();
             for (int p = 0; p < points.length; p++) {
                 double[] entry = {points[p][0], points[p][1]};
-                kdTree.addPoint(entry, (int)(rec.getRecordNumber() - 1));
+                kdTree.addPoint(entry, (int) (rec.getRecordNumber() - 1));
             }
-            
+
         }
         return kdTree;
     }
-    
+
 //    // this is only used for debugging the tool
 //    public static void main(String[] args) {
 //        

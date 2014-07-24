@@ -73,5 +73,6 @@ class FieldType {
     types[code] = this;
   }
  
+  @Override
   public String toString() { return name; }
 }
