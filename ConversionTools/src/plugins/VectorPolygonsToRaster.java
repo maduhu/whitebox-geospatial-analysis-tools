@@ -407,7 +407,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
 
                                         // calculate the intersection point
                                         xPrime = (x1 + (rowYCoord - y1) / (y2 - y1) * (x2 - x1));
-                                        edgeList.add(new Integer(output.getColumnFromXCoordinate(xPrime)));
+                                        edgeList.add(output.getColumnFromXCoordinate(xPrime));
                                         foundIntersection = true;
                                     }
                                 }
@@ -486,7 +486,7 @@ public class VectorPolygonsToRaster implements WhiteboxPlugin {
 
                                         // calculate the intersection point
                                         xPrime = (x1 + (rowYCoord - y1) / (y2 - y1) * (x2 - x1));
-                                        edgeList.add(new Integer(output.getColumnFromXCoordinate(xPrime)));
+                                        edgeList.add(output.getColumnFromXCoordinate(xPrime));
                                         foundIntersection = true;
                                     }
                                 }
