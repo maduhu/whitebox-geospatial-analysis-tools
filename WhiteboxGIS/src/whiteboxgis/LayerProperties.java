@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package whiteboxgis;
 
 import whiteboxgis.user_interfaces.PaletteManager;
@@ -39,13 +38,14 @@ import whitebox.interfaces.Communicator;
 import whitebox.interfaces.MapLayer;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.geospatialfiles.VectorLayerInfo;
+import whitebox.geospatialfiles.shapefile.ShapeTypeDimension;
 
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class LayerProperties extends JDialog implements ActionListener, AdjustmentListener, MouseListener {
-    
+
     private MapLayer layer = null;
     private MapInfo map = null;
     private JButton ok = new JButton("OK");
@@ -88,8 +88,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private JLabel labelMarkerSize = new JLabel();
     private JScrollBar scrollMarkerSize = new JScrollBar(Adjustable.HORIZONTAL, 0, 0, 0, 40);
     private JComboBox dashCombo = new JComboBox();
-    private float[][] dashArray = new float[][] {{-1}, {12}, {4}, {12, 4, 12, 4},
-        {4, 4, 12, 4}, {16}, {2}, {2, 4}, {4, 12}, {12, 4, 2, 4}};
+    private float[][] dashArray = new float[][]{{-1}, {12}, {4}, {12, 4, 12, 4},
+    {4, 4, 12, 4}, {16}, {2}, {2, 4}, {4, 12}, {12, 4, 2, 4}};
     private JComboBox markerCombo = new JComboBox();
     private float markerSize;
     private JRadioButton fieldBasedFillColour;
@@ -109,29 +109,29 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private boolean updatedFileHeader = false;
     private JScrollBar scrollGeneralizeLevel = new JScrollBar(Adjustable.HORIZONTAL, 0, 0, 0, 100);
     private ResourceBundle bundle;
-    
+
     public LayerProperties(Frame owner, boolean modal, MapLayer layer, MapInfo map) {
         super(owner, modal);
         if (owner != null) {
-            Dimension parentSize = owner.getSize(); 
-            Point p = owner.getLocation(); 
+            Dimension parentSize = owner.getSize();
+            Point p = owner.getLocation();
             setLocation(p.x + parentSize.width / 4, p.y + parentSize.height / 4);
         }
-        
-        this.host = (WhiteboxPluginHost)(owner);
+
+        this.host = (WhiteboxPluginHost) (owner);
         bundle = host.getGuiLabelsBundle();
         this.layer = layer;
         if (layer instanceof RasterLayerInfo) {
-            RasterLayerInfo rli = (RasterLayerInfo)layer;
+            RasterLayerInfo rli = (RasterLayerInfo) layer;
             this.paletteFile = rli.getPaletteFile();
         } else if (layer instanceof VectorLayerInfo) {
-            VectorLayerInfo vli = (VectorLayerInfo)layer;
+            VectorLayerInfo vli = (VectorLayerInfo) layer;
             this.paletteFile = vli.getPaletteFile();
-        } 
+        }
         this.map = map;
         createGui();
     }
-    
+
     private void createGui() {
         if (System.getProperty("os.name").contains("Mac")) {
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
@@ -140,15 +140,15 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             System.err.println("RasterLayerInfo not set.");
             return;
         }
-        
+
         setTitle(bundle.getString("LayerProperties") + ": " + layer.getLayerTitle());
-        
+
         ok = new JButton(bundle.getString("OK"));
         update = new JButton(bundle.getString("UpdateMap"));
         close = new JButton(bundle.getString("Close"));
         clipUpperTail = new JButton(bundle.getString("Clip"));
         clipLowerTail = new JButton(bundle.getString("Clip"));
-    
+
         // okay and close buttons.
         Box box1 = Box.createHorizontalBox();
         box1.add(Box.createHorizontalStrut(10));
@@ -168,15 +168,15 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         close.setToolTipText(bundle.getString("CloseTooltip"));
         box1.add(Box.createHorizontalStrut(100));
         box1.add(Box.createHorizontalGlue());
-        
+
         add(box1, BorderLayout.SOUTH);
-       
+
         JLabel label = null;
         Box mainBox = Box.createVerticalBox();
-        
+
         if (layer instanceof RasterLayerInfo) {
             RasterLayerInfo rli = (RasterLayerInfo) layer;
-            
+
             boolean isRGBlayer = false;
             if (rli.getDataScale() == WhiteboxRaster.DataScale.RGB) {
                 isRGBlayer = true;
@@ -257,8 +257,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             overlayBox.add(Box.createHorizontalGlue());
             JSpinner spin1 = new JSpinner();
             spin1.setMaximumSize(new Dimension(200, 22));
-            SpinnerModel sm =
-                    new SpinnerNumberModel(layer.getOverlayNumber(), 0, map.getActiveMapArea().getNumLayers() - 1, 1);
+            SpinnerModel sm
+                    = new SpinnerNumberModel(layer.getOverlayNumber(), 0, map.getActiveMapArea().getNumLayers() - 1, 1);
             spin1.setModel(sm);
             overlayBox.add(spin1);
             overlayBox.add(Box.createHorizontalStrut(10));
@@ -313,7 +313,6 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             }
             scalePaletteBox.add(checkScalePalette);
             scalePaletteBox.add(Box.createHorizontalStrut(10));
-
 
             JPanel nonlinearityBox = new JPanel();
             nonlinearityBox.setLayout(new BoxLayout(nonlinearityBox, BoxLayout.X_AXIS));
@@ -386,7 +385,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         } else if (layer instanceof VectorLayerInfo) {
             VectorLayerInfo vli = (VectorLayerInfo) layer;
             ShapeType st = vli.getShapeType();
-            
+
             JPanel titleBox = new JPanel();
             titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.X_AXIS));
             titleBox.add(Box.createHorizontalStrut(10));
@@ -398,7 +397,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             titleText.setMaximumSize(new Dimension(600, 22));
             titleBox.add(titleText);
             titleBox.add(Box.createHorizontalStrut(10));
-            
+
             JPanel overlayBox = new JPanel();
             overlayBox.setLayout(new BoxLayout(overlayBox, BoxLayout.X_AXIS));
             overlayBox.add(Box.createHorizontalStrut(10));
@@ -408,12 +407,12 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             overlayBox.add(Box.createHorizontalGlue());
             JSpinner spin1 = new JSpinner();
             spin1.setMaximumSize(new Dimension(200, 22));
-            SpinnerModel sm =
-                    new SpinnerNumberModel(layer.getOverlayNumber(), 0, map.getActiveMapArea().getNumLayers() - 1, 1);
+            SpinnerModel sm
+                    = new SpinnerNumberModel(layer.getOverlayNumber(), 0, map.getActiveMapArea().getNumLayers() - 1, 1);
             spin1.setModel(sm);
             overlayBox.add(spin1);
             overlayBox.add(Box.createHorizontalStrut(10));
-            
+
             JPanel visibleBox = new JPanel();
             visibleBox.setLayout(new BoxLayout(visibleBox, BoxLayout.X_AXIS));
             visibleBox.add(Box.createHorizontalStrut(10));
@@ -426,12 +425,12 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             checkVisible.setSelected(vli.isVisible());
             visibleBox.add(checkVisible);
             visibleBox.add(Box.createHorizontalStrut(10));
-            
+
             JPanel filledBox = new JPanel();
             filledBox.setLayout(new BoxLayout(filledBox, BoxLayout.X_AXIS));
             filledBox.add(Box.createHorizontalStrut(10));
-            if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM ||
-                    st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
+            if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM
+                    || st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
                 label = new JLabel(bundle.getString("FillPolygons"));
             } else {
                 label = new JLabel(bundle.getString("FillPoints"));
@@ -444,12 +443,12 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             checkFilled.setSelected(vli.isFilled());
             filledBox.add(checkFilled);
             filledBox.add(Box.createHorizontalStrut(10));
-            
+
             JPanel outlinedBox = new JPanel();
             outlinedBox.setLayout(new BoxLayout(outlinedBox, BoxLayout.X_AXIS));
             outlinedBox.add(Box.createHorizontalStrut(10));
-            if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM ||
-                    st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
+            if (st == ShapeType.POLYGON || st == ShapeType.POLYGONM
+                    || st == ShapeType.POLYGONZ || st == ShapeType.MULTIPATCH) {
                 label = new JLabel(bundle.getString("OutlinePolygons"));
             } else {
                 label = new JLabel(bundle.getString("OutlinePoints"));
@@ -462,7 +461,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             checkOutlined.setSelected(vli.isOutlined());
             outlinedBox.add(checkOutlined);
             outlinedBox.add(Box.createHorizontalStrut(10));
-            
+
             JPanel lineThicknessBox = new JPanel();
             lineThicknessBox.setLayout(new BoxLayout(lineThicknessBox, BoxLayout.X_AXIS));
             lineThicknessBox.add(Box.createHorizontalStrut(10));
@@ -473,7 +472,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             labelLineThickness.setText(bundle.getString("Value") + ": " + df.format(vli.getLineThickness()));
             lineThicknessBox.add(labelLineThickness);
             lineThicknessBox.add(Box.createHorizontalStrut(10));
-            scrollLineThickness.setValue((int)((vli.getLineThickness() - minLineThickness) / (maxLineThickness - minLineThickness) * scrollbarMax));
+            scrollLineThickness.setValue((int) ((vli.getLineThickness() - minLineThickness) / (maxLineThickness - minLineThickness) * scrollbarMax));
             scrollLineThickness.setMaximumSize(new Dimension(200, 22));
             scrollLineThickness.addAdjustmentListener(this);
             lineThicknessBox.add(scrollLineThickness);
@@ -504,12 +503,12 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             markerSize = vli.getMarkerSize();
             markerBox.add(labelMarkerSize);
             markerBox.add(Box.createHorizontalStrut(10));
-            scrollMarkerSize.setValue((int)(vli.getMarkerSize()));
+            scrollMarkerSize.setValue((int) (vli.getMarkerSize()));
             scrollMarkerSize.setMaximumSize(new Dimension(200, 22));
             scrollMarkerSize.addAdjustmentListener(this);
             markerBox.add(scrollMarkerSize);
             markerBox.add(Box.createHorizontalStrut(10));
-            
+
             JPanel dashComboBox = new JPanel();
             dashComboBox.setLayout(new BoxLayout(dashComboBox, BoxLayout.X_AXIS));
             dashComboBox.add(Box.createHorizontalStrut(10));
@@ -525,7 +524,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             initializeLineStyle();
             dashComboBox.add(dashCombo);
             dashComboBox.add(Box.createHorizontalStrut(10));
-            
+
             JPanel fillColourBox = new JPanel();
             fillColourBox.setLayout(new BoxLayout(fillColourBox, BoxLayout.X_AXIS));
             fillColourBox.add(Box.createHorizontalStrut(10));
@@ -547,7 +546,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             fieldBasedFillColour.setOpaque(false);
             fillColourBox.add(fieldBasedFillColour);
             fillColourBox.add(Box.createHorizontalStrut(10));
-            
+
             JPanel markerComboBox = new JPanel();
             markerComboBox.setLayout(new BoxLayout(markerComboBox, BoxLayout.X_AXIS));
             markerComboBox.add(Box.createHorizontalStrut(10));
@@ -558,7 +557,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             initializeMarkerStyle();
             markerComboBox.add(markerCombo);
             markerComboBox.add(Box.createHorizontalStrut(10));
-            
+
             JPanel alphaBox = new JPanel();
             alphaBox.setLayout(new BoxLayout(alphaBox, BoxLayout.X_AXIS));
             alphaBox.setBackground(backColour);
@@ -575,7 +574,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             scrollAlpha.addAdjustmentListener(this);
             alphaBox.add(scrollAlpha);
             alphaBox.add(Box.createHorizontalStrut(10));
-            
+
             valueFieldBox = new JPanel();
             valueFieldBox.setLayout(new BoxLayout(valueFieldBox, BoxLayout.X_AXIS));
             valueFieldBox.add(Box.createHorizontalStrut(10));
@@ -584,9 +583,29 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             valueFieldBox.add(label);
             valueFieldBox.add(Box.createHorizontalGlue());
             String[] fields = vli.getAttributeTableFields();
-            valueFieldCombo = new JComboBox(fields);
-            if (!vli.getFillAttribute().equals("")) {
-                valueFieldCombo.setSelectedItem(vli.getFillAttribute());
+                
+            if (vli.getShapeType().getDimension() == ShapeTypeDimension.Z) {
+                String[] fields2 = new String[fields.length + 2];
+                fields2[0] = "Feature Z Value";
+                fields2[1] = "Feature Measure";
+                System.arraycopy(fields, 0, fields2, 2, fields.length);
+                valueFieldCombo = new JComboBox(fields2);
+                if (!vli.getFillAttribute().equals("")) {
+                    valueFieldCombo.setSelectedItem(vli.getFillAttribute());
+                }
+            } else if (vli.getShapeType().getDimension() == ShapeTypeDimension.M) {
+                String[] fields2 = new String[fields.length + 1];
+                fields2[0] = "Feature Measure";
+                System.arraycopy(fields, 0, fields2, 1, fields.length);
+                valueFieldCombo = new JComboBox(fields2);
+                if (!vli.getFillAttribute().equals("")) {
+                    valueFieldCombo.setSelectedItem(vli.getFillAttribute());
+                }
+            } else { // XY
+                valueFieldCombo = new JComboBox(fields);
+                if (!vli.getFillAttribute().equals("")) {
+                    valueFieldCombo.setSelectedItem(vli.getFillAttribute());
+                }
             }
             valueFieldBox.add(Box.createHorizontalStrut(10));
             valueFieldBox.add(valueFieldCombo);
@@ -596,7 +615,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             viewAttributesTable.setToolTipText(bundle.getString("ViewAttributeTable"));
             valueFieldBox.add(viewAttributesTable);
             valueFieldBox.add(Box.createHorizontalStrut(10));
-            
+
             ButtonGroup group = new ButtonGroup();
             group.add(uniqueFillColour);
             group.add(fieldBasedFillColour);
@@ -605,7 +624,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             fieldBasedFillColour.setActionCommand("fieldBasedFill");
             uniqueFillColour.addActionListener(this);
             fieldBasedFillColour.addActionListener(this);
-            
+
             JPanel lineColourBox2 = new JPanel();
             lineColourBox2.setLayout(new BoxLayout(lineColourBox2, BoxLayout.X_AXIS));
             lineColourBox2.add(Box.createHorizontalStrut(10));
@@ -627,7 +646,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             fieldBasedLineColour.setOpaque(false);
             lineColourBox2.add(fieldBasedLineColour);
             lineColourBox2.add(Box.createHorizontalStrut(10));
-            
+
             ButtonGroup group2 = new ButtonGroup();
             group2.add(uniqueLineColour);
             group2.add(fieldBasedLineColour);
@@ -636,7 +655,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             fieldBasedLineColour.setActionCommand("fieldBasedLine");
             uniqueLineColour.addActionListener(this);
             fieldBasedLineColour.addActionListener(this);
-            
+
             paletteBox = new JPanel();
             paletteBox.setLayout(new BoxLayout(paletteBox, BoxLayout.X_AXIS));
             paletteBox.setBackground(Color.white);
@@ -652,7 +671,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             paletteButton.addActionListener(this);
             paletteBox.add(paletteButton);
             paletteBox.add(Box.createHorizontalStrut(10));
-            
+
             scalePaletteBox = new JPanel();
             scalePaletteBox.setLayout(new BoxLayout(scalePaletteBox, BoxLayout.X_AXIS));
             scalePaletteBox.add(Box.createHorizontalStrut(10));
@@ -671,7 +690,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             checkScalePalette.setActionCommand("scalePalette");
             scalePaletteBox.add(checkScalePalette);
             scalePaletteBox.add(Box.createHorizontalStrut(10));
-            
+
             final JPanel nonlinearityBox = new JPanel();
             nonlinearityBox.setLayout(new BoxLayout(nonlinearityBox, BoxLayout.X_AXIS));
             nonlinearityBox.setBackground(backColour);
@@ -690,20 +709,15 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             nonlinearityBox.add(scrollNonlinearity);
             nonlinearityBox.add(Box.createHorizontalStrut(10));
             nonlinearityBox.setVisible(checkScalePalette.isSelected());
-            
-            checkScalePalette.addActionListener(new ActionListener() {
 
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (checkScalePalette.isSelected()) {
-                        nonlinearityBox.setVisible(true);
-                    } else {
-                        nonlinearityBox.setVisible(false);
-                    }
+            checkScalePalette.addActionListener((ActionEvent e) -> {
+                if (checkScalePalette.isSelected()) {
+                    nonlinearityBox.setVisible(true);
+                } else {
+                    nonlinearityBox.setVisible(false);
                 }
             });
-            
-            
+
             ShapeType shapeType = vli.getShapeType();
             if (shapeType == ShapeType.POLYLINE || shapeType == ShapeType.POLYLINEM
                     || shapeType == ShapeType.POLYLINEZ) {
@@ -720,7 +734,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                     paletteBox.setVisible(true);
                     scalePaletteBox.setVisible(true);
                 }
-            
+
             } else {
                 if (vli.isFilledWithOneColour()) {
                     uniqueFillColour.setSelected(true);
@@ -735,9 +749,9 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                     paletteBox.setVisible(true);
                     scalePaletteBox.setVisible(true);
                 }
-            
+
             }
-            
+
             JPanel generalizedBox = new JPanel();
             generalizedBox.setLayout(new BoxLayout(generalizedBox, BoxLayout.X_AXIS));
             generalizedBox.add(Box.createHorizontalStrut(10));
@@ -748,13 +762,13 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             generalizedBox.add(Box.createHorizontalGlue());
             generalizedBox.add(new JLabel(bundle.getString("Low")));
             generalizedBox.add(Box.createHorizontalStrut(5));
-            scrollGeneralizeLevel.setValue((int)(vli.getCartographicGeneralizationLevel() / 5.0 * 100));
+            scrollGeneralizeLevel.setValue((int) (vli.getCartographicGeneralizationLevel() / 5.0 * 100));
             scrollGeneralizeLevel.setMaximumSize(new Dimension(200, 22));
             generalizedBox.add(scrollGeneralizeLevel);
             generalizedBox.add(Box.createHorizontalStrut(5));
             generalizedBox.add(new JLabel(bundle.getString("High")));
             generalizedBox.add(Box.createHorizontalStrut(10));
-            
+
             if (st.getBaseType() == ShapeType.POLYGON || st == ShapeType.MULTIPATCH) {
                 titleBox.setBackground(Color.white);
                 mainBox.add(titleBox);
@@ -782,14 +796,14 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 mainBox.add(scalePaletteBox);
                 nonlinearityBox.setBackground(Color.white);
                 mainBox.add(nonlinearityBox);
-                
+
                 alphaBox.setBackground(backColour);
                 mainBox.add(alphaBox);
                 generalizedBox.setBackground(Color.white);
                 mainBox.add(generalizedBox);
                 mainBox.add(Box.createVerticalStrut(80));
-            } else if (st.getBaseType() == ShapeType.POINT ||
-                    st.getBaseType() == ShapeType.MULTIPOINT) {
+            } else if (st.getBaseType() == ShapeType.POINT
+                    || st.getBaseType() == ShapeType.MULTIPOINT) {
                 titleBox.setBackground(Color.white);
                 mainBox.add(titleBox);
                 overlayBox.setBackground(backColour);
@@ -821,9 +835,9 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 alphaBox.setBackground(Color.white);
                 mainBox.add(alphaBox);
                 mainBox.add(Box.createVerticalStrut(80));
-            
-            } else if (st == ShapeType.POLYLINE || st == ShapeType.POLYLINEM |
-                    st == ShapeType.POLYLINEZ) {
+
+            } else if (st == ShapeType.POLYLINE || st == ShapeType.POLYLINEM
+                    | st == ShapeType.POLYLINEZ) {
                 titleBox.setBackground(Color.white);
                 mainBox.add(titleBox);
                 overlayBox.setBackground(backColour);
@@ -853,23 +867,22 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         }
 
         tabs = new JTabbedPane();
-        
+
         JScrollPane scroll = new JScrollPane(mainBox);
         JPanel panel1 = new JPanel();
         panel1.setLayout(new BoxLayout(panel1, BoxLayout.Y_AXIS));
         panel1.add(scroll);
         tabs.addTab(bundle.getString("Display"), panel1);
-        
-        
+
         Box fileMainBox = getFileMainBox();
         JScrollPane scroll2 = new JScrollPane(fileMainBox);
         JPanel panel2 = new JPanel();
         panel2.setLayout(new BoxLayout(panel2, BoxLayout.Y_AXIS));
         panel2.add(scroll2);
         tabs.addTab(bundle.getString("File"), panel2);
-        
+
         getContentPane().add(tabs, BorderLayout.CENTER);
-        
+
         pack();
 
 //        // Centre the dialog on the screen.
@@ -879,9 +892,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
 //        int screenWidth = dim.width;
 //        //setSize(screenWidth / 2, screenHeight / 2);
 //        this.setLocation(screenWidth / 4, screenHeight / 4);
-
     }
-    
+
     private Box getFileMainBox() {
         Box fileMainBox = Box.createVerticalBox();
         try {
@@ -890,7 +902,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             if (layer instanceof RasterLayerInfo) {
                 RasterLayerInfo rli = (RasterLayerInfo) layer;
                 WhiteboxRasterInfo wri = rli.getWhiteboxRasterInfo();
-                
+
                 // file name
                 JPanel fileNameBox = new JPanel();
                 fileNameBox.setLayout(new BoxLayout(fileNameBox, BoxLayout.X_AXIS));
@@ -919,7 +931,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 dataTypeBox.add(label2);
                 dataTypeBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(dataTypeBox);
-                
+
                 // dataScale
                 JPanel dataScaleBox = new JPanel();
                 dataScaleBox.setLayout(new BoxLayout(dataScaleBox, BoxLayout.X_AXIS));
@@ -932,7 +944,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 dataScaleBox.add(label2);
                 dataScaleBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(dataScaleBox);
-                
+
                 // numRows
                 JPanel numRowsBox = new JPanel();
                 numRowsBox.setLayout(new BoxLayout(numRowsBox, BoxLayout.X_AXIS));
@@ -945,7 +957,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 numRowsBox.add(label2);
                 numRowsBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(numRowsBox);
-                
+
                 // numCols
                 JPanel numColsBox = new JPanel();
                 numColsBox.setLayout(new BoxLayout(numColsBox, BoxLayout.X_AXIS));
@@ -958,7 +970,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 numColsBox.add(label2);
                 numColsBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(numColsBox);
-                
+
                 // xMin
                 JPanel xMinBox = new JPanel();
                 xMinBox.setLayout(new BoxLayout(xMinBox, BoxLayout.X_AXIS));
@@ -971,7 +983,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 xMinBox.add(label2);
                 xMinBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(xMinBox);
-                
+
                 // xMax
                 JPanel xMaxBox = new JPanel();
                 xMaxBox.setLayout(new BoxLayout(xMaxBox, BoxLayout.X_AXIS));
@@ -984,7 +996,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 xMaxBox.add(label2);
                 xMaxBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(xMaxBox);
-                
+
                 // yMin
                 JPanel yMinBox = new JPanel();
                 yMinBox.setLayout(new BoxLayout(yMinBox, BoxLayout.X_AXIS));
@@ -997,7 +1009,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 yMinBox.add(label2);
                 yMinBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(yMinBox);
-                
+
                 // yMax
                 JPanel yMaxBox = new JPanel();
                 yMaxBox.setLayout(new BoxLayout(yMaxBox, BoxLayout.X_AXIS));
@@ -1010,7 +1022,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 yMaxBox.add(label2);
                 yMaxBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(yMaxBox);
-                
+
                 // minVal
                 JPanel minValBox = new JPanel();
                 minValBox.setLayout(new BoxLayout(minValBox, BoxLayout.X_AXIS));
@@ -1023,7 +1035,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 minValBox.add(label2);
                 minValBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(minValBox);
-                
+
                 // maxVal
                 JPanel maxValBox = new JPanel();
                 maxValBox.setLayout(new BoxLayout(maxValBox, BoxLayout.X_AXIS));
@@ -1036,7 +1048,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 maxValBox.add(label2);
                 maxValBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(maxValBox);
-                
+
                 // minDispVal
                 JPanel minDispValBox = new JPanel();
                 minDispValBox.setLayout(new BoxLayout(minDispValBox, BoxLayout.X_AXIS));
@@ -1049,7 +1061,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 minDispValBox.add(label2);
                 minDispValBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(minDispValBox);
-                
+
                 // maxDispVal
                 JPanel maxDispValBox = new JPanel();
                 maxDispValBox.setLayout(new BoxLayout(maxDispValBox, BoxLayout.X_AXIS));
@@ -1062,7 +1074,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 maxDispValBox.add(label2);
                 maxDispValBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(maxDispValBox);
-                
+
                 // cellSizeX
                 JPanel cellSizeXBox = new JPanel();
                 cellSizeXBox.setLayout(new BoxLayout(cellSizeXBox, BoxLayout.X_AXIS));
@@ -1075,7 +1087,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 cellSizeXBox.add(label2);
                 cellSizeXBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(cellSizeXBox);
-                
+
                 // cellSizeY
                 JPanel cellSizeYBox = new JPanel();
                 cellSizeYBox.setLayout(new BoxLayout(cellSizeYBox, BoxLayout.X_AXIS));
@@ -1088,7 +1100,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 cellSizeYBox.add(label2);
                 cellSizeYBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(cellSizeYBox);
-                
+
                 // noData
                 JPanel noDataBox = new JPanel();
                 noDataBox.setLayout(new BoxLayout(noDataBox, BoxLayout.X_AXIS));
@@ -1117,7 +1129,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
 //                noDataBox.add(label2);
 //                noDataBox.add(Box.createHorizontalStrut(10));
 //                fileMainBox.add(noDataBox);
-                
+
                 // XYUnits
                 JPanel XYUnitBox = new JPanel();
                 XYUnitBox.setLayout(new BoxLayout(XYUnitBox, BoxLayout.X_AXIS));
@@ -1135,7 +1147,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 XYUnitBox.add(XYUnitsText); //label2);
                 XYUnitBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(XYUnitBox);
-                
+
                 // zUnits
                 JPanel ZUnitBox = new JPanel();
                 ZUnitBox.setLayout(new BoxLayout(ZUnitBox, BoxLayout.X_AXIS));
@@ -1153,7 +1165,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 ZUnitBox.add(ZUnitsText); //label2);
                 ZUnitBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(ZUnitBox);
-                
+
                 // byteOrder
                 JPanel byteOrderBox = new JPanel();
                 byteOrderBox.setLayout(new BoxLayout(byteOrderBox, BoxLayout.X_AXIS));
@@ -1166,7 +1178,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 byteOrderBox.add(label2);
                 byteOrderBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(byteOrderBox);
-                
+
                 // fileLength
                 JPanel fileLengthBox = new JPanel();
                 fileLengthBox.setLayout(new BoxLayout(fileLengthBox, BoxLayout.X_AXIS));
@@ -1180,17 +1192,17 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 if (fileLength > 1024) {
                     fileLengthUnits = " MB";
                     fileLength = fileLength / 1024;
-                } 
+                }
                 if (fileLength > 1024) {
                     fileLengthUnits = " GB";
                     fileLength = fileLength / 1024;
-                } 
+                }
                 DecimalFormat df2 = new DecimalFormat("###,###,###.0#");
                 label2 = new JLabel(df2.format(fileLength) + fileLengthUnits);
                 fileLengthBox.add(label2);
                 fileLengthBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(fileLengthBox);
-                
+
                 // metaData
                 JPanel metaDataBox = new JPanel();
                 metaDataBox.setLayout(new BoxLayout(metaDataBox, BoxLayout.X_AXIS));
@@ -1211,12 +1223,11 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 metaDataBox.add(metaDataVBox2);
                 metaDataBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(metaDataBox);
-                
-                
+
             } else if (layer instanceof VectorLayerInfo) {
                 VectorLayerInfo vli = (VectorLayerInfo) layer;
                 ShapeFile shapefile = vli.getShapefile();
-                
+
                 // file name
                 JPanel fileNameBox = new JPanel();
                 fileNameBox.setLayout(new BoxLayout(fileNameBox, BoxLayout.X_AXIS));
@@ -1232,7 +1243,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 fileNameBox.add(fileName);
                 fileNameBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(fileNameBox);
-                
+
                 // shape type
                 JPanel shapeTypeBox = new JPanel();
                 shapeTypeBox.setLayout(new BoxLayout(shapeTypeBox, BoxLayout.X_AXIS));
@@ -1245,7 +1256,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 shapeTypeBox.add(label2);
                 shapeTypeBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(shapeTypeBox);
-                
+
                 // xMin
                 JPanel xMinBox = new JPanel();
                 xMinBox.setLayout(new BoxLayout(xMinBox, BoxLayout.X_AXIS));
@@ -1258,7 +1269,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 xMinBox.add(label2);
                 xMinBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(xMinBox);
-                
+
                 // xMax
                 JPanel xMaxBox = new JPanel();
                 xMaxBox.setLayout(new BoxLayout(xMaxBox, BoxLayout.X_AXIS));
@@ -1271,7 +1282,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 xMaxBox.add(label2);
                 xMaxBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(xMaxBox);
-                
+
                 // yMin
                 JPanel yMinBox = new JPanel();
                 yMinBox.setLayout(new BoxLayout(yMinBox, BoxLayout.X_AXIS));
@@ -1284,7 +1295,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 yMinBox.add(label2);
                 yMinBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(yMinBox);
-                
+
                 // yMax
                 JPanel yMaxBox = new JPanel();
                 yMaxBox.setLayout(new BoxLayout(yMaxBox, BoxLayout.X_AXIS));
@@ -1297,10 +1308,10 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 yMaxBox.add(label2);
                 yMaxBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(yMaxBox);
-                
+
                 ShapeType st = shapefile.getShapeType();
-                if (st == ShapeType.POINTZ || st == ShapeType.POLYLINEZ ||
-                    st == ShapeType.POLYGONZ || st == ShapeType.MULTIPOINTZ) {
+                if (st == ShapeType.POINTZ || st == ShapeType.POLYLINEZ
+                        || st == ShapeType.POLYGONZ || st == ShapeType.MULTIPOINTZ) {
                     // zMin
                     JPanel zMinBox = new JPanel();
                     zMinBox.setLayout(new BoxLayout(zMinBox, BoxLayout.X_AXIS));
@@ -1327,7 +1338,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                     zMaxBox.add(Box.createHorizontalStrut(10));
                     fileMainBox.add(zMaxBox);
                 }
-                
+
                 // fileLength
                 JPanel fileLengthBox = new JPanel();
                 fileLengthBox.setLayout(new BoxLayout(fileLengthBox, BoxLayout.X_AXIS));
@@ -1341,17 +1352,17 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 if (fileLength > 1024) {
                     fileLengthUnits = " MB";
                     fileLength = fileLength / 1024;
-                } 
+                }
                 if (fileLength > 1024) {
                     fileLengthUnits = " GB";
                     fileLength = fileLength / 1024;
-                } 
+                }
                 DecimalFormat df2 = new DecimalFormat("###,###,###.0#");
                 label2 = new JLabel(df2.format(fileLength) + fileLengthUnits);
                 fileLengthBox.add(label2);
                 fileLengthBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(fileLengthBox);
-                
+
                 // numRecords
                 JPanel numRecsBox = new JPanel();
                 numRecsBox.setLayout(new BoxLayout(numRecsBox, BoxLayout.X_AXIS));
@@ -1364,23 +1375,24 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 numRecsBox.add(label2);
                 numRecsBox.add(Box.createHorizontalStrut(10));
                 fileMainBox.add(numRecsBox);
-                
+
                 fileMainBox.add(Box.createVerticalStrut(80));
             }
-            
+
         } catch (Exception e) {
-            
+
         } finally {
             return fileMainBox;
         }
-        
+
     }
-    
+
     private ArrayList<double[][]> markers = new ArrayList<>();
+
     private void initializeMarkerStyle() {
         VectorLayerInfo vli = (VectorLayerInfo) layer;
         markers = PointMarkers.getAllSymbols(markerSize);
-        
+
         Integer[] intArray = new Integer[markers.size()];
         for (int k = 0; k < markers.size(); k++) {
             intArray[k] = new Integer(k);
@@ -1388,8 +1400,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         markerCombo = new JComboBox(intArray);
         MarkerStyle ms = vli.getMarkerStyle();
         markerCombo.setSelectedIndex(ms.ordinal());
-        
-        float lineThick = minLineThickness + scrollLineThickness.getValue() / (float)scrollbarMax * (maxLineThickness - minLineThickness);
+
+        float lineThick = minLineThickness + scrollLineThickness.getValue() / (float) scrollbarMax * (maxLineThickness - minLineThickness);
         MarkerStyleComboBoxRenderer renderer = new MarkerStyleComboBoxRenderer(markers,
                 lineThick,
                 sampleColourLine, sampleColourFill, markerSize, checkFilled.isSelected(),
@@ -1400,7 +1412,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
 //                checkOutlined.isSelected());
         markerCombo.setRenderer(renderer);
     }
-    
+
     private void initializeLineStyle() {
         VectorLayerInfo vli = (VectorLayerInfo) layer;
         Integer[] intArray = new Integer[dashArray.length];
@@ -1422,15 +1434,15 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         float lineThick = minLineThickness + scrollLineThickness.getValue() / ((float) scrollbarMax) * (maxLineThickness - minLineThickness);
         LineStyleComboBoxRenderer renderer = new LineStyleComboBoxRenderer(dashArray,
                 lineThick, sampleColourLine);
-        
+
 //        LineStyleComboBoxRenderer renderer = new LineStyleComboBoxRenderer(dashArray,
 //                (float) ((scrollLineThickness.getValue() + minLineThickness) / 100f), sampleColourLine);
         dashCombo.setRenderer(renderer);
     }
-    
+
     public void updateLayer() {
         if (layer instanceof RasterLayerInfo) {
-            RasterLayerInfo rli = (RasterLayerInfo)layer;
+            RasterLayerInfo rli = (RasterLayerInfo) layer;
             rli.setDisplayMinVal(Double.parseDouble(minVal.getText()));
             rli.setDisplayMaxVal(Double.parseDouble(maxVal.getText()));
             // see if the user has modified information in the header.
@@ -1464,12 +1476,12 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             host.refreshMap(true);
             updatePaletteImage();
         } else if (layer instanceof VectorLayerInfo) {
-            VectorLayerInfo vli = (VectorLayerInfo)layer;
+            VectorLayerInfo vli = (VectorLayerInfo) layer;
             vli.setLayerTitle(titleText.getText());
             vli.setVisible(checkVisible.isSelected());
             vli.setFilled(checkFilled.isSelected());
             vli.setOutlined(checkOutlined.isSelected());
-            float lineThick = minLineThickness + scrollLineThickness.getValue() / ((float)scrollbarMax) * (maxLineThickness - minLineThickness);
+            float lineThick = minLineThickness + scrollLineThickness.getValue() / ((float) scrollbarMax) * (maxLineThickness - minLineThickness);
             vli.setLineThickness(lineThick); //(scrollLineThickness.getValue() + minLineThickness) / 100f);
             vli.setFillColour(sampleColourFill);
             vli.setLineColour(sampleColourLine);
@@ -1492,7 +1504,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 vli.setPaletteScaled(checkScalePalette.isSelected());
                 if (!uniqueLineColour.isSelected()) {
                     vli.setLineAttribute(String.valueOf(valueFieldCombo.getSelectedItem()));
-                    
+
                 } else {
                     vli.setLineAttribute("");
                 }
@@ -1502,47 +1514,48 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 vli.setPaletteScaled(checkScalePalette.isSelected());
                 if (!uniqueFillColour.isSelected()) {
                     vli.setFillAttribute(String.valueOf(valueFieldCombo.getSelectedItem()));
-                    
+
                 } else {
                     vli.setFillAttribute("");
                 }
             }
-            
+
             vli.setNonlinearity(scrollNonlinearity.getValue() / 10d);
-            
+
             vli.setRecordsColourData();
-            
+
             host.refreshMap(true);
         }
     }
-    
+
     private void updatePaletteImage() {
         paletteImage.setNonlinearity(scrollNonlinearity.getValue() / 10d);
     }
-    
+
     public void resetMinimum() {
         if (layer instanceof RasterLayerInfo) {
-            RasterLayerInfo rli = (RasterLayerInfo)layer;
+            RasterLayerInfo rli = (RasterLayerInfo) layer;
             minVal.setText(Double.toString(rli.getMinVal()));
         }
     }
-    
+
     public void resetMaximum() {
         if (layer instanceof RasterLayerInfo) {
-            RasterLayerInfo rli = (RasterLayerInfo)layer;
+            RasterLayerInfo rli = (RasterLayerInfo) layer;
             maxVal.setText(Double.toString(rli.getMaxVal()));
         }
     }
 
     private String paletteFile;
+
     private void changePalette() {
         if (host != null && layer instanceof RasterLayerInfo) {
-            RasterLayerInfo rli = (RasterLayerInfo)layer;
-            Communicator communicator = (Communicator)(host);
+            RasterLayerInfo rli = (RasterLayerInfo) layer;
+            Communicator communicator = (Communicator) (host);
             String pathSep = File.separator;
-            String paletteDirectory = communicator.getResourcesDirectory() +
-                    pathSep + "palettes" + pathSep;
-            PaletteChooser chooser = new PaletteChooser((Frame)this.getOwner(), true, paletteDirectory, rli.getPaletteFile(), 
+            String paletteDirectory = communicator.getResourcesDirectory()
+                    + pathSep + "palettes" + pathSep;
+            PaletteChooser chooser = new PaletteChooser((Frame) this.getOwner(), true, paletteDirectory, rli.getPaletteFile(),
                     checkReversePalette.isSelected(), rli.getNonlinearity());
             chooser.setSize(300, 300);
             Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1555,24 +1568,24 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             if (newPaletteFile != null) {
                 if (!newPaletteFile.equals("") && !newPaletteFile.equals("createNewPalette")) {
                     paletteFile = newPaletteFile;
-                    paletteImage.initialize(256, 18, paletteFile, 
-                            checkReversePalette.isSelected(), 
+                    paletteImage.initialize(256, 18, paletteFile,
+                            checkReversePalette.isSelected(),
                             PaletteImage.HORIZONTAL_ORIENTATION);
                     paletteImage.repaint();
                 } else if (newPaletteFile.equals("createNewPalette")) {
-                    PaletteManager pm = new PaletteManager(paletteDirectory, 
+                    PaletteManager pm = new PaletteManager(paletteDirectory,
                             host.getGuiLabelsBundle());
                     pm.setVisible(true);
                 }
             }
         } else if (host != null && layer instanceof VectorLayerInfo) {
-            VectorLayerInfo vli = (VectorLayerInfo)layer;
-            Communicator communicator = (Communicator)(host);
+            VectorLayerInfo vli = (VectorLayerInfo) layer;
+            Communicator communicator = (Communicator) (host);
             String pathSep = File.separator;
-            String paletteDirectory = communicator.getResourcesDirectory() +
-                    pathSep + "palettes" + pathSep;
-            PaletteChooser chooser = new PaletteChooser((Frame)this.getOwner(), 
-                    true, paletteDirectory, vli.getPaletteFile(), 
+            String paletteDirectory = communicator.getResourcesDirectory()
+                    + pathSep + "palettes" + pathSep;
+            PaletteChooser chooser = new PaletteChooser((Frame) this.getOwner(),
+                    true, paletteDirectory, vli.getPaletteFile(),
                     false, 1.0);
             chooser.setSize(300, 300);
             Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1585,18 +1598,18 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             if (newPaletteFile != null) {
                 if (!newPaletteFile.equals("") && !newPaletteFile.equals("createNewPalette")) {
                     paletteFile = newPaletteFile;
-                    paletteImage.initialize(256, 18, paletteFile, false, 
+                    paletteImage.initialize(256, 18, paletteFile, false,
                             PaletteImage.HORIZONTAL_ORIENTATION);
                     paletteImage.repaint();
                 } else if (newPaletteFile.equals("createNewPalette")) {
-                    PaletteManager pm = new PaletteManager(paletteDirectory, 
+                    PaletteManager pm = new PaletteManager(paletteDirectory,
                             host.getGuiLabelsBundle());
                     pm.setVisible(true);
                 }
             }
         }
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -1619,13 +1632,13 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             paletteImage.setPaletteIsReversed(checkReversePalette.isSelected());
         } else if (actionCommand.equals("clipLowerTail")) {
             if (layer instanceof RasterLayerInfo) {
-                RasterLayerInfo rli = (RasterLayerInfo)layer;
+                RasterLayerInfo rli = (RasterLayerInfo) layer;
                 double value = Double.parseDouble(clipAmountLower.getText().replace("%", ""));
                 minVal.setText(Double.toString(rli.clipLowerTail(value)));
             }
         } else if (actionCommand.equals("clipUpperTail")) {
             if (layer instanceof RasterLayerInfo) {
-                RasterLayerInfo rli = (RasterLayerInfo)layer;
+                RasterLayerInfo rli = (RasterLayerInfo) layer;
                 double value = Double.parseDouble(clipAmountUpper.getText().replace("%", ""));
                 maxVal.setText(Double.toString(rli.clipUpperTail(value)));
             }
@@ -1646,16 +1659,16 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             paletteBox.setVisible(true);
             scalePaletteBox.setVisible(true);
         } else if (actionCommand.equals("viewAttributesTable")) {
-            VectorLayerInfo vli = (VectorLayerInfo)layer;
-            AttributesFileViewer afv = new AttributesFileViewer((Frame)this.getOwner(), false, vli.getFileName());
+            VectorLayerInfo vli = (VectorLayerInfo) layer;
+            AttributesFileViewer afv = new AttributesFileViewer((Frame) this.getOwner(), false, vli.getFileName());
             int height = 500;
-            afv.setSize((int)(height * 1.61803399), height);
+            afv.setSize((int) (height * 1.61803399), height);
             afv.setVisible(true);
         } else if (actionCommand.equals("scalePalette")) {
-            
+
         }
     }
-    
+
     @Override
     public void adjustmentValueChanged(AdjustmentEvent evt) {
         String str;
@@ -1665,7 +1678,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             labelNonlinearity.setText("Gamma: " + str);
             paletteImage.setNonlinearity(scrollNonlinearity.getValue() / 10d);
         } else if (layer instanceof VectorLayerInfo) {
-            float lineThick = minLineThickness + scrollLineThickness.getValue() / ((float)scrollbarMax) * (maxLineThickness - minLineThickness);
+            float lineThick = minLineThickness + scrollLineThickness.getValue() / ((float) scrollbarMax) * (maxLineThickness - minLineThickness);
             str = df.format(lineThick);
             labelLineThickness.setText("Value: " + str);
             str = df.format(scrollMarkerSize.getValue());
@@ -1676,16 +1689,16 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             //initializeMarkerStyle();
             //markerCombo.repaint();
             labelAlpha.setText("Alpha: " + scrollAlpha.getValue());
-            
+
             str = df.format(scrollNonlinearity.getValue() / 10d);
             labelNonlinearity.setText("Gamma: " + str);
             paletteImage.setNonlinearity(scrollNonlinearity.getValue() / 10d);
         }
     }
-    
+
     @Override
     public void mouseClicked(MouseEvent me) {
-        
+
     }
 
     @Override
@@ -1699,7 +1712,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 sampleColourPanelLine.setBackColour(newColour);
                 sampleColourPanelLine2.setBackColour(newColour);
             }
-            
+
         } else if (source == sampleColourPanelFill) {
             Color newColour = null;
             newColour = JColorChooser.showDialog(this, "Choose Color", sampleColourFill);
@@ -1707,7 +1720,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 sampleColourFill = newColour;
                 sampleColourPanelFill.setBackColour(newColour);
             }
-            
+
         }
     }
 
@@ -1725,37 +1738,38 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     public void mouseExited(MouseEvent me) {
         //throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     private class SampleColour extends JPanel {
+
         Color backColour;
-        
+
         protected SampleColour(int width, int height, Color clr) {
             this.setMaximumSize(new Dimension(width, height));
             this.setPreferredSize(new Dimension(width, height));
             backColour = clr;
         }
-        
+
         protected void setBackColour(Color clr) {
             backColour = clr;
             repaint();
         }
-        
+
         @Override
-        public void paint (Graphics g) {
+        public void paint(Graphics g) {
             g.setColor(backColour);
             g.fillRect(0, 0, this.getWidth(), this.getHeight());
-            
+
             g.setColor(Color.black);
             g.drawRect(0, 0, this.getWidth() - 1, this.getHeight() - 1);
-            
+
         }
     }
-    
+
     private class myKeyListener implements KeyListener {
 
         @Override
         public void keyTyped(KeyEvent ke) {
-            
+
         }
 
         @Override
@@ -1767,6 +1781,6 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         public void keyReleased(KeyEvent ke) {
             updatedFileHeader = true;
         }
-        
+
     }
 }

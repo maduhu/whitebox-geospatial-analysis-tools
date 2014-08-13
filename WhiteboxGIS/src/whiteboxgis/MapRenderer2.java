@@ -2094,7 +2094,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.setColor(lineColour);
                                                             g2.draw(gp);
                                                         }
-                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
+                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 
+                                                                && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
                                                             g2.setColor(selectedFeatureColour);
                                                             g2.draw(gp);
                                                         }
@@ -2112,9 +2113,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                         myStroke = new BasicStroke(layer.getLineThickness());
                                         oldStroke = g2.getStroke();
                                         g2.setStroke(myStroke);
-
+                                        int s = 0;
                                         for (ShapeFileRecord record : records) {
-                                            r = record.getRecordNumber() - 1;
+                                            //r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
                                                 //MultiPoint rec = (MultiPoint) (record.getGeometry());
                                                 recPoints = record.getGeometry().getPoints();
@@ -2156,7 +2157,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.setStroke(oldStroke);
                                                         } else {
                                                             if (isFilled) {
-                                                                g2.setColor(colours[r]);
+                                                                g2.setColor(colours[s]);
                                                                 g2.fill(gp);
                                                             }
                                                             if (isOutlined) {
@@ -2169,6 +2170,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             }
                                                         }
                                                     }
+                                                    s++;
                                                 }
                                             }
                                         }
