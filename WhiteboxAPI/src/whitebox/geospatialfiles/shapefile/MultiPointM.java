@@ -91,6 +91,7 @@ public class MultiPointM implements Geometry {
         for (int i = 0; i < numPoints; i++) {
             this.points[i][0] = points[i][0];
             this.points[i][1] = points[i][1];
+            this.mArray[i] = mArray[i];
             
             if (points[i][0] < minX) { minX = points[i][0]; }
             if (points[i][0] > maxX) { maxX = points[i][0]; }

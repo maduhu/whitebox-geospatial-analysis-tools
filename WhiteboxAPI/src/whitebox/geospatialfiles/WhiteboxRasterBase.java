@@ -241,6 +241,18 @@ public abstract class WhiteboxRasterBase {
         return numberRows;
     }
 
+    protected int numberStacks = 1;
+
+    /**
+     * Retrieves the number of stacks in the grid. Stacks are used for 3D, voxel
+     * data,
+     *
+     * @return The number of columns.
+     */
+    public int getNumberStacks() {
+        return numberStacks;
+    }
+
     public enum DataScale {
 
         CONTINUOUS, CATEGORICAL, BOOLEAN, RGB;
@@ -419,20 +431,22 @@ public abstract class WhiteboxRasterBase {
     public void setDisplayMaximum(double DisplayMaximum) {
         displayMaximum = DisplayMaximum;
     }
-    
+
     protected double nonlinearity = 1.0;
-    
+
     /**
      * Returns the palette non-linearity value (gamma).
+     *
      * @return double palette non-linearity
      */
     public double getNonlinearity() {
         return nonlinearity;
     }
-    
+
     /**
      * Sets the palette non-linearity value (gamma)
-     * @param value 
+     *
+     * @param value
      */
     public void setNonlinearity(double value) {
         this.nonlinearity = value;
@@ -697,14 +711,16 @@ public abstract class WhiteboxRasterBase {
         double z;
         containsFractionalDataChecked = true;
         containsFractionalData = false;
-        for (int row = 0; row < numberRows; row++) {
-            data = getRowValues(row);
-            for (int col = 0; col < numberColumns; col++) {
-                if (data[col] != noDataValue) {
-                    z = Math.floor(data[col]);
-                    if ((data[col] - z) > 0.001) { // you have to deal with rounding issues
-                        containsFractionalData = true;
-                        return;
+        for (int stack = 0; stack < numberStacks; stack++) {
+            for (int row = 0; row < numberRows; row++) {
+                data = getRowValues(row, stack);
+                for (int col = 0; col < numberColumns; col++) {
+                    if (data[col] != noDataValue) {
+                        z = Math.floor(data[col]);
+                        if ((data[col] - z) > 0.001) { // you have to deal with rounding issues
+                            containsFractionalData = true;
+                            return;
+                        }
                     }
                 }
             }
@@ -759,6 +775,8 @@ public abstract class WhiteboxRasterBase {
                         this.numberColumns = Integer.parseInt(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("rows")) {
                         this.numberRows = Integer.parseInt(str[dataCol]);
+                    } else if (str[0].toLowerCase().contains("stacks")) {
+                        this.numberStacks = Integer.parseInt(str[dataCol]);
                     } else if (str[0].toLowerCase().contains("data type")
                             || (str[0].toLowerCase().contains("data")
                             && str[1].toLowerCase().contains("type") && str.length > 2)) { //|| 
@@ -891,6 +909,8 @@ public abstract class WhiteboxRasterBase {
             str1 = "Cols:\t" + Integer.toString(this.numberColumns);
             out.println(str1);
             str1 = "Rows:\t" + Integer.toString(this.numberRows);
+            out.println(str1);
+            str1 = "Stacks:\t" + Integer.toString(this.numberStacks);
             out.println(str1);
             str1 = "Data Type:\t" + this.dataType;
             out.println(str1);
@@ -1038,7 +1058,7 @@ public abstract class WhiteboxRasterBase {
         // Save the header file.
         this.writeHeaderFile();
     }
-
+    
     /**
      * This method should be used when you need to access an entire row of data
      * at a time. It has less overhead that the getValue method and can be used
@@ -1049,6 +1069,20 @@ public abstract class WhiteboxRasterBase {
      * row.
      */
     public double[] getRowValues(int row) {
+        return getRowValues(row, 0);
+    }
+
+    /**
+     * This method should be used when you need to access an entire row of data
+     * at a time. It has less overhead that the getValue method and can be used
+     * to efficiently scan through a raster image row by row.
+     *
+     * @param row An int stating the zero-based row to be returned.
+     * @param stack An int stating the zero-based stack in which the row is located.
+     * @return An array of doubles containing the values store in the specified
+     * row.
+     */
+    public double[] getRowValues(int row, int stack) {
         double[] retVals = new double[numberColumns];
 
         if (row < 0 || row >= numberRows) {
@@ -1072,7 +1106,7 @@ public abstract class WhiteboxRasterBase {
             // what is the starting and ending cell?
             long startingCell = (long) (row) * numberColumns;
             long endingCell = (long) (startingCell) + numberColumns - 1;
-
+            
             int readLengthInCells = (int) (endingCell - startingCell + 1);
             buf = ByteBuffer.allocate((int) (readLengthInCells * cellSizeInBytes));
 
@@ -1080,7 +1114,8 @@ public abstract class WhiteboxRasterBase {
 
             FileChannel inChannel = rIn.getChannel();
 
-            inChannel.position(startingCell * cellSizeInBytes);
+            long numCellsPerStack = numberColumns * numberRows;
+            inChannel.position(startingCell * cellSizeInBytes + (numCellsPerStack * stack));
             inChannel.read(buf);
 
             // Check the byte order.
@@ -1125,14 +1160,14 @@ public abstract class WhiteboxRasterBase {
                 }
             }
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.err.println("Caught exception: " + e.toString());
             System.err.println(e.getStackTrace());
         } finally {
             if (rIn != null) {
                 try {
                     rIn.close();
-                } catch (Exception e) {
+                } catch (IOException e) {
                 }
             }
             return retVals.clone();
@@ -1330,16 +1365,18 @@ public abstract class WhiteboxRasterBase {
         double min = Double.MAX_VALUE;
         double max = -Double.MAX_VALUE;
         double z;
-        for (int row = 0; row < numberRows; row++) {
-            data = getRowValues(row);
-            for (int col = 0; col < numberColumns; col++) {
-                z = data[col];
-                if (z != noDataValue) {
-                    if (z < min) {
-                        min = z;
-                    }
-                    if (z > max) {
-                        max = z;
+        for (int stack = 0; stack < numberStacks; stack++) {
+            for (int row = 0; row < numberRows; row++) {
+                data = getRowValues(row, stack);
+                for (int col = 0; col < numberColumns; col++) {
+                    z = data[col];
+                    if (z != noDataValue) {
+                        if (z < min) {
+                            min = z;
+                        }
+                        if (z > max) {
+                            max = z;
+                        }
                     }
                 }
             }
@@ -1520,18 +1557,20 @@ public abstract class WhiteboxRasterBase {
         if (dataScale != DataScale.RGB) { //DATA_SCALE_RGB) {
 
             // calculate the mean, min and max.
-            for (int row = 0; row < numberRows; row++) {
-                data = getRowValues(row);
-                for (int col = 0; col < numberColumns; col++) {
-                    z = data[col];
-                    if (z != noDataValue) {
-                        mean += z;
-                        n++;
-                        if (z < min) {
-                            min = z;
-                        }
-                        if (z > max) {
-                            max = z;
+            for (int stack = 0; stack < numberStacks; stack++) {
+                for (int row = 0; row < numberRows; row++) {
+                    data = getRowValues(row, stack);
+                    for (int col = 0; col < numberColumns; col++) {
+                        z = data[col];
+                        if (z != noDataValue) {
+                            mean += z;
+                            n++;
+                            if (z < min) {
+                                min = z;
+                            }
+                            if (z > max) {
+                                max = z;
+                            }
                         }
                     }
                 }
@@ -1563,14 +1602,16 @@ public abstract class WhiteboxRasterBase {
             histo = new long[numberOfBins];
 
             // figure out how many bins should be in the histogram
-            for (int row = 0; row < numberRows; row++) {
-                data = getRowValues(row);
-                for (int col = 0; col < numberColumns; col++) {
-                    z = data[col];
-                    if (z != noDataValue) {
-                        imageTotalDeviation += (z - mean) * (z - mean);
-                        binNum = (int) (Math.floor((z - min) / binWidth));
-                        histo[binNum]++;
+            for (int stack = 0; stack < numberStacks; stack++) {
+                for (int row = 0; row < numberRows; row++) {
+                    data = getRowValues(row, stack);
+                    for (int col = 0; col < numberColumns; col++) {
+                        z = data[col];
+                        if (z != noDataValue) {
+                            imageTotalDeviation += (z - mean) * (z - mean);
+                            binNum = (int) (Math.floor((z - min) / binWidth));
+                            histo[binNum]++;
+                        }
                     }
                 }
             }

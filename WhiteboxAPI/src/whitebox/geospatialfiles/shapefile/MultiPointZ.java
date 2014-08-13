@@ -89,6 +89,8 @@ public class MultiPointZ implements Geometry {
      * This is the constructor that is used when creating a new multipoint.
      * @param points a double[][] array containing the point data. The first
      * dimension of the array is the total number of points in the multipoint.
+     * @param zArray array of doubles containing z values.
+     * @param mArray array of doubles containing measures.
      */
     public MultiPointZ (double[][] points, double[] zArray, double[] mArray) {
         numPoints = points.length;
@@ -107,6 +109,8 @@ public class MultiPointZ implements Geometry {
         for (int i = 0; i < numPoints; i++) {
             this.points[i][0] = points[i][0];
             this.points[i][1] = points[i][1];
+            this.zArray[i] = zArray[i];
+            this.mArray[i] = mArray[i];
             
             if (points[i][0] < minX) { minX = points[i][0]; }
             if (points[i][0] > maxX) { maxX = points[i][0]; }
@@ -128,6 +132,7 @@ public class MultiPointZ implements Geometry {
      * This is the constructor that is used when creating a new multipoint.
      * @param points a double[][] array containing the point data. The first
      * dimension of the array is the total number of points in the multipoint.
+     * @param zArray array of doubles containing z values.
      */
     public MultiPointZ (double[][] points, double[] zArray) {
         numPoints = points.length;
@@ -146,6 +151,7 @@ public class MultiPointZ implements Geometry {
         for (int i = 0; i < numPoints; i++) {
             this.points[i][0] = points[i][0];
             this.points[i][1] = points[i][1];
+            this.zArray[i] = zArray[i];
             
             if (points[i][0] < minX) { minX = points[i][0]; }
             if (points[i][0] > maxX) { maxX = points[i][0]; }
