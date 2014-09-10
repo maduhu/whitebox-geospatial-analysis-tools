@@ -64,4 +64,8 @@ public class BooleanBitArray1D {
         byte val = data[colB];
         return BitOps.checkBit(val, colOffset);
     }
+    
+    public int getLength() {
+        return columns;
+    }
 }

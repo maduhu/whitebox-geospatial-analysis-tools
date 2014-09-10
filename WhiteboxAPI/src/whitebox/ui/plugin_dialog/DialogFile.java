@@ -108,14 +108,11 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
                 dropDownBtn.setFocusPainted(false);
                 dropDownBtn.setContentAreaFilled(false);
                 dropDownBtn.setMargin(new Insets(0, 0, 0, 0));
-                dropDownBtn.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        int numLayers = getOpenLayers();
-                        if (numLayers > 0 && ac != null) {
-                            text.setText("");
-                            ac.doCompletion();
-                        }
+                dropDownBtn.addActionListener((ActionEvent e) -> {
+                    int numLayers = getOpenLayers();
+                    if (numLayers > 0 && ac != null) {
+                        text.setText("");
+                        ac.doCompletion();
                     }
                 });
                 JPanel dropDownPanel = new JPanel(new BorderLayout());

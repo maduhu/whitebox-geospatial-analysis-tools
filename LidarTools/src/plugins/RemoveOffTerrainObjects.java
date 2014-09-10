@@ -228,7 +228,7 @@ public class RemoveOffTerrainObjects implements WhiteboxPlugin {
             }
             inputFilesString = args[0];
             suffix = args[1];
-            OTOMaxSize = Integer.valueOf(args[2]);
+            OTOMaxSize = (int)(Math.round(Double.valueOf(args[2])));
             int halfOTOMaxSize = OTOMaxSize / 2;
             double[] data = new double[OTOMaxSize + 2];
             minEdgeSlope = Double.valueOf(args[3]);

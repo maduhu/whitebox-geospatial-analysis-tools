@@ -26,8 +26,6 @@ import java.nio.channels.FileChannel;
 import java.util.*;
 import whitebox.cartographic.PointMarkers.MarkerStyle;
 import whitebox.geospatialfiles.shapefile.attributes.DBFException;
-import whitebox.geospatialfiles.shapefile.attributes.DBFField;
-//import whitebox.geospatialfiles.shapefile.attributes.DBFReader;
 import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.geospatialfiles.shapefile.ShapeFileRecord;
 import whitebox.geospatialfiles.shapefile.ShapeType;
@@ -84,7 +82,7 @@ public class VectorLayerInfo implements MapLayer {
     private boolean visibleInLegend = true;
     private boolean isActivelyEdited = false;
     private boolean[] selectedFeatures;
-
+    
     // Constructors
     public VectorLayerInfo() {
     }
@@ -99,7 +97,7 @@ public class VectorLayerInfo implements MapLayer {
         this.layerTitle = file.getName().replace(".shp", "");
         this.alpha = alpha;
         this.overlayNumber = overlayNumber;
-
+        
         try {
             shapefile = new ShapeFile(fileName);
         } catch (IOException e) {
@@ -175,7 +173,7 @@ public class VectorLayerInfo implements MapLayer {
 
         selectedFeatures = new boolean[shapefile.getNumberOfRecords() + 1];
     }
-
+    
     public void refreshAttributeTable() {
         shapefile.refreshAttributeTable();
         this.attributeTableFields = shapefile.getAttributeTableFields();

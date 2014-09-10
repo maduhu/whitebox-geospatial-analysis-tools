@@ -98,6 +98,6 @@ public interface MapLayer {
      * An enum of map layer types.
      */
     public enum MapLayerType {
-        RASTER, VECTOR, MULTISPECTRAL
+        RASTER, VECTOR, MULTISPECTRAL, LAS
     }
 }

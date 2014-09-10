@@ -211,10 +211,10 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
         double x, y;
         double z = 0;
         int a, intensity;
-        int oldProgress, progress;
-        int numPoints = 0;
         PointRecord point;
         double[] entry;
+        int lowestPointIndex = -1;
+        double lowestPointZ = Double.POSITIVE_INFINITY;
 
         // get the arguments
         if (args.length <= 0) {
@@ -235,30 +235,112 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
         }
 
         try {
-            LASReader las = new LASReader(inputFile);
-            numPoints = (int) las.getNumPointRecords();
-            data = new LidarData[numPoints];
-            done = new BooleanBitArray1D(numPoints);
+            if (inputFile.endsWith(".las")) {
+                LASReader las = new LASReader(inputFile);
+                numPoints = (int) las.getNumPointRecords();
+                data = new LidarData[numPoints];
+                done = new BooleanBitArray1D(numPoints);
 
-            // Read the valid points into the k-dimensional tree.
-            pointsTree = new KdTree.SqrEuclid<>(2, numPoints);
-            oldProgress = -1;
-            for (a = 0; a < numPoints; a++) {
-                point = las.getPointRecord(a);
-                if (!point.isPointWithheld()) {
-                    x = point.getX();
-                    y = point.getY();
-                    z = point.getZ();
-                    intensity = point.getIntensity();
+                // Read the valid points into the k-dimensional tree.
+                pointsTree = new KdTree.SqrEuclid<>(2, numPoints);
+                for (a = 0; a < numPoints; a++) {
+                    point = las.getPointRecord(a);
+                    if (!point.isPointWithheld()) {
+                        x = point.getX();
+                        y = point.getY();
+                        z = point.getZ();
+                        intensity = point.getIntensity();
 
-                    entry = new double[]{x, y};
-                    pointsTree.addPoint(entry, a);
-                    data[a] = new LidarData(x, y, z, intensity, a);
+                        entry = new double[]{x, y};
+                        pointsTree.addPoint(entry, a);
+                        data[a] = new LidarData(x, y, z, intensity, a);
+
+                        if (z < lowestPointZ) {
+                            lowestPointZ = z;
+                            lowestPointIndex = a;
+                        }
+                    }
+                    progress = (int) (100f * (a + 1) / numPoints);
+                    if (progress != oldProgress) {
+                        oldProgress = progress;
+                        updateProgress("Reading point data:", progress);
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
+                    }
                 }
-                progress = (int) (100f * (a + 1) / numPoints);
+            } else if (inputFile.endsWith(".shp")) {
+                ShapeFile input = new ShapeFile(inputFile);
+                if (input.getShapeType().getDimension() != ShapeTypeDimension.Z) {
+                    return;
+                }
+
+                // how many points are there?
+                MultiPointZ mpz = (MultiPointZ) (input.getRecord(0).getGeometry());
+                numPoints = mpz.getNumPoints();
+                data = new LidarData[numPoints];
+                done = new BooleanBitArray1D(numPoints);
+                double[][] points = mpz.getPoints();
+                double[] zArray = mpz.getzArray();
+
+                // Read the valid points into the k-dimensional tree.
+                pointsTree = new KdTree.SqrEuclid<>(2, numPoints);
+                for (a = 0; a < numPoints; a++) {
+                    entry = new double[]{points[a][0], points[a][1]}; //, zArray[a]};
+                    pointsTree.addPoint(entry, a);
+                    data[a] = new LidarData(points[a][0], points[a][1], zArray[a], 0, a);
+
+                    if (zArray[a] < lowestPointZ) {
+                        lowestPointZ = zArray[a];
+                        lowestPointIndex = a;
+                    }
+
+                    progress = (int) (100f * (a + 1) / numPoints);
+                    if (progress != oldProgress) {
+                        oldProgress = progress;
+                        updateProgress("Reading point data:", progress);
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // calculate the maximum downward angle for each point
+            threshold = searchDist * Math.tan(Math.toRadians(65.0));
+            
+            for (a = 0; a < numPoints; a++) {
+                z = data[a].z;
+                entry = new double[]{data[a].x, data[a].y};
+                List<KdTree.Entry<Integer>> results = pointsTree.neighborsWithinRange(entry, searchDist);
+                double minSlope = z; //Double.POSITIVE_INFINITY;
+                for (int i = 0; i < results.size(); i++) {
+                    int pointNum = results.get(i).value;
+                    if (pointNum != a) {
+                        if (data[pointNum].z < minSlope) {
+                            minSlope = data[pointNum].z;
+                        }
+//                        double dist = Math.sqrt(results.get(i).distance);
+//                        double slope = (data[pointNum].z - z) / dist;
+//                        if (slope < minSlope) {
+//                            minSlope = slope;
+//                        }
+                    }
+                }
+                data[a].maxDownwardAngle = (z - minSlope); //Math.toDegrees(Math.atan(minSlope));
+                
+                if (data[a].maxDownwardAngle > threshold) {
+                    data[a].w = 0;
+                } else {
+                    data[a].w = 1 - data[a].maxDownwardAngle / threshold;
+                }
+                
+                progress = (int) (100f * a / numPoints);
                 if (progress != oldProgress) {
                     oldProgress = progress;
-                    updateProgress("Reading point data:", progress);
+                    updateProgress("Calculating elev. diff.:", progress);
                     if (cancelOp) {
                         cancelOperation();
                         return;
@@ -266,65 +348,107 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
                 }
             }
 
-            int currentClass = 0;
-//            long oldNumClassifiedPoints = 0;
-//            List<Long> histo = new ArrayList<>();
-            do {
-                // find the first unclassified point
-                int startingPoint = -1;
-                for (a = 0; a < numPoints; a++) {
-                    if (data[a].classValue == -1) {
-                        startingPoint = a;
-                        currentClass++;
-                        break;
-                    }
-                }
-                if (startingPoint == -1) {
-                    break;
-                }
-                List<Integer> seeds = new ArrayList<>();
-                seeds.add(startingPoint);
-                boolean flag = false;
+//            // calculate the weight value for the point
+//            for (a = 0; a < numPoints; a++) {
+//                z = data[a].maxDownwardAngle;
+//                if (data[a].maxDownwardAngle > 0) {
+//                    x = data[a].x;
+//                    y = data[a].y;
+//                    entry = new double[]{x, y};
+//                    List<KdTree.Entry<Integer>> results = pointsTree.neighborsWithinRange(entry, searchDist);
+//                    double sum = 0;
+//                    for (int i = 0; i < results.size(); i++) {
+//                        int pointNum = results.get(i).value;
+//                        double dist =((data[pointNum].x - x) * (data[pointNum].x - x) + (data[pointNum].y - y) * (data[pointNum].y - y) + data[pointNum].maxDownwardAngle * data[pointNum].maxDownwardAngle);
+//                        sum += 1 / dist;
+//                    }
+//                    double w = (1 / (data[a].maxDownwardAngle * data[a].maxDownwardAngle)) / sum;
+//                    data[a].w = w; //(1 / (data[a].maxDownwardAngle * data[a].maxDownwardAngle)) / sum;
+//                } else {
+//                    data[a].w = 1.0;
+//                }
+//
+//                progress = (int) (100f * a / numPoints);
+//                if (progress != oldProgress) {
+//                    oldProgress = progress;
+//                    updateProgress("Calculating weights:", progress);
+//                    if (cancelOp) {
+//                        cancelOperation();
+//                        return;
+//                    }
+//                }
+//            }
             
-                do {
-                    flag = false;
-                    for (Integer s : seeds) {
-                        if (!done.getValue(s)) {
-                            data[s].setClassValue(currentClass);
-                            scanNeighbours(s);
-                        }
-                    }
-                    seeds.clear();
-                    if (seedPoints.size() > 0) {
-                        flag = true;
-                        seedPoints.stream().forEach((s) -> {
-                            if (!done.getValue(s)) {
-                                seeds.add(s);
-                            }
-                        });
-                        seedPoints.clear();
-                    }
-                    progress = (int) (100f * numClassifiedPoints / numPoints);
-                    if (progress != oldProgress) {
-                        oldProgress = progress;
-                        updateProgress(progress);
-                        if (cancelOp) {
-                            cancelOperation();
-                            return;
-                        }
-                    }
-                } while (flag);
-//                histo.add(numClassifiedPoints - oldNumClassifiedPoints);
-//                oldNumClassifiedPoints = numClassifiedPoints;
-            } while (numClassifiedPoints < numPoints);
             
+            
+            
+
+//            // perform the segmentation
+//            int currentClass = 0;
+//
+////            long oldNumClassifiedPoints = 0;
+////            List<Long> histo = new ArrayList<>();
+//            do {
+//                // find the lowest unclassified point
+//                int startingPoint = -1;
+//                lowestPointZ = Double.POSITIVE_INFINITY;
+//                for (a = 0; a < numPoints; a++) {
+//                    if (data[a].classValue == -1 && data[a].z < lowestPointZ) {
+//                        lowestPointZ = data[a].z;
+//                        startingPoint = a;
+////                        currentClass++;
+////                        break;
+//                    }
+//                }
+//                if (startingPoint == -1) {
+//                    break;
+//                }
+//
+//                currentClass++;
+//
+//                List<Integer> seeds = new ArrayList<>();
+//                seeds.add(startingPoint);
+//                boolean flag = false;
+//
+//                do {
+//                    flag = false;
+//                    for (Integer s : seeds) {
+//                        if (!done.getValue(s)) {
+//                            data[s].setClassValue(currentClass);
+//                            scanNeighbours(s);
+//                        }
+//                    }
+//                    seeds.clear();
+//                    if (seedPoints.size() > 0) {
+//                        flag = true;
+//                        seedPoints.stream().forEach((s) -> {
+//                            if (!done.getValue(s)) {
+//                                seeds.add(s);
+//                            }
+//                        });
+//                        seedPoints.clear();
+//                    }
+//
+//                    startingPoint = -1;
+////                    progress = (int) (100f * numClassifiedPoints / numPoints);
+////                    if (progress != oldProgress) {
+////                        oldProgress = progress;
+////                        updateProgress(progress);
+////                        if (cancelOp) {
+////                            cancelOperation();
+////                            return;
+////                        }
+////                    }
+//                } while (flag);
+////                histo.add(numClassifiedPoints - oldNumClassifiedPoints);
+////                oldNumClassifiedPoints = numClassifiedPoints;
+//            } while (numClassifiedPoints < numPoints);
 //            int classVal = 1;
 //            for (Long val : histo) {
 //                System.out.println("Class " + String.valueOf(classVal) + ": " + String.valueOf(val));
 //            }
-            
             // output
-            DBFField fields[] = new DBFField[3];
+            DBFField fields[] = new DBFField[5];
 
             fields[0] = new DBFField();
             fields[0].setName("Z");
@@ -344,22 +468,38 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
             fields[2].setFieldLength(8);
             fields[2].setDecimalCount(0);
 
+            fields[3] = new DBFField();
+            fields[3].setName("MAXDNANGLE");
+            fields[3].setDataType(DBFField.DBFDataType.NUMERIC);
+            fields[3].setFieldLength(8);
+            fields[3].setDecimalCount(4);
+            
+            fields[4] = new DBFField();
+            fields[4].setName("WEIGHT");
+            fields[4].setDataType(DBFField.DBFDataType.NUMERIC);
+            fields[4].setFieldLength(8);
+            fields[4].setDecimalCount(4);
+
             File outFile = new File(outputFile);
-            if (outFile.exists()) { outFile.delete(); }
+            if (outFile.exists()) {
+                outFile.delete();
+            }
             ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
 
             for (a = 0; a < numPoints; a++) {
-                if (data[a].classValue > -1) {
-                    whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(data[a].x, data[a].y);
+                //if (data[a].classValue > -1) {
+                whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(data[a].x, data[a].y);
 
-                    Object[] rowData = new Object[3];
-                    rowData[0] = data[a].z;
-                    rowData[1] = (double) data[a].intensity;
-                    rowData[2] = (double) data[a].classValue;
+                Object[] rowData = new Object[5];
+                rowData[0] = data[a].z;
+                rowData[1] = (double) data[a].intensity;
+                rowData[2] = (double) data[a].classValue;
+                rowData[3] = data[a].maxDownwardAngle;
+                rowData[4] = data[a].w;
 
-                    output.addRecord(wbGeometry, rowData);
-                }
-                
+                output.addRecord(wbGeometry, rowData);
+                //}
+
                 progress = (int) (100f * (a + 1) / numPoints);
                 if (progress != oldProgress) {
                     oldProgress = progress;
@@ -372,7 +512,7 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
             }
 
             output.write();
-            
+
             System.out.println("Done!");
 
         } catch (OutOfMemoryError oe) {
@@ -401,12 +541,7 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
             depth--;
             return;
         }
-        
-        if (done.getValue(refPointNum)) {
-            depth--;
-            return;
-        }
-        
+
         if (done.getValue(refPointNum)) {
             depth--;
             return;
@@ -414,15 +549,16 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
 
         int classValue = data[refPointNum].classValue;
 
-        double[] entry = new double[]{data[refPointNum].x, data[refPointNum].y};
+        double[] entry = new double[]{data[refPointNum].x, data[refPointNum].y}; //, data[refPointNum].z};
         List<KdTree.Entry<Integer>> results = pointsTree.neighborsWithinRange(entry, searchDist);
         for (int i = 0; i < results.size(); i++) {
             int pointNum = results.get(i).value;
             if (pointNum != data[refPointNum].pointNum) {
                 if (data[pointNum].classValue == -1) {
-                    //double dist = Math.sqrt(results.get(i).distance);
+                    double dist = Math.sqrt(results.get(i).distance);
                     //if (Math.abs(data[pointNum].z - data[refPointNum].z) / dist <= threshold) {
-                    if (Math.abs(data[pointNum].z - data[refPointNum].z) <= threshold) {
+                    //if (Math.abs(data[pointNum].z - data[refPointNum].z) <= threshold) {
+                    if (Math.abs(data[pointNum].maxDownwardAngle - data[refPointNum].maxDownwardAngle) <= threshold) {
                         data[pointNum].setClassValue(classValue);
                         scanNeighbours(pointNum);
                     }
@@ -433,12 +569,18 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
         depth--;
     }
 
+    int progress = -1;
+    int oldProgress = -1;
+    int numPoints = 0;
+
     class LidarData {
 
         double x, y, z;
         int pointNum;
         int classValue = -1;
         int intensity;
+        double maxDownwardAngle = Double.POSITIVE_INFINITY;
+        double w = 0;
 
         public LidarData(double x, double y, double z, int intensity, int pointNum) {
             this.x = x;
@@ -447,15 +589,25 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
             this.intensity = intensity;
             this.pointNum = pointNum;
         }
-        
-        public void setClassValue(int value) { 
+
+        public void setClassValue(int value) {
             if (classValue != value) {
                 this.classValue = value;
                 numClassifiedPoints++;
+
+                progress = (int) (100f * numClassifiedPoints / numPoints);
+                if (progress != oldProgress) {
+                    oldProgress = progress;
+                    updateProgress(progress);
+                    if (cancelOp) {
+                        cancelOperation();
+                        return;
+                    }
+                }
             }
         }
     }
-    
+
     //this is only used for debugging the tool
     public static void main(String[] args) {
         LiDAR_segmentation seg = new LiDAR_segmentation();
@@ -464,12 +616,16 @@ public class LiDAR_segmentation implements WhiteboxPlugin {
 //        args[1] = "/Users/jlindsay/Documents/Data/Rashaad's Sites/CVC ground points.shp";
 //        args[2] = "15.0"; // degree slope
 //        args[3] = "0.25"; // meter search window
-        
-        args[0] = "/Users/jlindsay/Documents/Data/LAS classified/416_4696.las"; //423_4695.las";
-        args[1] = "/Users/jlindsay/Documents/Data/LAS classified/416_4696 ground points.shp";
-        args[2] = "20.0"; // degree slope
-        args[3] = "2.0"; // meter search window
-        
+
+//        args[0] = "/Users/jlindsay/Documents/Data/LAS classified/416_4696.las"; //423_4695.las";
+//        args[1] = "/Users/jlindsay/Documents/Data/LAS classified/416_4696 ground points.shp";
+//        args[2] = "20.0"; // degree slope
+//        args[3] = "2.0"; // meter search window
+        args[0] = "/Users/johnlindsay/Documents/Data/Rashaads Sites/CVC/CVC_all_Row5_Col6.shp";
+        args[1] = "/Users/johnlindsay/Documents/Data/Rashaads Sites/CVC/tmp3.shp";
+        args[2] = "5"; // degree slope
+        args[3] = "0.25"; // meter search window
+
         seg.setArgs(args);
         seg.run();
     }

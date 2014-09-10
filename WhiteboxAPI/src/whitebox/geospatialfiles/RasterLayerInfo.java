@@ -539,10 +539,6 @@ public class RasterLayerInfo implements MapLayer {
             double[] rawData;
             int i = 0;
             if (dataScale == WhiteboxRaster.DataScale.CONTINUOUS) {
-//                CreatePixelsContinuous cpc = new CreatePixelsContinuous(sourceData, startRow, endRow,
-//                        startCol, endCol, resolutionFactor, minVal, maxVal, gamma, paletteData, backgroundColour);
-//                cpc.createPixels();
-//                pixelData = cpc.getPixels();
                 for (row = startRow; row <= endRow; row += resolutionFactor) {
                     rawData = sourceData.getRowValues(row);
                     for (col = startCol; col <= endCol; col += resolutionFactor) {

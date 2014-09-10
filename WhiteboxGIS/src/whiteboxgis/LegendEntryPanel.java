@@ -347,7 +347,8 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
             this.addMouseListener(this);
             this.revalidate();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace(System.out);
+            //System.out.println(e.getMessage());
         }
     }
 

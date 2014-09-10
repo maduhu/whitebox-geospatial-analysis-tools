@@ -98,6 +98,7 @@ import whitebox.interfaces.InteropPlugin.InteropPluginType;
 import whitebox.utilities.StringUtilities;
 import whitebox.plugins.ReturnedDataEvent;
 import whiteboxgis.user_interfaces.ViewTextDialog;
+import whitebox.geospatialfiles.LasLayerInfo;
 
 /**
  *
@@ -1902,6 +1903,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     } else if (maplayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
                         VectorLayerInfo vector = (VectorLayerInfo) maplayer;
                         displayedLayers.add(vector.getFileName());
+                    } else if (maplayer.getLayerType() == MapLayer.MapLayerType.LAS) {
+                        LasLayerInfo las = (LasLayerInfo) maplayer;
+                        displayedLayers.add(las.getLASFile().getFileName());
                     }
                     i++;
                 }
@@ -2244,6 +2248,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapinfo.setWorkingDirectory(workingDirectory);
             mapinfo.setDefaultFont(defaultFont);
             mapinfo.setMargin(defaultMapMargin);
+            //mapinfo.setPageVisible(false);
             
             MapArea ma = new MapArea(bundle.getString("MapArea").replace(" ", "") + "1");
             ma.setUpperLeftX(-32768);
@@ -4663,10 +4668,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             }
 
             String filterDescription = "All Supported Files";
-            String[] extensions = new String[numSupportedFileFormats + 2];
+            String[] extensions = new String[numSupportedFileFormats + 3];
             extensions[0] = "DEP";
             extensions[1] = "SHP";
-            int i = 2;
+            extensions[2] = "LAS";
+            int i = 3;
             for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
                 for (String ext : igdf.getSupportedExtensions()) {
                     if (igdf.getInteropPluginType() == InteropPluginType.importPlugin) {
@@ -4678,7 +4684,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
 
             ExtensionFileFilter eff = new ExtensionFileFilter(filterDescription, extensions);
             filters.add(eff);
-
+            
             filterDescription = "Shapefiles (*.shp)";
             extensions = new String[]{"SHP"};
             eff = new ExtensionFileFilter(filterDescription, extensions);
@@ -4689,6 +4695,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             eff = new ExtensionFileFilter(filterDescription, extensions);
             filters.add(eff);
 
+            filterDescription = "LAS (*.las)";
+            extensions = new String[]{"LAS"};
+            eff = new ExtensionFileFilter(filterDescription, extensions);
+            filters.add(eff);
+            
             for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
                 if (igdf.getInteropPluginType() == InteropPluginType.importPlugin) {
                     filterDescription = igdf.getName() + " Files (";
@@ -4741,7 +4752,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                     int dot = fileName.lastIndexOf(".");
                     String extension = fileName.substring(dot + 1).toLowerCase();
 
-                    if (extension.equals("dep") || extension.equals("shp")) {
+                    if (extension.equals("dep") || extension.equals("shp") || extension.equals("las")) {
                         addLayer(file.toString());
                     } else {
                         // see if the selectedFilterDescription is ambiguous and if so
@@ -4916,6 +4927,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         255, activeMapArea.getNumLayers());
                 activeMapArea.addLayer(newLayer);
                 newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
+            } else if (extension.equals("las")) {
+                LasLayerInfo newLayer = new LasLayerInfo(file.toString(), paletteDirectory,
+                        255, activeMapArea.getNumLayers()); //, this);
+                activeMapArea.addLayer(newLayer);
+                newLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
             } else {
                 // see if the extension is in the list of supported extensions
                 for (InteroperableGeospatialDataFormat igdf : interopGeospatialDataFormat) {
@@ -5035,10 +5051,13 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 mapAreaNum = openMaps.get(activeMap).getActiveMapAreaElementNumber();
             }
             MapArea activeMapArea = openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum);
-
             activeMapArea.addLayer(mapLayer);
-            mapLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
-
+            //mapLayer.setOverlayNumber(activeMapArea.getNumLayers() - 1);
+            
+            if (mapLayer.getOverlayNumber() < 0) { 
+                mapLayer.setOverlayNumber(openMaps.get(mapNum).getMapAreaByElementNum(mapAreaNum).getNumLayers() - 1);
+            }
+            
             activeMapArea.setActiveLayer(activeMapArea.getNumLayers() - 1);
 
             String fileName = "";
@@ -5048,6 +5067,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             } else if (mapLayer instanceof VectorLayerInfo) {
                 VectorLayerInfo vli = (VectorLayerInfo) mapLayer;
                 fileName = vli.getFileName();
+            } else if (mapLayer instanceof LasLayerInfo) {
+                LasLayerInfo lli = (LasLayerInfo) mapLayer;
+                fileName = lli.getLASFile().getFileName();
             }
             recentFilesMenu.addMenuItem(fileName);
             recentFilesMenu2.addMenuItem(fileName);
@@ -6421,7 +6443,9 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 return;
             }
             if (ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.RASTER
-                    || ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.VECTOR) {
+                    || ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.VECTOR
+                    || ma.getLayer(layerOverlayNum).getLayerType() == MapLayerType.LAS) {
+                
                 MapLayer layer = ma.getLayer(layerOverlayNum);
                 LayerProperties lp = new LayerProperties(this, false, layer, openMaps.get(mapNum));
                 lp.setSize(640, 420);

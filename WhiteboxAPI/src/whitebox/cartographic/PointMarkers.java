@@ -29,7 +29,7 @@ public final class PointMarkers {
     }
     
     public static ArrayList<double[][]> getAllSymbols(float markerSize) {
-        ArrayList<double[][]> markers = new ArrayList<double[][]>();
+        ArrayList<double[][]> markers = new ArrayList<>();
         markers.add(PointMarkers.getCircle(markerSize));
         markers.add(PointMarkers.getSquare(markerSize));
         markers.add(PointMarkers.getTriangle(markerSize));

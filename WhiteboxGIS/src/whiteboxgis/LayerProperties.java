@@ -29,6 +29,7 @@ import java.util.ResourceBundle;
 import javax.swing.*;
 import whitebox.cartographic.PointMarkers;
 import whitebox.cartographic.PointMarkers.MarkerStyle;
+import whitebox.geospatialfiles.LASReader;
 import whitebox.geospatialfiles.RasterLayerInfo;
 import whitebox.geospatialfiles.ShapeFile;
 import whitebox.geospatialfiles.WhiteboxRaster;
@@ -38,6 +39,7 @@ import whitebox.interfaces.Communicator;
 import whitebox.interfaces.MapLayer;
 import whitebox.interfaces.WhiteboxPluginHost;
 import whitebox.geospatialfiles.VectorLayerInfo;
+import whitebox.geospatialfiles.LasLayerInfo;
 import whitebox.geospatialfiles.shapefile.ShapeTypeDimension;
 
 /**
@@ -99,6 +101,8 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
     private JPanel valueFieldBox;
     private JPanel paletteBox;
     private JPanel scalePaletteBox;
+    private JPanel minBox;
+    private JPanel maxBox;
     private JButton viewAttributesTable = new JButton("View Attributes");
     private JComboBox valueFieldCombo;
     private JTabbedPane tabs;
@@ -127,6 +131,9 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
         } else if (layer instanceof VectorLayerInfo) {
             VectorLayerInfo vli = (VectorLayerInfo) layer;
             this.paletteFile = vli.getPaletteFile();
+        } else if (layer instanceof LasLayerInfo) {
+            LasLayerInfo lli = (LasLayerInfo) layer;
+            this.paletteFile = lli.getPaletteFile();
         }
         this.map = map;
         createGui();
@@ -137,7 +144,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         }
         if (layer == null) {
-            System.err.println("RasterLayerInfo not set.");
+            System.err.println("LayerInfo not set.");
             return;
         }
 
@@ -195,7 +202,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             titleBox.add(titleText);
             titleBox.add(Box.createHorizontalStrut(10));
 
-            JPanel minBox = new JPanel();
+            minBox = new JPanel();
             minBox.setLayout(new BoxLayout(minBox, BoxLayout.X_AXIS));
             minBox.setBackground(backColour);
             minBox.add(Box.createHorizontalStrut(10));
@@ -221,7 +228,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             clipLowerTail.addActionListener(this);
             minBox.add(Box.createHorizontalStrut(10));
 
-            JPanel maxBox = new JPanel();
+            maxBox = new JPanel();
             maxBox.setLayout(new BoxLayout(maxBox, BoxLayout.X_AXIS));
             maxBox.setBackground(Color.white);
             maxBox.add(Box.createHorizontalStrut(10));
@@ -583,7 +590,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             valueFieldBox.add(label);
             valueFieldBox.add(Box.createHorizontalGlue());
             String[] fields = vli.getAttributeTableFields();
-                
+
             if (vli.getShapeType().getDimension() == ShapeTypeDimension.Z) {
                 String[] fields2 = new String[fields.length + 2];
                 fields2[0] = "Feature Z Value";
@@ -864,6 +871,314 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 mainBox.add(generalizedBox);
                 mainBox.add(Box.createVerticalStrut(130));
             }
+        } else if (layer instanceof LasLayerInfo) {
+            LasLayerInfo lli = (LasLayerInfo) layer;
+
+            JPanel titleBox = new JPanel();
+            titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.X_AXIS));
+            titleBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("LegendTitle"));
+            label.setPreferredSize(new Dimension(180, 24));
+            titleBox.add(label);
+            titleBox.add(Box.createHorizontalGlue());
+            titleText = new JTextField(layer.getLayerTitle(), 20);
+            titleText.setMaximumSize(new Dimension(600, 22));
+            titleBox.add(titleText);
+            titleBox.add(Box.createHorizontalStrut(10));
+
+            JPanel overlayBox = new JPanel();
+            overlayBox.setLayout(new BoxLayout(overlayBox, BoxLayout.X_AXIS));
+            overlayBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("OverlayNumber"));
+            label.setPreferredSize(new Dimension(180, 24));
+            overlayBox.add(label);
+            overlayBox.add(Box.createHorizontalGlue());
+            JSpinner spin1 = new JSpinner();
+            spin1.setMaximumSize(new Dimension(200, 22));
+            SpinnerModel sm
+                    = new SpinnerNumberModel(layer.getOverlayNumber(), 0, map.getActiveMapArea().getNumLayers() - 1, 1);
+            spin1.setModel(sm);
+            overlayBox.add(spin1);
+            overlayBox.add(Box.createHorizontalStrut(10));
+
+            JPanel visibleBox = new JPanel();
+            visibleBox.setLayout(new BoxLayout(visibleBox, BoxLayout.X_AXIS));
+            visibleBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("IsLayerVisible"));
+            label.setPreferredSize(new Dimension(180, 24));
+            visibleBox.add(label);
+            visibleBox.add(Box.createHorizontalGlue());
+            checkVisible = new JCheckBox("");
+            checkVisible.setOpaque(false);
+            checkVisible.setSelected(lli.isVisible());
+            visibleBox.add(checkVisible);
+            visibleBox.add(Box.createHorizontalStrut(10));
+
+            JPanel markerBox = new JPanel();
+            markerBox.setLayout(new BoxLayout(markerBox, BoxLayout.X_AXIS));
+            markerBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("MarkerSize") + ":");
+            label.setPreferredSize(new Dimension(180, 24));
+            markerBox.add(label);
+            markerBox.add(Box.createHorizontalGlue());
+            markerSize = lli.getMarkerSize();
+            labelMarkerSize.setText(bundle.getString("Value") + ": " + Float.toString(markerSize));
+            markerBox.add(labelMarkerSize);
+            markerBox.add(Box.createHorizontalStrut(10));
+            scrollMarkerSize = new JScrollBar(Adjustable.HORIZONTAL, 0, 0, 0, 20);
+            scrollMarkerSize.setValue((int) (lli.getMarkerSize() * 2));
+            scrollMarkerSize.setMaximumSize(new Dimension(200, 22));
+            scrollMarkerSize.addAdjustmentListener(this);
+            markerBox.add(scrollMarkerSize);
+            markerBox.add(Box.createHorizontalStrut(10));
+
+            minBox = new JPanel();
+            minBox.setLayout(new BoxLayout(minBox, BoxLayout.X_AXIS));
+            minBox.setBackground(backColour);
+            minBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("DisplayMinimum"));
+            label.setPreferredSize(new Dimension(180, 24));
+            minBox.add(label);
+            minBox.add(Box.createHorizontalGlue());
+            minVal = new JTextField(Double.toString(lli.getDisplayMinValue()), 15);
+            minVal.setHorizontalAlignment(JTextField.RIGHT);
+            minVal.setMaximumSize(new Dimension(50, 22));
+            minBox.add(minVal);
+            minValButton = new JButton(bundle.getString("Reset"));
+            minValButton.addActionListener(
+                    ae -> {
+                        minVal.setText(String.valueOf(lli.getMinimumValue()));
+                    }
+            );
+            minBox.add(minValButton);
+            minBox.add(Box.createHorizontalStrut(2));
+            clipAmountLower = new JTextField("2.0%", 4);
+            clipAmountLower.setHorizontalAlignment(JTextField.RIGHT);
+            clipAmountLower.setMaximumSize(new Dimension(50, 22));
+            minBox.add(clipAmountLower);
+            minBox.add(clipLowerTail);
+            clipLowerTail.addActionListener(
+                    ae -> {
+                        double clipAmount = Double.parseDouble(clipAmountLower.getText().replace("%", ""));
+                        lli.clipLowerTailForDisplayMinimum(clipAmount);
+                        minVal.setText(String.valueOf(lli.getDisplayMinValue()));
+                    }
+            );
+            minBox.add(Box.createHorizontalStrut(10));
+
+            maxBox = new JPanel();
+            maxBox.setLayout(new BoxLayout(maxBox, BoxLayout.X_AXIS));
+            maxBox.setBackground(Color.white);
+            maxBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("DisplayMaximum"));
+            label.setPreferredSize(new Dimension(180, 24));
+            maxBox.add(label);
+            maxBox.add(Box.createHorizontalGlue());
+            maxVal = new JTextField(Double.toString(lli.getDisplayMaxValue()), 15);
+            maxVal.setHorizontalAlignment(JTextField.RIGHT);
+            maxVal.setMaximumSize(new Dimension(50, 22));
+            maxBox.add(maxVal);
+            maxValButton = new JButton(bundle.getString("Reset"));
+            maxValButton.addActionListener(
+                    ae -> {
+                        maxVal.setText(String.valueOf(lli.getMaximumValue()));
+                    }
+            );
+            maxBox.add(maxValButton);
+            maxBox.add(Box.createHorizontalStrut(2));
+            clipAmountUpper = new JTextField("2.0%", 4);
+            clipAmountUpper.setHorizontalAlignment(JTextField.RIGHT);
+            clipAmountUpper.setMaximumSize(new Dimension(50, 22));
+            clipUpperTail.addActionListener(
+                    ae -> {
+                        double clipAmount = Double.parseDouble(clipAmountUpper.getText().replace("%", ""));
+                        lli.clipUpperTailForDisplayMaximum(clipAmount);
+                        maxVal.setText(String.valueOf(lli.getDisplayMaxValue()));
+                    }
+            );
+            maxBox.add(clipAmountUpper);
+            maxBox.add(clipUpperTail);
+            maxBox.add(Box.createHorizontalStrut(10));
+
+            JPanel fillColourBox = new JPanel();
+            fillColourBox.setLayout(new BoxLayout(fillColourBox, BoxLayout.X_AXIS));
+            fillColourBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("FillColor") + ":");
+            label.setPreferredSize(new Dimension(180, 24));
+            fillColourBox.add(label);
+            fillColourBox.add(Box.createHorizontalGlue());
+            sampleColourFill = lli.getFillColour();
+            sampleColourPanelFill = new SampleColour(sampleWidth, sampleHeight, sampleColourFill);
+            sampleColourPanelFill.setToolTipText(bundle.getString("ClickToSelectColor"));
+            sampleColourPanelFill.addMouseListener(this);
+            uniqueFillColour = new JRadioButton(bundle.getString("UseUniqueColor"), lli.isFilledWithOneColour());
+            uniqueFillColour.setOpaque(false);
+            fillColourBox.add(uniqueFillColour);
+            fillColourBox.add(Box.createHorizontalStrut(5));
+            fillColourBox.add(sampleColourPanelFill);
+            fillColourBox.add(Box.createHorizontalStrut(10));
+            fieldBasedFillColour = new JRadioButton(bundle.getString("FillBasedOnAttribute"), !lli.isFilledWithOneColour());
+            fieldBasedFillColour.setOpaque(false);
+            fillColourBox.add(fieldBasedFillColour);
+            fillColourBox.add(Box.createHorizontalStrut(10));
+
+            JPanel alphaBox = new JPanel();
+            alphaBox.setLayout(new BoxLayout(alphaBox, BoxLayout.X_AXIS));
+            alphaBox.setBackground(backColour);
+            alphaBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("Opacity"));
+            label.setPreferredSize(new Dimension(180, 24));
+            alphaBox.add(label);
+            alphaBox.add(Box.createHorizontalGlue());
+            labelAlpha.setText("Alpha: " + Integer.toString(lli.getAlpha()));
+            alphaBox.add(labelAlpha);
+            alphaBox.add(Box.createHorizontalStrut(10));
+            scrollAlpha.setValue(lli.getAlpha());
+            scrollAlpha.setMaximumSize(new Dimension(200, 22));
+            scrollAlpha.addAdjustmentListener(this);
+            alphaBox.add(scrollAlpha);
+            alphaBox.add(Box.createHorizontalStrut(10));
+
+            valueFieldBox = new JPanel();
+            valueFieldBox.setLayout(new BoxLayout(valueFieldBox, BoxLayout.X_AXIS));
+            valueFieldBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("ChooseAnAttribute") + ":");
+            label.setPreferredSize(new Dimension(180, 24));
+            valueFieldBox.add(label);
+            valueFieldBox.add(Box.createHorizontalGlue());
+            String[] fields = {"Elevation (z)", "Intensity"}; //, "Class"};
+            valueFieldCombo = new JComboBox(fields);
+            valueFieldCombo.addItemListener(il -> {
+                // If the fill criterion is different, we need to update the min and max values
+                String fc = (String)valueFieldCombo.getSelectedItem();
+                lli.updateMinAndMaxValsForCriterion(fc);
+                minVal.setText(Double.toString(lli.getDisplayMinValue()));
+                maxVal.setText(Double.toString(lli.getDisplayMaxValue()));
+            });
+
+            valueFieldBox.add(Box.createHorizontalStrut(10));
+            valueFieldBox.add(valueFieldCombo);
+            valueFieldBox.add(Box.createHorizontalStrut(5));
+            //valueFieldBox.add(viewAttributesTable);
+            valueFieldBox.add(Box.createHorizontalStrut(10));
+            
+            String fillCriterion = lli.getFillCriterion().toLowerCase();
+            if (fillCriterion.contains("z")) {
+                valueFieldCombo.setSelectedItem("Elevation (z)");
+            } else if (fillCriterion.contains("int")) {
+                valueFieldCombo.setSelectedItem("Intensity");
+            } else if (fillCriterion.contains("class")) {
+                valueFieldCombo.setSelectedItem("Class");
+            }
+
+            ButtonGroup group = new ButtonGroup();
+            group.add(uniqueFillColour);
+            group.add(fieldBasedFillColour);
+            //Register a listener for the radio buttons.
+            uniqueFillColour.addActionListener(
+                    ae -> {
+                        if (uniqueFillColour.isSelected()) {
+                            valueFieldBox.setVisible(false);
+                            paletteBox.setVisible(false);
+                            minBox.setVisible(false);
+                            maxBox.setVisible(false);
+                        } else {
+                            valueFieldBox.setVisible(true);
+                            paletteBox.setVisible(true);
+                            minBox.setVisible(true);
+                            maxBox.setVisible(true);
+                        }
+                    }
+            );
+            fieldBasedFillColour.addActionListener(
+                    ae -> {
+                        if (uniqueFillColour.isSelected()) {
+                            valueFieldBox.setVisible(false);
+                            paletteBox.setVisible(false);
+                            minBox.setVisible(false);
+                            maxBox.setVisible(false);
+                        } else {
+                            valueFieldBox.setVisible(true);
+                            paletteBox.setVisible(true);
+                            minBox.setVisible(true);
+                            maxBox.setVisible(true);
+                        }
+                    }
+            );
+
+            paletteBox = new JPanel();
+            paletteBox.setLayout(new BoxLayout(paletteBox, BoxLayout.X_AXIS));
+            paletteBox.setBackground(Color.white);
+            paletteBox.add(Box.createHorizontalStrut(10));
+            label = new JLabel(bundle.getString("ChoosePalette"));
+            label.setPreferredSize(new Dimension(180, 24));
+            paletteBox.add(label);
+            paletteBox.add(Box.createHorizontalGlue());
+            paletteImage.initialize(256, 18, paletteFile, false, PaletteImage.HORIZONTAL_ORIENTATION);
+            paletteImage.setMinimumSize(new Dimension(50, 20));
+            paletteBox.add(paletteImage);
+            paletteButton.setActionCommand("changePalette");
+            paletteButton.addActionListener(this);
+            paletteBox.add(paletteButton);
+            paletteBox.add(Box.createHorizontalStrut(10));
+
+//            final JPanel nonlinearityBox = new JPanel();
+//            nonlinearityBox.setLayout(new BoxLayout(nonlinearityBox, BoxLayout.X_AXIS));
+//            nonlinearityBox.setBackground(backColour);
+//            nonlinearityBox.add(Box.createHorizontalStrut(10));
+//            label = new JLabel(bundle.getString("PaletteNonlinearity") + ":");
+//            label.setPreferredSize(new Dimension(180, 24));
+//            nonlinearityBox.add(label);
+//            nonlinearityBox.add(Box.createHorizontalGlue());
+//            String str = df.format(vli.getNonlinearity());
+//            labelNonlinearity.setText("Gamma: " + str);
+//            nonlinearityBox.add(labelNonlinearity);
+//            nonlinearityBox.add(Box.createHorizontalStrut(10));
+//            scrollNonlinearity.setValue((int) (vli.getNonlinearity() * 10));
+//            scrollNonlinearity.setMaximumSize(new Dimension(200, 22));
+//            scrollNonlinearity.addAdjustmentListener(this);
+//            nonlinearityBox.add(scrollNonlinearity);
+//            nonlinearityBox.add(Box.createHorizontalStrut(10));
+//            nonlinearityBox.setVisible(checkScalePalette.isSelected());
+            titleBox.setBackground(Color.white);
+            mainBox.add(titleBox);
+            overlayBox.setBackground(backColour);
+            mainBox.add(overlayBox);
+            visibleBox.setBackground(Color.white);
+            mainBox.add(visibleBox);
+            markerBox.setBackground(backColour);
+            mainBox.add(markerBox);
+            fillColourBox.setBackground(Color.white);
+            mainBox.add(fillColourBox);
+            valueFieldBox.setBackground(backColour);
+            mainBox.add(valueFieldBox);
+            paletteBox.setBackground(Color.white);
+            mainBox.add(paletteBox);
+            minBox.setBackground(backColour);
+            mainBox.add(minBox);
+            maxBox.setBackground(Color.white);
+            mainBox.add(maxBox);
+
+//                nonlinearityBox.setBackground(Color.white);
+//                mainBox.add(nonlinearityBox);
+            alphaBox.setBackground(backColour);
+            mainBox.add(alphaBox);
+            mainBox.add(Box.createVerticalStrut(80));
+
+            if (lli.isFilledWithOneColour()) {
+                uniqueFillColour.setSelected(true);
+                fieldBasedFillColour.setSelected(false);
+                valueFieldBox.setVisible(false);
+                paletteBox.setVisible(false);
+                minBox.setVisible(false);
+                maxBox.setVisible(false);
+            } else {
+                uniqueFillColour.setSelected(false);
+                fieldBasedFillColour.setSelected(true);
+                valueFieldBox.setVisible(true);
+                paletteBox.setVisible(true);
+            }
+
         }
 
         tabs = new JTabbedPane();
@@ -1377,6 +1692,142 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 fileMainBox.add(numRecsBox);
 
                 fileMainBox.add(Box.createVerticalStrut(80));
+            }  else if (layer instanceof LasLayerInfo) {
+                LasLayerInfo lli = (LasLayerInfo) layer;
+                LASReader lasfile = lli.getLASFile();
+
+                // file name
+                JPanel fileNameBox = new JPanel();
+                fileNameBox.setLayout(new BoxLayout(fileNameBox, BoxLayout.X_AXIS));
+                fileNameBox.setBackground(Color.white);
+                fileNameBox.add(Box.createHorizontalStrut(10));
+                label = new JLabel(bundle.getString("FileName"));
+                label.setPreferredSize(new Dimension(180, 24));
+                fileNameBox.add(label);
+                fileNameBox.add(Box.createHorizontalGlue());
+                JTextField fileName = new JTextField(lasfile.getFileName(), 30);
+                fileName.setMaximumSize(new Dimension(600, 30));
+                fileName.setEditable(false);
+                fileNameBox.add(fileName);
+                fileNameBox.add(Box.createHorizontalStrut(10));
+                fileMainBox.add(fileNameBox);
+
+                // xMin
+                JPanel xMinBox = new JPanel();
+                xMinBox.setLayout(new BoxLayout(xMinBox, BoxLayout.X_AXIS));
+                xMinBox.setBackground(backColour);
+                xMinBox.add(Box.createHorizontalStrut(10));
+                label = new JLabel(bundle.getString("XMin"));
+                xMinBox.add(label);
+                xMinBox.add(Box.createHorizontalGlue());
+                label2 = new JLabel(String.valueOf(lasfile.getMinX()));
+                xMinBox.add(label2);
+                xMinBox.add(Box.createHorizontalStrut(10));
+                fileMainBox.add(xMinBox);
+
+                // xMax
+                JPanel xMaxBox = new JPanel();
+                xMaxBox.setLayout(new BoxLayout(xMaxBox, BoxLayout.X_AXIS));
+                xMaxBox.setBackground(Color.white);
+                xMaxBox.add(Box.createHorizontalStrut(10));
+                label = new JLabel(bundle.getString("XMax"));
+                xMaxBox.add(label);
+                xMaxBox.add(Box.createHorizontalGlue());
+                label2 = new JLabel(String.valueOf(lasfile.getMaxX()));
+                xMaxBox.add(label2);
+                xMaxBox.add(Box.createHorizontalStrut(10));
+                fileMainBox.add(xMaxBox);
+
+                // yMin
+                JPanel yMinBox = new JPanel();
+                yMinBox.setLayout(new BoxLayout(yMinBox, BoxLayout.X_AXIS));
+                yMinBox.setBackground(backColour);
+                yMinBox.add(Box.createHorizontalStrut(10));
+                label = new JLabel(bundle.getString("YMin"));
+                yMinBox.add(label);
+                yMinBox.add(Box.createHorizontalGlue());
+                label2 = new JLabel(String.valueOf(lasfile.getMinY()));
+                yMinBox.add(label2);
+                yMinBox.add(Box.createHorizontalStrut(10));
+                fileMainBox.add(yMinBox);
+
+                // yMax
+                JPanel yMaxBox = new JPanel();
+                yMaxBox.setLayout(new BoxLayout(yMaxBox, BoxLayout.X_AXIS));
+                yMaxBox.setBackground(Color.white);
+                yMaxBox.add(Box.createHorizontalStrut(10));
+                label = new JLabel(bundle.getString("YMax"));
+                yMaxBox.add(label);
+                yMaxBox.add(Box.createHorizontalGlue());
+                label2 = new JLabel(String.valueOf(lasfile.getMaxY()));
+                yMaxBox.add(label2);
+                yMaxBox.add(Box.createHorizontalStrut(10));
+                fileMainBox.add(yMaxBox);
+                
+                // zMin
+                JPanel zMinBox = new JPanel();
+                zMinBox.setLayout(new BoxLayout(zMinBox, BoxLayout.X_AXIS));
+                zMinBox.setBackground(backColour);
+                zMinBox.add(Box.createHorizontalStrut(10));
+                label = new JLabel(bundle.getString("ZMin"));
+                zMinBox.add(label);
+                zMinBox.add(Box.createHorizontalGlue());
+                label2 = new JLabel(String.valueOf(lasfile.getMinZ()));
+                zMinBox.add(label2);
+                zMinBox.add(Box.createHorizontalStrut(10));
+                fileMainBox.add(zMinBox);
+
+                // zMax
+                JPanel zMaxBox = new JPanel();
+                zMaxBox.setLayout(new BoxLayout(zMaxBox, BoxLayout.X_AXIS));
+                zMaxBox.setBackground(Color.white);
+                zMaxBox.add(Box.createHorizontalStrut(10));
+                label = new JLabel(bundle.getString("ZMax"));
+                zMaxBox.add(label);
+                zMaxBox.add(Box.createHorizontalGlue());
+                label2 = new JLabel(String.valueOf(lasfile.getMaxZ()));
+                zMaxBox.add(label2);
+                zMaxBox.add(Box.createHorizontalStrut(10));
+                fileMainBox.add(zMaxBox);
+
+                // fileLength
+                JPanel fileLengthBox = new JPanel();
+                fileLengthBox.setLayout(new BoxLayout(fileLengthBox, BoxLayout.X_AXIS));
+                fileLengthBox.setBackground(backColour);
+                fileLengthBox.add(Box.createHorizontalStrut(10));
+                label = new JLabel(bundle.getString("FileLength"));
+                fileLengthBox.add(label);
+                fileLengthBox.add(Box.createHorizontalGlue());
+                String fileLengthUnits = " kB";
+                double fileLength = (new File(lasfile.getFileName()).length()) / 1024.0;
+                if (fileLength > 1024) {
+                    fileLengthUnits = " MB";
+                    fileLength = fileLength / 1024;
+                }
+                if (fileLength > 1024) {
+                    fileLengthUnits = " GB";
+                    fileLength = fileLength / 1024;
+                }
+                DecimalFormat df2 = new DecimalFormat("###,###,###.0#");
+                label2 = new JLabel(df2.format(fileLength) + fileLengthUnits);
+                fileLengthBox.add(label2);
+                fileLengthBox.add(Box.createHorizontalStrut(10));
+                fileMainBox.add(fileLengthBox);
+
+                // numRecords
+                JPanel numRecsBox = new JPanel();
+                numRecsBox.setLayout(new BoxLayout(numRecsBox, BoxLayout.X_AXIS));
+                numRecsBox.setBackground(Color.white);
+                numRecsBox.add(Box.createHorizontalStrut(10));
+                label = new JLabel(bundle.getString("NumRecords"));
+                numRecsBox.add(label);
+                numRecsBox.add(Box.createHorizontalGlue());
+                label2 = new JLabel(String.valueOf(lasfile.getNumPointRecords()));
+                numRecsBox.add(label2);
+                numRecsBox.add(Box.createHorizontalStrut(10));
+                fileMainBox.add(numRecsBox);
+
+                fileMainBox.add(Box.createVerticalStrut(80));
             }
 
         } catch (Exception e) {
@@ -1525,6 +1976,70 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             vli.setRecordsColourData();
 
             host.refreshMap(true);
+        } else if (layer instanceof LasLayerInfo) {
+            boolean updateColours = false;
+            LasLayerInfo lli = (LasLayerInfo) layer;
+            lli.setLayerTitle(titleText.getText());
+            lli.setVisible(checkVisible.isSelected());
+            lli.setFillColour(sampleColourFill);
+            if (uniqueFillColour.isSelected()) {
+                if (!lli.isFilledWithOneColour()) {
+                    lli.setFilledWithOneColour(true);
+                    updateColours = true;
+                }
+            } else {
+                if (lli.isFilledWithOneColour()) {
+                    lli.setFilledWithOneColour(false);
+                    updateColours = true;
+                    if (valueFieldCombo.getSelectedIndex() == 0) {
+                        if (!lli.getFillCriterion().contains("z")) {
+                            lli.setFillCriterion("z-value");
+                            updateColours = true;
+                        }
+                    } else if (valueFieldCombo.getSelectedIndex() == 1) {
+                        if (!lli.getFillCriterion().contains("int")) {
+                            lli.setFillCriterion("intensity");
+                            updateColours = true;
+                        }
+                    }
+                }
+            }
+
+            if (valueFieldCombo.getSelectedIndex() == 0) {
+                if (!lli.getFillCriterion().contains("z")) {
+                    lli.setFillCriterion("z-value");
+                    updateColours = true;
+                }
+            } else if (valueFieldCombo.getSelectedIndex() == 1) {
+                if (!lli.getFillCriterion().contains("int")) {
+                    lli.setFillCriterion("intensity");
+                    updateColours = true;
+                }
+            }
+
+            lli.setMarkerSize(scrollMarkerSize.getValue() / 2.0f);
+            lli.setAlpha((int) (scrollAlpha.getValue()));
+
+            double disMin = Double.parseDouble(minVal.getText());
+            double disMax = Double.parseDouble(maxVal.getText());
+
+            if (disMin != lli.getDisplayMinValue() || disMax != lli.getDisplayMaxValue()) {
+                lli.setDisplayMinValue(disMin);
+                lli.setDisplayMaxValue(disMax);
+                updateColours = true;
+            }
+
+            if (!paletteFile.equals(lli.getPaletteFile())) {
+                lli.setPaletteFile(paletteFile);
+                updateColours = true;
+            }
+
+            //lli.setNonlinearity(scrollNonlinearity.getValue() / 10d);
+            if (updateColours) {
+                lli.setRecordsColourData();
+            }
+
+            host.refreshMap(true);
         }
     }
 
@@ -1586,6 +2101,35 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                     + pathSep + "palettes" + pathSep;
             PaletteChooser chooser = new PaletteChooser((Frame) this.getOwner(),
                     true, paletteDirectory, vli.getPaletteFile(),
+                    false, 1.0);
+            chooser.setSize(300, 300);
+            Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+            int screenHeight = dim.height;
+            int screenWidth = dim.width;
+            chooser.setLocation(screenWidth / 4, screenHeight / 4);
+            chooser.setVisible(true);
+            String newPaletteFile = chooser.getValue();
+            chooser.dispose();
+            if (newPaletteFile != null) {
+                if (!newPaletteFile.equals("") && !newPaletteFile.equals("createNewPalette")) {
+                    paletteFile = newPaletteFile;
+                    paletteImage.initialize(256, 18, paletteFile, false,
+                            PaletteImage.HORIZONTAL_ORIENTATION);
+                    paletteImage.repaint();
+                } else if (newPaletteFile.equals("createNewPalette")) {
+                    PaletteManager pm = new PaletteManager(paletteDirectory,
+                            host.getGuiLabelsBundle());
+                    pm.setVisible(true);
+                }
+            }
+        } else if (host != null && layer instanceof LasLayerInfo) {
+            LasLayerInfo lli = (LasLayerInfo) layer;
+            Communicator communicator = (Communicator) (host);
+            String pathSep = File.separator;
+            String paletteDirectory = communicator.getResourcesDirectory()
+                    + pathSep + "palettes" + pathSep;
+            PaletteChooser chooser = new PaletteChooser((Frame) this.getOwner(),
+                    true, paletteDirectory, lli.getPaletteFile(),
                     false, 1.0);
             chooser.setSize(300, 300);
             Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1693,6 +2237,15 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             str = df.format(scrollNonlinearity.getValue() / 10d);
             labelNonlinearity.setText("Gamma: " + str);
             paletteImage.setNonlinearity(scrollNonlinearity.getValue() / 10d);
+        } else if (layer instanceof LasLayerInfo) {
+            str = df.format(scrollMarkerSize.getValue() / 2.0f);
+            labelMarkerSize.setText("Value: " + str);
+            markerSize = Float.parseFloat(str);
+            labelAlpha.setText("Alpha: " + scrollAlpha.getValue());
+
+//            str = df.format(scrollNonlinearity.getValue() / 10d);
+//            labelNonlinearity.setText("Gamma: " + str);
+//            paletteImage.setNonlinearity(scrollNonlinearity.getValue() / 10d);
         }
     }
 

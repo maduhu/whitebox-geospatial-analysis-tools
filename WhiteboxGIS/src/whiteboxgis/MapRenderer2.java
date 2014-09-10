@@ -49,9 +49,9 @@ import whitebox.cartographic.Neatline;
 import whitebox.cartographic.*;
 import whitebox.geospatialfiles.RasterLayerInfo;
 import whitebox.geospatialfiles.VectorLayerInfo;
+import whitebox.geospatialfiles.LasLayerInfo;
 import whitebox.geospatialfiles.WhiteboxRasterBase;
 import whitebox.geospatialfiles.shapefile.*;
-import whitebox.geospatialfiles.WhiteboxRasterInfo.*;
 import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPATCH;
 import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINT;
 import static whitebox.geospatialfiles.shapefile.ShapeType.MULTIPOINTM;
@@ -1397,13 +1397,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             if (!g2.drawImage(img, left, top, imageWidth, imageHeight, this)) {
                                 // do nothing
                             }
-                            
+
                             BasicStroke myStroke = new BasicStroke(legend.getLineWidth());
                             Stroke oldStroke2 = g2.getStroke();
                             g2.setStroke(myStroke);
-  
+
                             g2.drawRect(left, top, imageWidth, imageHeight);
-                            
+
                             g2.setStroke(oldStroke2);
 
                             String maxVal = df.format(rli.getDisplayMaxVal());
@@ -1430,13 +1430,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 if (!g2.drawImage(img, left, top, imageWidth, imageHeight, this)) {
                                     // do nothing
                                 }
-                                
+
                                 BasicStroke myStroke = new BasicStroke(legend.getLineWidth());
                                 Stroke oldStroke2 = g2.getStroke();
                                 g2.setStroke(myStroke);
-  
+
                                 g2.drawRect(left, top, imageWidth, imageHeight);
-                                
+
                                 g2.setStroke(oldStroke2);
 
                                 String maxVal = df.format(vli.getMaximumValue());
@@ -2034,7 +2034,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 GeneralPath polyline;
 
                                 boolean isActivelyEdited = layer.isActivelyEdited();
-
+                                
+                                float markerSize;
+                                int maxNumDisplayedPoints, skipVal;
+                                
                                 switch (shapeType) {
 
                                     case POINT:
@@ -2044,8 +2047,15 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                         myStroke = new BasicStroke(layer.getLineThickness());
                                         oldStroke = g2.getStroke();
                                         g2.setStroke(myStroke);
-
-                                        for (ShapeFileRecord record : records) {
+                                        
+                                        markerSize = layer.getMarkerSize();
+                                        maxNumDisplayedPoints = (int)((viewAreaHeight / markerSize * viewAreaWidth / markerSize) * 1.25);
+                                        skipVal = (int)(Math.ceil(records.size() / maxNumDisplayedPoints));
+                                        if (skipVal < 1) { skipVal = 1; }
+            
+                                        for (int q = 0; q < records.size(); q += skipVal) {
+                                        //for (ShapeFileRecord record : records) {
+                                            ShapeFileRecord record = records.get(q);
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
 //                                                whitebox.geospatialfiles.shapefile.Point rec = (whitebox.geospatialfiles.shapefile.Point) (record.getGeometry());
@@ -2094,7 +2104,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.setColor(lineColour);
                                                             g2.draw(gp);
                                                         }
-                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 
+                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0
                                                                 && layer.isFeatureSelected(record.getRecordNumber())) { //record.getRecordNumber() == selectedFeature) {
                                                             g2.setColor(selectedFeatureColour);
                                                             g2.draw(gp);
@@ -2109,6 +2119,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     case MULTIPOINT:
                                     case MULTIPOINTZ:
                                     case MULTIPOINTM:
+                                        markerSize = layer.getMarkerSize();
+                                        maxNumDisplayedPoints = (int)((viewAreaHeight / markerSize * viewAreaWidth / markerSize) * 1.25);
+                                        
                                         xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
                                         myStroke = new BasicStroke(layer.getLineThickness());
                                         oldStroke = g2.getStroke();
@@ -2119,7 +2132,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
                                                 //MultiPoint rec = (MultiPoint) (record.getGeometry());
                                                 recPoints = record.getGeometry().getPoints();
-                                                for (int p = 0; p < recPoints.length; p++) {
+                                                
+                                                skipVal = (int)(Math.ceil(recPoints.length / maxNumDisplayedPoints));
+                                                if (skipVal < 1) { skipVal = 1; }
+            
+                                                for (int p = 0; p < recPoints.length; p += skipVal) {
                                                     x1 = recPoints[p][0];
                                                     y1 = recPoints[p][1];
                                                     if (y1 < bottomCoord || x1 < leftCoord
@@ -2320,8 +2337,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                     g2.fill(polyline);
                                                 }
 
-                                                if ((layer.isOutlined() || (activeLayerBool && isActivelyEdited)) && 
-                                                        !(layer.isFeatureSelected(record.getRecordNumber()) & activeLayerBool)) {
+                                                if ((layer.isOutlined() || (activeLayerBool && isActivelyEdited))
+                                                        && !(layer.isFeatureSelected(record.getRecordNumber()) & activeLayerBool)) {
                                                     g2.setColor(lineColour);
                                                     myStroke = new BasicStroke(layer.getLineThickness(), BasicStroke.CAP_BUTT,
                                                             BasicStroke.JOIN_ROUND);
@@ -2384,7 +2401,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                         if (activeLayerBool) { // && layer.getNumSelectedFeatures() > 0) { //backgroundMouseMode == MOUSE_MODE_FEATURE_SELECT && 
                                             g2.setColor(selectedFeatureColour);
                                             myStroke = new BasicStroke(layer.getLineThickness(), BasicStroke.CAP_BUTT,
-                                                            BasicStroke.JOIN_ROUND);
+                                                    BasicStroke.JOIN_ROUND);
                                             oldStroke = g2.getStroke();
                                             g2.setStroke(myStroke);
                                             for (ShapeFileRecord record : records) {
@@ -2440,7 +2457,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                     }
                                                 }
                                             }
-                                            
+
                                             g2.setStroke(oldStroke);
                                         }
                                         break;
@@ -2448,6 +2465,125 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     case MULTIPATCH:
                                         // this vector type is unsupported
                                         break;
+                                }
+                                if (isClipped) {
+                                    g2.setClip(oldClip);
+                                }
+                            }
+                        }
+                    } else if (mapArea.getLayer(i).getLayerType() == MapLayer.MapLayerType.LAS) {
+                        Rectangle2D rect = new Rectangle2D.Float();
+                        rect.setRect(viewAreaULX, viewAreaULY, viewAreaWidth, viewAreaHeight);
+                        Shape oldClip = null;
+
+                        LasLayerInfo layer = (LasLayerInfo) mapArea.getLayer(i);
+                        if (mapArea.getXYUnits().trim().equals("")) {
+//                            if (layer.getXYUnits().toLowerCase().contains("met")) {
+                            XYUnits = " m";
+//                            } else if (layer.getXYUnits().toLowerCase().contains("deg")) {
+//                                XYUnits = "\u00B0";
+//                            } else if (!layer.getXYUnits().toLowerCase().contains("not specified")) {
+//                                XYUnits = " " + layer.getXYUnits();
+//                            }
+                            mapArea.setXYUnits(XYUnits);
+                        }
+                        // is it the active layer?
+                        boolean activeLayerBool = false;
+                        if (mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
+                            activeLayerBool = true;
+                        } else { 
+                            layer.clearSelectedFeatures();
+                        }
+                        
+                        float markerSize = layer.getMarkerSize();
+                        int maxNumDisplayedPoints = (int)((viewAreaHeight / markerSize * viewAreaWidth / markerSize) * 1.25);
+                        
+                        if (layer.isVisible()) {
+                            BoundingBox fe = layer.getFullExtent();
+                            if (fe.overlaps(mapExtent)) {
+                                // only set the clip region if this layer's bounding box actually intersects the
+                                // boundary of the mapExtent.
+                                boolean isClipped = false;
+                                if (!fe.entirelyContainedWithin(mapExtent)) {
+                                    oldClip = g2.getClip();
+                                    g2.setClip(rect);
+                                    isClipped = true;
+                                }
+                                BoundingBox layerCE = fe.intersect(mapExtent);
+                                layer.setCurrentExtent(layerCE);
+                                //int a1 = layer.getAlpha();
+                                //Color fillColour = new Color(r1, g1, b1, a1);
+                                ArrayList<XYPoint> records = layer.getPointXYData();
+                                // skipVal is used to speed up the display of LAS points.
+                                // If there are more points in the extent that can be displayed,
+                                // some will be ignored when drawing.
+                                int skipVal = (int)(Math.ceil(records.size() / maxNumDisplayedPoints));
+                                if (skipVal < 1) { skipVal = 1; }
+            
+                                double x1, y1;
+                                //int xInt, yInt, x2Int, y2Int;
+                                double topCoord = mapExtent.getMaxY();
+                                double bottomCoord = mapExtent.getMinY();
+                                double leftCoord = mapExtent.getMinX();
+                                double rightCoord = mapExtent.getMaxX();
+                                double EWRange = rightCoord - leftCoord;
+                                double NSRange = topCoord - bottomCoord;
+
+                                GeneralPath gp;
+                                
+                                XYPoint record;
+                                ArrayList<Color> colours = layer.getColourData();
+                                if (colours.size() == 1) {
+                                    Color fillColour = colours.get(0);
+                                    for (int r = 0; r < records.size(); r += skipVal) {
+                                        record = records.get(r);
+                                        x1 = record.x;
+                                        y1 = record.y;
+                                        if (y1 < bottomCoord || x1 < leftCoord
+                                                || y1 > topCoord || x1 > rightCoord) {
+                                            // It's not within the map area; do nothing.
+                                        } else {
+                                            x1 = (viewAreaULX + (x1 - leftCoord) / EWRange * viewAreaWidth);
+                                            y1 = (viewAreaULY + (topCoord - y1) / NSRange * viewAreaHeight);
+                                            gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                            Ellipse2D circle = new Ellipse2D.Double((x1 - markerSize / 2f), (y1 - markerSize / 2f), markerSize, markerSize);
+
+                                            gp.append(circle, true);
+
+                                            g2.setColor(fillColour);
+                                            g2.fill(gp);
+    //                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 
+    //                                                                && layer.isFeatureSelected(record.getRecordNumber())) { 
+    //                                                            g2.setColor(selectedFeatureColour);
+    //                                                            g2.draw(gp);
+    //                                                        }
+                                        }
+                                    }
+                                } else {
+                                    for (int r = 0; r < records.size(); r += skipVal) {
+                                        record = records.get(r);
+                                        x1 = record.x;
+                                        y1 = record.y;
+                                        if (y1 < bottomCoord || x1 < leftCoord
+                                                || y1 > topCoord || x1 > rightCoord) {
+                                            // It's not within the map area; do nothing.
+                                        } else {
+                                            x1 = (viewAreaULX + (x1 - leftCoord) / EWRange * viewAreaWidth);
+                                            y1 = (viewAreaULY + (topCoord - y1) / NSRange * viewAreaHeight);
+                                            gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 1);
+                                            Ellipse2D circle = new Ellipse2D.Double((x1 - markerSize / 2f), (y1 - markerSize / 2f), markerSize, markerSize);
+
+                                            gp.append(circle, true);
+
+                                            g2.setColor(colours.get(r));
+                                            g2.fill(gp);
+    //                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 
+    //                                                                && layer.isFeatureSelected(record.getRecordNumber())) { 
+    //                                                            g2.setColor(selectedFeatureColour);
+    //                                                            g2.draw(gp);
+    //                                                        }
+                                        }
+                                    }
                                 }
                                 if (isClipped) {
                                     g2.setClip(oldClip);
