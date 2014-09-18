@@ -26,7 +26,8 @@ import java.util.List;
 /**
  * An efficient well-optimized kd-tree
  *
- * @author Rednaxela
+ * @author Rednaxela; modified by John Lindsay
+ * @param <T>
  */
 public abstract class KdTree<T> {
 
