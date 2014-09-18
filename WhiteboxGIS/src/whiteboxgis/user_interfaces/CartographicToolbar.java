@@ -35,6 +35,7 @@ import whiteboxgis.WhiteboxGui;
  */
 public class CartographicToolbar extends JToolBar {
 
+    private JToggleButton pageVisible = new JToggleButton();
     private JToggleButton alignAndDistribute = new JToggleButton();
     private JButton alignRight = new JButton();
     private JButton alignLeft = new JButton();
@@ -87,33 +88,36 @@ public class CartographicToolbar extends JToolBar {
         }
         this.setOrientation(SwingConstants.VERTICAL);
 
+        String imgLocation2 = host.getResourcesDirectory() + "Images" + pathSep + "NewMap.png";
+        ImageIcon image2 = new ImageIcon(imgLocation2, "");
+
+        //Create and initialize the button.
+        pageVisible.setToolTipText(bundle.getString("DrawThePage"));
+        pageVisible.setSelected(host.isPageVisible());
+        pageVisible.setIcon(image2);
+        pageVisible.addActionListener((ActionEvent e) -> {
+            host.setPageVisibility(pageVisible.isSelected());
+        });
+        
         String imgLocation = host.getResourcesDirectory() + "Images" + pathSep + "AlignAndDistribute.png";
         ImageIcon image = new ImageIcon(imgLocation, "");
 
         //Create and initialize the button.
-        alignAndDistribute.setToolTipText(bundle.getString("AlignAndDistribute"));
+         alignAndDistribute.setToolTipText(bundle.getString("AlignAndDistribute"));
         alignAndDistribute.setSelected(false);
-        alignAndDistribute.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+//        alignAndDistribute.addActionListener((ActionEvent e) -> {
 //                if (buttonVisibility) {
 //                    buttonVisibility = false;
 //                } else {
 //                    buttonVisibility = true;
 //                }
 //                createToolbar();
-            }
-        });
-        alignAndDistribute.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-
-                if (alignAndDistribute.isSelected()) {
-                    createToolbar(true);
-                } else {
-                    createToolbar(false);
-                }
-
+//        });
+        alignAndDistribute.addItemListener((ItemEvent ie) -> {
+            if (alignAndDistribute.isSelected()) {
+                createToolbar(true);
+            } else {
+                createToolbar(false);
             }
         });
         alignAndDistribute.setOpaque(false);
@@ -167,6 +171,8 @@ public class CartographicToolbar extends JToolBar {
 
     private void createToolbar(boolean fullBar) {
         this.removeAll();
+        
+        this.add(pageVisible);
 
         this.add(alignAndDistribute);
 

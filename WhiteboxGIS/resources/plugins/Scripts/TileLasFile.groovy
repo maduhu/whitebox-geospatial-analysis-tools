@@ -28,6 +28,7 @@ import whitebox.interfaces.WhiteboxPluginHost
 import whitebox.geospatialfiles.LASReader
 import whitebox.geospatialfiles.LASReader.PointRecord
 import whitebox.geospatialfiles.LASReader.PointRecColours
+//import whitebox.geospatialfiles.shapefile.PointZ
 import whitebox.structures.KdTree
 import whitebox.ui.plugin_dialog.ScriptDialog
 import whitebox.utilities.StringUtilities
@@ -114,7 +115,7 @@ public class TileLasFile implements ActionListener {
             }
             
 			LASReader las = new LASReader(lasFile)
-			long totalPoints = las.getNumPointRecords()
+			int totalPoints = (int)las.getNumPointRecords()
 
 			BoundingBox extent = new BoundingBox(las.getMinX(), las.getMinY(), las.getMaxX(), las.getMaxY());
 
@@ -132,23 +133,29 @@ public class TileLasFile implements ActionListener {
 			}
 			
 			// set up the output files of the shapefile and the dbf
-            DBFField[] fields = new DBFField[2]
+            DBFField[] fields = new DBFField[1]
 
-            fields[0] = new DBFField()
-            fields[0].setName("Z")
+			fields[0] = new DBFField()
+            fields[0].setName("FID")
             fields[0].setDataType(DBFField.DBFDataType.NUMERIC)
             fields[0].setFieldLength(10)
-            fields[0].setDecimalCount(5)
-
-            fields[1] = new DBFField()
-            fields[1].setName("INTENSITY")
-            fields[1].setDataType(DBFField.DBFDataType.NUMERIC)
-            fields[1].setFieldLength(10)
-            fields[1].setDecimalCount(5)
-
-            ShapeFile[] outputFiles = new ShapeFile[numTiles];
+            fields[0].setDecimalCount(0)
             
-            double x, y
+//            fields[0] = new DBFField()
+//            fields[0].setName("Z")
+//            fields[0].setDataType(DBFField.DBFDataType.NUMERIC)
+//            fields[0].setFieldLength(10)
+//            fields[0].setDecimalCount(5)
+//
+//            fields[1] = new DBFField()
+//            fields[1].setName("INTENSITY")
+//            fields[1].setDataType(DBFField.DBFDataType.NUMERIC)
+//            fields[1].setFieldLength(10)
+//            fields[1].setDecimalCount(5)
+
+            //ShapeFile[] outputFiles = new ShapeFile[numTiles];
+            
+            double x, y, z, intensity
             int row, col
 			int tileNum = 0
 			int FID = 0
@@ -218,30 +225,51 @@ public class TileLasFile implements ActionListener {
 				}
 			}
 
+			int numPointsOutput = 0
 			int numTilesCreated = 0
+			FID = 1
 			for (tileNum = 0; tileNum < numTiles; tileNum++) {
 				if (outputTile[tileNum]) {
 					row = (int)Math.floor(tileNum / cols)
 					col = tileNum % cols
 					String outputFile = lasFile.replace(".las", "_Row${row - minRow + 1}_Col${col - minCol + 1}.shp")
-					ShapeFile sf = new ShapeFile(outputFile, ShapeType.POINT, fields)
+					ShapeFile sf = new ShapeFile(outputFile, ShapeType.MULTIPOINTZ, fields)
+					double[][] xyData = new double[numPointsInTile[tileNum]][2]
+					double[] zData = new double[numPointsInTile[tileNum]]
+					double[] mData = new double[numPointsInTile[tileNum]]
+					int q = 0
 					for (int p = firstPointNum[tileNum]; p <= lastPointNum[tileNum]; p++) {
 						if (tileData[p] == tileNum) {
 							PointRecord point = las.getPointRecord(p)
-							x = point.getX()
-							y = point.getY()
-				
-							whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);                  
-	                		Object[] rowData = new Object[2]
-			                rowData[0] = new Double(point.getZ())
-			                rowData[1] = new Double(point.getIntensity())
-			                sf.addRecord(wbGeometry, rowData)
+							//x = point.getX()
+							//y = point.getY()
+							xyData[q][0] = point.getX()
+							xyData[q][1] = point.getY()
+							zData[q] = point.getZ()
+							mData[q] = point.getIntensity()
+							q++
+							//z = point.getZ()
+							//whitebox.geospatialfiles.shapefile.Point wbPoint = new whitebox.geospatialfiles.shapefile.Point(x, y);                  
+	                		//PointZ wbPoint = new PointZ(x, y, z, point.getIntensity());                  
+	                		//Object[] rowData = new Object[1]
+			                //rowData[0] = new Double()
+			                //rowData[0] = new Double(FID)
+			                //FID++
+			                //sf.addRecord(wbPoint, rowData)
 						}
 					}
+
+					MultiPointZ wbPoint = new MultiPointZ(xyData, zData, mData);
+            		Object[] rowData = new Object[1]
+	                rowData[0] = new Double(FID)
+	                FID++
+	                sf.addRecord(wbPoint, rowData)
+			                
 					sf.write()
 					numTilesCreated++
 				}
-				progress = (int)(100f * tileNum / (numTiles - 1))
+				numPointsOutput += numPointsInTile[tileNum]
+				progress = (int)(100f * numPointsOutput / (totalPoints - 1))
     			if (progress != oldProgress) {
 					pluginHost.updateProgress("Loop 3 of 3:", progress)
         			oldProgress = progress

@@ -48,7 +48,7 @@ try {
     int result = fc.showSaveDialog(wg);
     File file = null;
     if (result == JFileChooser.APPROVE_OPTION) {
-        String zipFileName = fc.getSelectedFile(); // "/Users/johnlindsay/Documents/WhiteboxGAT.zip"
+        String zipFileName = fc.getSelectedFile(); 
 		File zipFile = new File(zipFileName)
 		if (zipFile.exists()) {
 			zipFile.delete()

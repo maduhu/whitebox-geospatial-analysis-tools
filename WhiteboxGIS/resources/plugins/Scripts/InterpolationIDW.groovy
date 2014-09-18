@@ -553,9 +553,9 @@ public class InterpolationIDW implements ActionListener {
 			double weight, distance, dMax
 			oldProgress = -1;
 			for (row = 0; row < rows; row++) {
+				y = output.getYCoordinateFromRow(row);
 				for (col = 0; col < cols; col++) {
                 	x = output.getXCoordinateFromColumn(col);
-                    y = output.getYCoordinateFromRow(row);
                     double[] entry = new double[2]
                     entry[0] = x
                     entry[1] = y

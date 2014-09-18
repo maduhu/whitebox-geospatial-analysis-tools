@@ -13,6 +13,11 @@ String displayOutput = "false"
 
 def tag = "25deg_0_5radius"
 
+/* The lidar shapefiles each have a name like 'CVC_all_RowY_ColX.shp'
+ *  and are all in the same directory. The code below is used to 
+ *  retreive each of these shapefiles and add a line in the string 
+ *  that is fed as an argument to the RunPluginInParallel script.
+ */
 
 StringBuilder sb = new StringBuilder()
 
@@ -28,8 +33,6 @@ for (int row = 1; row < 50; row++) {
 		}
 	}
 }
-
-//pluginHost.showFeedback("There were ${numFiles} files found.")
 
 def suppressReturns = "true" 
 String[] args = [pluginName, sb.toString(), suppressReturns] 

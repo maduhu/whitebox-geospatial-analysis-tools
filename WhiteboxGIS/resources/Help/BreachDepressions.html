@@ -20,8 +20,20 @@
             line, but rather, will follow a path of lowest cost, where the cost is determined by the amount of 
             change made to the original DEM.</p>
 
+        <p>The <a href="FastBreachDepressions.html">Breach Depressions (Fast)</a> offers an alternative 
+        depression breaching solution, that is not as optimal as the solution provided by this tool, but 
+        which is considerably more computationally efficient, i.e. it runs faster. When this tool 
+        cannot be used, the Breach Depressions (Fast) tool should be viewed as a viable alternative to 
+        depression filling, as it will likely reduce the impact of the flow enforcement step on the 
+        surface flowpath information contained in the original DEM. Also note, that unlike the Breach 
+        Depressions (Fast) tool, this breaching algorithm will not necessarily find a breaching solution 
+        for every depression contained in the DEM. As such, the fast breaching method can offer a useful 
+        post-processing method for DEM processed using this optimized breaching algorithm to remove any 
+        features that remain after processing.</p>  
+
         <h2 class="SeeAlso">See Also:</h2>
         <ul>
+            <li><a href="FastBreachDepressions.html">Breach Depressions (Fast)</a></li>
             <li><a href="FillDepressions.html">Fill Depressions</a></li>
             <li><a href="FillDepressionsPandD.html">Fill Depressions (Planchon and Darboux)</a></li>
         </ul>

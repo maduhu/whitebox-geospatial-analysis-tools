@@ -85,8 +85,8 @@ public class IsolateGroundPoints implements ActionListener {
             String[] listItems = []
             DialogComboBox zKey = sd.addDialogComboBox("Select the field containing the elevation (Z) data.", "Elevation (Z) field", listItems, 0)
 			zKey.setVisible(false)
-			sd.addDialogDataInput("Output File Suffix (e.g. ground points)", "Output File Suffix (e.g. ground points)", "", false, true)
-			sd.addDialogDataInput("Search Distance (m)", "Search Distance (m)", "", true, false)
+			sd.addDialogFile("Output file", "Output Vector File:", "close", "Vector Files (*.shp), SHP", true, false)
+            sd.addDialogDataInput("Search Distance (m)", "Search Distance (m)", "", true, false)
 			sd.addDialogDataInput("Minimum Number of neighbours in subsample.", "Min. Number of Points:", "0", true, false)
             sd.addDialogDataInput("Threshold in the slope between points to define an off-terrain point.", "Inter-point Slope Threshold:", "30.0", true, false)
 			sd.addDialogCheckBox("Display output file?", "Display output file?", false)
@@ -99,10 +99,15 @@ public class IsolateGroundPoints implements ActionListener {
 	            				def fileName = value.replace(".shp", ".dbf")
 	            				def file = new File(fileName)
 		            			if (file.exists()) {
-			            			AttributeTable table = new AttributeTable(fileName)
-			            			String[] fields = table.getAttributeTableFieldNames()
-			            			zKey.setListItems(fields)
-			            			zKey.setVisible(true)
+		            				def shapefile = new ShapeFile(value)
+			            			AttributeTable table = shapefile.getAttributeTable() //new AttributeTable(fileName)
+			            			if (shapefile.getShapeType() == ShapeType.MULTIPOINTZ) {
+		            					zKey.setVisible(false)
+			            			} else {
+			            				String[] fields = table.getAttributeTableFieldNames()
+			            				zKey.setListItems(fields)
+			            				zKey.setVisible(true)
+			            			}
 		            			}
 	            			} else {
 	            				zKey.setVisible(false)
@@ -141,23 +146,18 @@ public class IsolateGroundPoints implements ActionListener {
 	    int numNeighbours = 0
 
 	  	try {
-		  	
-			// read the input parameters
+		  	// read the input parameters
 			final String inputFile = args[0].trim()
 			if (args.length == 7) {
 				zField = args[1].trim()
-				if (args[2] != null) {
-					suffix = " " + args[2].trim();
-				}
+				outputFile = args[1]
 		        maxDist = Double.parseDouble(args[3]);
 		        numNeighbours = Integer.parseInt(args[4]);
 				maxSlope = Double.parseDouble(args[5]);
 		        slopeThreshold = Math.tan(Math.toRadians(maxSlope))
 		        displayOutput = Boolean.parseBoolean(args[6])
 			} else if (args.length == 6) {
-				if (args[1] != null) {
-					suffix = " " + args[1].trim();
-				}
+				outputFile = args[1]
 		        maxDist = Double.parseDouble(args[2]);
 		        numNeighbours = Integer.parseInt(args[3]);
 				maxSlope = Double.parseDouble(args[4]);
@@ -168,7 +168,7 @@ public class IsolateGroundPoints implements ActionListener {
 				return
 			}
 
-			double minElevDiff = 1.0
+			double minElevDiff = 0.15
 			double elevDiff
 
 			BooleanBitArray1D isOffTerrain
@@ -270,7 +270,7 @@ public class IsolateGroundPoints implements ActionListener {
 	            fields[1].setFieldLength(8);
 	            fields[1].setDecimalCount(0);
 
-				outputFile = inputFile.replace(".las", suffix + ".shp");
+				//outputFile = inputFile.replace(".las", suffix + ".shp");
 
 		        // see if the output files already exist, and if so, delete them.
 		        File outFile = new File(outputFile);
@@ -316,132 +316,301 @@ public class IsolateGroundPoints implements ActionListener {
 				ShapeFile input = new ShapeFile(inputFile);
 				AttributeTable table = input.getAttributeTable()
 				// make sure that it is of a POINT base shapetype
-				if (input.getShapeType().getBaseType() != ShapeType.POINT) {
+				if (input.getShapeType().getBaseType() != ShapeType.POINT &&
+				    input.getShapeType() != ShapeType.MULTIPOINTZ) {
 					pluginHost.showFeedback("The input file must be of a POINT shape type.")
 					return
 				}
 				
-	            numPoints = (int) input.getNumberOfRecords();
-	            isOffTerrain = new BooleanBitArray1D(numPoints);
-	            
-	            // Read the points into the k-dimensional tree.
-	            KdTree<InterpolationRecord> pointsTree = new KdTree.SqrEuclid<InterpolationRecord>(2, new Integer(numPoints))
 				double[][] points
-				for (ShapeFileRecord record : input.records) {
-	                a = record.getRecordNumber() - 1
-	                
-	                points = record.getGeometry().getPoints()
-	              	z = (double)table.getValue(a, zField)  
-	                x = points[0][0]
-                    y = points[0][1]
 					
-                    entry = [x, y];
-                    pointsTree.addPoint(entry, new InterpolationRecord(x, y, z, a));
-	                
-	                progress = (int) (100f * (a + 1) / numPoints);
-	                if (progress != oldProgress) {
-	                    oldProgress = progress;
-	                    pluginHost.updateProgress("Reading point data:", progress);
-	                    if (pluginHost.isRequestForOperationCancelSet()) {
-	                        pluginHost.showFeedback("Operation cancelled")
-							return
-	                    }
-	                }
-	            }
+				if (input.getShapeType() == ShapeType.MULTIPOINTZ) {
+					// how many points are there?
+					for (ShapeFileRecord record : input.records) {
+		                a = record.getRecordNumber() - 1
+		                MultiPointZ mpz = (MultiPointZ)(record.getGeometry())
+		                numPoints += mpz.getNumPoints()
+		                
+		            }
+					isOffTerrain = new BooleanBitArray1D(numPoints);
 
+		            
+		            // Read the points into the k-dimensional tree.
+		            KdTree<InterpolationRecord> pointsTree = new KdTree.SqrEuclid<InterpolationRecord>(2, new Integer(numPoints))
+		            int n = 0
+					for (ShapeFileRecord record : input.records) {
+		                a = record.getRecordNumber() - 1
+		                MultiPointZ mpz = (MultiPointZ)(record.getGeometry())
+		                points = mpz.getPoints()
+		                double[] zArray = mpz.getzArray()
 
-	            /* visit the neighbourhood around each point hunting for 
-	               points that are above other points with a slope greater 
-	               than the threshold. */
+		                for (int m = 0; m < points.length; m++) {
+			              	x = points[m][0]
+		                    y = points[m][1]
+							z = zArray[m]  
+			                
+		                    entry = [x, y];
+		                    pointsTree.addPoint(entry, new InterpolationRecord(x, y, z, n));
+		                    n++
+		                    progress = (int) (100f * n / numPoints);
+			                if (progress != oldProgress) {
+			                    oldProgress = progress;
+			                    pluginHost.updateProgress("Reading point data:", progress);
+			                    if (pluginHost.isRequestForOperationCancelSet()) {
+			                        pluginHost.showFeedback("Operation cancelled")
+									return
+			                    }
+			                }
+		                }
+		            }
+
+					/* visit the neighbourhood around each point hunting for 
+		               points that are above other points with a slope greater 
+		               than the threshold. */
+					n = 0
+					int r = 0
+		            for (ShapeFileRecord record : input.records) {
+		                a = record.getRecordNumber() - 1
+		                MultiPointZ mpz = (MultiPointZ)(record.getGeometry())
+		                points = mpz.getPoints()
+		                double[] zArray = mpz.getzArray()
+						
+		                for (int m = 0; m < points.length; m++) {
+		                	
+			                if (!isOffTerrain.getValue(n)) {
+			                	points = record.getGeometry().getPoints()
+			              		x = points[0][0]
+			                    y = points[0][1]
+								z = zArray[m]
+			                    entry = [x, y];
+			                    
+			                    results = pointsTree.neighborsWithinRange(entry, maxDist);
+								int numResults = results.size()
+			                    if (numResults < numNeighbours) {
+			                    	results = pointsTree.nearestNeighbor(entry, numNeighbours, true, false)
+			                    	numResults = results.size()
+			                    }
+			                	for (p = 0; p < numResults; p++) {
+			                		dist = Math.sqrt(results.get(p).distance);
+			                		if (dist > 0) {
+			                			value = (InterpolationRecord)results.get(p).value;
+			                			zN = value.z
+			                			if (z > zN) {
+			                				higherZ = z
+			                				lowerZ = zN
+			                				higherPointIndex = n
+			                			} else {
+			                				higherZ = zN
+			                				lowerZ = z
+			                				higherPointIndex = value.index
+			                			}
+			                			elevDiff = higherZ - lowerZ
+										slope = elevDiff / dist
+			                			if (slope > slopeThreshold && elevDiff > minElevDiff) {
+											isOffTerrain.setValue(higherPointIndex, true)
+										}
+			                		}
+			                	}
+			                }
+			                n++
+			                progress = (int) (100f * n / numPoints);
+			                if (progress != oldProgress) {
+			                    oldProgress = progress;
+			                    pluginHost.updateProgress("Finding ground points:", progress);
+			                    if (pluginHost.isRequestForOperationCancelSet()) {
+			                        pluginHost.showFeedback("Operation cancelled")
+									return
+			                    }
+			                }
+		                }
+		            }
+
+		            // output the points
+		            DBFField[] fields = table.getAllFields()
 	
-	            for (ShapeFileRecord record : input.records) {
-	                a = record.getRecordNumber() - 1
-	                if (!isOffTerrain.getValue(a)) {
-	                	points = record.getGeometry().getPoints()
-	              		x = points[0][0]
+					//outputFile = inputFile.replace(".shp", suffix + ".shp");
+	
+			        // see if the output files already exist, and if so, delete them.
+			        File outFile = new File(outputFile);
+			        if (outFile.exists()) {
+			            outFile.delete();
+			            (new File(outputFile.replace(".shp", ".dbf"))).delete();
+			            (new File(outputFile.replace(".shp", ".shx"))).delete();
+			        }
+		            
+		            ShapeFile output = new ShapeFile(outputFile, ShapeType.MULTIPOINTZ, fields);
+					n = 0
+					for (ShapeFileRecord record : input.records) {
+		                a = record.getRecordNumber() - 1
+
+		                MultiPointZ mpz = (MultiPointZ)(record.getGeometry())
+		                points = mpz.getPoints()
+		                double[] zArray = mpz.getzArray()
+						double[] mArray = mpz.getmArray()
+
+						// how many valid points are there in this feature?
+		                int numValidPoints = 0
+			            for (int m = 0; m < points.length; m++) {
+		                	if (!isOffTerrain.getValue(n)) {
+			                	numValidPoints++
+							}
+		                }
+
+		                double[][] xyData = new double[numValidPoints][2]
+		                double[] zData = new double[numValidPoints]
+						double[] mData = new double[numValidPoints]
+						int q = 0
+		                for (int m = 0; m < points.length; m++) {
+		                	if (!isOffTerrain.getValue(n)) {
+			                	xyData[q][0] = points[m][0]
+								xyData[q][1] = points[m][1]
+								zData[q] = zArray[m]
+								mData[q] = mArray[m]
+								q++
+							}
+							
+							n++
+							progress = (int) (100f * n / numPoints);
+			                if (progress != oldProgress) {
+			                    oldProgress = progress;
+			                    pluginHost.updateProgress("Outputting point data:", progress);
+			                    if (pluginHost.isRequestForOperationCancelSet()) {
+			                        pluginHost.showFeedback("Operation cancelled")
+									return
+			                    }
+			                }
+		                }
+		                
+		                if (numValidPoints > 0) {
+		                	MultiPointZ wbPoint = new MultiPointZ(xyData, zData, mData);
+		            		Object[] rowData = table.getRecord(a);
+		                    
+		                    output.addRecord(wbPoint, rowData);
+				        }
+		            }
+		            
+		            output.write()
+				} else {				
+		            numPoints = (int) input.getNumberOfRecords();
+		            isOffTerrain = new BooleanBitArray1D(numPoints);
+		            
+		            // Read the points into the k-dimensional tree.
+		            KdTree<InterpolationRecord> pointsTree = new KdTree.SqrEuclid<InterpolationRecord>(2, new Integer(numPoints))
+					for (ShapeFileRecord record : input.records) {
+		                a = record.getRecordNumber() - 1
+		                
+		                points = record.getGeometry().getPoints()
+		              	z = (double)table.getValue(a, zField)  
+		                x = points[0][0]
 	                    y = points[0][1]
-						z = (double)table.getValue(a, zField)  
+						
 	                    entry = [x, y];
-	                    
-	                    results = pointsTree.neighborsWithinRange(entry, maxDist);
-						int numResults = results.size()
-	                    if (numResults < numNeighbours) {
-	                    	results = pointsTree.nearestNeighbor(entry, numNeighbours, true, false)
-	                    	numResults = results.size()
-	                    }
-	                	for (p = 0; p < numResults; p++) {
-	                		dist = Math.sqrt(results.get(p).distance);
-	                		if (dist > 0) {
-	                			value = (InterpolationRecord)results.get(p).value;
-	                			zN = value.z
-	                			if (z > zN) {
-	                				higherZ = z
-	                				lowerZ = zN
-	                				higherPointIndex = a
-	                			} else {
-	                				higherZ = zN
-	                				lowerZ = z
-	                				higherPointIndex = value.index
-	                			}
-	                			elevDiff = higherZ - lowerZ
-								slope = elevDiff / dist //(higherZ - lowerZ) / dist
-	                			if (slope > slopeThreshold && elevDiff > minElevDiff) {
-									isOffTerrain.setValue(higherPointIndex, true)
-								}
-	                		}
-	                	}
-	                }
-					progress = (int) (100f * (a + 1) / numPoints);
-	                if (progress != oldProgress) {
-	                    oldProgress = progress;
-	                    pluginHost.updateProgress("Finding ground points:", progress);
-	                    if (pluginHost.isRequestForOperationCancelSet()) {
-	                        pluginHost.showFeedback("Operation cancelled")
-							return
-	                    }
-	                }
-	            }
-
-	            // output the points
-	            DBFField[] fields = table.getAllFields()
-
-				outputFile = inputFile.replace(".shp", suffix + ".shp");
-
-		        // see if the output files already exist, and if so, delete them.
-		        File outFile = new File(outputFile);
-		        if (outFile.exists()) {
-		            outFile.delete();
-		            (new File(outputFile.replace(".shp", ".dbf"))).delete();
-		            (new File(outputFile.replace(".shp", ".shx"))).delete();
-		        }
-	            
-	            ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
+	                    pointsTree.addPoint(entry, new InterpolationRecord(x, y, z, a));
+		                
+		                progress = (int) (100f * (a + 1) / numPoints);
+		                if (progress != oldProgress) {
+		                    oldProgress = progress;
+		                    pluginHost.updateProgress("Reading point data:", progress);
+		                    if (pluginHost.isRequestForOperationCancelSet()) {
+		                        pluginHost.showFeedback("Operation cancelled")
+								return
+		                    }
+		                }
+		            }
 	
-				for (ShapeFileRecord record : input.records) {
-	                a = record.getRecordNumber() - 1
-	                if (!isOffTerrain.getValue(a)) {
-	                	points = record.getGeometry().getPoints()
-	            		x = points[0][0]
-	                    y = points[0][1]
-						whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);
-
-	                    Object[] rowData = table.getRecord(a);
-	                    
-	                    output.addRecord(wbGeometry, rowData);
-					}
-					progress = (int) (100f * (a + 1) / numPoints);
-	                if (progress != oldProgress) {
-	                    oldProgress = progress;
-	                    pluginHost.updateProgress("Outputting point data:", progress);
-	                    if (pluginHost.isRequestForOperationCancelSet()) {
-	                        pluginHost.showFeedback("Operation cancelled")
-							return
-	                    }
-	                }
-	            }
-	            
-	            output.write()
-	            
+	
+		            /* visit the neighbourhood around each point hunting for 
+		               points that are above other points with a slope greater 
+		               than the threshold. */
+		
+		            for (ShapeFileRecord record : input.records) {
+		                a = record.getRecordNumber() - 1
+		                if (!isOffTerrain.getValue(a)) {
+		                	points = record.getGeometry().getPoints()
+		              		x = points[0][0]
+		                    y = points[0][1]
+							z = (double)table.getValue(a, zField)  
+		                    entry = [x, y];
+		                    
+		                    results = pointsTree.neighborsWithinRange(entry, maxDist);
+							int numResults = results.size()
+		                    if (numResults < numNeighbours) {
+		                    	results = pointsTree.nearestNeighbor(entry, numNeighbours, true, false)
+		                    	numResults = results.size()
+		                    }
+		                	for (p = 0; p < numResults; p++) {
+		                		dist = Math.sqrt(results.get(p).distance);
+		                		if (dist > 0) {
+		                			value = (InterpolationRecord)results.get(p).value;
+		                			zN = value.z
+		                			if (z > zN) {
+		                				higherZ = z
+		                				lowerZ = zN
+		                				higherPointIndex = a
+		                			} else {
+		                				higherZ = zN
+		                				lowerZ = z
+		                				higherPointIndex = value.index
+		                			}
+		                			elevDiff = higherZ - lowerZ
+									slope = elevDiff / dist //(higherZ - lowerZ) / dist
+		                			if (slope > slopeThreshold && elevDiff > minElevDiff) {
+										isOffTerrain.setValue(higherPointIndex, true)
+									}
+		                		}
+		                	}
+		                }
+						progress = (int) (100f * (a + 1) / numPoints);
+		                if (progress != oldProgress) {
+		                    oldProgress = progress;
+		                    pluginHost.updateProgress("Finding ground points:", progress);
+		                    if (pluginHost.isRequestForOperationCancelSet()) {
+		                        pluginHost.showFeedback("Operation cancelled")
+								return
+		                    }
+		                }
+		            }
+	
+		            // output the points
+		            DBFField[] fields = table.getAllFields()
+	
+					//outputFile = inputFile.replace(".shp", suffix + ".shp");
+	
+			        // see if the output files already exist, and if so, delete them.
+			        File outFile = new File(outputFile);
+			        if (outFile.exists()) {
+			            outFile.delete();
+			            (new File(outputFile.replace(".shp", ".dbf"))).delete();
+			            (new File(outputFile.replace(".shp", ".shx"))).delete();
+			        }
+		            
+		            ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
+		
+					for (ShapeFileRecord record : input.records) {
+		                a = record.getRecordNumber() - 1
+		                if (!isOffTerrain.getValue(a)) {
+		                	points = record.getGeometry().getPoints()
+		            		x = points[0][0]
+		                    y = points[0][1]
+							whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);
+	
+		                    Object[] rowData = table.getRecord(a);
+		                    
+		                    output.addRecord(wbGeometry, rowData);
+						}
+						progress = (int) (100f * (a + 1) / numPoints);
+		                if (progress != oldProgress) {
+		                    oldProgress = progress;
+		                    pluginHost.updateProgress("Outputting point data:", progress);
+		                    if (pluginHost.isRequestForOperationCancelSet()) {
+		                        pluginHost.showFeedback("Operation cancelled")
+								return
+		                    }
+		                }
+		            }
+		            
+		            output.write()
+				}
 			}
 
 			if (displayOutput) {

@@ -39,17 +39,17 @@ import groovy.transform.CompileStatic
 // The following four variables are required for this 
 // script to be integrated into the tool tree panel. 
 // Comment them out if you want to remove the script.
-def name = "MergeTables"
-def descriptiveName = "Merge Tables"
-def description = "Merges an attribute tables."
+def name = "JoinTables"
+def descriptiveName = "Join Tables"
+def description = "Joins (merges) two attribute tables."
 def toolboxes = ["DatabaseTools"]
 
-public class MergeTables implements ActionListener {
+public class JoinTables implements ActionListener {
 	private WhiteboxPluginHost pluginHost
 	private ScriptDialog sd;
 	private String descriptiveName
 	
-	public MergeTables(WhiteboxPluginHost pluginHost, 
+	public JoinTables(WhiteboxPluginHost pluginHost, 
 		String[] args, String name, String descriptiveName) {
 		this.pluginHost = pluginHost
 		this.descriptiveName = descriptiveName
@@ -272,5 +272,5 @@ public class MergeTables implements ActionListener {
 if (args == null) {
 	pluginHost.showFeedback("Plugin arguments not set.")
 } else {
-	def tdf = new MergeTables(pluginHost, args, name, descriptiveName)
+	def tdf = new JoinTables(pluginHost, args, name, descriptiveName)
 }

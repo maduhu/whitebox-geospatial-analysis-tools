@@ -197,6 +197,17 @@ public class ConstructTIN implements ActionListener {
 						y = ptz.getY()
 						c = new Coordinate(x, y, z)
 						pointList.add(geomFactory.createPoint(c))
+					} else if (shapeType.getBaseType() == ShapeType.MULTIPOINT) {
+						MultiPointZ plz = (MultiPointZ)(record.getGeometry())
+						point = record.getGeometry().getPoints()
+						double[] zArray = plz.getzArray()
+						for (int p = 0; p < point.length; p++) {
+							x = point[p][0]
+							y = point[p][1]
+							z = zArray[p]
+							c = new Coordinate(x, y, z)
+							pointList.add(geomFactory.createPoint(c))
+						}
 					} else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
 						PolyLineZ plz = (PolyLineZ)(record.getGeometry())
 						point = record.getGeometry().getPoints()
@@ -458,9 +469,9 @@ public class ConstructTIN implements ActionListener {
 			output.write()
 			
 			def paletteDirectory = pluginHost.getResourcesDirectory() + "palettes" + File.separator
-			VectorLayerInfo vli = new VectorLayerInfo(outputFile, paletteDirectory, 255, 1)
-			vli.setFillAttribute("HILLSHADE")
+			VectorLayerInfo vli = new VectorLayerInfo(outputFile, paletteDirectory, 255i, -1)
 			vli.setFilledWithOneColour(false)
+			vli.setFillAttribute("HILLSHADE")
 			vli.setPaletteFile(paletteDirectory + "grey.pal")
 			vli.setPaletteScaled(true)
 //			vli.setMinimumValue(newMin)

@@ -57,7 +57,8 @@ public class MinimumInterpolation implements ActionListener {
 	private WhiteboxPluginHost pluginHost
 	private ScriptDialog sd;
 	private String descriptiveName
-	
+//	private KdTree<Double> pointsTree
+		
 	private AtomicInteger numSolvedRows = new AtomicInteger(0)
 	
 	public MinimumInterpolation(WhiteboxPluginHost pluginHost, 
@@ -203,46 +204,46 @@ public class MinimumInterpolation implements ActionListener {
 	            	if (progress != oldProgress) {
 						pluginHost.updateProgress("Reading Points:", progress)
 	            		oldProgress = progress
+	            		// check to see if the user has requested a cancellation
+						if (pluginHost.isRequestForOperationCancelSet()) {
+							pluginHost.showFeedback("Operation cancelled")
+							return
+						}
 	            	}
-	            	// check to see if the user has requested a cancellation
-					if (pluginHost.isRequestForOperationCancelSet()) {
-						pluginHost.showFeedback("Operation cancelled")
-						return
-					}
 				}
 			} else {
 				for (ShapeFileRecord record : input.records) {
 					if (shapeType.getBaseType() == ShapeType.POINT) {
 						PointZ ptz = (PointZ)(record.getGeometry())
-	            		z = ptz.getZ()
-	            		x = ptz.getX()
-						y = ptz.getY()
-						xList.add(x)
-						yList.add(y)
-						zList.add(z)
+	            		xList.add(ptz.getX())
+						yList.add(ptz.getY())
+						zList.add(ptz.getZ())
+					} else if (shapeType.getBaseType() == ShapeType.MULTIPOINT) {
+						MultiPointZ plz = (MultiPointZ)(record.getGeometry())
+						point = record.getGeometry().getPoints()
+						double[] zArray = plz.getzArray()
+						for (int p = 0; p < point.length; p++) {
+							xList.add(point[p][0])
+							yList.add(point[p][1])
+							zList.add(zArray[p])
+						}
 					} else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
 						PolyLineZ plz = (PolyLineZ)(record.getGeometry())
 						point = record.getGeometry().getPoints()
 						double[] zArray = plz.getzArray()
 						for (int p = 0; p < point.length; p++) {
-							x = point[p][0]
-							y = point[p][1]
-							z = zArray[p]
-							xList.add(x)
-							yList.add(y)
-							zList.add(z)
+							xList.add(point[p][0])
+							yList.add(point[p][1])
+							zList.add(zArray[p])
 						}
 					} else if (shapeType.getBaseType() == ShapeType.POLYGON) {
 						PolygonZ pz = (PolygonZ)(record.getGeometry())
 						point = record.getGeometry().getPoints()
 						double[] zArray = pz.getzArray()
 						for (int p = 0; p < point.length; p++) {
-							x = point[p][0]
-							y = point[p][1]
-							z = zArray[p]
-							xList.add(x)
-							yList.add(y)
-							zList.add(z)
+							xList.add(point[p][0])
+							yList.add(point[p][1])
+							zList.add(zArray[p])
 						}
 					}
 					
@@ -251,18 +252,19 @@ public class MinimumInterpolation implements ActionListener {
 	            	if (progress != oldProgress) {
 						pluginHost.updateProgress("Reading Points:", progress)
 	            		oldProgress = progress
-	            	}
-	            	// check to see if the user has requested a cancellation
-					if (pluginHost.isRequestForOperationCancelSet()) {
-						pluginHost.showFeedback("Operation cancelled")
-						return
-					}
+	            		// check to see if the user has requested a cancellation
+						if (pluginHost.isRequestForOperationCancelSet()) {
+							pluginHost.showFeedback("Operation cancelled")
+							return
+						}
+	            	}	            	
 				}
 			}
 			
 			int numSamples = zList.size()
-			final KdTree<Double> pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(numSamples));
+			//final KdTree<Double> pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(numSamples));
 			//pointsTree = new KdTree.SqrEuclid<Integer>(2, new Integer(numSamples));
+			KdTree<Double> pointsTree = new KdTree.SqrEuclid<Double>(2, new Integer(numSamples));
 			for (i = 0; i < numSamples; i++) {
 				double[] entry = new double[2]
 				entry[0] = xList.get(i)
@@ -304,32 +306,47 @@ public class MinimumInterpolation implements ActionListener {
 	        }
 	        
 	        image.setPreferredPalette("spectrum.pal")
+
+			double[] entry;
+			List<KdTree.Entry<Double>> results;
+			double value;
+            double minVal;
+	        for (row = 0; row < rows; row++) {
+	        	y = image.getYCoordinateFromRow(row);
+                for (col = 0; col < cols; col++) {
+                    x = image.getXCoordinateFromColumn(col);
+                    entry = [x, y];
+                    results = pointsTree.neighborsWithinRange(entry, maxDist);
+                    if (results.size() > 1) {
+						// now find the minimum value
+                        minVal = Double.POSITIVE_INFINITY
+                        for (i = 0; i < results.size(); i++) {
+                        	z = (double)results.get(i).value
+                        	if (z < minVal) { 
+                            	minVal = z
+                        	}
+                        }
+	                     
+                        image.setValue(row, col, minVal)
+                    } else if (results.size() == 1) {
+                    	image.setValue(row, col, (double)results.get(0).value)
+                    } else {
+                    	image.setValue(row, col, nodata)
+                    }
+                }
+                progress = (int)(100f * row / (rows - 1))
+                if (progress != oldProgress) {
+                	oldProgress = progress
+                	pluginHost.updateProgress(progress)
+                	
+	            	// check to see if the user has requested a cancellation
+					if (pluginHost.isRequestForOperationCancelSet()) {
+						pluginHost.showFeedback("Operation cancelled")
+						return
+					}
+                }
+	        }
 			
-	        pluginHost.updateProgress("Please wait...", 0)
-			ArrayList<DoWork> tasks = new ArrayList<>();
-			for (row = 0; row < rows; row++) {
-				tasks.add(new DoWork(row, pointsTree, maxDist, image))
-			}
-	
-			ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-	  	    // the only reason for the getExecutorResults method 
-	  	    // is that Groovy throws a compilation type mis-match
-	  	    // error when compiled statically. I think it's a bug.
-	  	    List<Future<RowNumberAndData>> results = getExecutorResults(executor, tasks); //executor.invokeAll(tasks);
-	        executor.shutdown();
-
-        	for (Future<RowNumberAndData> result : results) {
-	    		RowNumberAndData data = result.get()
-	    		if (data != null) {
-	    			row = data.getRow()
-	    			//image.setRowValues(row, data.getData())
-	    			double[] outputData = data.getData()
-	    			for (col = 0; col < cols; col++) {
-	    				image.setValue(row, col, outputData[col])
-	    			}
-	    		}
-		    }
-
 		    image.addMetadataEntry("Created by the " + descriptiveName + " tool.");
 	        image.addMetadataEntry("Created on " + new Date());
 	        image.addMetadataEntry("Max. Search Distance:\t${maxDist}");
@@ -342,7 +359,7 @@ public class MinimumInterpolation implements ActionListener {
 			double duration = (end - start) / 1000.0
 			pluginHost.showFeedback("Interpolation completed in " + duration + " seconds.")
 		
-	  } catch (OutOfMemoryError oe) {
+	  	} catch (OutOfMemoryError oe) {
             pluginHost.showFeedback("An out-of-memory error has occurred during operation.")
 	    } catch (Exception e) {
 	        pluginHost.showFeedback("An error has occurred during operation. See log file for details.")
@@ -369,119 +386,6 @@ public class MinimumInterpolation implements ActionListener {
     	}
     }
 
-    public List<Future<RowNumberAndData>> getExecutorResults(ExecutorService executor, ArrayList<DoWork> tasks) {
-    	List<Future<RowNumberAndData>> results = executor.invokeAll(tasks);
-		return results
-    }
-
-	class DoWork implements Callable<RowNumberAndData> {
-		private int row
-		private double maxDist
-		private WhiteboxRaster image
-		private KdTree<Double> pointsTree
-		
-	    DoWork(int row, KdTree<Double> pointsTree, double maxDist, WhiteboxRaster image) {
-	      	this.row = row;
-	      	this.pointsTree = pointsTree;
-			this.maxDist = maxDist
-			this.image = image
-       	}
-        	
-        @Override
-        @CompileStatic
-	    public RowNumberAndData call() {
-	    	// check to see if the user has requested a cancellation
-			if (pluginHost.isRequestForOperationCancelSet()) {
-				return null
-			}
-			final double noData = -32768;
-			double z
-			int nrows = image.getNumberRows()
-			int ncols = image.getNumberColumns()
-			
-			double[] entry;
-			List<KdTree.Entry<Double>> results;
-			
-            double[] retData = new double[ncols]
-                
-	        try {
-	            double value;
-                double dist, val, minVal, maxVal;
-	            
-	            double northing = image.getYCoordinateFromRow(row);
-                for (int col in 0..(ncols - 1)) {
-                    double easting = image.getXCoordinateFromColumn(col);
-                    entry = [northing, easting];
-                    results = pointsTree.neighborsWithinRange(entry, maxDist);
-                    if (results.size() > 1) {
-						// now find the minimum value
-                        minVal = Double.POSITIVE_INFINITY
-                        for (int i = 0; i < results.size(); i++) {
-                        	z = (double)results.get(i).value
-                        	if (z < minVal) { 
-                            	minVal = z
-                        	}
-                        }
-	                     
-                        retData[col] = z;
-                    } else if (results.size() == 1) {
-                    	retData[col] = (double)results.get(0).value
-                    } else {
-                    	retData[col] = noData;
-                    }
-                }
-
-	        } catch (Exception e) {
-	            pluginHost.showFeedback(e.getMessage());
-	            return null;
-	        }
-
-			int solved = numSolvedRows.incrementAndGet()
-			int progress = (int) (100f * solved / (nrows - 1))
-			pluginHost.updateProgress("Progress:", progress)
-			
-			def ret = new RowNumberAndData(row, retData)
-	        return ret;
-        }                
-    }
-
-	
-    @CompileStatic
-    class RowNumberAndData {
-		private int row
-		private double[] data
-		private int numDataEntries = 0
-		
-    	RowNumberAndData(int row, double[] data) {
-    		this.row = row
-    		this.data = data
-    		this.numDataEntries = data.length
-    	}
-
-    	public int getRow() {
-    		return row
-    	}
-
-    	public void setRow(int row) {
-    		this.row = row
-    	}
-
-    	public double[] getData() {
-    		return data
-    	}
-
-		public void setData(double[] data) {
-			this.data = data
-		}
-		
-    	public double getDataAt(int n) {
-    		if (n < numDataEntries) {
-    			return data[n]
-    		} else {
-    			return null
-    		}
-    	}
-    }
 }
 
 if (args == null) {

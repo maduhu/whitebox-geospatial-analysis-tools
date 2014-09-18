@@ -210,6 +210,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private boolean checkForUpdates = true;
     private boolean receiveAnnouncements = true;
     private String updateDownloadArtifact = "";
+    private boolean isPageVisible = true;
 
     public static void main(String[] args) {
         try {
@@ -2054,6 +2055,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         setScrollZoomDirection(MapRenderer2.ScrollZoomDirection.REVERSE);
                     }
                 }
+                
+                // check for the page visible setting
+                if (props.containsKey("pageVisible")) {
+                    isPageVisible = Boolean.parseBoolean(props.getProperty("pageVisible"));
+                }
 
                 // retrieve the plugin usage information
                 String[] pluginNames = props.getProperty("pluginNames").split(",");
@@ -2122,6 +2128,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         props.setProperty("country", country);
         props.setProperty("receiveAnnouncements", Boolean.toString(receiveAnnouncements));
         props.setProperty("checkForUpdates", Boolean.toString(checkForUpdates));
+        props.setProperty("pageVisible", Boolean.toString(isPageVisible));
 
         if (scrollZoomDir == MapRenderer2.ScrollZoomDirection.NORMAL) {
             props.setProperty("scrollZoomDirection", "0");
@@ -2248,7 +2255,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapinfo.setWorkingDirectory(workingDirectory);
             mapinfo.setDefaultFont(defaultFont);
             mapinfo.setMargin(defaultMapMargin);
-            //mapinfo.setPageVisible(false);
+            mapinfo.setPageVisible(isPageVisible);
             
             MapArea ma = new MapArea(bundle.getString("MapArea").replace(" ", "") + "1");
             ma.setUpperLeftX(-32768);
@@ -3016,7 +3023,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             JMenuItem helpReport = new JMenuItem(bundle.getString("HelpCompletenessReport"));
             helpReport.setActionCommand("helpReport");
             helpReport.addActionListener(this);
-            helpMenu.add(helpReport);
+            //helpMenu.add(helpReport);
 
             menubar.add(helpMenu);
 
@@ -5675,6 +5682,18 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
         selectedMapAndLayer[0] = -1;
         selectedMapAndLayer[1] = -1;
         selectedMapAndLayer[2] = -1;
+    }
+    
+    public boolean isPageVisible() {
+        return isPageVisible;
+    }
+    
+    public void setPageVisibility(boolean value) {
+        for (int a = 0; a < openMaps.size(); a++) {
+            openMaps.get(a).setPageVisible(value);
+        }
+        drawingArea.repaint();
+        isPageVisible = value;
     }
 
     private void toggleLayerVisibilityInLegend() {

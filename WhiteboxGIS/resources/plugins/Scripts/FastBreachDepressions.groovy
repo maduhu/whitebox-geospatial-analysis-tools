@@ -244,9 +244,9 @@ public class FastBreachDepressions implements ActionListener {
 	                    rowN = row + dY[i];
 	                    colN = col + dX[i];
 	                    zN = output[rowN][colN];
-	                    if ((zN != nodata) && (inQueue.getValue(rowN, colN) == false)) {
+	                    if ((zN != nodata) && (!inQueue.getValue(rowN, colN))) {
 	                        flowdir.setValue(rowN, colN, backLink[i])
-	                        if (pits.getValue(rowN, colN) == true) {
+	                        if (pits.getValue(rowN, colN)) {
 	                        	// trace the flowpath back until you find a lower cell
 	                        	zTest = zN
 	                        	r = rowN
@@ -304,9 +304,9 @@ public class FastBreachDepressions implements ActionListener {
 	                    rowN = row + dY[i];
 	                    colN = col + dX[i];
 	                    zN = output[rowN][colN];
-	                    if ((zN != nodata) && (inQueue.getValue(rowN, colN) == false)) {
+	                    if ((zN != nodata) && (!inQueue.getValue(rowN, colN))) {
 	                        flowdir.setValue(rowN, colN, backLink[i])
-	                        if (pits.getValue(rowN, colN) == true) {
+	                        if (pits.getValue(rowN, colN)) {
 	                        	// trace the flowpath back until you find a lower cell
 	                        	numCellsInPath = 0
 	                        	zTest = zN
