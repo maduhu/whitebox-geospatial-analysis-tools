@@ -284,7 +284,8 @@ public class Add implements WhiteboxPlugin, NotifyingThread {
 
                 int rows = inputFile1.getNumberRows();
                 int cols = inputFile1.getNumberColumns();
-                double noData = inputFile1.getNoDataValue();
+                double noData1 = inputFile1.getNoDataValue();
+                double noData2 = inputFile2.getNoDataValue();
 
                 // make sure that the input images have the same dimensions.
                 if ((inputFile2.getNumberRows() != rows) || (inputFile2.getNumberColumns() != cols)) {
@@ -293,7 +294,7 @@ public class Add implements WhiteboxPlugin, NotifyingThread {
                 }
 
                 WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", 
-                        inputHeader1, WhiteboxRaster.DataType.FLOAT, noData);
+                        inputHeader1, WhiteboxRaster.DataType.FLOAT, noData1);
                 outputFile.setPreferredPalette(inputFile1.getPreferredPalette());
                 
                 for (row = 0; row < rows; row++) {
@@ -302,7 +303,7 @@ public class Add implements WhiteboxPlugin, NotifyingThread {
                     for (col = 0; col < cols; col++) {
                         z1 = data1[col];
                         z2 = data2[col];
-                        if ((z1 != noData) && (z2 != noData)) {
+                        if ((z1 != noData1) && (z2 != noData2)) {
                             outputFile.setValue(row, col, z1 + z2);
                         }
                     }
