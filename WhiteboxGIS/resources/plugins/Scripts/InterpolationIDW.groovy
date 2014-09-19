@@ -285,6 +285,18 @@ public class InterpolationIDW implements ActionListener {
 						xList.add(x)
 						yList.add(y)
 						zList.add(z)
+					} else if (shapeType.getBaseType() == ShapeType.MULTIPOINT) {
+						MultiPointZ mptz = (MultiPointZ)(record.getGeometry())
+						point = record.getGeometry().getPoints()
+						double[] zArray = mptz.getzArray()
+						for (int p = 0; p < point.length; p++) {
+							x = point[p][0]
+							y = point[p][1]
+							z = zArray[p]
+							xList.add(x)
+							yList.add(y)
+							zList.add(z)
+						}
 					} else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
 						PolyLineZ plz = (PolyLineZ)(record.getGeometry())
 						point = record.getGeometry().getPoints()
