@@ -153,7 +153,11 @@ public class MergeTableWithCSV implements ActionListener {
 											if (entry.length == 1) {
 												delimiter = " "
 												entry = ((String)(it)).split(delimiter)
+												if (entry.length == 1) {
+													delimiter = ";"
+													entry = ((String)(it)).split(delimiter)
 												
+												}
 											}
 										}
 										foreignKey.setListItems(entry)
@@ -241,7 +245,11 @@ public class MergeTableWithCSV implements ActionListener {
 						if (entry.length == 1) {
 							delimiter = " "
 							entry = ((String)(it)).split(delimiter)
+							if (entry.length == 1) {
+								delimiter = ";"
+								entry = ((String)(it)).split(delimiter)
 							
+							}
 						}
 					}
 					delimiterFound = true
