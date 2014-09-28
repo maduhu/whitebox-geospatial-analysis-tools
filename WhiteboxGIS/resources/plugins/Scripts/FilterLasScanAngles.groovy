@@ -152,7 +152,7 @@ public class FilterLasScanAngles implements ActionListener {
 		int numPoints = 0
 		for (int p = 0; p < totalPoints; p++) {
 			PointRecord point = las.getPointRecord(p)
-			scanAngle = point.getScanAngle()
+			scanAngle = Math.abs(point.getScanAngle())
 			if (scanAngle < threshold) { numPoints++ }
 			if (numFiles == 1) {
 				progress = (int) (100f * (p + 1) / totalPoints);
@@ -195,7 +195,7 @@ public class FilterLasScanAngles implements ActionListener {
 		int index = 0
 		for (int p = 0; p < totalPoints; p++) {
 			PointRecord point = las.getPointRecord(p)
-			scanAngle = point.getScanAngle()
+			scanAngle = Math.abs(point.getScanAngle())
 			if (scanAngle < threshold) { 
 				xyData[index][0] = point.getX()
 				xyData[index][1] = point.getY()
