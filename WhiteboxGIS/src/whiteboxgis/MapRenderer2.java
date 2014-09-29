@@ -2132,8 +2132,19 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
                                                 //MultiPoint rec = (MultiPoint) (record.getGeometry());
                                                 recPoints = record.getGeometry().getPoints();
-                                                
-                                                skipVal = (int)(Math.ceil(recPoints.length / maxNumDisplayedPoints));
+                                                int numPointsInExtent = 0;
+                                                switch (shapeType) {
+                                                    case MULTIPOINT:
+                                                        numPointsInExtent = ((MultiPoint)(record.getGeometry())).numberOfPointsInExtent(layerCE);
+                                                        break;
+                                                    case MULTIPOINTM:
+                                                        numPointsInExtent = ((MultiPointM)(record.getGeometry())).numberOfPointsInExtent(layerCE);
+                                                        break;
+                                                    case MULTIPOINTZ:
+                                                        numPointsInExtent = ((MultiPointZ)(record.getGeometry())).numberOfPointsInExtent(layerCE);
+                                                        break;
+                                                }
+                                                skipVal = (int)(Math.ceil(numPointsInExtent / maxNumDisplayedPoints));
                                                 if (skipVal < 1) { skipVal = 1; }
             
                                                 for (int p = 0; p < recPoints.length; p += skipVal) {
@@ -2174,7 +2185,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             g2.setStroke(oldStroke);
                                                         } else {
                                                             if (isFilled) {
-                                                                g2.setColor(colours[s]);
+                                                                g2.setColor(colours[p]); //s]);
                                                                 g2.fill(gp);
                                                             }
                                                             if (isOutlined) {
@@ -2187,7 +2198,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                             }
                                                         }
                                                     }
-                                                    s++;
+                                                    //s++;
                                                 }
                                             }
                                         }
@@ -2651,6 +2662,66 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         viewAreaLRY,
                         viewAreaLRX + referenceMarkSize,
                         viewAreaLRY);
+                
+//                double rangeX = (currentExtent.getMaxX() - (viewAreaWidth / mapScale - xRange)) - currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange);
+//                double rangeY = (currentExtent.getMaxY() - (viewAreaWidth / mapScale - yRange)) - currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange);
+                if (Double.isFinite(xRange) && !Double.isNaN(xRange)) {
+                    // find the largest possible tick interval resulting in 5 or fewer ticks
+                    double topCoord = mapExtent.getMaxY();
+                    double bottomCoord = mapExtent.getMinY();
+                    double leftCoord = mapExtent.getMinX();
+                    double rightCoord = mapExtent.getMaxX();
+                    double EWRange = rightCoord - leftCoord;
+                    double NSRange = topCoord - bottomCoord;
+                                
+                    double tickInterval = 0.0001;
+                    double testRange = EWRange < NSRange ? EWRange : NSRange;
+                    int numTickMarks = (int)Math.floor(testRange / tickInterval);
+                    if (numTickMarks > 12) {
+                        while (numTickMarks > 20) {
+                            tickInterval = tickInterval * 10;
+                            numTickMarks = (int)Math.floor(testRange / tickInterval);
+                        }
+                    }
+                    if (numTickMarks < 3) {
+                        tickInterval = tickInterval * 10;
+                        //numTickMarks = (int)Math.floor(testRange / tickInterval);
+                    }
+                    double startingTickVal = Math.ceil(leftCoord / tickInterval) * tickInterval;
+                    
+                    int x1, y1;
+                    int halfReferenceMarkSize = referenceMarkSize / 3;
+                    numTickMarks = (int)Math.floor(EWRange / tickInterval);
+                    for (int k = 0; k <= numTickMarks; k++) {
+                        x1 = (int)(viewAreaULX + (startingTickVal + (k * tickInterval) - leftCoord) / EWRange * viewAreaWidth);
+                        if (startingTickVal + (k * tickInterval) > rightCoord) { break; }
+                        g2.drawLine(x1,
+                            viewAreaULY,
+                            x1,
+                            viewAreaULY - halfReferenceMarkSize);
+                        
+                        g2.drawLine(x1,
+                            viewAreaLRY,
+                            x1,
+                            viewAreaLRY + halfReferenceMarkSize);
+                    }
+                    
+                    numTickMarks = (int)Math.floor(NSRange / tickInterval);
+                    startingTickVal = Math.floor(topCoord / tickInterval) * tickInterval;
+                    for (int k = 0; k <= numTickMarks; k++) {
+                        y1 = (int)(viewAreaULY + (topCoord - startingTickVal + (k * tickInterval)) / NSRange * viewAreaHeight);
+                        if (y1 > viewAreaLRY) { break; } //topCoord - startingTickVal + (k * tickInterval) < bottomCoord) { break; }
+                        g2.drawLine(viewAreaULX,
+                            y1,
+                            viewAreaULX - halfReferenceMarkSize,
+                            y1);
+                        
+                        g2.drawLine(viewAreaLRX,
+                            y1,
+                            viewAreaLRX + halfReferenceMarkSize,
+                            y1);
+                    }
+                }
 
                 g2.setStroke(oldStroke);
 

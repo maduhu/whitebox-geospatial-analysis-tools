@@ -1,48 +1,62 @@
 <?xml version="1.0"?>
 <VersionInfo>
     <VersionName>"3.2 'Iguazu'"</VersionName>
-    <VersionNumber>"3.2.0"</VersionNumber>
+    <VersionNumber>"3.2.1"</VersionNumber>
     <DownloadLocation>"http://www.uoguelph.ca/~hydrogeo/Whitebox/download.shtml"</DownloadLocation>
     <DownloadArtifact>"http://www.uoguelph.ca/~hydrogeo/Whitebox/WhiteboxGAT.zip"</DownloadArtifact>
-    <Announcements number="17">
+    <Announcements number="18">
         <Announcement>
             <Date>2014-05-04</Date>
             <Language>en</Language>
-            <Title>Whitebox 3.2.0 Has Been Released</Title>
+            <Title>Whitebox 3.2.1 Has Been Released</Title>
             <Message><![CDATA[<p>The following additions/modifications have been made:</p>
-<ul><li>Updated to Java 8. This is a major change and may result in some compatability issues.
- It will also mean that users will have to update their versions of Java to run
- Whitebox. Users will need to update their Java runtime to version 8 to run Whitebox.
- Please report any issues that you encounter as a result of this upgrade using
- Help -> Report An Error.</li>
-<li>Added a ClusterAttribute tool that performs k-means clustering on a selected 
- group of attributes associated with a vector file.</li>
-<li>Added zoom to selection for vector layers.</li>
-<li>Added a Clip tool for vector clipping operations. I know, why has it taken this long?</li>
-<li>Added floating point line thicknesses and changed the default line thickness to 0.75.
- This has greatly improved the cartographic output of Whitebox.</li>
-<li>Added Export Table to CSV tool.</li>
-<li>Added Hack Stream Ordering and Topological Stream Ordering tools.</li>
-<li>Added Total Length of Upstream Channels tool.</li>
-<li>Added Furtherest Upstream Channel Head Distance tool.</li>
-<li>Added the Attribute Histogram tool for create histograms based on numeric data 
- contained in a shapefile's attribute table as well as the Attribute Scattergram tool.</li>
-<li>Vectors can now be displayed with a palette rendered based on a boolean attribute.</li>
-<li>Added palette nonlinearity for vectors with a scaled palette.</li>
-<li>Fixed the raster-to-vector polygon conversion to include polygon holes.</li>
-<li>Modified the minimum bounding box tool, and all related tools (e.g. elongation ratio,
- long axis, short axis) to use an analytical solution for finding the MBB.</li>
-<li>Added a link to the Whitebox blog (http://whiteboxgeospatial.wordpress.com) in the help menu.</li>
-<li>Added the Vector Attribute Gridding tool, which can be used to interpolate the spatial 
- pattern of average values of an attribute of vector features onto a raster grid. It
- essentially can be used to answer the question, of the vector features (points, lines, 
- or polygons) within the a local neighbourhood, what is the average value of some 
- attribute? This can be quite handy for visualizing patterns.</li>
-<li>Added the Vector Feature Density tool, which is similar to the Vector Attribute Gridding 
- tool but works to map the spatial pattern of feature density (how many vector features 
- are within a local neighbourhood?).</li>
-<li>Added the ability to rotate map titles. I know this isn't a proper labelling system
- yet, but I'm working on it. Hopefully map labels will be added this summer.</li>
+<ul><li>Added the Retrieve SRTM DEM Data tool. This tool will download SRTM DEM tiles from
+ the USGS FTP site, import the tiles into Whitebox GAT, and optionally fill 
+ missing data holes and mosaic the tiles.</li>
+<li>Added the ability to natively display LAS file point clouds in the map area.</li>
+<li>Added Hex-binning tool.</li>
+<li>Added a tool for isolating ground return points from LiDAR LAS files.</li>
+<li>Added a tool for separating large LiDAR LAS files into smaller tiles of 
+ shapefile points.</li>
+<li>Added a Lee filter (Sigma filter) tool.</li>
+<li>Added Interior Point tool.</li>
+<li>Added CreateRectangularGridTool for creating a vector grid of polygons based on 
+ a rectangular grid.</li>
+<li>Added Single-part to Multi-part and Multi-part to Single-part tools.</li>
+<li>Added List Unique Values tool to list all of the unique values in a categorical 
+ field contained within a vector's attribute table. It will also report category
+ frequency.</li>
+<li>Added a fast depression breaching tool. Depression breaching is a far superior 
+ method for pre-processing a DEM for hydrological analysis (e.g. mapping 
+ watersheds). One of the reasons that people continue to fill depressions instead 
+ of breaching is that filling is computationally much more efficient than 
+ breaching. Well this tool is just about as fast as Whitebox's depression filling 
+ tool. So now you have no excuse. This should be your default tool for hydrological
+ processing of DEMs. Its result is not as good as the optimal breaching tool but
+ it is far more efficient and still much better than filling. Please breach.</li>
+<li>Added the tool BurnStreamAtRoads, which will carve a stream path through road
+ embankments at the site of road/stream crossings.</li>
+<li>Added a Minimum Interpolation tool for shapefile point inputs similar to the 
+ Minimum Interpolation (LiDAR) tool.</li>
+<li>Added the ability to update individual scripts from the source code repository. 
+ This way, if you modify the code for a tool and break it, you can always 
+ revert it back to the source on the main trunk. There's also now a menu entry 
+ that will update all scripts for which there are newer versions within the 
+ code repository and new scripts.</li>
+<li>Added a Flood Order tool; details in tool's help.</li>
+<li>Added a polygonize tool for converting polylines into polygons.</li>
+<li>Updated the centroid (vector) tool with the option to handle multi-part polyline 
+ and polygon features as a single entity or to extract centroids for each part, 
+ as well as, the ability to extract centroids for groups of points.</li>
+<li>Created a convenience tool, Feature Selection, for opening the feature selection 
+ tab within the attribute table dialog after selecting a vector layer. If the 
+ layer is not currently displayed, it will be. The reason I added this tool is 
+ because many people search for feature selection in the toolbox rather than 
+ in the attribute table dialog.</li>
+<li>The Hillshade tool will now automatically calculate an appropriate z conversion 
+ value when it detects that the DEM is in geographic coordinates with XY units 
+ of degrees. I also fixed the Slope, Aspect, and all the Curvature tools to do 
+ this as well.</li>
 </ul><]]>
             </Message>
         </Announcement>

@@ -108,10 +108,6 @@ public class FilterLasScanAngles implements ActionListener {
             String[] inputFiles = inputFileString.split(";")
 
 			// check for empty entries in the inputFiles array
-			int i = 0;
-			for (String inputFile : inputFiles) {
-				
-			}
 			numFiles = inputFiles.length
 			IntStream.range(0, numFiles).parallel().forEach{ 
 				performFilter(inputFiles[it], maxScanAngle) 

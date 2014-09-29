@@ -20,10 +20,11 @@ greatly increased performance.
 
 RELEASE NOTES:
 
-Version 3.2.1 ()
+Version 3.2.1 (September 18, 2014)
 -Added the Retrieve SRTM DEM Data tool. This tool will download SRTM DEM tiles from
  the USGS FTP site, import the tiles into Whitebox GAT, and optionally fill 
  missing data holes and mosaic the tiles.
+-Added the ability to natively display LAS file point clouds in the map area.
 -Added Hex-binning tool.
 -Added a tool for isolating ground return points from LiDAR LAS files.
 -Added a tool for separating large LiDAR LAS files into smaller tiles of 

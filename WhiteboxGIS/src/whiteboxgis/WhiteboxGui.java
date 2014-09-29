@@ -3985,7 +3985,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                                         });
                                         //mi.setActionCommand("editScript");
                                         pm.add(mi);
-                                        
+                                        pm.addSeparator();
                                         mi = new JMenuItem(bundle.getString("UpdateScript"));
                                         mi.addActionListener((ActionEvent e1) -> {
                                             String[] args = new String[1];
@@ -5161,6 +5161,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             mapinfo.setPageFormat(defaultPageFormat);
             mapinfo.setDefaultFont(defaultFont);
             mapinfo.setMargin(defaultMapMargin);
+            mapinfo.setPageVisible(isPageVisible);
 
             MapArea ma = new MapArea(bundle.getString("MapArea").replace(" ", "") + "1");
             ma.setUpperLeftX(-32768);
