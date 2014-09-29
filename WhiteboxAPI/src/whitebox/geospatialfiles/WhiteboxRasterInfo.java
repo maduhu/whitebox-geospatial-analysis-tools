@@ -19,6 +19,9 @@ package whitebox.geospatialfiles;
  
 
 /**
+ * NOTE: THIS CLASS IS NO LONGER RECOMMENDED. THE WHITEBOXRASTERBASE CLASS HAS BEEN MADE 
+ * NON-ABSTRACT. USE IT INSTEAD. THIS CLASS IS LEGACY ONLY.
+ * 
  * The WhiteboxRasterInfo is a lightweight alternative to the WhiteboxRaster class and can be
  * used to manipulate Whitebox GAT raster header files (.dep). If you need to read or write data
  * to the grid cells contained in the raster, you should use the WhiteboxRaster class instead.
@@ -30,7 +33,7 @@ public class WhiteboxRasterInfo extends WhiteboxRasterBase {
     // ************************
     // Fields
     // ************************
-    private boolean isDirty = false;
+    //private boolean isDirty = false;
 
     // ************************
     // Constructors
@@ -53,16 +56,16 @@ public class WhiteboxRasterInfo extends WhiteboxRasterBase {
         
     }
     
-    /**
-     * Used to perform closing functionality when a whiteboxRaster is no longer needed.
-     */
-    @Override
-    public void close() {
-        if (saveChanges) {
-            if (isDirty) {
-                writeHeaderFile();
-            }
-        }
-    }
+//    /**
+//     * Used to perform closing functionality when a whiteboxRaster is no longer needed.
+//     */
+//    @Override
+//    public void close() {
+//        if (saveChanges) {
+//            if (isDirty) {
+//                writeHeaderFile();
+//            }
+//        }
+//    }
 
 }

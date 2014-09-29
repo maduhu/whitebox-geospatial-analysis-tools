@@ -20,6 +20,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import whitebox.structures.BoundingBox;
 /**
  *
@@ -136,6 +137,26 @@ public class MultiPointM implements Geometry {
     @Override
     public double[][] getPoints() {
         return points;
+    }
+    
+    public ArrayList<Integer> getIndicesOfPointsInExtent(BoundingBox extent) {
+        ArrayList<Integer> whichAreInExtent = new ArrayList<>();
+        for (int i = 0; i < points.length; i++) {
+            if (extent.isPointInBox(points[i][0], points[i][1])) {
+                whichAreInExtent.add(i);
+            }
+        }
+        return whichAreInExtent;
+    }
+    
+    public int numberOfPointsInExtent(BoundingBox extent) {
+        int numPointsInExtent = 0;
+        for (int i = 0; i < points.length; i++) {
+            if (extent.isPointInBox(points[i][0], points[i][1])) {
+                numPointsInExtent++;
+            }
+        }
+        return numPointsInExtent;
     }
 
     @Override

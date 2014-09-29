@@ -246,17 +246,47 @@ public class BoundingBox implements Comparable<BoundingBox>, java.io.Serializabl
     
     public boolean isPointInBox(double x, double y) {
         if (isNull()) { return false; }
-        if (this.maxY < y || this.maxX < x || this.minY > y || this.minX > x) {
-            return false;
+        return !(this.maxY < y || this.maxX < x || this.minY > y || this.minX > x);
+    }
+    
+    public void expandTo(BoundingBox other) {
+        if (!isNull()) {
+            this.setMaxY((this.maxY >= other.getMaxY()) ? this.maxY : other.getMaxY()); 
+            this.setMaxX((this.maxX >= other.getMaxX()) ? this.maxX : other.getMaxX()); 
+            this.setMinY((this.minY <= other.getMinY()) ? this.minY : other.getMinY());
+            this.setMinX((this.minX <= other.getMinX()) ? this.minX : other.getMinX());
         } else {
-            return true;
+            this.setMaxY(other.getMaxY()); 
+            this.setMaxX(other.getMaxX()); 
+            this.setMinY(other.getMinY());
+            this.setMinX(other.getMinX());
+        }
+    }
+    
+    public void contractTo(BoundingBox other) {
+        if (!isNull()) {
+            this.setMaxY((this.maxY <= other.getMaxY()) ? this.maxY : other.getMaxY()); 
+            this.setMaxX((this.maxX <= other.getMaxX()) ? this.maxX : other.getMaxX()); 
+            this.setMinY((this.minY >= other.getMinY()) ? this.minY : other.getMinY());
+            this.setMinX((this.minX >= other.getMinX()) ? this.minX : other.getMinX());
+        } else {
+            this.setMaxY(other.getMaxY()); 
+            this.setMaxX(other.getMaxX()); 
+            this.setMinY(other.getMinY());
+            this.setMinX(other.getMinX());
         }
     }
     
     @Override
     public BoundingBox clone() {
-        BoundingBox db = new BoundingBox(minX, minY, maxX, maxY);
-        return db;
+        try {
+            //super.clone();
+            BoundingBox db = new BoundingBox(minX, minY, maxX, maxY);
+            return db;
+        } catch (Exception e) {
+            // do nothing
+            return null;
+        }
     }
     
     @Override
@@ -293,17 +323,18 @@ public class BoundingBox implements Comparable<BoundingBox>, java.io.Serializabl
     
     /**
      * Define equality of state.
+     * @param other BoundingBox for comparison.
      */
     @Override
-    public boolean equals(Object aThat) {
-        if (this == aThat) {
+    public boolean equals(Object other) {
+        if (this == other) {
             return true;
         }
-        if (!(aThat instanceof BoundingBox)) {
+        if (!(other instanceof BoundingBox)) {
             return false;
         }
 
-        BoundingBox that = (BoundingBox) aThat;
+        BoundingBox that = (BoundingBox) other;
         return (this.maxY == that.maxY)
                 && (this.maxX == that.maxX)
                 && (this.minY == that.minY)

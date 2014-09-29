@@ -1606,8 +1606,7 @@ public class VectorLayerInfo implements MapLayer {
             case POINT:
             case POINTZ:
             case POINTM:
-                double pointX,
-                 pointY;
+                double pointX, pointY;
                 double[][] points;
                 for (ShapeFileRecord record : recs) {
                     points = record.getGeometry().getPoints();
@@ -1622,7 +1621,24 @@ public class VectorLayerInfo implements MapLayer {
                 }
                 break;
 
-            // have to add something here for multipoints.
+            case MULTIPOINT:
+            case MULTIPOINTZ:
+            case MULTIPOINTM:
+                double x2, y2;
+                double[][] points2;
+                for (ShapeFileRecord record : recs) {
+                    points2 = record.getGeometry().getPoints();
+                    for (int i = 0; i < points2.length; i++) {
+                        x2 = points2[0][0];
+                        y2 = points2[0][1];
+                        dist = (x2 - x) * (x2 - x) + (y2 - y) * (y2 - y);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            newSelectedFeatureNum = record.getRecordNumber();
+                        }
+                    }
+                }
+                break;
         }
 
         if (newSelectedFeatureNum >= 0) {

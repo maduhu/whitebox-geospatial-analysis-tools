@@ -49,13 +49,31 @@ public class DialogDataInput extends JPanel implements ActionListener, DialogCom
         
             Border border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
             this.setBorder(border);
+            
             lbl = new JLabel(label);
-            this.add(lbl);
-            this.add(Box.createHorizontalStrut(5));
             text = new JTextField();
             if (numericalInputOnly) { text.setHorizontalAlignment(JTextField.RIGHT); }
             text.setText(initialText);
-            this.add(text);
+            
+            // if the label is short, place the input box beside it, but if it
+            // is long, place the box on the line below.
+                  
+            if (label.length() <= 20) { 
+                this.add(lbl);
+                this.add(Box.createHorizontalStrut(5));
+                this.add(text);
+            } else {
+                int desirableHeight = 50; //lbl.getPreferredSize().height + text.getPreferredSize().height + 5;
+                this.setMaximumSize(new Dimension(2500, desirableHeight));
+                this.setPreferredSize(new Dimension(350, desirableHeight));
+                Box box1 = Box.createVerticalBox();
+                Box box2 = Box.createHorizontalBox();
+                box2.add(lbl);
+                box2.add(Box.createHorizontalGlue());
+                box1.add(box2);
+                box1.add(text);
+                this.add(box1);
+            }
             this.setToolTipText(description);
             this.setToolTipText(description);
             text.setToolTipText(description);

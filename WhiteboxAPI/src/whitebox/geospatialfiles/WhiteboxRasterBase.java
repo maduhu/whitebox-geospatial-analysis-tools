@@ -23,12 +23,41 @@ import java.util.ArrayList;
 import whitebox.interfaces.Communicator;
 
 /**
- * The abstract base class serving the WhiteboxRaster and WhiteboxRasterInfo
+ * The base class serving the WhiteboxRaster and WhiteboxRasterInfo
  * subclasses.
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public abstract class WhiteboxRasterBase {
+public class WhiteboxRasterBase {
+    
+    // ***********************************
+    // Fields
+    // ***********************************
+    protected boolean isDirty = false;
+    
+    
+    // ***********************************
+    // Constructors
+    // ***********************************
+    public WhiteboxRasterBase()
+    {
+    }
+    
+    /**
+     * Class constructor. Notice that the data file name will also be set based on the
+     * specified header file name.
+     * @param HeaderFile The name of the WhiteboxRaster header file.
+     */
+    public WhiteboxRasterBase(String HeaderFile)
+    {
+        // set the header file and data file.
+        headerFile = HeaderFile;
+        dataFile = headerFile.replace(".dep", ".tas");
+        statsFile = headerFile.replace(".dep", ".wstat");
+        setFileAccess("rw");
+        readHeaderFile();
+        
+    }
 
     // ***********************************
     // Property getter and setter methods.
@@ -570,7 +599,7 @@ public abstract class WhiteboxRasterBase {
         }
     }
 
-    protected void setFileAccess(String value) {
+    protected final void setFileAccess(String value) {
         if (value.toLowerCase().contains("w")) {
             saveChanges = true;
         } else {
@@ -731,7 +760,7 @@ public abstract class WhiteboxRasterBase {
      * Reads the contents of the header file and fills the properties of the
      * Whitebox grid.
      */
-    protected void readHeaderFile() {
+    protected final void readHeaderFile() {
         DataInputStream in = null;
         BufferedReader br = null;
         boolean byteOrderRead = false;
@@ -1267,6 +1296,105 @@ public abstract class WhiteboxRasterBase {
             return retVals.clone();
         }
     }
+    
+    /**
+     * This method returns all of the pixel data contained in a raster as a double array.
+     * @return An array of doubles containing the values store in the specified.
+     */
+    public double[] getPixelValues() {
+        return getPixelValues(0);
+    }
+    
+    /**
+     * This method returns all of the pixel data contained in a raster for a
+     * specified stack as a double array.
+     * @param stack An int stating the zero-based stack in which the row is located.
+     * @return An array of doubles containing the values store in the specified.
+     */
+    public double[] getPixelValues(int stack) {
+        double[] retVals = new double[numberRows * numberColumns];
+        
+        RandomAccessFile rIn = null;
+        ByteBuffer buf = null;
+
+        try {
+
+            // See if the data file exists.
+            File file = new File(dataFile);
+            if (!file.exists()) {
+                return null;
+            }
+
+            // what is the starting and ending cell?
+            long startingCell = 0;
+            long endingCell = (long) numberRows * numberColumns - 1;
+            
+            int readLengthInCells = (int) (endingCell - startingCell + 1);
+            buf = ByteBuffer.allocate((int) (readLengthInCells * cellSizeInBytes));
+
+            rIn = new RandomAccessFile(dataFile, "r");
+
+            FileChannel inChannel = rIn.getChannel();
+
+            long numCellsPerStack = numberColumns * numberRows;
+            inChannel.position(startingCell * cellSizeInBytes + (numCellsPerStack * stack));
+            inChannel.read(buf);
+
+            // Check the byte order.
+            buf.order(byteOrder);
+
+            if (dataType == DataType.DOUBLE) { //.equals("double")) {
+                buf.rewind();
+                DoubleBuffer db = buf.asDoubleBuffer();
+                retVals = new double[readLengthInCells];
+                db.get(retVals);
+                db = null;
+                buf = null;
+            } else if (dataType == DataType.FLOAT) { //.equals("float")) {
+                buf.rewind();
+                FloatBuffer fb = buf.asFloatBuffer();
+                float[] fa = new float[readLengthInCells];
+                fb.get(fa);
+                fb = null;
+                buf = null;
+                retVals = new double[readLengthInCells];
+                for (int j = 0; j < readLengthInCells; j++) {
+                    retVals[j] = fa[j];
+                }
+                fa = null;
+            } else if (dataType == DataType.INTEGER) { //.equals("integer")) {
+                buf.rewind();
+                ShortBuffer ib = buf.asShortBuffer();
+                short[] ia = new short[readLengthInCells];
+                ib.get(ia);
+                ib = null;
+                buf = null;
+                retVals = new double[readLengthInCells];
+                for (int j = 0; j < readLengthInCells; j++) {
+                    retVals[j] = ia[j];
+                }
+                ia = null;
+            } else if (dataType == DataType.BYTE) { //.equals("byte")) {
+                buf.rewind();
+                retVals = new double[readLengthInCells];
+                for (int j = 0; j < readLengthInCells; j++) {
+                    retVals[j] = whitebox.utilities.Unsigned.getUnsignedByte(buf, j); //ba[j]);
+                }
+            }
+
+        } catch (IOException e) {
+            System.err.println("Caught exception: " + e.toString());
+            System.err.println(e.getStackTrace());
+        } finally {
+            if (rIn != null) {
+                try {
+                    rIn.close();
+                } catch (IOException e) {
+                }
+            }
+            return retVals.clone();
+        }
+    }
 
     /**
      * This is a lightweight method of setting individual pixel values. It
@@ -1754,5 +1882,11 @@ public abstract class WhiteboxRasterBase {
         }
     }
 
-    public abstract void close();
+    public void close() {
+        if (saveChanges) {
+            if (isDirty) {
+                writeHeaderFile();
+            }
+        }
+    }
 }
