@@ -61,7 +61,7 @@ public class LasLayerInfo implements MapLayer {
     private double displayMinValue = -32768.0;
     private double displayMaxValue = -32768.0;
     private Color fillColour = Color.red;
-    private float markerSize = 3.0f;
+    private float markerSize = 2.0f;
     private long numPointRecords = -1;
     private double[][] xyData;
     private double[] zData;
