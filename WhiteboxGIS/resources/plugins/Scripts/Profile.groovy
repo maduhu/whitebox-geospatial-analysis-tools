@@ -179,7 +179,7 @@ public class Profile implements ActionListener {
 			if (xyUnits == null || !xyUnits.toLowerCase().equals("not specified")) {
 				domainLabel = domainLabel + " (${xyUnits})"
 			}
-			String rangeLabel = "Elevation"
+			String rangeLabel = "Value"
 			String zUnits = surface.getZUnits()
 			if (zUnits == null || !zUnits.toLowerCase().equals("not specified")) {
 				rangeLabel = rangeLabel + " (${zUnits})"

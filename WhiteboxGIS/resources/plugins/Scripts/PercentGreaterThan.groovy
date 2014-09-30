@@ -36,18 +36,18 @@ import groovy.transform.CompileStatic
 // The following four variables are required for this 
 // script to be integrated into the tool tree panel. 
 // Comment them out if you want to remove the script.
-def name = "PickFromList"
-def descriptiveName = "Pick From List"
-def description = "Outputs the value from a raster stack specified by a position raster"
+def name = "PercentGreaterThan"
+def descriptiveName = "Percent Greater Than"
+def description = "Calculates the percentage of a raster stack that have cell values greater than an input"
 def toolboxes = ["OverlayTools"]
 
-public class PickFromList implements ActionListener {
+public class PercentGreaterThan implements ActionListener {
 	private WhiteboxPluginHost pluginHost
 	private ScriptDialog sd
 	private String descriptiveName
 	private String name
 	
-	public PickFromList(WhiteboxPluginHost pluginHost, 
+	public PercentGreaterThan(WhiteboxPluginHost pluginHost, 
 		String[] args, def name, def descriptiveName) {
 		this.pluginHost = pluginHost
 		this.name = name
@@ -73,7 +73,7 @@ public class PickFromList implements ActionListener {
 			sd.setSourceFile(scriptFile)
 			
 			// add some components to the dialog
-			sd.addDialogFile("Input position raster file", "Input Position Raster:", "open", "Raster Files (*.dep), DEP", true, false)
+			sd.addDialogFile("Input value raster file", "Input Value Raster:", "open", "Raster Files (*.dep), DEP", true, false)
 			sd.addDialogMultiFile("Select the input raster files", "Input Raster Files:", "Raster Files (*.dep), DEP")
 			sd.addDialogFile("Output raster file", "Output Raster File:", "save", "Raster Files (*.dep), DEP", true, false)
             
@@ -139,17 +139,21 @@ public class PickFromList implements ActionListener {
 
 				for (int col = 0; col < cols; col++) {
 					if (positionData[col] != nodata) {
-						try {
-							p = (int)positionData[col];
-							value = data[p][col];
-							if (value != nodataValues[p]) {
-								outData[col] = value;
+						int count = 0
+						boolean nodataOnStack = false
+						for (int i = 0; i < numRastersInList; i++) {
+							if (data[i][col] != nodataValues[i]) {
+								if (data[i][col] > positionData[col]) {
+									count++
+								}
 							} else {
-								outData[col] = nodata;
+								nodataOnStack = true
 							}
-						} catch (Exception e) {
-							pluginHost.showFeedback("The position raster does not appear to contain integer data");
-							return;
+						}
+						if (!nodataOnStack) {
+							outData[col] = 100f * count / numRastersInList;
+						} else {
+							outData[col] = nodata;
 						}
 					} else {
 						outData[col] = nodata;
@@ -216,5 +220,5 @@ public class PickFromList implements ActionListener {
 if (args == null) {
 	pluginHost.showFeedback("Plugin arguments not set.")
 } else {
-	def f = new PickFromList(pluginHost, args, name, descriptiveName)
+	def f = new PercentGreaterThan(pluginHost, args, name, descriptiveName)
 }

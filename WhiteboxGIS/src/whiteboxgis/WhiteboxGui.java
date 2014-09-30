@@ -327,7 +327,6 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             if (!ld.exists()) {
                 ld.mkdirs();
             }
-//            logDirectory = resourcesDirectory + "logs" + pathSep;
 
             // set up the logger
             int limit = 1000000; // 1 Mb

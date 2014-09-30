@@ -36,18 +36,18 @@ import groovy.transform.CompileStatic
 // The following four variables are required for this 
 // script to be integrated into the tool tree panel. 
 // Comment them out if you want to remove the script.
-def name = "PickFromList"
-def descriptiveName = "Pick From List"
-def description = "Outputs the value from a raster stack specified by a position raster"
+def name = "HighestPosition"
+def descriptiveName = "Highest Position"
+def description = "Identifies the stack position of the max value within a raster stack on a cell-by-cell basis"
 def toolboxes = ["OverlayTools"]
 
-public class PickFromList implements ActionListener {
+public class HighestPosition implements ActionListener {
 	private WhiteboxPluginHost pluginHost
 	private ScriptDialog sd
 	private String descriptiveName
 	private String name
 	
-	public PickFromList(WhiteboxPluginHost pluginHost, 
+	public HighestPosition(WhiteboxPluginHost pluginHost, 
 		String[] args, def name, def descriptiveName) {
 		this.pluginHost = pluginHost
 		this.name = name
@@ -73,7 +73,6 @@ public class PickFromList implements ActionListener {
 			sd.setSourceFile(scriptFile)
 			
 			// add some components to the dialog
-			sd.addDialogFile("Input position raster file", "Input Position Raster:", "open", "Raster Files (*.dep), DEP", true, false)
 			sd.addDialogMultiFile("Select the input raster files", "Input Raster Files:", "Raster Files (*.dep), DEP")
 			sd.addDialogFile("Output raster file", "Output Raster File:", "save", "Raster Files (*.dep), DEP", true, false)
             
@@ -91,19 +90,14 @@ public class PickFromList implements ActionListener {
 		try {
 			int progress, oldProgress, p;
 			double value;
-			if (args.length < 3) {
+			int rows, cols, index
+			if (args.length < 2) {
 				pluginHost.showFeedback("Incorrect number of arguments given to tool.")
 				return
 			}
 			
 			// the input file
-			String positionFileString = args[0]
-			WhiteboxRaster position = new WhiteboxRaster(positionFileString, "r")
-			double nodata = position.getNoDataValue()
-			int rows = position.getNumberRows()
-			int cols = position.getNumberColumns()
-			
-			String inputFileString = args[1]
+			String inputFileString = args[0]
 			String[] inputFiles = inputFileString.split(";")
 			int numRastersInList = inputFiles.length;
 			WhiteboxRasterBase[] rastersInList = new WhiteboxRasterBase[numRastersInList];
@@ -111,7 +105,10 @@ public class PickFromList implements ActionListener {
 			for (int i = 0; i < numRastersInList; i++) {
 				String fileName = inputFiles[i];
 				rastersInList[i] = new WhiteboxRasterBase(fileName);
-				if (rastersInList[i].getNumberRows() != rows ||
+				if (i == 0) {
+					rows = rastersInList[i].getNumberRows()
+			        cols = rastersInList[i].getNumberColumns()
+				} else if (rastersInList[i].getNumberRows() != rows ||
 			          rastersInList[i].getNumberColumns() != cols) {
 			    	pluginHost.showFeedback("The dimensions (rows and columns and extent) of each input raster must be identical.");
 			    	return;
@@ -119,38 +116,41 @@ public class PickFromList implements ActionListener {
 			    nodataValues[i] = rastersInList[i].getNoDataValue()
 			}
 			
+			double nodata = -32768.0
+			
 			// the output file
-			String outputFile = args[2]
+			String outputFile = args[1]
 			WhiteboxRaster output = new WhiteboxRaster(outputFile, "rw", 
   		  	     inputFiles[0], DataType.FLOAT, nodata);
   		  	output.setNoDataValue(nodata);
-  		  	output.setPreferredPalette(rastersInList[0].getPreferredPalette());
-			output.setDataScale(rastersInList[0].getDataScale());
+  		  	output.setPreferredPalette("qual.pal");
+			output.setDataScale(DataScale.CATEGORICAL);
 			
 			// perform the analysis
 			double[] positionData;
 			double[][] data = new double[numRastersInList][];
 			for (int row = 0; row < rows; row++) {
-				positionData = position.getRowValues(row);
-				double[] outData = new double[cols];
 				for (int i = 0; i < numRastersInList; i++) {
 					data[i] = rastersInList[i].getRowValues(row);
 				}
-
+				double[] outData = new double[cols];
 				for (int col = 0; col < cols; col++) {
-					if (positionData[col] != nodata) {
-						try {
-							p = (int)positionData[col];
-							value = data[p][col];
-							if (value != nodataValues[p]) {
-								outData[col] = value;
-							} else {
-								outData[col] = nodata;
+					value = Double.NEGATIVE_INFINITY
+					index = -1
+					boolean nodataOnStack = false
+					for (int i = 0; i < numRastersInList; i++) {
+						if (data[i][col] != nodataValues[i]) {
+							if (data[i][col] > value) {
+								value = data[i][col]
+								index = i
 							}
-						} catch (Exception e) {
-							pluginHost.showFeedback("The position raster does not appear to contain integer data");
-							return;
+						} else {
+							nodataOnStack = true
 						}
+					}
+
+					if (value != Double.NEGATIVE_INFINITY && !nodataOnStack) {
+						outData[col] = index;
 					} else {
 						outData[col] = nodata;
 					}
@@ -172,7 +172,6 @@ public class PickFromList implements ActionListener {
 				
 			}
 			
-			position.close()
 			for (int i = 0; i < numRastersInList; i++) {
 				rastersInList[i].close();
 			}
@@ -216,5 +215,5 @@ public class PickFromList implements ActionListener {
 if (args == null) {
 	pluginHost.showFeedback("Plugin arguments not set.")
 } else {
-	def f = new PickFromList(pluginHost, args, name, descriptiveName)
+	def f = new HighestPosition(pluginHost, args, name, descriptiveName)
 }
