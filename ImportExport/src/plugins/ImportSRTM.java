@@ -269,7 +269,7 @@ public class ImportSRTM implements WhiteboxPlugin, InteropPlugin {
                 tmp[0] = charArray[1];
                 tmp[1] = charArray[2];
                 double south = Double.parseDouble(new String(tmp));
-                if (charArray[0] == 'S') {
+                if (charArray[0] == 'S' || charArray[0] == 's') {
                     south = -south;
                 }
                 south = south - (0.5 * cellSize); // coordinate of ll cell edge
@@ -279,7 +279,7 @@ public class ImportSRTM implements WhiteboxPlugin, InteropPlugin {
                 tmp[1] = charArray[5];
                 tmp[2] = charArray[6];
                 double west = Double.parseDouble(new String(tmp));
-                if (charArray[3] == 'W') {
+                if (charArray[3] == 'W' || charArray[3] == 'w') {
                     west = -west;
                 }
                 west = west - (0.5 * cellSize); // coordinate of ll cell edge

@@ -292,6 +292,8 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
             WhiteboxRaster input = clump.run();
             input.isTemporaryFile = true;
             
+//            WhiteboxRaster input = new WhiteboxRaster(inputFile, "r");
+            
             int numRegions = (int)input.getMaximumValue() + 1;
             double[] zValues = new double[numRegions];
             
@@ -698,10 +700,12 @@ public class RasterToVectorPolygons implements WhiteboxPlugin {
         //args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGalt deps.shp";
         //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/landuse.dep";
         //args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp1.shp";
-        args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/STB-EOS_2012_CI_UTM17_30m_v2_clipped.dep";
+        //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/STB-EOS_2012_CI_UTM17_30m_v2_clipped.dep";
         //args[0] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp2.dep";
-        args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp1.shp";
-
+        //args[1] = "/Users/johnlindsay/Documents/Data/Beau's Data/tmp1.shp";
+        args[0] = "/Users/jlindsay/Documents/Data/Nile basin/watershed.dep";
+        args[1] = "/Users/jlindsay/Documents/Data/Nile basin/watershed.shp";
+        
         RasterToVectorPolygons rtvp = new RasterToVectorPolygons();
         rtvp.setArgs(args);
         rtvp.run();
