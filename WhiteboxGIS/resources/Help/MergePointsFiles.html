@@ -24,8 +24,8 @@
                 wd = pluginHost.getWorkingDirectory()<br>
                 # You may have multiple input files but they must<br>
                 # be separated by semicolons in the string.<br>
-                inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
-                outputFile = wd + "output.dep"<br>
+                inputFiles = wd + "input1.shp" + ";" + wd + "input2.shp" + ";" + wd + "input3.shp"<br>
+                outputFile = wd + "output.shp"<br>
                 args = [inputFiles, outputFile]<br>
                 pluginHost.runPlugin("MergePointsFiles", args, False)<br>
             </code>
@@ -36,8 +36,8 @@
                 def wd = pluginHost.getWorkingDirectory()<br>
                 // You may have multiple input files but they must<br>
                 // be separated by semicolons in the string.<br>
-                def inputFiles = wd + "input1.dep" + ";" + wd + "input2.dep" + ";" + wd + "input3.dep"<br>
-                def outputFile = wd + "output.dep"<br>
+                def inputFiles = wd + "input1.shp" + ";" + wd + "input2.shp" + ";" + wd + "input3.shp"<br>
+                def outputFile = wd + "output.shp"<br>
                 String[] args = [inputFiles, outputFile]<br>
                 pluginHost.runPlugin("MergePointsFiles", args, false)<br>
             </code>

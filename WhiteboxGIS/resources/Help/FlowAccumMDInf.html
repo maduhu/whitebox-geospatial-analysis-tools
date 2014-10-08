@@ -65,6 +65,41 @@ flow-accumulation image. The output raster is of the <i>float</i> data type and
   <li><a href="FlowTools.html">Other flow modelling tools</a></li>
   <li><a href="FillDepressions.html">Fill depressions</a></li>
 </ul>
+
+<h2 class="SeeAlso">Scripting:</h2>
+        <p>The following is an example of a Python script that uses this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                wd = pluginHost.getWorkingDirectory()<br>
+			 dem = wd + dem.dep"<br>
+			 upslope = wd + "fcc.dep"<br>
+			 streams = wd + "streams.dep"<br>
+			 localIn = wd + "localIn.dep"<br>
+			 expParameter = "1"<br>
+			 outType = "Specific catchment area (sca)" <br>
+			 logTrans = "false"<br>
+			 dispersThresh = "5000"<br>
+			 args = [dem, upslope, streams, localIn, expParameter, outType, logTrans, dispersThresh]<br>
+			 pluginHost.runPlugin("FlowAccumMDInf", args, False)<br>
+            </code>
+        </p>
+        <p>This is a Groovy script also using this tool:</p>
+        <p style="background-color: rgb(240,240,240)">
+            <code>
+                def wd = pluginHost.getWorkingDirectory()<br>
+			 def dem = wd + dem.dep"<br>
+			 def upslope = wd + "fcc.dep"<br>
+			 def streams = wd + "streams.dep"<br>
+			 def localIn = wd + "localIn.dep"<br>
+			 def expParameter = "1"<br>
+			 def outType = "Specific catchment area (sca)" <br>
+			 def logTrans = "false"<br>
+			 def dispersThresh = "5000"<br>
+			 String[] args = [dem, upslope, streams, localIn, expParameter, outType, logTrans, dispersThresh]<br>
+			 pluginHost.runPlugin("FlowAccumMDInf", args, false)<br>
+            </code>
+        </p>
+        
 <h2 class="SeeAlso">Credits:</h2>
 <ul>
   <li>Jan Seibert (2014) email: jan.seibert@geo.uzh.ch</li>

@@ -1046,7 +1046,7 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
             label.setPreferredSize(new Dimension(180, 24));
             valueFieldBox.add(label);
             valueFieldBox.add(Box.createHorizontalGlue());
-            String[] fields = {"Elevation (z)", "Intensity"}; //, "Class"};
+            String[] fields = {"Elevation (z)", "Intensity", "Class", "Scan Angle", "GPS Time"};
             valueFieldCombo = new JComboBox(fields);
             valueFieldCombo.addItemListener(il -> {
                 // If the fill criterion is different, we need to update the min and max values
@@ -1069,6 +1069,10 @@ public class LayerProperties extends JDialog implements ActionListener, Adjustme
                 valueFieldCombo.setSelectedItem("Intensity");
             } else if (fillCriterion.contains("class")) {
                 valueFieldCombo.setSelectedItem("Class");
+            } else if (fillCriterion.contains("scan")) {
+                valueFieldCombo.setSelectedItem("Scan Angle");
+            } else if (fillCriterion.contains("time")) {
+                valueFieldCombo.setSelectedItem("GPS Time");
             }
 
             ButtonGroup group = new ButtonGroup();

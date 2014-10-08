@@ -20,6 +20,31 @@ greatly increased performance.
 
 RELEASE NOTES:
 
+Version 3.2.2 ()
+-LAS files can now be rendered based on the Classification, Scan Angle, and GPS Time
+ in addition to Elevation and Intensity.
+-Added Conditional Evaluation tool (if-then-else statement).
+-Added a PickFromList tool, which outputs a raster with the value from a stack 
+ of rasters based on an input position raster.
+-Added LowestPosition, HighestPosition, PercentEqualTo, PercentGreaterThan, and 
+ PercentLessThan tools for working with raster stacks, i.e. lists of overlapping
+ raster images.
+-Added a tool to create histograms based on the elevations, intensity, and 
+ scan angles within a LiDAR (LAS) file. It will also output the percentiles of 
+ the distribution, e.g. 95th percentile of elevation.
+-Added the AddPointCoordinateToTable tool, which can be used to add the x-y 
+ coordinates of points within a Point type ShapeFile as fields within its 
+ attribute table.
+-Added a tool to filter the points in a LiDAR (LAS) file based on a threshold 
+ in the absolute scan angle.
+-The Merge Points Files tool was replaced with the more general Merge Shapefiles
+ tool, which works with any ShapeType.
+-Added the FileLowestHighestLocations tool, which will output vector points 
+ corresponding to the lowest and highest points in a raster.
+-Added ExtractRasterValuesAtPoints tool for extracting the cell values of each 
+ image in a raster stack corresponding to a set of vector points. Values are 
+ placed within the vector attribute table.
+
 Version 3.2.1 (September 18, 2014)
 -Added the Retrieve SRTM DEM Data tool. This tool will download SRTM DEM tiles from
  the USGS FTP site, import the tiles into Whitebox GAT, and optionally fill 

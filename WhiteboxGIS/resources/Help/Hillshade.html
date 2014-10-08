@@ -18,7 +18,12 @@ the elevation of the sun above the horizon, measured as an angle from 0 to 90
 degrees) and the <b>Z Conversion Factor</b>. The Z Conversion Factor is only 
 important when the vertical and horizontal units are not the same in the DEM. 
 When this is the case, the algorithm will multiply each elevation in the DEM by 
-the Z Conversion Factor.</p>
+the Z Conversion Factor. If the DEM is in a geographic coordinate system (latitude 
+and longitude), with XY units measured in degrees, an appropriate Z Conversion 
+Factor would be a value of approximately 0.000003, although this will vary 
+somewhat by latitude. If the XY units of the raster are set to degrees or the 
+projection set to geographic coordinates, the Hillshade tool will automatically 
+calculate an appropriate value for the Z Conversion Factor.</p>
 
 <h2>Algorithm Description</h2>
 <p>The tool uses the following formulation to estimate the hillshade value 
@@ -31,8 +36,9 @@ the Z Conversion Factor.</p>
    tan(s)<sup>2</sup><img src = "SYMB/RP.GIF" width = 4 height =10><sup><sup>0.5</sup></sup></center>
                         </td></tr></table></td></tr></table></td><td><table cellpadding = 0><tr><td><img src = "SYMB/LP.GIF" width = 4 height =20></td><td><table cellpadding = 0><tr><td><table cellpadding = 0><tr><td><center>sin(Alt)<br><img src = "SYMB/FR.GIF" height = 1 width =14><br>tan(s)</center></td></tr></table></td><td><font face="Symbol">-</font></td><td>cos(Alt)</td></tr></table></td><td>sin(Az <font face="Symbol">-</font> a)</td><td><img src = "SYMB/RP.GIF" width = 4 height =20></td></tr></table></td></tr></table></div>
 
-<p>Where s and a are the local slope and aspect respectively and Alt and Az are the solar altitude and azimuth respectively. Slope and aspect are calculated using Horn's (1981) 3rd-order finite difference method.</p>
-
+<p>Where s and a are the local slope and aspect respectively and Alt and Az are the solar 
+altitude and azimuth respectively. Slope and aspect are calculated using Horn's (1981) 3rd-order 
+finite difference method.</p>
 
 <h2 class="SeeAlso">See Also:</h2>
 <ul>
@@ -64,7 +70,7 @@ the Z Conversion Factor.</p>
                 def azimuth = "315"<br>
                 def altitude = "30.0"<br>
                 def zFactor = "1.0"<br>
-                String[] args = [demFile, outputFile, azimuth, altitude zFactor]<br>
+                String[] args = [demFile, outputFile, azimuth, altitude, zFactor]<br>
                 pluginHost.runPlugin("Hillshade", args, false)<br>
             </code>
         </p>

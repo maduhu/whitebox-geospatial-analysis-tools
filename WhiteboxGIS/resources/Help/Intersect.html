@@ -43,7 +43,7 @@
                 def wd = pluginHost.getWorkingDirectory()<br>
                 // You may have multiple input shapefiles but they must<br>
                 // be separated by semicolons in the string.<br>
-                def inputFiles = wd + "input1.shp" + ";" + wd + "input2.shp + ";" + wd + "input3.shp""<br>
+                def inputFiles = wd + "input1.shp" + ";" + wd + "input2.shp" + ";" + wd + "input3.shp"<br>
                 def outputFile = wd + "tmp1.shp"<br>
                 String[] args = [inputFiles, outputFile]<br>
                 pluginHost.runPlugin("Intersect", args, false)<br>
