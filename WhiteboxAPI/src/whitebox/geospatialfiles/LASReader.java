@@ -30,10 +30,11 @@ import whitebox.structures.BoundingBox;
 /**
  * This class is used to provide reading and writing capabilities with LAS LiDAR
  * files.
+ *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class LASReader {
-    
+
     // Fields
     private String fileName = "";
     private short versionMajor = 1;
@@ -68,12 +69,12 @@ public class LASReader {
     private PointRecord[] pointRecs;
     private PointRecColours[] pointColours;
     //private PointWavePacket[] pointWavePagetData;
-    
+
     // Constructors
     public LASReader() {
-        
+
     }
-    
+
     public LASReader(String fileName) {
         setFileName(fileName);
     }
@@ -92,7 +93,7 @@ public class LASReader {
     public int getFileSourceID() {
         return fileSourceID;
     }
-    
+
     public short getVersionMajor() {
         return versionMajor;
     }
@@ -104,7 +105,7 @@ public class LASReader {
     public ArrayList<VariableLengthRecord> getVariableLengthRecords() {
         return vlrArray;
     }
-    
+
     public byte getGPSTimeType() {
         return GPSTimeType;
     }
@@ -132,11 +133,11 @@ public class LASReader {
     public int getProjectID3() {
         return projectID3;
     }
-    
+
     public short[] getProjectID4() {
         return projectID4;
     }
-    
+
     public String getSystemIdentifer() {
         return systemIdentifer;
     }
@@ -144,7 +145,7 @@ public class LASReader {
     public String getGeneratingSoftware() {
         return generatingSoftware;
     }
-    
+
     public int getFileCreationDay() {
         return fileCreationDay;
     }
@@ -152,83 +153,83 @@ public class LASReader {
     public int getFileCreationYear() {
         return fileCreationYear;
     }
-    
+
     public int getHeaderSize() {
         return headerSize;
     }
-    
+
     public long getOffsetToPointData() {
         return offsetToPointData;
     }
-    
+
     public long getNumVLR() {
         return numVLR;
     }
-    
+
     public short getPointDataFormatID() {
         return pointDataFormatID;
     }
-    
+
     public int getPointDataRecLength() {
         return pointDataRecLength;
     }
-    
+
     public long getNumPointRecords() {
         return numPointRecords;
     }
-    
+
     public long[] getNumPointsByReturn() {
         return numPointsByReturn;
     }
-    
+
     public double getXScale() {
         return xScale;
     }
-    
+
     public double getYScale() {
         return yScale;
     }
-    
+
     public double getZScale() {
         return zScale;
     }
-    
+
     public double getXOffset() {
         return xOffset;
     }
-    
+
     public double getYOffset() {
         return yOffset;
     }
-    
+
     public double getZOffset() {
         return zOffset;
     }
-    
+
     public double getMaxX() {
         return maxX;
     }
-    
+
     public double getMinX() {
         return minX;
     }
-    
+
     public double getMaxY() {
         return maxY;
     }
-    
+
     public double getMinY() {
         return minY;
     }
-    
+
     public double getMaxZ() {
         return maxZ;
     }
-    
+
     public double getMinZ() {
         return minZ;
     }
-    
+
     // Methods
     public ArrayList<PointRecord> getPointRecordsInBoundingBox(BoundingBox bb) {
         double minXbb = bb.getMinX();
@@ -236,8 +237,37 @@ public class LASReader {
         double maxXbb = bb.getMaxX();
         double maxYbb = bb.getMaxY();
         double x, y;
-        
+
         ArrayList<PointRecord> ret = new ArrayList<>();
+        PointRecord rec;
+        try {
+            for (int i = 0; i < numPointRecords; i++) {
+                rec = getPointRecord(i);
+                if (rec != null) {
+                    x = rec.getX();
+                    y = rec.getY();
+                    if (maxYbb < y || maxXbb < x || minYbb > y || minXbb > x) {
+                        // do nothing it's outside the bounds
+                    } else {
+                        ret.add(rec);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return ret;
+    }
+
+    // Methods
+    public ArrayList<Integer> getPointRecordIndicesInBoundingBox(BoundingBox bb) {
+        double minXbb = bb.getMinX();
+        double minYbb = bb.getMinY();
+        double maxXbb = bb.getMaxX();
+        double maxYbb = bb.getMaxY();
+        double x, y;
+
+        ArrayList<Integer> ret = new ArrayList<>();
         PointRecord rec;
         for (int i = 0; i < numPointRecords; i++) {
             rec = getPointRecord(i);
@@ -246,12 +276,12 @@ public class LASReader {
             if (maxYbb < y || maxXbb < x || minYbb > y || minXbb > x) {
                 // do nothing it's outside the bounds
             } else {
-                ret.add(rec);
+                ret.add(i);
             }
         }
         return ret;
     }
-    
+
     public PointRecord getPointRecord(int i) {
         try {
             if (i < 0 || i > numPointRecords) {
@@ -265,7 +295,6 @@ public class LASReader {
                 readPointRecords();
             }
 
-
             int n = i - startingPoint;
 
             return pointRecs[n];
@@ -274,7 +303,7 @@ public class LASReader {
             return null;
         }
     }
-    
+
     public PointRecColours getPointRecordColours(int i) {
         try {
             if (i < 0 || i > numPointRecords) {
@@ -288,7 +317,6 @@ public class LASReader {
                 readPointRecColours();
             }
 
-
             int n = i - startingPoint;
 
             return pointColours[n];
@@ -297,7 +325,7 @@ public class LASReader {
             return null;
         }
     }
-    
+
     private void readPointRecords() {
         long pos = offsetToPointData + (long)startingPoint * (long)pointDataRecLength;
         int pos2 = 0;
@@ -308,7 +336,7 @@ public class LASReader {
         int x, y, z;
         RandomAccessFile rIn = null;
         ByteBuffer buf = null;
-        
+
         try {
 
             buf = ByteBuffer.allocate(bufferSize * pointDataRecLength);
@@ -322,7 +350,7 @@ public class LASReader {
 
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.rewind();
-            
+
             for (int i = 0; i < bufferSize; i++) {
                 pointRecs[i] = new PointRecord();
                 x = buf.getInt(pos2);
@@ -332,34 +360,34 @@ public class LASReader {
                 z = buf.getInt(pos2 + 8);
                 pointRecs[i].setZ((z * zScale) + zOffset);
                 pointRecs[i].setIntensity(Unsigned.getUnsignedShort(buf, pos2 + 12));
-                
+
                 // get the record number byte
                 returnNumberByte = buf.get(pos2 + 14);
                 b = 0;
                 for (int a = 0; a < 3; a++) {
                     if (BitOps.checkBit(returnNumberByte, a)) {
-                        b = BitOps.setBit(b, (byte)a);
+                        b = BitOps.setBit(b, (byte) a);
                     }
                 }
                 pointRecs[i].setReturnNumber(b);
-                
+
                 b = 0;
                 for (int a = 0; a < 3; a++) {
                     if (BitOps.checkBit(returnNumberByte, a + 3)) {
-                        b = BitOps.setBit(b, (byte)a);
+                        b = BitOps.setBit(b, (byte) a);
                     }
                 }
                 pointRecs[i].setNumberOfReturns(b);
-                
+
                 pointRecs[i].setScanDirectionFlag(BitOps.checkBit(returnNumberByte, 6));
                 pointRecs[i].setEdgeOfFlightLine(BitOps.checkBit(returnNumberByte, 7));
-                
+
                 // get the classification data
                 classificationByte = buf.get(pos2 + 15);
                 b = 0;
                 for (int a = 0; a < 5; a++) {
                     if (BitOps.checkBit(classificationByte, a)) {
-                        b = BitOps.setBit(b, (byte)a);
+                        b = BitOps.setBit(b, (byte) a);
                     }
                 }
                 pointRecs[i].setClassification(b);
@@ -369,15 +397,15 @@ public class LASReader {
                 pointRecs[i].setScanAngle(buf.get(pos2 + 16));
                 pointRecs[i].setUserData(Unsigned.getUnsignedByte(buf, pos2 + 17));
                 pointRecs[i].setPointSourceID(Unsigned.getUnsignedShort(buf, pos2 + 18));
-                
-                if (pointDataFormatID == 1 || pointDataFormatID == 3 || 
-                        pointDataFormatID == 4 || pointDataFormatID == 5) {
-                    pointRecs[i].setGPSTime(buf.getDouble(pos2 + 20));   
+
+                if (pointDataFormatID == 1 || pointDataFormatID == 3
+                        || pointDataFormatID == 4 || pointDataFormatID == 5) {
+                    pointRecs[i].setGPSTime(buf.getDouble(pos2 + 20));
                 }
-                
+
                 pos2 += pointDataRecLength;
             }
-            
+
         } catch (Exception e) {
             System.err.println(e);
         } finally {
@@ -389,7 +417,7 @@ public class LASReader {
             }
         }
     }
-    
+
     private void readPointRecColours() {
         if (pointDataFormatID == 2 || pointDataFormatID == 3 || pointDataFormatID == 5) {
             long pos = offsetToPointData + (long)startingPoint * (long)pointDataRecLength;
@@ -442,23 +470,23 @@ public class LASReader {
             }
         }
     }
-    
+
     public void setBufferSize(int i) {
         bufferSize = i;
         startingPoint = -1;
         endingPoint = -1;
-    
+
         // reinitialize the point record arrays.
         pointRecs = new PointRecord[0];
         pointColours = new PointRecColours[0];
     }
-    
+
     private boolean readHeaderData() {
         int pos;
-        
+
         RandomAccessFile rIn = null;
         ByteBuffer buf = null;
-        
+
         try {
 
             // See if the data file exists.
@@ -493,23 +521,23 @@ public class LASReader {
             fileSourceID = Unsigned.getUnsignedShort(buf);
 
             int globalEncoding = Unsigned.getUnsignedShort(buf, 6);
-            
+
             if (BitOps.checkBit(globalEncoding, 0)) {
                 GPSTimeType = 1;
             }
-            
+
             if (BitOps.checkBit(globalEncoding, 1)) {
                 waveDataPacketsInternal = 1;
             }
-            
+
             if (BitOps.checkBit(globalEncoding, 2)) {
                 waveDataPacketsExternal = 1;
             }
-            
+
             if (BitOps.checkBit(globalEncoding, 3)) {
                 retNumsSynthGenerated = 1;
             }
-            
+
             projectID1 = Unsigned.getUnsignedInt(buf, 8);
             projectID2 = Unsigned.getUnsignedShort(buf, 12);
             projectID3 = Unsigned.getUnsignedShort(buf, 14);
@@ -518,25 +546,25 @@ public class LASReader {
                 projectID4[a] = Unsigned.getUnsignedByte(buf, pos);
                 pos += 1;
             }
-            
+
             short[] tmp1 = new short[32];
             pos = 26;
             for (int a = 0; a < tmp1.length; a++) {
                 tmp1[a] = Unsigned.getUnsignedByte(buf, pos);
                 pos += 1;
             }
-            
+
             systemIdentifer = convertShortArrayToAscii(tmp1);
-            
+
             tmp1 = new short[32];
             pos = 58;
             for (int a = 0; a < tmp1.length; a++) {
                 tmp1[a] = Unsigned.getUnsignedByte(buf, pos);
                 pos += 1;
             }
-            
+
             generatingSoftware = convertShortArrayToAscii(tmp1);
-            
+
             versionMajor = Unsigned.getUnsignedByte(buf, 24);
             versionMinor = Unsigned.getUnsignedByte(buf, 25);
 
@@ -583,13 +611,13 @@ public class LASReader {
             }
         }
     }
-    
+
     private boolean readVariableLengthRecords() {
         int pos = headerSize;
         short[] tmp1;
         RandomAccessFile rIn = null;
         ByteBuffer buf = null;
-        
+
         try {
 
             // See if the data file exists.
@@ -598,7 +626,7 @@ public class LASReader {
                 return false;
             }
 
-            buf = ByteBuffer.allocate((int)offsetToPointData);
+            buf = ByteBuffer.allocate((int) offsetToPointData);
 
             rIn = new RandomAccessFile(fileName, "r");
 
@@ -609,13 +637,13 @@ public class LASReader {
 
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.rewind();
-            
+
             for (int a = 0; a < numVLR; a++) {
                 VariableLengthRecord vlr = new VariableLengthRecord();
                 /* Nothing is done with this reserved byt at the moment, but it 
                  * may be useful in future versions of the specification */
                 int reservedByte = Unsigned.getUnsignedShort(buf, pos);
-                
+
                 // UserID--16 byte ASCII field
                 tmp1 = new short[16];
                 int m = 2; // starts at pos + 2
@@ -623,18 +651,18 @@ public class LASReader {
                     tmp1[j] = Unsigned.getUnsignedByte(buf, pos + m);
                     m++;
                 }
-                
+
                 String userID = convertShortArrayToAscii(tmp1);
                 vlr.setUserID(userID);
-                
+
                 // RecordID--starts at pos + 18
                 //int i = Unsigned.getUnsignedShort(buf, pos + 18);
                 vlr.setRecordID(Unsigned.getUnsignedShort(buf, pos + 18));
-                
+
                 // RecordLengthAfterHeader--starts at pos + 20
                 //int k = Unsigned.getUnsignedShort(buf, pos + 20);
                 vlr.setRecordLengthAfterHeader(Unsigned.getUnsignedShort(buf, pos + 20));
-                
+
                 // Description--32 byte ASCII field starting at pos + 22
                 tmp1 = new short[32];
                 m = 22;
@@ -644,24 +672,24 @@ public class LASReader {
                 }
                 String description = convertShortArrayToAscii(tmp1);
                 vlr.setDescription(description);
-                
+
                 // Read the raw data contained in the vlr
                 byte[] rawData = new byte[vlr.getRecordLengthAfterHeader()];
                 buf.position(pos + 54);
                 buf.get(rawData);
                 vlr.setRawData(rawData);
-                
+
                 tmp1 = new short[rawData.length];
                 for (int j = 0; j < tmp1.length; j++) {
                     tmp1[j] = Unsigned.getUnsignedByte(rawData[j]);
                 }
-                
+
                 String data = convertShortArrayToAscii(tmp1);
-                String decoded = new String(rawData, "ASCII"); 
+                String decoded = new String(rawData, "ASCII");
                 vlr.setFormatedData(data);
-                
+
                 vlrArray.add(vlr);
-                
+
                 pos += 54 + vlr.getRecordLengthAfterHeader();
             }
             return true;
@@ -676,17 +704,17 @@ public class LASReader {
             }
         }
     }
-    
+
     private String convertShortArrayToAscii(short[] array) {
         String str = "";
         char[] charArray = new char[array.length];
-        
+
         for (int a = 0; a < array.length; a++) {
             switch (array[a]) {
                 case 0:
                     charArray[a] = " ".charAt(0);
                     break;
-                    
+
                 case 32:
                     charArray[a] = " ".charAt(0);
                     break;
@@ -972,80 +1000,82 @@ public class LASReader {
                 case 126:
                     charArray[a] = "~".charAt(0);
                     break;
-                
+
                 default:
                     charArray[a] = " ".charAt(0);
                     break;
-                
+
             }
         }
         str = String.valueOf(charArray);
         return str;
     }
-    
-    
+
     // related classes
     public class VariableLengthRecord {
+
         // fields
+
         String userID;
         int recordID;
         int recordLengthAfterHeader;
         String description;
         String data;
-        
+
         byte[] rawData;
-        
+
         // property getters and setters
         public String getUserID() {
             return userID;
         }
-        
+
         public void setUserID(String userID) {
             this.userID = userID;
         }
-        
+
         public int getRecordID() {
             return recordID;
         }
-        
+
         public void setRecordID(int recordID) {
             this.recordID = recordID;
         }
-        
+
         public int getRecordLengthAfterHeader() {
             return recordLengthAfterHeader;
         }
-        
+
         public void setRecordLengthAfterHeader(int recordLengthAfterHeader) {
             this.recordLengthAfterHeader = recordLengthAfterHeader;
         }
-        
+
         public String getDescription() {
             return description;
         }
-        
+
         public void setDescription(String description) {
             this.description = description;
         }
-        
+
         public byte[] getRawData() {
             return rawData;
         }
-        
+
         public void setRawData(byte[] rawData) {
             this.rawData = rawData;
         }
-        
+
         public void setFormatedData(String data) {
             this.data = data;
         }
-        
+
         public String getFormatedData() {
             return this.data;
         }
     }
-    
+
     public class PointRecord {
+
         private double x; //8 bytes
         private double y; //8 bytes
         private double z; //8 bytes
@@ -1062,166 +1092,167 @@ public class LASReader {
         private short userData; //2 bytes
         private int pointSourceID; //4 bytes
         private double GPSTime = -1; //8 bytes
-        
+
         public double getX() {
             return x;
         }
-        
+
         public void setX(double x) {
             this.x = x;
         }
-        
+
         public double getY() {
             return y;
         }
-        
+
         public void setY(double y) {
             this.y = y;
         }
-        
+
         public double getZ() {
             return z;
         }
-        
+
         public void setZ(double z) {
             this.z = z;
         }
-        
+
         public int getIntensity() {
             return intensity;
         }
-        
+
         public void setIntensity(int i) {
             this.intensity = i;
         }
-        
+
         public byte getClassification() {
             return classification;
         }
-        
+
         public void setClassification(byte i) {
             this.classification = i;
         }
-        
+
         public byte getReturnNumber() {
             return returnNumber;
         }
-        
+
         public void setReturnNumber(byte n) {
             this.returnNumber = n;
         }
-        
+
         public byte getNumberOfReturns() {
             return numberOfReturns;
         }
-        
+
         public void setNumberOfReturns(byte n) {
             numberOfReturns = n;
         }
-        
+
         public boolean getScanDirectionFlag() {
             return scanDirectionFlag;
         }
-        
+
         public void setScanDirectionFlag(boolean val) {
             scanDirectionFlag = val;
         }
-        
+
         public boolean isEdgeOfFlightLine() {
             return edgeOfFlightLine;
         }
-        
+
         public void setEdgeOfFlightLine(boolean val) {
             edgeOfFlightLine = val;
         }
-        
+
         public boolean isSynthetic() {
             return synthetic;
         }
-        
+
         public void setSynthetic(boolean val) {
             synthetic = val;
         }
-        
+
         public boolean isKeyPoint() {
             return keyPoint;
         }
-        
+
         public void setKeyPoint(boolean val) {
             keyPoint = val;
         }
-        
+
         public boolean isPointWithheld() {
             return pointWithheld;
         }
-        
+
         public void setPointWithheld(boolean val) {
             pointWithheld = val;
         }
-        
+
         public byte getScanAngle() {
             return scanAngle;
         }
-        
+
         public void setScanAngle(byte a) {
             scanAngle = a;
         }
-        
+
         public short getUserData() {
             return userData;
         }
-        
+
         public void setUserData(short d) {
             userData = d;
         }
-        
+
         public int getPointSourceID() {
             return pointSourceID;
         }
-        
+
         public void setPointSourceID(int id) {
             pointSourceID = id;
         }
-        
+
         public double getGPSTime() {
             return GPSTime;
         }
-        
+
         public void setGPSTime(double t) {
             GPSTime = t;
         }
     }
-    
+
     public class PointRecColours {
+
         private int red = -1; //2 bytes
         private int green = -1; //2 bytes
         private int blue = -1; //2 bytes
-        
+
         public int getRed() {
             return red;
         }
-        
+
         public void setRed(int r) {
             red = r;
         }
-        
+
         public int getGreen() {
             return green;
         }
-        
+
         public void setGreen(int g) {
             green = g;
         }
-        
+
         public int getBlue() {
             return blue;
         }
-        
+
         public void setBlue(int b) {
             blue = b;
         }
     }
-    
+
 //    public class PointRecord {
 //        private double x; //8 bytes
 //        private double y; //8 bytes
@@ -1251,7 +1282,6 @@ public class LASReader {
 //            this.x = x;
 //        }
 //    }
-    
 //    // This is used for debugging.
 //    public static void main(String[] args) {
 //        int i = 0;
