@@ -26,7 +26,6 @@ import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
-import java.util.Arrays;
 import whitebox.interfaces.MapLayer;
 import whitebox.structures.BoundingBox;
 import whitebox.structures.BooleanBitArray1D;
@@ -61,11 +60,13 @@ public class LasLayerInfo implements MapLayer {
     private double displayMinValue = -32768.0;
     private double displayMaxValue = -32768.0;
     private Color fillColour = Color.red;
-    private float markerSize = 2.0f;
+    private float markerSize = 2.5f;
     private long numPointRecords = -1;
     private double[][] xyData;
     private double[] zData;
     private int[] intensityData;
+    private byte[] scanAngleData;
+    private double[] gpsTimeData;
     private byte[] classData;
     private byte fillCriterion = 0; // z value
     private int numPaletteEntries = 0;
@@ -215,8 +216,12 @@ public class LasLayerInfo implements MapLayer {
                 return "z-value";
             case 1:
                 return "intensity";
-            default:
+            case 2:
                 return "class";
+            case 3:
+                return "scan angle";
+            default:
+                return "gps time";
         }
     }
 
@@ -232,6 +237,13 @@ public class LasLayerInfo implements MapLayer {
             //readPalette();
         } else if (value.toLowerCase().contains("class")) {
             fillCriterion = 2; // classification
+            paletteFile = paletteDirectory + "qual.pal";
+        } else if (value.toLowerCase().contains("scan")) {
+            fillCriterion = 3; // scan angle
+            paletteFile = paletteDirectory + "blue_red.pal";
+        } else if (value.toLowerCase().contains("time")) {
+            fillCriterion = 4; // gps time
+            paletteFile = paletteDirectory + "spectrum.pal";
         }
         setRecordsColourData();
     }
@@ -274,7 +286,7 @@ public class LasLayerInfo implements MapLayer {
                 }
 
             }
-        } else if (criterion.toLowerCase().contains("i")) {
+        } else if (criterion.toLowerCase().contains("intensity")) {
             fillCriterion = 1; // intensity
             if (intensityData == null) {
                 readIntensityData();
@@ -323,6 +335,121 @@ public class LasLayerInfo implements MapLayer {
 
         } else if (criterion.toLowerCase().contains("class")) {
             fillCriterion = 2; // classification
+            if (classData == null) {
+                readClassData();
+            } else {
+
+                byte minClass = Byte.MAX_VALUE;
+                byte maxClass = Byte.MIN_VALUE;
+                for (int i = 0; i < classData.length; i++) {
+                    byte classVal = classData[i];
+                    if (classVal < minClass) {
+                        minClass = classVal;
+                    }
+                    if (classVal > maxClass) {
+                        maxClass = classVal;
+                    }
+                }
+                minimumValue = minClass;
+                maximumValue = maxClass;
+                displayMinValue = minimumValue;
+                displayMaxValue = maximumValue;
+            }
+        } else if (criterion.toLowerCase().contains("scan")) {
+            fillCriterion = 3; // scan angle
+            if (scanAngleData == null) {
+                readScanAngleData();
+            } else {
+
+                byte minScanAngle = Byte.MAX_VALUE;
+                byte maxScanAngle = Byte.MIN_VALUE;
+                for (int i = 0; i < scanAngleData.length; i++) {
+                    byte scanAngle = scanAngleData[i];
+                    if (scanAngle < minScanAngle) {
+                        minScanAngle = scanAngle;
+                    }
+                    if (scanAngle > maxScanAngle) {
+                        maxScanAngle = scanAngle;
+                    }
+                }
+                minimumValue = minScanAngle;
+                maximumValue = maxScanAngle;
+
+                int range = (int) (maximumValue - minimumValue) + 1;
+                histo = new int[range];
+                binSize = 1;
+                int min = (int) minimumValue;
+                for (int i = 0; i < numPointRecords; i++) {
+                    histo[scanAngleData[i] - min]++;
+                }
+                int onePercent = (int) (numPointRecords * 0.01);
+                int sum = 0;
+                for (int i = 0; i < histo.length; i++) {
+                    sum += histo[i];
+                    if (sum >= onePercent) {
+                        displayMinValue = i + min;
+                        break;
+                    }
+                }
+
+                sum = 0;
+                for (int i = histo.length - 1; i >= 0; i--) {
+                    sum += histo[i];
+                    if (sum >= onePercent) {
+                        displayMaxValue = i + min;
+                        break;
+                    }
+                }
+            }
+        } else if (criterion.toLowerCase().contains("time")) {
+            fillCriterion = 4; // gps time
+            if (gpsTimeData == null) {
+                readGpsTimeData();
+            } else {
+
+                double minGpsTime = Double.MAX_VALUE;
+                double maxGpsTime = Double.MIN_VALUE;
+                for (int i = 0; i < gpsTimeData.length; i++) {
+                    double gpsTime = gpsTimeData[i];
+                    if (gpsTime < minGpsTime) {
+                        minGpsTime = gpsTime;
+                    }
+                    if (gpsTime > maxGpsTime) {
+                        maxGpsTime = gpsTime;
+                    }
+                }
+                minimumValue = minGpsTime;
+                maximumValue = maxGpsTime;
+                displayMinValue = minimumValue;
+                displayMaxValue = maximumValue;
+
+//                int range = (int) (maximumValue - minimumValue) + 1;
+//                histo = new int[range];
+//                binSize = 1;
+//                int min = (int) minimumValue;
+//                for (int i = 0; i < numPointRecords; i++) {
+//                    int bin = (int)(gpsTimeData[i] - min);
+//                    histo[bin]++;
+//                }
+//                int onePercent = (int) (numPointRecords * 0.01);
+//                int sum = 0;
+//                for (int i = 0; i < histo.length; i++) {
+//                    sum += histo[i];
+//                    if (sum >= onePercent) {
+//                        displayMinValue = i + min;
+//                        break;
+//                    }
+//                }
+//
+//                sum = 0;
+//                for (int i = histo.length - 1; i >= 0; i--) {
+//                    sum += histo[i];
+//                    if (sum >= onePercent) {
+//                        displayMaxValue = i + min;
+//                        break;
+//                    }
+//                }
+            }
         }
     }
 
@@ -675,6 +802,111 @@ public class LasLayerInfo implements MapLayer {
 
     }
 
+    private void readScanAngleData() {
+        byte scanAngle;
+        byte minScanAngle = Byte.MAX_VALUE;
+        byte maxScanAngle = Byte.MIN_VALUE;
+        scanAngleData = new byte[(int) numPointRecords];
+        PointRecord rec;
+        for (int i = 0; i < numPointRecords; i++) {
+            rec = lasFile.getPointRecord(i);
+            if (!rec.isPointWithheld()) {
+                scanAngle = rec.getScanAngle();
+                scanAngleData[i] = scanAngle;
+                if (scanAngle < minScanAngle) {
+                    minScanAngle = scanAngle;
+                }
+                if (scanAngle > maxScanAngle) {
+                    maxScanAngle = scanAngle;
+                }
+            }
+        }
+
+        minimumValue = minScanAngle;
+        maximumValue = maxScanAngle;
+
+        int range = (int) (maximumValue - minimumValue) + 1;
+        histo = new int[range];
+        binSize = 1;
+        int min = (int) minimumValue;
+        for (int i = 0; i < numPointRecords; i++) {
+            histo[scanAngleData[i] - min]++;
+        }
+        int onePercent = (int) (numPointRecords * 0.01);
+        int sum = 0;
+        for (int i = 0; i < histo.length; i++) {
+            sum += histo[i];
+            if (sum >= onePercent) {
+                displayMinValue = i + min;
+                break;
+            }
+        }
+
+        sum = 0;
+        for (int i = histo.length - 1; i >= 0; i--) {
+            sum += histo[i];
+            if (sum >= onePercent) {
+                displayMaxValue = i + min;
+                break;
+            }
+        }
+
+    }
+
+    private void readGpsTimeData() {
+        double gpsTime;
+        double minGpsTime = Double.MAX_VALUE;
+        double maxGpsTime = Double.MIN_VALUE;
+        gpsTimeData = new double[(int) numPointRecords];
+        PointRecord rec;
+        for (int i = 0; i < numPointRecords; i++) {
+            rec = lasFile.getPointRecord(i);
+            if (!rec.isPointWithheld()) {
+                gpsTime = rec.getGPSTime();
+                gpsTimeData[i] = gpsTime;
+                if (gpsTime < minGpsTime) {
+                    minGpsTime = gpsTime;
+                }
+                if (gpsTime > maxGpsTime) {
+                    maxGpsTime = gpsTime;
+                }
+            }
+        }
+
+        minimumValue = minGpsTime;
+        maximumValue = maxGpsTime;
+        displayMinValue = minimumValue;
+        displayMaxValue = maximumValue;
+
+//        int range = (int) (maximumValue - minimumValue) + 1;
+//        histo = new int[range];
+//        binSize = 1;
+//        int bin;
+//        int min = (int) minimumValue;
+//        for (int i = 0; i < numPointRecords; i++) {
+//            bin = (int) ((gpsTimeData[i] - minimumValue) / binSize);
+//            histo[bin]++;
+//        }
+//        int onePercent = (int) (numPointRecords * 0.01);
+//        int sum = 0;
+//        for (int i = 0; i < histo.length; i++) {
+//            sum += histo[i];
+//            if (sum >= onePercent) {
+//                displayMinValue = i + min;
+//                break;
+//            }
+//        }
+//
+//        sum = 0;
+//        for (int i = histo.length - 1; i >= 0; i--) {
+//            sum += histo[i];
+//            if (sum >= onePercent) {
+//                displayMaxValue = i + min;
+//                break;
+//            }
+//        }
+    }
+
     public void clipLowerTailForDisplayMinimum(double percent) {
         int target = (int) (numPointRecords * percent / 100d);
         int sum = 0;
@@ -702,12 +934,27 @@ public class LasLayerInfo implements MapLayer {
     private void readClassData() {
         classData = new byte[(int) numPointRecords];
         PointRecord rec;
+        byte minClass = Byte.MAX_VALUE;
+        byte maxClass = Byte.MIN_VALUE;
+
         for (int i = 0; i < numPointRecords; i++) {
             rec = lasFile.getPointRecord(i);
             if (!rec.isPointWithheld()) {
                 classData[i] = rec.getClassification();
+                byte classVal = classData[i];
+                if (classVal < minClass) {
+                    minClass = classVal;
+                }
+                if (classVal > maxClass) {
+                    maxClass = classVal;
+                }
             }
         }
+
+        minimumValue = minClass;
+        maximumValue = maxClass;
+        displayMinValue = minimumValue;
+        displayMaxValue = maximumValue;
     }
 
     int maxNumDisplayedPoints = 50000;
@@ -858,15 +1105,34 @@ public class LasLayerInfo implements MapLayer {
 //                        clr = new Color(paletteData[entryNum]);
 //                        colourData[i] = new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), a1);
 //                    }
-
                     break;
                 case 2: // classification
                     if (classData == null) {
                         readClassData();
                     }
-
+                    IntStream.range(0, (int) numPointRecords - 1).parallel().forEach(i
+                            -> colourData[i] = getColourFromClass(i));
                     break;
 
+                case 3: // scan angle
+                    if (scanAngleData == null) {
+                        readScanAngleData();
+                    }
+                    range = displayMaxValue - displayMinValue;
+
+                    IntStream.range(0, (int) numPointRecords - 1).parallel().forEach(i
+                            -> colourData[i] = getColourFromScanAngle(i, range));
+                    break;
+
+                case 4: // GPS Time
+                    if (gpsTimeData == null) {
+                        readGpsTimeData();
+                    }
+                    range = displayMaxValue - displayMinValue;
+
+                    IntStream.range(0, (int) numPointRecords - 1).parallel().forEach(i
+                            -> colourData[i] = getColourFromGpsTime(i, range));
+                    break;
             }
         }
     }
@@ -889,6 +1155,51 @@ public class LasLayerInfo implements MapLayer {
     private Color getColourFromIntensity(int i, double range) {
         int entryNum;
         double value = intensityData[i];
+        entryNum = (int) ((value - displayMinValue) / range * (numPaletteEntries - 1));
+
+        if (entryNum < 0) {
+            entryNum = 0;
+        }
+        if (entryNum > numPaletteEntries - 1) {
+            entryNum = numPaletteEntries - 1;
+        }
+        Color clr = new Color(paletteData[entryNum]);
+        return new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), alpha);
+    }
+    
+    private Color getColourFromClass(int i) {
+        int entryNum;
+        double value = classData[i];
+        entryNum = (int) (value - displayMinValue);
+
+        if (entryNum < 0) {
+            entryNum = 0;
+        }
+        if (entryNum > numPaletteEntries - 1) {
+            entryNum = numPaletteEntries - 1;
+        }
+        Color clr = new Color(paletteData[entryNum]);
+        return new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), alpha);
+    }
+
+    private Color getColourFromScanAngle(int i, double range) {
+        int entryNum;
+        double value = scanAngleData[i];
+        entryNum = (int) ((value - displayMinValue) / range * (numPaletteEntries - 1));
+
+        if (entryNum < 0) {
+            entryNum = 0;
+        }
+        if (entryNum > numPaletteEntries - 1) {
+            entryNum = numPaletteEntries - 1;
+        }
+        Color clr = new Color(paletteData[entryNum]);
+        return new Color(clr.getRed(), clr.getGreen(), clr.getBlue(), alpha);
+    }
+
+    private Color getColourFromGpsTime(int i, double range) {
+        int entryNum;
+        double value = gpsTimeData[i];
         entryNum = (int) ((value - displayMinValue) / range * (numPaletteEntries - 1));
 
         if (entryNum < 0) {
