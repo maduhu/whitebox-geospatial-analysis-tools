@@ -93,7 +93,6 @@ public class DeleteSmallLakesAndExtendRivers implements ActionListener {
         try {
             int i, progress, oldProgress
             double x, y
-            ShapefileRecordData recordData;
             int[] parts = [0];
             GeometryFactory factory = new GeometryFactory()
             CoordinateArraySequence coordArray
