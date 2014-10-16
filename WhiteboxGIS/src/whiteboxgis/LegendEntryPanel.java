@@ -337,6 +337,14 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
                     titleLabel.setForeground(textForeground);
                     this.setBackground(textBackground);
                 }
+            } else if (mapLayer.getLayerType() == MapLayerType.LAS) {
+                if (selected) {
+                    titleLabel.setForeground(selectionForeground);
+                    this.setBackground(selectionBackground);
+                } else {
+                    titleLabel.setForeground(textForeground);
+                    this.setBackground(textBackground);
+                }
             }
             this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             Box leftMarginBox = Box.createHorizontalBox();

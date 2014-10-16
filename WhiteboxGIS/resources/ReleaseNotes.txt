@@ -44,6 +44,9 @@ Version 3.2.2 ()
 -Added ExtractRasterValuesAtPoints tool for extracting the cell values of each 
  image in a raster stack corresponding to a set of vector points. Values are 
  placed within the vector attribute table.
+-Added DeleteSmallLakesAndExtendRivers tool, which can be used to remove small 
+ lakes in a vector drainage network and to extend the associated river network
+ into the interior of the lake.
 
 Version 3.2.1 (September 18, 2014)
 -Added the Retrieve SRTM DEM Data tool. This tool will download SRTM DEM tiles from

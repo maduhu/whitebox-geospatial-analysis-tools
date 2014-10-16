@@ -808,6 +808,11 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                             // now retreive the name
                             String[] str2 = strLine.split("=");
                             name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.startsWith("toolName = \"") && name.isEmpty()) {
+                            containsName = true;
+                            // now retreive the name
+                            String[] str2 = strLine.split("=");
+                            name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
                         } else if (strLine.startsWith("descriptiveName = \"")) {
                             containsDescriptiveName = true;
                             String[] str2 = strLine.split("=");
@@ -935,26 +940,35 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 while ((strLine = br.readLine()) != null
                         && (!containsName || !containsDescriptiveName
                         || !containsDescription || !containsToolboxes)) {
-                    if (strLine.contains("name = \"") && name.isEmpty()
-                            && !strLine.toLowerCase().contains("descriptivename")) {
-                        containsName = true;
-                        // now retreive the name
-                        String[] str2 = strLine.split("=");
-                        name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("descriptivename = \"")) {
-                        containsDescriptiveName = true;
-                        String[] str2 = strLine.split("=");
-                        descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("description = \"")) {
-                        containsDescription = true;
-                        String[] str2 = strLine.split("=");
-                        description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
-                    } else if (strLine.toLowerCase().contains("toolboxes = [\"")) {
-                        containsToolboxes = true;
-                        String[] str2 = strLine.split("=");
-                        toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
-                        for (int i = 0; i < toolboxes.length; i++) {
-                            toolboxes[i] = toolboxes[i].trim();
+                    strLine = strLine.replace(";", "");
+                    if (!strLine.startsWith("//")) {
+                        if (strLine.contains("name = \"") && name.isEmpty()
+                                && !strLine.toLowerCase().contains("descriptivename")
+                                && !strLine.toLowerCase().contains("toolname")) {
+                            containsName = true;
+                            // now retreive the name
+                            String[] str2 = strLine.split("=");
+                            name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("toolname = \"") && name.isEmpty()) {
+                                containsName = true;
+                                // now retreive the name
+                                String[] str2 = strLine.split("=");
+                                name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("descriptivename = \"")) {
+                            containsDescriptiveName = true;
+                            String[] str2 = strLine.split("=");
+                            descriptiveName = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("description = \"")) {
+                            containsDescription = true;
+                            String[] str2 = strLine.split("=");
+                            description = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("toolboxes = [\"")) {
+                            containsToolboxes = true;
+                            String[] str2 = strLine.split("=");
+                            toolboxes = str2[str2.length - 1].replace("\"", "").replace("\'", "").replace("[", "").replace("]", "").trim().split(",");
+                            for (int i = 0; i < toolboxes.length; i++) {
+                                toolboxes[i] = toolboxes[i].trim();
+                            }
                         }
                     }
                 }
@@ -1020,10 +1034,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                         || !containsExtensions || !containsFileTypeName
                         || !containsIsRasterFormat || !containsPluginType
                         || containsParentMenu || !containsMenuLabel)) {
+                    strLine = strLine.replace(";", "");
                     if (!strLine.startsWith("//")) {
                         if (strLine.contains("name = \"") && name.isEmpty()
                                 && !strLine.toLowerCase().contains("descriptivename")
                                 && !strLine.toLowerCase().contains("filetypename")) {
+                            containsName = true;
+                            // now retreive the name
+                            String[] str2 = strLine.split("=");
+                            name = str2[str2.length - 1].replace("\"", "").replace("\'", "").trim();
+                        } else if (strLine.toLowerCase().contains("toolname = \"") && name.isEmpty()) {
                             containsName = true;
                             // now retreive the name
                             String[] str2 = strLine.split("=");
@@ -1750,6 +1770,16 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             return null;
         }
         return ma.getActiveLayer();
+    }
+    
+    @Override 
+    public void setActiveMapLayer(int layerNumber) {
+        selectedMapAndLayer[1] = layerNumber;
+        MapArea ma = openMaps.get(activeMap).getActiveMapArea();
+        if (layerNumber <= ma.getNumLayers()) {
+            ma.setActiveLayer(layerNumber);
+        }
+        refreshMap(true);
     }
 
     @Override
