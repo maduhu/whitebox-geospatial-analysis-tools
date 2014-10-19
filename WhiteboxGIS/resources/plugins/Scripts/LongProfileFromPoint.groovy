@@ -30,6 +30,7 @@ import whitebox.geospatialfiles.ShapeFile
 import whitebox.geospatialfiles.shapefile.*
 import whitebox.ui.plugin_dialog.ScriptDialog
 import whitebox.utilities.StringUtilities
+import whitebox.geospatialfiles.shapefile.attributes.DBFField;
 import groovy.transform.CompileStatic
 
 import org.jfree.chart.ChartFactory;
@@ -120,10 +121,39 @@ public class LongProfileFromPoint {
             def btn = sd.addDialogButton("Create a new seed point vector now...", "centre")
 			btn.addActionListener(new ActionListener() {
  	            public void actionPerformed(ActionEvent e) {
- 	            	pluginHost.launchDialog("Create New Shapefile")
+ 	            	// find an appropriate file name for it
+					def outputFile = pluginHost.getWorkingDirectory() + "Points.shp";
+					def file = new File(outputFile);
+					if (file.exists()) {
+						for (int i = 1; i < 101; i++) {
+							outputFile = pluginHost.getWorkingDirectory() + "Points${i}.shp";
+							file = new File(outputFile);
+							if (!file.exists()) {
+								break;
+							}
+						}
+					}
+					DBFField[] fields = new DBFField[1];
+		            
+		            fields[0] = new DBFField();
+		            fields[0].setName("FID");
+		            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
+		            fields[0].setFieldLength(10);
+		            fields[0].setDecimalCount(0);
+		            
+		            ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
+					output.write();
+		            
+		            pluginHost.returnData(outputFile);
+		            
+		            pluginHost.editVector();
+
+		            pluginHost.showFeedback("Press the 'Digitize New Feature' icon on the toolbar \n" +
+		            "to add a point. Then toggle the 'Edit Vector' icon when you \n" + 
+		            "are done digitizing");
  	            }
  	        });  
-			sd.addDialogFile("Output text file (optional)", "Output Text File (Blank for none):", "save", "Text Files (*.csv), CSV", true, true)
+			sd.addDialogFile("Output text file (optional)", "Output Text File (blank for none):", "save", "Text Files (*.csv), CSV", true, true)
             
 			// resize the dialog to the standard size and display it
 			sd.setSize(800, 400)
@@ -271,7 +301,6 @@ public class LongProfileFromPoint {
         		
 				featureNum++
         	}
-				
 			dem.close()
 			
 			String domainLabel = "Distance To Mouth"
