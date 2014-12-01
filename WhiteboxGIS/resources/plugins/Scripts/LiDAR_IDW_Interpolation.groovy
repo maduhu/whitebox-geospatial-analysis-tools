@@ -32,6 +32,7 @@ import whitebox.structures.BoundingBox
 import whitebox.structures.KdTree
 import whitebox.ui.plugin_dialog.ScriptDialog
 import whitebox.utilities.StringUtilities
+import whitebox.utilities.FileUtilities;
 import groovy.transform.CompileStatic
 
 // The following four variables are required for this 
@@ -238,9 +239,10 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 				return
 			}
 	    }
-	    
-		String outputHeader = inputFiles[0].replace(".las", suffix + ".dep");
-		pluginHost.returnData(outputHeader);
+
+	    String inputFileExtension = FileUtilities.getFileExtension(inputFiles[0])
+        String outputHeader = inputFiles[0].replace(".${inputFileExtension}", suffix + ".dep");
+        pluginHost.returnData(outputHeader);
 
 		long end = System.currentTimeMillis()  
 		double duration = (end - start) / 1000.0
@@ -397,8 +399,9 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 			recs.clear();
 			
             // create the output grid
-            String outputHeader = inputFile.replace(".las", suffix + ".dep");
-
+            String inputFileExtension = FileUtilities.getFileExtension(inputFile)
+            String outputHeader = inputFile.replace(".${inputFileExtension}", suffix + ".dep");
+            
 	        // see if the output files already exist, and if so, delete them.
 	        if ((new File(outputHeader)).exists()) {
 	            (new File(outputHeader)).delete();
