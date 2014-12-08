@@ -189,12 +189,15 @@ public class ImportArcAsciiGrid implements ActionListener {
 	                            }
 	                        }
 	                        for (int d = 0; d < data.length; d++) {
-	                        	z = Double.parseDouble(data[d].trim())
-	                        	output.setValue(row, col, z)
-	                        	col++
-	                        	if (col == cols) {
-	                        		col = 0
-	                        		row++
+	                        	String str2 = data[d].trim()
+	                        	if (!str2.isEmpty()) {
+		                        	z = Double.parseDouble(data[d].trim())
+		                        	output.setValue(row, col, z)
+		                        	col++
+		                        	if (col == cols) {
+		                        		col = 0
+		                        		row++
+		                        	}
 	                        	}
 	                        }
 						}
