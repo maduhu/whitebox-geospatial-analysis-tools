@@ -318,6 +318,7 @@ public class Intersect implements WhiteboxPlugin {
                 
                 // set up the output files of the shapefile and the dbf
                 output = new ShapeFile(outputFile, outputShapeType);
+                output.setProjectionStringFromOtherShapefile(new ShapeFile(shapefiles[0]));
 
                 DBFField fields[] = new DBFField[1];
 

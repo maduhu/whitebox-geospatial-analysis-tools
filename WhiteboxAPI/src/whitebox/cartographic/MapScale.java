@@ -343,8 +343,11 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
         double widthGU = (width - 4 * margin) / pointsPerMetre * scale / conversionToMetres;
         // the number of divisions can range between 2 and 10
         // given this, figure out what the appropriate division length is
-        double[] possibleLengths = {0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 50.0, 100.0, 500.0, 1000.0, 5000.0, 10000.0, 50000.0, 100000.0};
-        int[] numDecimals = {3, 3, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//        double[] possibleLengths = {0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 50.0, 100.0, 500.0, 1000.0, 5000.0, 10000.0, 50000.0, 100000.0};
+//        int[] numDecimals = {3, 3, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        double[] possibleLengths = {0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 100.0, 500.0, 1000.0, 5000.0, 10000.0, 50000.0, 100000.0};
+        int[] numDecimals = {3, 3, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        
         int closestDivision = 0;
         double closestDivisionBarLength = 0;
         double minDist = Float.POSITIVE_INFINITY;
@@ -497,7 +500,7 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
 
     @Override
     public void resize(int x, int y, int resizeMode) {
-        int minSizeX = 60;
+        int minSizeX = 30;
         int minSizeY = 30;
         int deltaX = 0;
         int deltaY = 0;

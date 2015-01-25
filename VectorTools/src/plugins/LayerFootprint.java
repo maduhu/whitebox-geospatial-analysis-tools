@@ -243,6 +243,9 @@ public class LayerFootprint implements WhiteboxPlugin {
             fields[0].setDecimalCount(0);
 
             ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON, fields);
+            if (inputFile.toLowerCase().endsWith(".shp")) {
+                output.setProjectionStringFromOtherShapefile(new ShapeFile(inputFile));
+            }
 
             int[] parts = {0};
 

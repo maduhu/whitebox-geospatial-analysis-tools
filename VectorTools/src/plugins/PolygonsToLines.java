@@ -236,6 +236,7 @@ public class PolygonsToLines implements WhiteboxPlugin {
             }
             
             ShapeFile output = new ShapeFile(outputFile, outputShapeType);
+            output.setProjectionStringFromOtherShapefile(input);
             
             FileUtilities.copyFile(new File(input.getDatabaseFile()), new File(output.getDatabaseFile()));
             

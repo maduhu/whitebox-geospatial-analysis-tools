@@ -827,6 +827,25 @@ public class MapInfo implements java.io.Serializable {
             return false;
         }
     }
+    
+    
+    /**
+     * Selects all map elements.
+     * @return boolean; true if selection passed without error.
+     */
+    public boolean selectAllElements() {
+        try {
+            
+            for (CartographicElement ce : listOfCartographicElements) {
+                ce.setSelected(true);
+            }
+            
+            return true;
+            
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     public boolean groupElements() {
         try {

@@ -38,11 +38,13 @@ import javax.swing.JPanel;
 import whitebox.geospatialfiles.WhiteboxRasterBase.DataType;
 import whitebox.geospatialfiles.WhiteboxRasterInfo;
 import whitebox.utilities.Parallel;
+
 /**
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
 public class Histogram extends JPanel implements ActionListener, Printable, MouseMotionListener {
+
     private String headerFile = "";
     private String paletteFile = "";
     private WhiteboxRasterInfo wbInfo = null;
@@ -65,11 +67,10 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
     private int leftMargin = 90;
     private int rightMargin = 20;
     private boolean isIntegerData = false;
-                   
-    
+
     // Constructors
     public Histogram() {
-       setMouseMotionListener();
+        setMouseMotionListener();
     }
 
     public Histogram(String headerFile) {
@@ -85,7 +86,7 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         getPaletteFileName();
         readPalette();
     }
-    
+
     public String getShortName() {
         return shortName;
     }
@@ -95,13 +96,12 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         this.histoCreated = false;
         repaint();
     }
-    
-    
+
     // Methods
     private void setMouseMotionListener() {
         this.addMouseMotionListener(this);
     }
-    
+
     public void refresh() {
         histoCreated = false;
         wbInfo = new WhiteboxRasterInfo(headerFile);
@@ -109,7 +109,7 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         readPalette();
         repaint();
     }
-    
+
     private void getPaletteFileName() {
         try {
             if (wbInfo != null) {
@@ -137,7 +137,7 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
             System.out.println(e);
         }
     }
-    
+
     private void readPalette() {
         RandomAccessFile rIn = null;
         ByteBuffer buf = null;
@@ -149,50 +149,53 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
                 return;
             }
 
-            numPaletteEntries = (int)(file.length() / 4);
-            
+            numPaletteEntries = (int) (file.length() / 4);
+
             buf = ByteBuffer.allocate(numPaletteEntries * 4);
 
             rIn = new RandomAccessFile(paletteFile, "r");
-            
+
             FileChannel inChannel = rIn.getChannel();
-            
+
             inChannel.position(0);
             inChannel.read(buf);
 
             // Check the byte order.
             buf.order(ByteOrder.LITTLE_ENDIAN);
 
-
             buf.rewind();
             IntBuffer ib = buf.asIntBuffer();
             paletteData = new int[numPaletteEntries];
             ib.get(paletteData);
             ib = null;
-            
+
         } catch (Exception e) {
             System.err.println("Caught exception: " + e.toString());
             System.err.println(e.getStackTrace());
         } finally {
             if (rIn != null) {
-                try{ rIn.close(); } catch (Exception e){}
+                try {
+                    rIn.close();
+                } catch (Exception e) {
+                }
             }
         }
-        
+
     }
-    
+
     int nCols;
     int numHistoEntriesLessOne;
+
     private void createHistogram() {
         try {
             if (wbInfo != null) {
                 whitebox.geospatialfiles.WhiteboxRasterBase.DataType dataType;
                 dataType = wbInfo.getDataType();
-                if (((dataType == DataType.DOUBLE) || (dataType == DataType.FLOAT)) &&
-                        wbInfo.doesDataContainFractionalParts()) {
+                if (((dataType == DataType.DOUBLE) || (dataType == DataType.FLOAT))
+                        && wbInfo.doesDataContainFractionalParts()) {
                     numHistoEntries = numPaletteEntries;
                 } else {
-                    numHistoEntries = (int)(wbInfo.getDisplayMaximum() - wbInfo.getDisplayMinimum());
+                    numHistoEntries = (int) (wbInfo.getDisplayMaximum() - wbInfo.getDisplayMinimum());
                     isIntegerData = true;
                 }
                 histo = new double[numHistoEntries];
@@ -204,10 +207,14 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
                 minVal = wbInfo.getDisplayMinimum();
                 maxVal = wbInfo.getDisplayMaximum();
                 range = maxVal - minVal;
+                boolean tailed = false;
+                if (wbInfo.getDisplayMaximum() < wbInfo.getMaximumValue() || wbInfo.getDisplayMinimum() > wbInfo.getMinimumValue()) {
+                    tailed = true;
+                }
                 //double binSize = range / numPaletteEntries;
                 double z = 0;
                 //int bin = 0;
-                
+
                 Parallel.For(0, nRows, 1, new Parallel.LoopBody<Integer>() {
 
                     double[] data = null;
@@ -234,16 +241,16 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
                         }
                     }
                 });
-                
+
                 total = 0;
                 fullestBinVal2 = 0;
                 for (int a = 0; a < numHistoEntries; a++) {
                     total += histo[a];
                     if (histo[a] > fullestBinVal2) {
-                        fullestBinVal2 = (int)histo[a];
+                        fullestBinVal2 = (int) histo[a];
                     }
                 }
-                
+
                 if (cumulative) {
                     histo[0] = histo[0] / total;
                     fullestBinVal = 0;
@@ -255,14 +262,23 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
                     }
                 } else {
                     fullestBinVal = 0;
-                    for (int a = 0; a < numHistoEntries; a++) {
-                        histo[a] = histo[a] / total;
-                        if (histo[a] > fullestBinVal) {
-                            fullestBinVal = histo[a];
+                    if (!tailed) {
+                        for (int a = 0; a < numHistoEntries; a++) {
+                            histo[a] = histo[a] / total;
+                            if (histo[a] > fullestBinVal) {
+                                fullestBinVal = histo[a];
+                            }
+                        }
+                    } else {
+                        for (int a = 0; a < numHistoEntries; a++) {
+                            histo[a] = histo[a] / total;
+                            if (histo[a] > fullestBinVal && a > 0 && a < numHistoEntries - 1) {
+                                fullestBinVal = histo[a];
+                            }
                         }
                     }
                 }
-                
+
                 //wbInfo.close();
                 histoCreated = true;
             } else {
@@ -272,16 +288,18 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
             System.out.println(e);
         }
     }
-    
+
     @Override
-    public void paint (Graphics g) {
+    public void paint(Graphics g) {
         drawHistogram(g);
     }
-    
+
     private void drawHistogram(Graphics g) {
-        if (!histoCreated) { createHistogram(); }
-        
-        if (!cumulative) { 
+        if (!histoCreated) {
+            createHistogram();
+        }
+
+        if (!cumulative) {
             leftMargin = 90;
         } else {
             leftMargin = 70;
@@ -290,27 +308,28 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2d.setColor(Color.white);
         g2d.fillRect(0, 0, getWidth(), getHeight());
-        
+
         double activeWidth = getWidth() - leftMargin - rightMargin;
         double activeHeight = getHeight() - topMargin - bottomMargin;
         int bottomY = getHeight() - bottomMargin;
         int rightX = getWidth() - rightMargin;
         int rectLeft, rectWidth, rectTop, rectHeight;
-        
+
         double binWidth = activeWidth / (numHistoEntries + 1);
-        rectWidth = (int)(Math.round(binWidth));
+        rectWidth = (int) (Math.round(binWidth));
         if (rectWidth < 1) {
             rectWidth = 1;
         }
         int paletteEntry = 0;
         double paletteScale = numPaletteEntries / numHistoEntries;
         for (int a = 0; a < numHistoEntries; a++) {
-            paletteEntry = (int)(a * paletteScale); 
+            paletteEntry = (int) (a * paletteScale);
             Color newColour = new Color(paletteData[paletteEntry]);
             g2d.setColor(newColour);
-            rectLeft = (int)(leftMargin + a * binWidth);
-            rectTop = (int)(topMargin + (double) (fullestBinVal - histo[a]) / fullestBinVal * activeHeight); //(int)(bottomMargin);
-            rectHeight = bottomY - rectTop; 
+            rectLeft = (int) (leftMargin + a * binWidth);
+            if (histo[a] > fullestBinVal) { histo[a] = fullestBinVal; } 
+            rectTop = (int) (topMargin + (double) (fullestBinVal - histo[a]) / fullestBinVal * activeHeight); //(int)(bottomMargin);
+            rectHeight = bottomY - rectTop;
             g2d.fillRect(rectLeft, rectTop, rectWidth, rectHeight);
         }
 
@@ -320,21 +339,21 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         g2d.drawLine(leftMargin, bottomY, leftMargin, topMargin);
         g2d.drawLine(leftMargin, topMargin, rightX, topMargin);
         g2d.drawLine(rightX, bottomY, rightX, topMargin);
-        
+
         // draw ticks
         int tickSize = 4;
         g2d.drawLine(leftMargin, bottomY, leftMargin, bottomY + tickSize);
         g2d.drawLine(rightX, bottomY, rightX, bottomY + tickSize);
         g2d.drawLine(leftMargin, bottomY, leftMargin - tickSize, bottomY);
         g2d.drawLine(leftMargin, topMargin, leftMargin - tickSize, topMargin);
-        
+
         // histo labels
         DecimalFormat df = new DecimalFormat("#,###,###.###");
         Font font = new Font("SanSerif", Font.PLAIN, 11);
         FontMetrics metrics = g.getFontMetrics(font);
         int hgt, adv;
         hgt = metrics.getHeight();
-        
+
         // x-axis labels
         String label;
         label = df.format(minVal);
@@ -344,17 +363,16 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         g2d.drawString(label, rightX - adv, bottomY + hgt + 4);
         label = "Value";
         adv = metrics.stringWidth(label);
-        int xAxisMidPoint = (int)(leftMargin + activeWidth / 2);
+        int xAxisMidPoint = (int) (leftMargin + activeWidth / 2);
         g2d.drawString(label, xAxisMidPoint - adv / 2, bottomY + 2 * hgt + 4);
-        
+
         // y-axis labels
-        
         // rotate the font
         Font oldFont = g.getFont();
         //Font f = oldFont.deriveFont(AffineTransform.getRotateInstance(-Math.PI / 2.0));
         //g2d.setFont(f);
-        
-        int yAxisMidPoint = (int)(topMargin + activeHeight / 2);
+
+        int yAxisMidPoint = (int) (topMargin + activeHeight / 2);
         int offset;
         if (!cumulative) {
             label = "Frequency Prob.";
@@ -365,7 +383,7 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         }
         adv = metrics.stringWidth(label);
         //g2d.drawString(label, leftMargin - offset, yAxisMidPoint + adv / 2);
-        
+
         double xr = leftMargin - offset;
         double yr = yAxisMidPoint + adv / 2;
         g2d.translate(xr, yr);
@@ -373,10 +391,9 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         g2d.drawString(label, 0, 0);
         g2d.rotate(Math.PI / 2);
         g2d.translate(-xr, -yr);
-        
+
         // replace the rotated font.
         //g2d.setFont(oldFont);
-
         if (!cumulative) {
             df = new DecimalFormat("0.0000");
         } else {
@@ -388,34 +405,33 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         label = df.format(fullestBinVal);
         adv = metrics.stringWidth(label);
         g2d.drawString(label, leftMargin - adv - 12, topMargin + hgt / 2);
-        
+
         // title
-        
         // bold font
         oldFont = g.getFont();
         font = font = new Font("SanSerif", Font.BOLD, 12);
         g2d.setFont(font);
-        
+
         label = "Histogram: " + shortName;
         adv = metrics.stringWidth(label);
         g2d.drawString(label, xAxisMidPoint - adv / 2, topMargin - hgt - 5);
-        
+
         g2d.setFont(oldFont);
-        
+
         if (drawPositionLine) {
             // draw a red vertical line at this position.
             g2d.setColor(Color.red);
             g2d.drawLine(posX, bottomY, posX, topMargin);
             g2d.setColor(Color.white);
             g2d.drawLine(posX + 1, bottomY, posX + 1, topMargin);
-            
+
             // which histo bin is it and how many are in the bin?
-            int binNum = (int)(((double)posX - leftMargin) / activeWidth * (numHistoEntries - 1));
+            int binNum = (int) (((double) posX - leftMargin) / activeWidth * (numHistoEntries - 1));
             df = new DecimalFormat("0.000");
-            double val1 = minVal + ((double)posX - leftMargin) / activeWidth * (maxVal - minVal);
+            double val1 = minVal + ((double) posX - leftMargin) / activeWidth * (maxVal - minVal);
             if (isIntegerData) {
                 df = new DecimalFormat("0");
-                val1 = (int)val1; 
+                val1 = (int) val1;
             }
             String val = df.format(val1);
             //df = new DecimalFormat("#,###,###");
@@ -423,19 +439,19 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
 //            if (!cumulative) {
 //                label = "Value: " + val + " Freq: " + df.format((histo[binNum] * fullestBinVal2));
 //            } else {
-                label = "Value: " + val + " Freq: " + df.format((histo[binNum]));
+            label = "Value: " + val + " Freq: " + df.format((histo[binNum]));
 //            }
             adv = metrics.stringWidth(label);
-            g2d.setColor(Color.black); 
+            g2d.setColor(Color.black);
             g2d.drawString(label, 5, hgt + 5);
-        
+
         }
     }
-    
+
     public boolean saveToImage(String fileName) {
         try {
-            int width = (int)this.getWidth();
-            int height =(int)this.getHeight();
+            int width = (int) this.getWidth();
+            int height = (int) this.getHeight();
             // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
             // into integer pixels
             BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -452,7 +468,7 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
             return false;
         }
     }
-    
+
     @Override
     public int print(Graphics g, PageFormat pf, int page)
             throws PrinterException {
@@ -461,7 +477,7 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         }
 
         int i = pf.getOrientation();
-        
+
         // get the size of the page
         double pageWidth = pf.getImageableWidth();
         double pageHeight = pf.getImageableHeight();
@@ -470,20 +486,20 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         double scaleX = pageWidth / myWidth;
         double scaleY = pageHeight / myHeight;
         double minScale = Math.min(scaleX, scaleY);
-                
+
         Graphics2D g2d = (Graphics2D) g;
         g2d.translate(pf.getImageableX(), pf.getImageableY());
         g2d.scale(minScale, minScale);
-        
+
         drawHistogram(g);
 
         return PAGE_EXISTS;
     }
-    
+
     private boolean drawPositionLine = false;
     private int posX = 0;
     private int posY = 0;
-    
+
     @Override
     public void mouseMoved(MouseEvent e) {
         // is the mouse over the chart area?
@@ -491,8 +507,8 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         int y = e.getY();
         int width = getWidth();
         int height = getHeight();
-        if (x >= leftMargin && x <= (width - rightMargin) &&
-                y >= topMargin && y <= (height - bottomMargin) ) {
+        if (x >= leftMargin && x <= (width - rightMargin)
+                && y >= topMargin && y <= (height - bottomMargin)) {
             drawPositionLine = true;
             posX = x;
             posY = y;
@@ -501,20 +517,18 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
         }
         repaint();
     }
-    
-    
+
     @Override
     public void mouseDragged(MouseEvent me) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     // ActionListener for events
     @Override
     public void actionPerformed(ActionEvent ae) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
-    
+
 //    // this is for debugging purposes.
 //    public static void main(String[] args) {
 //        JFrame frame = new JFrame();
@@ -530,7 +544,4 @@ public class Histogram extends JPanel implements ActionListener, Printable, Mous
 //        frame.setVisible(true);
 //        
 //    }
-
-
-    
 }

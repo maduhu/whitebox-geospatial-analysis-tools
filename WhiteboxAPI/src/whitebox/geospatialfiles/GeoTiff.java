@@ -818,7 +818,7 @@ public class GeoTiff {
             sampleFormat = findTag(Tag.SampleFormat).value[0];
         }
         if (tiledFormat) {
-            return null; // can't handle this type of tiff.
+            return null; 
         }
         int stripOffset = findTag(Tag.StripOffsets).value[stripNum];
         int stripByteSize = findTag(Tag.StripByteCounts).value[stripNum];

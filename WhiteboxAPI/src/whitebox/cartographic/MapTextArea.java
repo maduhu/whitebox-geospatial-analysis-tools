@@ -35,18 +35,13 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     String name = "MapTextArea";
     int number = -1;
     String label = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, "
-            + "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
-            + "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris "
-            + "nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in "
-            + "reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla "
-            + "pariatur. Excepteur sint occaecat cupidatat non proident, sunt in "
-            + "culpa qui officia deserunt mollit anim id est laborum.";
+            + "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
     boolean borderVisible = false;
     boolean backgroundVisible = false;
     int upperLeftX = 0;
     int upperLeftY = 0;
-    int height = 200; // in points
-    int width = 280; // in points
+    int height = 50; // in points
+    int width = 160; // in points
     int margin = 5;
     Color backColour = Color.WHITE;
     Color borderColour = Color.BLACK;
@@ -58,6 +53,7 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     private int selectedOffsetX;
     private int selectedOffsetY;
     private float interlineSpace = 1.25f;
+    private float rotation = 0f;
 
     public MapTextArea() {
         measureFontSizes();
@@ -281,6 +277,8 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     public void setName(String name) {
         this.name = name;
     }
+    
+    
 
     public int getMaxFontSize() {
         return maxFontSize;
@@ -304,6 +302,14 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
 
     public void setInterlineSpace(float interlineSpace) {
         this.interlineSpace = interlineSpace;
+    }
+    
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
     }
 
 //    public Font[] getAvailableFonts() {
@@ -329,7 +335,7 @@ public class MapTextArea implements CartographicElement, Comparable<Cartographic
     @Override
     public void resize(int x, int y, int resizeMode) {
         try {
-            int minSize = 50;
+            int minSize = 20;
             int deltaX, deltaY;
             switch (resizeMode) {
                 case 0: // off the north edge

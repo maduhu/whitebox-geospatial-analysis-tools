@@ -360,7 +360,7 @@ public class ErasePolygonFromRaster implements WhiteboxPlugin {
 
                                             // calculate the intersection point
                                             xPrime = (x1 + (rowYCoord - y1) / (y2 - y1) * (x2 - x1));
-                                            edgeList.add(new Integer(output.getColumnFromXCoordinate(xPrime)));
+                                            edgeList.add(output.getColumnFromXCoordinate(xPrime));
                                             foundIntersection = true;
                                         }
                                     }
@@ -396,6 +396,86 @@ public class ErasePolygonFromRaster implements WhiteboxPlugin {
                             }
                         }
                     }
+                    
+                    
+                    // add the holes back in.
+                    for (part = 0; part < numParts; part++) {
+                        if (partHoleData[part]) {
+                            box = new BoundingBox();
+                            startingPointInPart = partData[part];
+                            if (part < numParts - 1) {
+                                endingPointInPart = partData[part + 1];
+                            } else {
+                                endingPointInPart = numPoints;
+                            }
+                            for (i = startingPointInPart; i < endingPointInPart; i++) {
+                                if (geometry[i][1] < box.getMinY()) {
+                                    box.setMinY(geometry[i][1]);
+                                }
+                                if (geometry[i][1] > box.getMaxY()) {
+                                    box.setMaxY(geometry[i][1]);
+                                }
+                            }
+                            topRow = output.getRowFromYCoordinate(box.getMaxY());
+                            bottomRow = output.getRowFromYCoordinate(box.getMinY());
+
+                            for (row = topRow; row <= bottomRow; row++) {
+
+                                edgeList.clear();
+                                foundIntersection = false;
+                                rowYCoord = output.getYCoordinateFromRow(row);
+                                // find the x-coordinates of each of the edges that 
+                                // intersect this row's y coordinate
+
+                                for (i = startingPointInPart; i < endingPointInPart - 1; i++) {
+                                    if (isBetween(rowYCoord, geometry[i][1], geometry[i + 1][1])) {
+                                        y1 = geometry[i][1];
+                                        y2 = geometry[i + 1][1];
+                                        if (y2 != y1) {
+                                            x1 = geometry[i][0];
+                                            x2 = geometry[i + 1][0];
+
+                                            // calculate the intersection point
+                                            xPrime = (x1 + (rowYCoord - y1) / (y2 - y1) * (x2 - x1));
+                                            edgeList.add(output.getColumnFromXCoordinate(xPrime));
+                                            foundIntersection = true;
+                                        }
+                                    }
+                                }
+
+                                if (foundIntersection) {
+                                    numEdges = edgeList.size();
+                                    if (numEdges == 2) {
+                                        stCol = Math.min(edgeList.get(0), edgeList.get(1));
+                                        endCol = Math.max(edgeList.get(0), edgeList.get(1));
+                                        for (col = stCol; col <= endCol; col++) {
+                                            pq.add(new RowPriorityGridCell(row, col, input.getValue(row, col)));
+                                        }
+                                    } else {
+                                        //sort the edges.
+                                        Integer[] edgeArray = new Integer[numEdges];
+                                        edgeList.toArray(edgeArray);
+                                        Arrays.sort(edgeArray);
+
+                                        boolean fillFlag = true;
+                                        for (i = 0; i < numEdges - 1; i++) {
+                                            stCol = edgeArray[i];
+                                            endCol = edgeArray[i + 1];
+                                            if (fillFlag) {
+                                                for (col = stCol; col <= endCol; col++) {
+                                                    pq.add(new RowPriorityGridCell(row, col, input.getValue(row, col)));
+                                                }
+                                            }
+                                            fillFlag = !fillFlag;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    
+                    
 
                     if (pq.size() >= flushSize) {
                         j = 0;

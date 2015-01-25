@@ -134,6 +134,12 @@ public interface WhiteboxPluginHost extends Communicator {
     public MapLayer getActiveMapLayer();
     
     /**
+     * Used to set the active map layer.
+     * @return MapLayer that is currently active.
+     */
+    public void setActiveMapLayer(int layerNumber);
+    
+    /**
      * Used to retrieve all the displayed map layers.
      * @return ArrayList of MapLayers
      */

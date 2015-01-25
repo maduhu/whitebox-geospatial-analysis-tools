@@ -243,6 +243,7 @@ public class Smooth implements WhiteboxPlugin {
             // set up the output files of the shapefile and the dbf
             ShapeFile output = new ShapeFile(outputFile, shapeType);
             FileUtilities.copyFile(new File(input.getDatabaseFile()), new File(output.getDatabaseFile()));
+            output.setProjectionStringFromOtherShapefile(input);
             
             numFeatures = input.getNumberOfRecords();
             featureNum = 0;

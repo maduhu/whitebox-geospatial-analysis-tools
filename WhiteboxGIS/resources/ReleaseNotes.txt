@@ -47,6 +47,8 @@ Version 3.2.2 ()
 -Added DeleteSmallLakesAndExtendRivers tool, which can be used to remove small 
  lakes in a vector drainage network and to extend the associated river network
  into the interior of the lake.
+-Added a Long Profile From Point tool, which can generate one or more longitudinal
+ profiles for the flowpaths issuing from a set of vector points.
 
 Version 3.2.1 (September 18, 2014)
 -Added the Retrieve SRTM DEM Data tool. This tool will download SRTM DEM tiles from

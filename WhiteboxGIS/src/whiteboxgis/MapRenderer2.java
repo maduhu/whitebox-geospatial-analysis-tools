@@ -44,6 +44,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JPopupMenu;
 import java.awt.font.GlyphVector;
+import javax.swing.SwingUtilities;
 import whitebox.cartographic.MapArea;
 import whitebox.cartographic.Neatline;
 import whitebox.cartographic.*;
@@ -1073,6 +1074,15 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             y1 = mapTextArea.getUpperLeftY() + labelMargin;
             x2 = mapTextArea.getLowerRightX() - labelMargin;
             y2 = mapTextArea.getLowerRightY() - labelMargin;
+            
+//            double midX = (x2 - x1) / 2.0;
+//            double midY = (y2 - y1) / 2.0;
+            
+            double rotation = Math.toRadians(mapTextArea.getRotation());
+            
+//            g2.translate(midX, midY);
+//            g2.rotate(rotation, 0, 0);
+            
 
             if (mapTextArea.isBackgroundVisible()) {
                 g2.setColor(mapTextArea.getBackColour());
@@ -1092,12 +1102,19 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     g2.setColor(mapTextArea.getBorderColour());
                     g2.setStroke(new BasicStroke(mapTextArea.getLineWidth()));
                 }
-
-                g2.drawRect(mapTextArea.getUpperLeftX(),
-                        mapTextArea.getUpperLeftY(),
+                
+                g2.translate(mapTextArea.getUpperLeftX(), mapTextArea.getUpperLeftY());
+                g2.rotate(rotation);
+                g2.drawRect(0, 0,
                         mapTextArea.getWidth(),
                         mapTextArea.getHeight());
+//                g2.drawRect(mapTextArea.getUpperLeftX(),
+//                        mapTextArea.getUpperLeftY(),
+//                        mapTextArea.getWidth(),
+//                        mapTextArea.getHeight());
                 g2.setStroke(oldStroke);
+                g2.rotate(-rotation);
+                g2.translate(-mapTextArea.getUpperLeftX(), -mapTextArea.getUpperLeftY());
             }
             Font newFont = mapTextArea.getLabelFont();
             g2.setColor(mapTextArea.getFontColour());
@@ -1105,18 +1122,28 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             g2.setFont(newFont);
 
             drawStringRect(g2, x1, y1, x2, y2, interlineSpace,
-                    mapTextArea.getLabel());
+                    mapTextArea.getLabel(), rotation);
+            //g2.drawString(mapTextArea.getLabel(), 0, 0);
+            
             g2.setFont(oldFont);
 
             g2.setFont(oldFont);
+            
+            
+//            xr = viewAreaULX - offset;
+//            yr = viewAreaLRY - 4;
+//            g2.drawString(label, 0, 0);
+//            g2.rotate(-rotation);
+//            g2.translate(-midX, -midY);
         }
     }
 
     private void drawStringRect(Graphics2D graphics, int x1, int y1, int x2,
-            int y2, float interline, String txt) {
+            int y2, float interline, String txt, double rotation) {
         if (txt.isEmpty()) {
             return;
         }
+            
         FontMetrics metrics = graphics.getFontMetrics(graphics.getFont());
         int hgt = metrics.getAscent();
         String[] stringArray = txt.split("\n");
@@ -1135,7 +1162,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                 while (lbm.getPosition() < str.length()) {
                     tl = lbm.nextLayout(width);
                     y1 += tl.getAscent();
-                    tl.draw(graphics, x1, y1);
+                    graphics.translate(x1, y1);
+                    graphics.rotate(rotation, 0, 0);
+                    tl.draw(graphics, 0, 0); //x1, y1);
+                    graphics.rotate(-rotation, 0, 0);
+                    graphics.translate(-x1, -y1);
                     y1 += tl.getDescent() + tl.getLeading() + (interline - 1.0f) * tl.getAscent();
                     if (y1 > y2) {
                         break;
@@ -1360,26 +1391,33 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
             g2.setFont(newFont);
             metrics = g2.getFontMetrics(newFont);
             int fontHeight = metrics.getHeight() - metrics.getDescent();
-            int gap = 10;
+            int gap = 8;
 
             int imageHeight = 35;
             int imageWidth = 12;
-            top += fontHeight;
             label = legend.getLabel();
-            adv = metrics.stringWidth(label);
-            g2.drawString(label, legendULX + (legendWidth - adv) / 2, top);
-            top += 4;
-
+            boolean noLabel = label.trim().isEmpty();
+            if (!noLabel) {
+                top += fontHeight;
+                adv = metrics.stringWidth(label);
+                g2.drawString(label, legendULX + (legendWidth - adv) / 2, top);
+                top += 4;
+            }
+            
+            int legendNum = 1;
             for (MapArea ma : legend.getMapAreasList()) {
                 for (int k = ma.getNumLayers() - 1; k >= 0; k--) {
                     MapLayer mapLayer = ma.getLayer(k);
                     //for (MapLayer mapLayer : ma.getLayersList()) {
                     if (mapLayer.isVisible() && mapLayer.isVisibleInLegend()) {
-                        top += gap;
+                        if (legendNum > 1 && !noLabel) {
+                            top += gap;
+                        }
 //                                        g2.setColor(ma.getFontColour());
 //                                        g2.drawString(mapLayer.getLayerTitle(), left, top);
 //                                        top += 4;
                         if (mapLayer.getLayerType() == MapLayer.MapLayerType.RASTER) {
+                            top += 10;
                             g2.setColor(ma.getFontColour());
                             g2.drawString(mapLayer.getLayerTitle(), left, top);
                             top += 4;
@@ -1408,10 +1446,16 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                             String maxVal = df.format(rli.getDisplayMaxVal());
                             String minVal = df.format(rli.getDisplayMinVal());
+                            if (rli.getDisplayMaxVal() < rli.getMaxVal()) {
+                                maxVal = ">" + df.format(rli.getDisplayMaxVal());
+                            }
+                            if (rli.getDisplayMinVal() > rli.getMinVal()) {
+                                minVal = "<" + df.format(rli.getDisplayMinVal());
+                            }
                             g2.drawString(maxVal, left + imageWidth + 4, top + fontHeight);
                             g2.drawString(minVal, left + imageWidth + 4, top + imageHeight);
 
-                            top += 45;
+                            top += 40;
 
                         } else if (mapLayer.getLayerType() == MapLayer.MapLayerType.VECTOR) {
                             VectorLayerInfo vli = (VectorLayerInfo) mapLayer;
@@ -1420,6 +1464,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                             VectorLayerInfo.LegendEntry[] le = vli.getLegendEntries();
                             if (le != null && le[0].getLegendLabel().equals("continuous numerical variable") && le[0].getLegendColour().equals(Color.black)) {
                                 // it's a continuous, scaled, numerical variable
+                                top += 10;
                                 g2.setColor(ma.getFontColour());
                                 g2.drawString(mapLayer.getLayerTitle(), left, top);
                                 top += 4;
@@ -1441,12 +1486,22 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                                 String maxVal = df.format(vli.getMaximumValue());
                                 String minVal = df.format(vli.getMinimumValue());
+                                if (vli.getDisplayMaxValue() < vli.getMaximumValue()) {
+                                    maxVal = ">" + df.format(vli.getDisplayMaxValue());
+                                }
+                                if (vli.getDisplayMinValue() > vli.getMinimumValue()) {
+                                    minVal = "<" + df.format(vli.getDisplayMinValue());
+                                }
                                 g2.drawString(maxVal, left + imageWidth + 4, top + fontHeight);
                                 g2.drawString(minVal, left + imageWidth + 4, top + imageHeight);
 
-                                top += 45;
+                                top += 40;
 
                             } else {
+                                if (legendNum == 1 && !noLabel) {
+                                    top += 5;
+                                }
+                                
                                 Color fillColour = vli.getFillColour();
                                 Color lineColour = vli.getLineColour();
                                 float lineThickness = vli.getLineThickness();
@@ -1473,7 +1528,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 if (!isFilledWithOneColour || !isOutlinedWithOneColour) {
                                     g2.setColor(ma.getFontColour());
                                     g2.drawString(mapLayer.getLayerTitle(), left, top);
-                                    top += 4;
+                                    //top += 4;
 
                                     // how many legend entries are there?
                                     le = vli.getLegendEntries();
@@ -1481,7 +1536,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 }
                                 int entryHeight = (int) sqrSize;
                                 int entryWidth = (int) sqrSize;
-                                top += spacing;
+                                //top += spacing;
 
                                 double x1, y1;
                                 //g2.setColor(legend.getBackgroundColour());
@@ -1762,10 +1817,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     }
 
                                 }
-                                entryHeight = (int) (numEntries * (sqrSize + spacing) + spacing);
+                                entryHeight = (int) (numEntries * (sqrSize + spacing)); // + spacing);
                                 top += entryHeight;
                             }
                         }
+                        legendNum++;
                     }
                 }
             }
@@ -1925,7 +1981,9 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 int numCols = endC - startC;
 
                                 //if (!printingMap) {
+                                int cartoGeneralization = (int)layer.getCartographicGeneralizationLevel();
                                 int res = (int) (Math.min(numRows / (double) layerHeight, numCols / (double) layerWidth));
+                                if (res > cartoGeneralization) { res = cartoGeneralization; }
                                 layer.setResolutionFactor(res);
                                 //} else {
                                 //    layer.setResolutionFactor(1);
@@ -2034,10 +2092,10 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 GeneralPath polyline;
 
                                 boolean isActivelyEdited = layer.isActivelyEdited();
-                                
+
                                 float markerSize;
                                 int maxNumDisplayedPoints, skipVal;
-                                
+
                                 switch (shapeType) {
 
                                     case POINT:
@@ -2047,14 +2105,16 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                         myStroke = new BasicStroke(layer.getLineThickness());
                                         oldStroke = g2.getStroke();
                                         g2.setStroke(myStroke);
-                                        
+
                                         markerSize = layer.getMarkerSize();
-                                        maxNumDisplayedPoints = (int)((viewAreaHeight / markerSize * viewAreaWidth / markerSize) * 1.25);
-                                        skipVal = (int)(Math.ceil(records.size() / maxNumDisplayedPoints));
-                                        if (skipVal < 1) { skipVal = 1; }
-            
+                                        maxNumDisplayedPoints = (int) ((viewAreaHeight / markerSize * viewAreaWidth / markerSize) * 1.25);
+                                        skipVal = (int) (Math.ceil(records.size() / maxNumDisplayedPoints));
+                                        if (skipVal < 1) {
+                                            skipVal = 1;
+                                        }
+
                                         for (int q = 0; q < records.size(); q += skipVal) {
-                                        //for (ShapeFileRecord record : records) {
+                                            //for (ShapeFileRecord record : records) {
                                             ShapeFileRecord record = records.get(q);
                                             r = record.getRecordNumber() - 1;
                                             if (record.getShapeType() != ShapeType.NULLSHAPE) {
@@ -2120,8 +2180,8 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                     case MULTIPOINTZ:
                                     case MULTIPOINTM:
                                         markerSize = layer.getMarkerSize();
-                                        maxNumDisplayedPoints = (int)((viewAreaHeight / markerSize * viewAreaWidth / markerSize) * 1.25);
-                                        
+                                        maxNumDisplayedPoints = (int) ((viewAreaHeight / markerSize * viewAreaWidth / markerSize) * 1.25);
+
                                         xyData = PointMarkers.getMarkerData(layer.getMarkerStyle(), layer.getMarkerSize());
                                         myStroke = new BasicStroke(layer.getLineThickness());
                                         oldStroke = g2.getStroke();
@@ -2135,18 +2195,20 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                                 int numPointsInExtent = 0;
                                                 switch (shapeType) {
                                                     case MULTIPOINT:
-                                                        numPointsInExtent = ((MultiPoint)(record.getGeometry())).numberOfPointsInExtent(layerCE);
+                                                        numPointsInExtent = ((MultiPoint) (record.getGeometry())).numberOfPointsInExtent(layerCE);
                                                         break;
                                                     case MULTIPOINTM:
-                                                        numPointsInExtent = ((MultiPointM)(record.getGeometry())).numberOfPointsInExtent(layerCE);
+                                                        numPointsInExtent = ((MultiPointM) (record.getGeometry())).numberOfPointsInExtent(layerCE);
                                                         break;
                                                     case MULTIPOINTZ:
-                                                        numPointsInExtent = ((MultiPointZ)(record.getGeometry())).numberOfPointsInExtent(layerCE);
+                                                        numPointsInExtent = ((MultiPointZ) (record.getGeometry())).numberOfPointsInExtent(layerCE);
                                                         break;
                                                 }
-                                                skipVal = (int)(Math.ceil(numPointsInExtent / maxNumDisplayedPoints));
-                                                if (skipVal < 1) { skipVal = 1; }
-            
+                                                skipVal = (int) (Math.ceil(numPointsInExtent / maxNumDisplayedPoints));
+                                                if (skipVal < 1) {
+                                                    skipVal = 1;
+                                                }
+
                                                 for (int p = 0; p < recPoints.length; p += skipVal) {
                                                     x1 = recPoints[p][0];
                                                     y1 = recPoints[p][1];
@@ -2502,13 +2564,13 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         boolean activeLayerBool = false;
                         if (mapArea.getActiveLayerOverlayNumber() == layer.getOverlayNumber()) {
                             activeLayerBool = true;
-                        } else { 
+                        } else {
                             layer.clearSelectedFeatures();
                         }
-                        
+
                         float markerSize = layer.getMarkerSize();
-                        int maxNumDisplayedPoints = (int)((viewAreaHeight / markerSize * viewAreaWidth / markerSize) * 1.25);
-                        
+                        int maxNumDisplayedPoints = (int) ((viewAreaHeight / markerSize * viewAreaWidth / markerSize) * 1.25);
+
                         if (layer.isVisible()) {
                             BoundingBox fe = layer.getFullExtent();
                             if (fe.overlaps(mapExtent)) {
@@ -2528,9 +2590,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 // skipVal is used to speed up the display of LAS points.
                                 // If there are more points in the extent that can be displayed,
                                 // some will be ignored when drawing.
-                                int skipVal = (int)(Math.ceil(records.size() / maxNumDisplayedPoints));
-                                if (skipVal < 1) { skipVal = 1; }
-            
+                                int skipVal = (int) (Math.ceil(records.size() / maxNumDisplayedPoints));
+                                if (skipVal < 1) {
+                                    skipVal = 1;
+                                }
+
                                 double x1, y1;
                                 //int xInt, yInt, x2Int, y2Int;
                                 double topCoord = mapExtent.getMaxY();
@@ -2541,7 +2605,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                                 double NSRange = topCoord - bottomCoord;
 
                                 GeneralPath gp;
-                                
+
                                 XYPoint record;
                                 ArrayList<Color> colours = layer.getColourData();
                                 if (colours.size() == 1) {
@@ -2563,11 +2627,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                                             g2.setColor(fillColour);
                                             g2.fill(gp);
-    //                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 
-    //                                                                && layer.isFeatureSelected(record.getRecordNumber())) { 
-    //                                                            g2.setColor(selectedFeatureColour);
-    //                                                            g2.draw(gp);
-    //                                                        }
+                                            //                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 
+                                            //                                                                && layer.isFeatureSelected(record.getRecordNumber())) { 
+                                            //                                                            g2.setColor(selectedFeatureColour);
+                                            //                                                            g2.draw(gp);
+                                            //                                                        }
                                         }
                                     }
                                 } else {
@@ -2588,11 +2652,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
 
                                             g2.setColor(colours.get(r));
                                             g2.fill(gp);
-    //                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 
-    //                                                                && layer.isFeatureSelected(record.getRecordNumber())) { 
-    //                                                            g2.setColor(selectedFeatureColour);
-    //                                                            g2.draw(gp);
-    //                                                        }
+                                            //                                                        if (activeLayerBool && layer.getNumSelectedFeatures() > 0 
+                                            //                                                                && layer.isFeatureSelected(record.getRecordNumber())) { 
+                                            //                                                            g2.setColor(selectedFeatureColour);
+                                            //                                                            g2.draw(gp);
+                                            //                                                        }
                                         }
                                     }
                                 }
@@ -2662,9 +2726,7 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         viewAreaLRY,
                         viewAreaLRX + referenceMarkSize,
                         viewAreaLRY);
-                
-//                double rangeX = (currentExtent.getMaxX() - (viewAreaWidth / mapScale - xRange)) - currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange);
-//                double rangeY = (currentExtent.getMaxY() - (viewAreaWidth / mapScale - yRange)) - currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange);
+
                 if (Double.isFinite(xRange) && !Double.isNaN(xRange)) {
                     // find the largest possible tick interval resulting in 5 or fewer ticks
                     double topCoord = mapExtent.getMaxY();
@@ -2673,14 +2735,14 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     double rightCoord = mapExtent.getMaxX();
                     double EWRange = rightCoord - leftCoord;
                     double NSRange = topCoord - bottomCoord;
-                                
+
                     double tickInterval = 0.0001;
                     double testRange = EWRange < NSRange ? EWRange : NSRange;
-                    int numTickMarks = (int)Math.floor(testRange / tickInterval);
+                    int numTickMarks = (int) Math.floor(testRange / tickInterval);
                     if (numTickMarks > 12) {
                         while (numTickMarks > 20) {
                             tickInterval = tickInterval * 10;
-                            numTickMarks = (int)Math.floor(testRange / tickInterval);
+                            numTickMarks = (int) Math.floor(testRange / tickInterval);
                         }
                     }
                     if (numTickMarks < 3) {
@@ -2688,38 +2750,42 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                         //numTickMarks = (int)Math.floor(testRange / tickInterval);
                     }
                     double startingTickVal = Math.ceil(leftCoord / tickInterval) * tickInterval;
-                    
+
                     int x1, y1;
                     int halfReferenceMarkSize = referenceMarkSize / 3;
-                    numTickMarks = (int)Math.floor(EWRange / tickInterval);
+                    numTickMarks = (int) Math.floor(EWRange / tickInterval);
                     for (int k = 0; k <= numTickMarks; k++) {
-                        x1 = (int)(viewAreaULX + (startingTickVal + (k * tickInterval) - leftCoord) / EWRange * viewAreaWidth);
-                        if (startingTickVal + (k * tickInterval) > rightCoord) { break; }
+                        x1 = (int) (viewAreaULX + (startingTickVal + (k * tickInterval) - leftCoord) / EWRange * viewAreaWidth);
+                        if (startingTickVal + (k * tickInterval) > rightCoord) {
+                            break;
+                        }
                         g2.drawLine(x1,
-                            viewAreaULY,
-                            x1,
-                            viewAreaULY - halfReferenceMarkSize);
-                        
+                                viewAreaULY,
+                                x1,
+                                viewAreaULY - halfReferenceMarkSize);
+
                         g2.drawLine(x1,
-                            viewAreaLRY,
-                            x1,
-                            viewAreaLRY + halfReferenceMarkSize);
+                                viewAreaLRY,
+                                x1,
+                                viewAreaLRY + halfReferenceMarkSize);
                     }
-                    
-                    numTickMarks = (int)Math.floor(NSRange / tickInterval);
+
+                    numTickMarks = (int) Math.floor(NSRange / tickInterval);
                     startingTickVal = Math.floor(topCoord / tickInterval) * tickInterval;
                     for (int k = 0; k <= numTickMarks; k++) {
-                        y1 = (int)(viewAreaULY + (topCoord - startingTickVal + (k * tickInterval)) / NSRange * viewAreaHeight);
-                        if (y1 > viewAreaLRY) { break; } //topCoord - startingTickVal + (k * tickInterval) < bottomCoord) { break; }
+                        y1 = (int) (viewAreaULY + (topCoord - startingTickVal + (k * tickInterval)) / NSRange * viewAreaHeight);
+                        if (y1 > viewAreaLRY) {
+                            break;
+                        } //topCoord - startingTickVal + (k * tickInterval) < bottomCoord) { break; }
                         g2.drawLine(viewAreaULX,
-                            y1,
-                            viewAreaULX - halfReferenceMarkSize,
-                            y1);
-                        
+                                y1,
+                                viewAreaULX - halfReferenceMarkSize,
+                                y1);
+
                         g2.drawLine(viewAreaLRX,
-                            y1,
-                            viewAreaLRX + halfReferenceMarkSize,
-                            y1);
+                                y1,
+                                viewAreaLRX + halfReferenceMarkSize,
+                                y1);
                     }
                 }
 
@@ -2740,65 +2806,150 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
                     metrics = g2.getFontMetrics(labelFont);
 //                    float hgt = metrics.getAscent(); // + metrics.getDescent();
 //                    float refMarkOffset = (referenceMarkSize - hgt) / 2.0f;
+                    
+                    int offset = 6;
+                    
+                    if (!XYUnits.equals("\u00B0")) {
+                        label = df.format(currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
+                        rect = metrics.getStringBounds(label, g2);
+                        ht = (float) rect.getHeight();
+                        g2.drawString(label, viewAreaULX + 4, viewAreaULY - offset); //3);
+                        g2.drawString(label, viewAreaULX + 4, viewAreaLRY + ht + offset - 3);
 
-                    label = df.format(currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
-                    rect = metrics.getStringBounds(label, g2);
-                    ht = (float) rect.getHeight();
-                    g2.drawString(label, viewAreaULX + 4, viewAreaULY - 3);
-                    g2.drawString(label, viewAreaULX + 4, viewAreaLRY + ht); //referenceMarkSize - 1);
-
-                    label = df.format(currentExtent.getMaxX() + (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
-                    rect = metrics.getStringBounds(label, g2);
-                    ht = (float) rect.getHeight();
-                    wd = (float) rect.getWidth() + 2;
-                    g2.drawString(label, viewAreaLRX - wd, viewAreaULY - 3);
-                    g2.drawString(label, viewAreaLRX - wd, viewAreaLRY + ht); //referenceMarkSize - 1);
+                        label = df.format(currentExtent.getMaxX() + (viewAreaWidth / mapScale - xRange) / 2) + XYUnits;
+                        rect = metrics.getStringBounds(label, g2);
+                        ht = (float) rect.getHeight();
+                        wd = (float) rect.getWidth() + 2;
+                        g2.drawString(label, viewAreaLRX - wd, viewAreaULY - offset); //3);
+                        g2.drawString(label, viewAreaLRX - wd, viewAreaLRY + ht + offset - 3);
+                    } else {
+                        double coordValue = currentExtent.getMinX() - (viewAreaWidth / mapScale - xRange) / 2;
+                        String hemi = "E";
+                        if (coordValue < 0) {
+                            coordValue = -1 * coordValue;
+                            hemi = "W";
+                        }
+                        label = df.format(coordValue) + XYUnits + hemi;
+                        rect = metrics.getStringBounds(label, g2);
+                        ht = (float) rect.getHeight();
+                        g2.drawString(label, viewAreaULX + 4, viewAreaULY - offset); //3);
+                        g2.drawString(label, viewAreaULX + 4, viewAreaLRY + ht + offset - 3);
+                        
+                        coordValue = currentExtent.getMaxX() + (viewAreaWidth / mapScale - xRange) / 2;
+                        hemi = "E";
+                        if (coordValue < 0) {
+                            coordValue = -1 * coordValue;
+                            hemi = "W";
+                        }
+                        label = df.format(coordValue) + XYUnits + hemi;
+                        rect = metrics.getStringBounds(label, g2);
+                        ht = (float) rect.getHeight();
+                        wd = (float) rect.getWidth() + 2;
+                        g2.drawString(label, viewAreaLRX - wd, viewAreaULY - offset); //3);
+                        g2.drawString(label, viewAreaLRX - wd, viewAreaLRY + ht + offset - 3);
+                    }
 
                     metrics = g2.getFontMetrics(labelFont);
+                    
+                    if (!XYUnits.equals("\u00B0")) {
+                        label = df.format(currentExtent.getMaxY() + (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
+                        rect = metrics.getStringBounds(label, g2);
+                        ht = (float) rect.getHeight();
+                        wd = (float) rect.getWidth() + 3;
+                        //adv = metrics.stringWidth(label) + 3;
+    //                    g2.drawString(label, viewAreaLRX + ht, viewAreaULY + wd);
 
-                    label = df.format(currentExtent.getMaxY() + (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
-                    rect = metrics.getStringBounds(label, g2);
-                    ht = (float) rect.getHeight();
-                    wd = (float) rect.getWidth() + 3;
-                    //adv = metrics.stringWidth(label) + 3;
-//                    g2.drawString(label, viewAreaLRX + ht, viewAreaULY + wd);
+                        double xr = viewAreaULX - offset; //3;
+                        double yr = viewAreaULY + wd;
+                        g2.translate(xr, yr);
+                        g2.rotate(-Math.PI / 2.0, 0, 0);
+                        g2.drawString(label, 0, 0);
+                        g2.rotate(Math.PI / 2);
+                        g2.translate(-xr, -yr);
 
-                    double xr = viewAreaULX - 3;
-                    double yr = viewAreaULY + wd;
-                    g2.translate(xr, yr);
-                    g2.rotate(-Math.PI / 2.0, 0, 0);
-                    g2.drawString(label, 0, 0);
-                    g2.rotate(Math.PI / 2);
-                    g2.translate(-xr, -yr);
+                        xr = viewAreaLRX + ht + offset - 4;
+                        yr = viewAreaULY + wd;
+                        g2.translate(xr, yr);
+                        g2.rotate(-Math.PI / 2.0, 0, 0);
+                        g2.drawString(label, 0, 0);
+                        g2.rotate(Math.PI / 2);
+                        g2.translate(-xr, -yr);
 
-                    xr = viewAreaLRX + ht;
-                    yr = viewAreaULY + wd;
-                    g2.translate(xr, yr);
-                    g2.rotate(-Math.PI / 2.0, 0, 0);
-                    g2.drawString(label, 0, 0);
-                    g2.rotate(Math.PI / 2);
-                    g2.translate(-xr, -yr);
+                        label = df.format(currentExtent.getMinY() - (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
+                        rect = metrics.getStringBounds(label, g2);
+                        ht = (float) rect.getHeight();
+    //                    wd = (float)rect.getWidth();
+                        xr = viewAreaULX - offset;
+                        yr = viewAreaLRY - 4;
+                        g2.translate(xr, yr);
+                        g2.rotate(-Math.PI / 2.0, 0, 0);
+                        g2.drawString(label, 0, 0);
+                        g2.rotate(Math.PI / 2);
+                        g2.translate(-xr, -yr);
 
-                    label = df.format(currentExtent.getMinY() - (viewAreaHeight / mapScale - yRange) / 2) + XYUnits;
-                    rect = metrics.getStringBounds(label, g2);
-                    ht = (float) rect.getHeight();
-//                    wd = (float)rect.getWidth();
-                    xr = viewAreaULX - 3;
-                    yr = viewAreaLRY - 4;
-                    g2.translate(xr, yr);
-                    g2.rotate(-Math.PI / 2.0, 0, 0);
-                    g2.drawString(label, 0, 0);
-                    g2.rotate(Math.PI / 2);
-                    g2.translate(-xr, -yr);
+                        xr = viewAreaLRX + ht + offset - 4;
+                        yr = viewAreaLRY - 4;
+                        g2.translate(xr, yr);
+                        g2.rotate(-Math.PI / 2.0, 0, 0);
+                        g2.drawString(label, 0, 0);
+                        g2.rotate(Math.PI / 2);
+                        g2.translate(-xr, -yr);
+                    } else {
+                        double coordValue = currentExtent.getMaxY() + (viewAreaHeight / mapScale - yRange) / 2;
+                        String hemi = "N";
+                        if (coordValue < 0) {
+                            coordValue = -1 * coordValue;
+                            hemi = "S";
+                        }
+                        label = df.format(coordValue) + XYUnits + hemi;
+                        rect = metrics.getStringBounds(label, g2);
+                        ht = (float) rect.getHeight();
+                        wd = (float) rect.getWidth() + 3;
+                        //adv = metrics.stringWidth(label) + 3;
+    //                    g2.drawString(label, viewAreaLRX + ht, viewAreaULY + wd);
 
-                    xr = viewAreaLRX + ht;
-                    yr = viewAreaLRY - 4;
-                    g2.translate(xr, yr);
-                    g2.rotate(-Math.PI / 2.0, 0, 0);
-                    g2.drawString(label, 0, 0);
-                    g2.rotate(Math.PI / 2);
-                    g2.translate(-xr, -yr);
+                        double xr = viewAreaULX - offset; //3;
+                        double yr = viewAreaULY + wd;
+                        g2.translate(xr, yr);
+                        g2.rotate(-Math.PI / 2.0, 0, 0);
+                        g2.drawString(label, 0, 0);
+                        g2.rotate(Math.PI / 2);
+                        g2.translate(-xr, -yr);
 
+                        xr = viewAreaLRX + ht + offset - 4;
+                        yr = viewAreaULY + wd;
+                        g2.translate(xr, yr);
+                        g2.rotate(-Math.PI / 2.0, 0, 0);
+                        g2.drawString(label, 0, 0);
+                        g2.rotate(Math.PI / 2);
+                        g2.translate(-xr, -yr);
+                        
+                        coordValue = currentExtent.getMinY() - (viewAreaHeight / mapScale - yRange) / 2;
+                        hemi = "N";
+                        if (coordValue < 0) {
+                            coordValue = -1 * coordValue;
+                            hemi = "S";
+                        }
+                        label = df.format(coordValue) + XYUnits + hemi;
+                        rect = metrics.getStringBounds(label, g2);
+                        ht = (float) rect.getHeight();
+    //                    wd = (float)rect.getWidth();
+                        xr = viewAreaULX - offset;
+                        yr = viewAreaLRY - 4;
+                        g2.translate(xr, yr);
+                        g2.rotate(-Math.PI / 2.0, 0, 0);
+                        g2.drawString(label, 0, 0);
+                        g2.rotate(Math.PI / 2);
+                        g2.translate(-xr, -yr);
+
+                        xr = viewAreaLRX + ht + offset - 4;
+                        yr = viewAreaLRY - 4;
+                        g2.translate(xr, yr);
+                        g2.rotate(-Math.PI / 2.0, 0, 0);
+                        g2.drawString(label, 0, 0);
+                        g2.rotate(Math.PI / 2);
+                        g2.translate(-xr, -yr);
+                    }
                 }
 
             }
@@ -3538,6 +3689,11 @@ public class MapRenderer2 extends JPanel implements Printable, MouseMotionListen
     @Override
     public void mousePressed(MouseEvent me) {
         try {
+            // see if the middle button is pressed
+            if (SwingUtilities.isMiddleMouseButton(me)) {
+                System.out.println("I'm here!");
+            }
+            
             startCol = (int) ((me.getX() - pageLeft) / scale);
             startRow = (int) ((me.getY() - pageTop) / scale);
 

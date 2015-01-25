@@ -152,6 +152,7 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 mta.setUpperLeftY(jo.getAsJsonPrimitive("upperLeftY").getAsInt());
                 mta.setElementNumber(jo.getAsJsonPrimitive("elementNumber").getAsInt());
                 mta.setHeight(jo.getAsJsonPrimitive("height").getAsInt());
+                mta.setWidth(jo.getAsJsonPrimitive("width").getAsInt());
                 mta.setMargin(jo.getAsJsonPrimitive("margin").getAsInt());
                 mta.setBackgroundVisible(jo.getAsJsonPrimitive("isBackgroundVisible").getAsBoolean());
                 mta.setBorderVisible(jo.getAsJsonPrimitive("isBorderVisible").getAsBoolean());
@@ -163,6 +164,10 @@ public class CartographicElementDeserializer implements JsonDeserializer<Cartogr
                 mta.setFontColour(clr);
                 font = gson.fromJson(jo.get("labelFont"), fontType);
                 mta.setLabelFont(font);
+                if (jo.has("rotation")) {
+                    mta.setRotation(jo.getAsJsonPrimitive("rotation").getAsFloat());
+                }
+                
                 return mta;
 
             case "NORTH_ARROW":

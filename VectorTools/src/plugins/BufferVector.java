@@ -241,6 +241,7 @@ public class BufferVector implements WhiteboxPlugin {
             
             // set up the output files of the shapefile and the dbf
             ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON);
+            output.setProjectionStringFromOtherShapefile(input);
             
             DBFField fields[] = new DBFField[1];
 

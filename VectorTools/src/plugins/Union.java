@@ -313,6 +313,7 @@ public class Union implements WhiteboxPlugin {
                 fields[0].setDecimalCount(0);
 
                 output = new ShapeFile(outputFile, outputShapeType, fields);
+                output.setProjectionStringFromOtherShapefile(new ShapeFile(shapefiles[0]));
                 
                 int numGeometries = outputGeometry.getNumGeometries();
                 oneHundredthTotal = (int)(numGeometries / 100.0);

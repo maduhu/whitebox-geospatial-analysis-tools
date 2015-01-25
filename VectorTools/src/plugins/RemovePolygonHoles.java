@@ -231,6 +231,7 @@ public class RemovePolygonHoles implements WhiteboxPlugin {
             outputShapeType = shapeType;
 
             ShapeFile output = new ShapeFile(outputFile, outputShapeType);
+            output.setProjectionStringFromOtherShapefile(input);
 
             FileUtilities.copyFile(new File(input.getDatabaseFile()), new File(output.getDatabaseFile()));
 

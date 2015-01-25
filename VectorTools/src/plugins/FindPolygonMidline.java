@@ -249,6 +249,7 @@ public class FindPolygonMidline implements WhiteboxPlugin {
             fields[0].setDecimalCount(0);
 
             ShapeFile output = new ShapeFile(outputFile, outputShapeType, fields);
+            output.setProjectionStringFromOtherShapefile(input);
 
             //FileUtilities.copyFile(new File(input.getDatabaseFile()), new File(output.getDatabaseFile()));
 

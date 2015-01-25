@@ -320,7 +320,7 @@ public class Legend implements CartographicElement, Comparable<CartographicEleme
     
     @Override
     public void resize(int x, int y, int resizeMode) {
-        int minSize = 50;
+        int minSize = 20;
         int deltaX, deltaY;
         switch (resizeMode) {
             case 0: // off the north edge

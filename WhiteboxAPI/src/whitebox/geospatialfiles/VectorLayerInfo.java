@@ -36,6 +36,7 @@ import whitebox.structures.BoundingBox;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import static whitebox.geospatialfiles.shapefile.ShapeType.*;
+import whitebox.utilities.StringUtilities;
 
 /**
  *
@@ -76,13 +77,15 @@ public class VectorLayerInfo implements MapLayer {
     private int[] paletteData = null;
     private double minimumValue = -32768.0;
     private double maximumValue = -32768.0;
+    private double displayMinValue = -32768.0;
+    private double displayMaxValue = -32768.0;
     private double cartographicGeneralizationLevel = 0.5;
     private int selectedFeatureNumber = -1;
     private int maxDisplayedEntries = 5;
     private boolean visibleInLegend = true;
     private boolean isActivelyEdited = false;
     private boolean[] selectedFeatures;
-    
+
     // Constructors
     public VectorLayerInfo() {
     }
@@ -97,7 +100,7 @@ public class VectorLayerInfo implements MapLayer {
         this.layerTitle = file.getName().replace(".shp", "");
         this.alpha = alpha;
         this.overlayNumber = overlayNumber;
-        
+
         try {
             shapefile = new ShapeFile(fileName);
         } catch (IOException e) {
@@ -119,8 +122,8 @@ public class VectorLayerInfo implements MapLayer {
             lineColour = Color.blue;
         } else if (shapeType == ShapeType.POLYGON && (layerTitle.toLowerCase().contains("lake")
                 || layerTitle.toLowerCase().contains("water"))) {
-            lineColour = Color.black;
-            fillColour = Color.blue;
+            lineColour = new Color(51, 153, 255);
+            fillColour = new Color(153, 204, 255);
         } else if (shapeType.getBaseType() == ShapeType.POLYLINE) {
             //lineColour = Color.RED; // new Color(153, 204, 255);
             Random generator = new Random();
@@ -173,7 +176,7 @@ public class VectorLayerInfo implements MapLayer {
 
         selectedFeatures = new boolean[shapefile.getNumberOfRecords() + 1];
     }
-    
+
     public void refreshAttributeTable() {
         shapefile.refreshAttributeTable();
         this.attributeTableFields = shapefile.getAttributeTableFields();
@@ -265,7 +268,7 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setLineColour(Color lineColour) {
         this.lineColour = lineColour;
-        setRecordsColourData();
+        //setRecordsColourData();
     }
 
     public boolean isFilled() {
@@ -496,9 +499,206 @@ public class VectorLayerInfo implements MapLayer {
      */
     public void setFillAttribute(String fillAttribute) {
         this.colouringAttribute = fillAttribute;
-        minimumValue = -32768.0;
-        maximumValue = -32768.0;
+//        minimumValue = -32768.0;
+//        maximumValue = -32768.0;
+//        displayMinValue = -32768.0;
+//        displayMaxValue = -32768.0;
+        updateMinAndMaxForAttribute(fillAttribute);
         //setRecordsColourData();
+    }
+
+    public void updateMinAndMaxForAttribute(String attribute) {
+        try {
+            // first find out if the attribute is a numeric data type
+            AttributeTable table = shapefile.getAttributeTable();
+            byte datatype = table.getFieldType(attribute);
+            if (datatype == 'N' || datatype == 'F') {
+                double[] data = readDataForAttribute(attribute);
+                minimumValue = Double.POSITIVE_INFINITY;
+                maximumValue = Double.NEGATIVE_INFINITY;
+                for (int r = 0; r < data.length; r++) {
+                    if (data[r] < minimumValue) {
+                        minimumValue = data[r];
+                    }
+                    if (data[r] > maximumValue) {
+                        maximumValue = data[r];
+                    }
+                }
+                displayMinValue = minimumValue;
+                displayMaxValue = maximumValue;
+            } else {
+                minimumValue = -32768.0;
+                maximumValue = -32768.0;
+                displayMinValue = -32768.0;
+                displayMaxValue = -32768.0;
+            }
+        } catch (Exception e) {
+            minimumValue = -32768.0;
+            maximumValue = -32768.0;
+            displayMinValue = -32768.0;
+            displayMaxValue = -32768.0;
+        }
+    }
+
+    private double[] readDataForAttribute(String attribute) {
+        try {
+            if (attribute.toLowerCase().contains("feature z")) {
+                int numRecords = shapefile.getNumberOfRecords();
+                double[] data = new double[numRecords];
+                int a;
+                switch (shapefile.getShapeType()) {
+                    case POINTZ:
+                        for (a = 0; a < numRecords; a++) {
+                            double[] zArray = ((PointZ) (shapefile.getRecord(a).getGeometry())).getzArray();
+                            data[a] = zArray[0];
+                        }
+                        break;
+                    case MULTIPOINTZ:
+                        int k = 0;
+                        for (a = 0; a < shapefile.getNumberOfRecords(); a++) {
+                            double[] zArray = ((MultiPointZ) (shapefile.getRecord(a).getGeometry())).getzArray();
+                            for (double v : zArray) {
+                                data[k] = v;
+                                k++;
+                            }
+                        }
+                        break;
+                    case POLYLINEZ:
+                        for (a = 0; a < numRecords; a++) {
+                            double[] zArray = ((PolyLineZ) (shapefile.getRecord(a).getGeometry())).getzArray();
+                            data[a] = zArray[0];
+                        }
+                        break;
+                    case POLYGONZ:
+                        for (a = 0; a < numRecords; a++) {
+                            double[] zArray = ((PolygonZ) (shapefile.getRecord(a).getGeometry())).getzArray();
+                            data[a] = zArray[0];
+                        }
+                        break;
+
+                }
+                return data;
+            } else if (attribute.toLowerCase().contains("feature measure")) {
+                int k = 0;
+                int numRecords = shapefile.getNumberOfRecords();
+                double[] data = new double[numRecords];
+                int a;
+                switch (shapefile.getShapeType()) {
+                    case POINTZ:
+                        for (a = 0; a < numRecords; a++) {
+                            double[] zArray = ((PointZ) (shapefile.getRecord(a).getGeometry())).getmArray();
+                            data[a] = zArray[0];
+                        }
+                        break;
+                    case MULTIPOINTZ:
+                        for (a = 0; a < shapefile.getNumberOfRecords(); a++) {
+                            double[] zArray = ((MultiPointZ) (shapefile.getRecord(a).getGeometry())).getmArray();
+                            for (double v : zArray) {
+                                data[k] = v;
+                                k++;
+                            }
+                        }
+                        break;
+                    case POLYLINEZ:
+                        for (a = 0; a < numRecords; a++) {
+                            double[] zArray = ((PolyLineZ) (shapefile.getRecord(a).getGeometry())).getmArray();
+                            data[a] = zArray[0];
+                        }
+                        break;
+                    case POLYGONZ:
+                        for (a = 0; a < numRecords; a++) {
+                            double[] zArray = ((PolygonZ) (shapefile.getRecord(a).getGeometry())).getmArray();
+                            data[a] = zArray[0];
+                        }
+                        break;
+                    case POINTM:
+                        for (a = 0; a < numRecords; a++) {
+                            double[] zArray = {((PointM) (shapefile.getRecord(a).getGeometry())).getM()};
+                            data[a] = zArray[0];
+                        }
+                        break;
+                    case MULTIPOINTM:
+                        for (a = 0; a < shapefile.getNumberOfRecords(); a++) {
+                            double[] zArray = ((MultiPointM) (shapefile.getRecord(a).getGeometry())).getmArray();
+                            for (double v : zArray) {
+                                data[k] = v;
+                                k++;
+                            }
+                        }
+                        break;
+                    case POLYLINEM:
+                        for (a = 0; a < numRecords; a++) {
+                            double[] zArray = ((PolyLineM) (shapefile.getRecord(a).getGeometry())).getmArray();
+                            data[a] = zArray[0];
+                        }
+                        break;
+                    case POLYGONM:
+                        for (a = 0; a < numRecords; a++) {
+                            double[] zArray = ((PolygonM) (shapefile.getRecord(a).getGeometry())).getmArray();
+                            data[a] = zArray[0];
+                        }
+                        break;
+
+                }
+                return data;
+            } else {
+
+                // first find out if the attribute is a numeric data type
+                AttributeTable table = shapefile.getAttributeTable();
+                byte datatype = table.getFieldType(attribute);
+                if (datatype == 'N' || datatype == 'F') {
+                    minimumValue = Double.POSITIVE_INFINITY;
+                    maximumValue = Double.NEGATIVE_INFINITY;
+                    int numRecords = table.getNumberOfRecords();
+                    double[] data = new double[numRecords];
+                    for (int r = 0; r < numRecords; r++) {
+                        data[r] = (double) table.getValue(r, attribute);
+                    }
+                    displayMinValue = minimumValue;
+                    displayMaxValue = maximumValue;
+                    return data;
+                } else {
+                    return null;
+                }
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public void clipLowerTailForDisplayMinimum(double percent) {
+        if (percent > 100 || percent < 0) { return; }
+        double[] data = readDataForAttribute(this.colouringAttribute);
+        int numPointRecords = data.length;
+        int target = (int) (numPointRecords * percent / 100d);
+        if (target >= numPointRecords) { 
+            displayMinValue = maximumValue;
+            return;
+        }
+        if (target <= 0) { 
+            displayMinValue = minimumValue;
+            return;
+        }
+        Arrays.parallelSort(data);
+        displayMinValue = data[target];
+    }
+
+    public void clipUpperTailForDisplayMaximum(double percent) {
+        percent = 100 - percent;
+        if (percent > 100 || percent < 0) { return; }
+        double[] data = readDataForAttribute(this.colouringAttribute);
+        int numPointRecords = data.length;
+        int target = (int) (numPointRecords * percent / 100d);
+        if (target >= numPointRecords) { 
+            displayMaxValue = maximumValue;
+            return;
+        }
+        if (target <= 0) { 
+            displayMaxValue = minimumValue;
+            return;
+        }
+        Arrays.parallelSort(data);
+        displayMaxValue = data[target];
     }
 
     public String getLineAttribute() {
@@ -507,6 +707,11 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setLineAttribute(String lineAttribute) {
         this.colouringAttribute = lineAttribute;
+        updateMinAndMaxForAttribute(lineAttribute);
+//        minimumValue = -32768.0;
+//        maximumValue = -32768.0;
+//        displayMinValue = -32768.0;
+//        displayMaxValue = -32768.0;
         //setRecordsColourData();
     }
     private Color[] colourData;
@@ -527,16 +732,30 @@ public class VectorLayerInfo implements MapLayer {
         return maximumValue;
     }
 
-    public void setMaximumValue(double value) {
-        this.maximumValue = value;
-    }
-
+//    public void setMaximumValue(double value) {
+//        this.maximumValue = value;
+//    }
     public double getMinimumValue() {
         return minimumValue;
     }
 
-    public void setMinimumValue(double value) {
-        this.minimumValue = value;
+//    public void setMinimumValue(double value) {
+//        this.minimumValue = value;
+//    }
+    public double getDisplayMaxValue() {
+        return displayMaxValue;
+    }
+
+    public void setDisplayMaxValue(double value) {
+        this.displayMaxValue = value;
+    }
+
+    public double getDisplayMinValue() {
+        return displayMinValue;
+    }
+
+    public void setDisplayMinValue(double value) {
+        this.displayMinValue = value;
     }
 
     /**
@@ -643,14 +862,14 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setRecordsColourData() {
         int numRecords = shapefile.getNumberOfRecords();
-        
+
         if (shapefile.getShapeType().getBaseType() == ShapeType.MULTIPOINT) {
 //            if (colouringAttribute.toLowerCase().contains("feature z") ||
 //                    colouringAttribute.toLowerCase().contains("feature measure")) {
-                numRecords = 0;
-                for (ShapeFileRecord rec : shapefile.records) {
-                    numRecords += rec.getGeometry().getPoints().length;
-                }
+            numRecords = 0;
+            for (ShapeFileRecord rec : shapefile.records) {
+                numRecords += rec.getGeometry().getPoints().length;
+            }
 //            }
         }
         int entryNum, a, i;
@@ -688,13 +907,13 @@ public class VectorLayerInfo implements MapLayer {
             try {
                 byte dataType = 'N';
                 Object[][] data = new Object[numRecords][3];
-                
+
                 if (colouringAttribute.toLowerCase().contains("feature z")) {
                     switch (shapefile.getShapeType()) {
                         case POINTZ:
                             for (a = 0; a < numRecords; a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((PointZ)(shapefile.getRecord(a).getGeometry())).getzArray();
+                                double[] zArray = ((PointZ) (shapefile.getRecord(a).getGeometry())).getzArray();
                                 data[a][1] = zArray[0];
                             }
                             break;
@@ -702,7 +921,7 @@ public class VectorLayerInfo implements MapLayer {
                             int k = 0;
                             for (a = 0; a < shapefile.getNumberOfRecords(); a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((MultiPointZ)(shapefile.getRecord(a).getGeometry())).getzArray();
+                                double[] zArray = ((MultiPointZ) (shapefile.getRecord(a).getGeometry())).getzArray();
                                 for (double v : zArray) {
                                     data[k][1] = v;
                                     k++;
@@ -712,18 +931,18 @@ public class VectorLayerInfo implements MapLayer {
                         case POLYLINEZ:
                             for (a = 0; a < numRecords; a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((PolyLineZ)(shapefile.getRecord(a).getGeometry())).getzArray();
+                                double[] zArray = ((PolyLineZ) (shapefile.getRecord(a).getGeometry())).getzArray();
                                 data[a][1] = zArray[0];
                             }
                             break;
                         case POLYGONZ:
                             for (a = 0; a < numRecords; a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((PolygonZ)(shapefile.getRecord(a).getGeometry())).getzArray();
+                                double[] zArray = ((PolygonZ) (shapefile.getRecord(a).getGeometry())).getzArray();
                                 data[a][1] = zArray[0];
                             }
                             break;
-                        
+
                     }
                 } else if (colouringAttribute.toLowerCase().contains("feature measure")) {
                     int k = 0;
@@ -731,14 +950,14 @@ public class VectorLayerInfo implements MapLayer {
                         case POINTZ:
                             for (a = 0; a < numRecords; a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((PointZ)(shapefile.getRecord(a).getGeometry())).getmArray();
+                                double[] zArray = ((PointZ) (shapefile.getRecord(a).getGeometry())).getmArray();
                                 data[a][1] = zArray[0];
                             }
                             break;
                         case MULTIPOINTZ:
                             for (a = 0; a < shapefile.getNumberOfRecords(); a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((MultiPointZ)(shapefile.getRecord(a).getGeometry())).getmArray();
+                                double[] zArray = ((MultiPointZ) (shapefile.getRecord(a).getGeometry())).getmArray();
                                 for (double v : zArray) {
                                     data[k][1] = v;
                                     k++;
@@ -748,28 +967,28 @@ public class VectorLayerInfo implements MapLayer {
                         case POLYLINEZ:
                             for (a = 0; a < numRecords; a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((PolyLineZ)(shapefile.getRecord(a).getGeometry())).getmArray();
+                                double[] zArray = ((PolyLineZ) (shapefile.getRecord(a).getGeometry())).getmArray();
                                 data[a][1] = zArray[0];
                             }
                             break;
                         case POLYGONZ:
                             for (a = 0; a < numRecords; a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((PolygonZ)(shapefile.getRecord(a).getGeometry())).getmArray();
+                                double[] zArray = ((PolygonZ) (shapefile.getRecord(a).getGeometry())).getmArray();
                                 data[a][1] = zArray[0];
                             }
                             break;
                         case POINTM:
                             for (a = 0; a < numRecords; a++) {
                                 data[a][0] = a;
-                                double[] zArray = {((PointM)(shapefile.getRecord(a).getGeometry())).getM()};
+                                double[] zArray = {((PointM) (shapefile.getRecord(a).getGeometry())).getM()};
                                 data[a][1] = zArray[0];
                             }
                             break;
                         case MULTIPOINTM:
                             for (a = 0; a < shapefile.getNumberOfRecords(); a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((MultiPointM)(shapefile.getRecord(a).getGeometry())).getmArray();
+                                double[] zArray = ((MultiPointM) (shapefile.getRecord(a).getGeometry())).getmArray();
                                 for (double v : zArray) {
                                     data[k][1] = v;
                                     k++;
@@ -779,18 +998,18 @@ public class VectorLayerInfo implements MapLayer {
                         case POLYLINEM:
                             for (a = 0; a < numRecords; a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((PolyLineM)(shapefile.getRecord(a).getGeometry())).getmArray();
+                                double[] zArray = ((PolyLineM) (shapefile.getRecord(a).getGeometry())).getmArray();
                                 data[a][1] = zArray[0];
                             }
                             break;
                         case POLYGONM:
                             for (a = 0; a < numRecords; a++) {
                                 data[a][0] = a;
-                                double[] zArray = ((PolygonM)(shapefile.getRecord(a).getGeometry())).getmArray();
+                                double[] zArray = ((PolygonM) (shapefile.getRecord(a).getGeometry())).getmArray();
                                 data[a][1] = zArray[0];
                             }
                             break;
-                        
+
                     }
                 } else {
                     AttributeTable table = new AttributeTable(dbfFileName);
@@ -825,7 +1044,15 @@ public class VectorLayerInfo implements MapLayer {
                         if (entry1[1] instanceof String) {
                             final String val1 = (String) entry1[1];
                             final String val2 = (String) entry2[1];
-                            return String.valueOf(val1).compareTo(val2);
+                            // see if the strings starts with a number
+                            String[] val1Array = val1.split(" ");
+                            String[] val2Array = val2.split(" ");
+                            if (StringUtilities.isNumeric(val1Array[0]) && 
+                                    StringUtilities.isNumeric(val2Array[0])) {
+                                return Double.valueOf(val1Array[0]).compareTo(Double.valueOf(val2Array[0]));
+                            } else {
+                                return String.valueOf(val1).compareTo(val2);
+                            }
                         } else if (entry1[1] instanceof Integer) {
                             final int val1 = (Integer) entry1[1];
                             final int val2 = (Integer) entry2[1];
@@ -894,7 +1121,7 @@ public class VectorLayerInfo implements MapLayer {
                     }
 
                     // sort it back into the record number order.
-                    Arrays.sort(data, (final Object[] entry1, final Object[] entry2) -> {
+                    Arrays.parallelSort(data, (final Object[] entry1, final Object[] entry2) -> {
                         final int int1 = (Integer) entry1[0];
                         final int int2 = (Integer) entry2[0];
                         return Integer.valueOf(int1).compareTo(int2);
@@ -969,9 +1196,13 @@ public class VectorLayerInfo implements MapLayer {
 
                                 minimumValue = minValue;
                                 maximumValue = maxValue;
+                                if (displayMinValue == -32768.0 && displayMaxValue == -32768.0) {
+                                    displayMinValue = minValue;
+                                    displayMaxValue = maxValue;
+                                }
                             }
 
-                            double range = maximumValue - minimumValue;
+                            double range = displayMaxValue - displayMinValue;
                             double value;
                             int numPaletteEntriesLessOne = numPaletteEntries - 1;
                             for (i = 0; i < numRecords; i++) {
@@ -980,9 +1211,9 @@ public class VectorLayerInfo implements MapLayer {
                                 } else {
                                     value = (Double) data[i][1];
                                     if (gamma == 1) {
-                                        entryNum = (int) ((value - minimumValue) / range * numPaletteEntriesLessOne);
+                                        entryNum = (int) ((value - displayMinValue) / range * numPaletteEntriesLessOne);
                                     } else {
-                                        entryNum = (int) (Math.pow((value - minimumValue) / range, gamma) * numPaletteEntriesLessOne);
+                                        entryNum = (int) (Math.pow((value - displayMinValue) / range, gamma) * numPaletteEntriesLessOne);
                                     }
 
                                     //entryNum = (int) (((value - minimumValue) / range) * (numPaletteEntries - 1));
@@ -1241,6 +1472,11 @@ public class VectorLayerInfo implements MapLayer {
 
     public void setZValue(double zValue) {
         this.zValue = zValue;
+    }
+
+    public void openNewFeature() {
+        isFeatureOpen = true;
+        digitizedPoints.clear();
     }
 
     public void openNewFeature(Object[] recordData) {
@@ -1606,7 +1842,8 @@ public class VectorLayerInfo implements MapLayer {
             case POINT:
             case POINTZ:
             case POINTM:
-                double pointX, pointY;
+                double pointX,
+                 pointY;
                 double[][] points;
                 for (ShapeFileRecord record : recs) {
                     points = record.getGeometry().getPoints();
@@ -1624,7 +1861,8 @@ public class VectorLayerInfo implements MapLayer {
             case MULTIPOINT:
             case MULTIPOINTZ:
             case MULTIPOINTM:
-                double x2, y2;
+                double x2,
+                 y2;
                 double[][] points2;
                 for (ShapeFileRecord record : recs) {
                     points2 = record.getGeometry().getPoints();

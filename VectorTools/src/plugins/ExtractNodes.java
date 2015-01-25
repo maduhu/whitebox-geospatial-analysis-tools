@@ -245,6 +245,7 @@ public class ExtractNodes implements WhiteboxPlugin {
             System.arraycopy(inputFields, 0, fields, 1, numInputFields);
 
             ShapeFile output = new ShapeFile(outputFile, outputShapeType, fields);
+            output.setProjectionStringFromOtherShapefile(input);
             
             numFeatures = input.getNumberOfRecords();
             oneHundredthTotal = numFeatures / 100;

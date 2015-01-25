@@ -241,6 +241,7 @@ public class MinimumConvexHull implements WhiteboxPlugin {
 
             // set up the output files of the shapefile and the dbf
             ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON, fields);
+            output.setProjectionStringFromOtherShapefile(input);
             
 //            String DBFName = output.getDatabaseFile();
 //            DBFWriter writer = new DBFWriter(new File(DBFName));

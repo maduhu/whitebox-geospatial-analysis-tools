@@ -409,10 +409,11 @@ public class RasterLayerInfo implements MapLayer {
 
     @Override
     public void setCurrentExtent(BoundingBox bb) {
-        if (!bb.equals(currentExtent)) {
+        if (!bb.equals(currentExtent) || generalizationLevelDirty) {
             currentExtent = bb.clone();
             dirty = true;
         }
+        generalizationLevelDirty = false;
     }
     private int resolutionFactor = 1;
 
@@ -424,6 +425,18 @@ public class RasterLayerInfo implements MapLayer {
             resolutionFactor = value;
             dirty = true;
         }
+    }
+    
+    private double cartographicGeneralizationLevel = 10;
+    public double getCartographicGeneralizationLevel() {
+        return cartographicGeneralizationLevel;
+    }
+    boolean generalizationLevelDirty = false;
+
+    public void setCartographicGeneralizationLevel(double generalizeLevel) {
+        cartographicGeneralizationLevel = generalizeLevel;
+        if (cartographicGeneralizationLevel < 1) { cartographicGeneralizationLevel = 1; }
+        generalizationLevelDirty = true;
     }
 
     public double getDataValue(int row, int col) {

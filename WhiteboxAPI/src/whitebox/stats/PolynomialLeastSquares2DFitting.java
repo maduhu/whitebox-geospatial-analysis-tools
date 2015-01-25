@@ -148,7 +148,7 @@ public class PolynomialLeastSquares2DFitting {
         addData(X1, Y1, X2, Y2);
     }
 
-    public void addData(double[] X1, double[] Y1, double[] X2, double[] Y2) {
+    public final void addData(double[] X1, double[] Y1, double[] X2, double[] Y2) {
         int n = X1.length;
         if (Y1.length != n || X2.length != n || Y2.length != n) {
             return;

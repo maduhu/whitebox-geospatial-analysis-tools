@@ -221,9 +221,15 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
             
             if (mapLayer.getLayerType() == MapLayerType.RASTER) {
                 RasterLayerInfo rli = (RasterLayerInfo) mapLayer;
-
+                
                 JLabel maxVal = new JLabel(df.format(rli.getDisplayMaxVal()));
+                if (rli.getDisplayMaxVal() < rli.getMaxVal()) {
+                    maxVal.setText(">" + df.format(rli.getDisplayMaxVal()));
+                }
                 JLabel minVal = new JLabel(df.format(rli.getDisplayMinVal()));
+                if (rli.getDisplayMinVal() > rli.getMinVal()) {
+                    minVal.setText("<" + df.format(rli.getDisplayMinVal()));
+                }
 
                 //if (isVisible && (rli.getDataScale() != WhiteboxRasterInfo.DataScale.RGB)) {
                 if (rli.getDataScale() != WhiteboxRasterInfo.DataScale.RGB) {
@@ -303,8 +309,14 @@ public class LegendEntryPanel extends JPanel implements ItemListener,
                     box2.add(Box.createHorizontalStrut(5));
                     box2.add(paletteImage);
 
-                    JLabel maxVal = new JLabel(df.format(vli.getMaximumValue()));
-                    JLabel minVal = new JLabel(df.format(vli.getMinimumValue()));
+                    JLabel maxVal = new JLabel(df.format(vli.getDisplayMaxValue()));
+                    JLabel minVal = new JLabel(df.format(vli.getDisplayMinValue()));
+                    if (vli.getDisplayMaxValue() < vli.getMaximumValue()) {
+                        maxVal.setText(">" + df.format(vli.getDisplayMaxValue()));
+                    }
+                    if (vli.getDisplayMinValue() > vli.getMinimumValue()) {
+                        minVal.setText("<" + df.format(vli.getDisplayMinValue()));
+                    }
 
                     Box box3 = Box.createVerticalBox();
                     box3.add(maxVal);

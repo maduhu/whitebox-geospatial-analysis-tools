@@ -255,7 +255,7 @@ public class RemovePolygonNecks implements WhiteboxPlugin {
             fields[0].setDecimalCount(4);
             
             ShapeFile output = new ShapeFile(outputFile, outputShapeType, fields);
-            
+            output.setProjectionStringFromOtherShapefile(input);
             
 //            DBFField[] fieldsPnts = new DBFField[3];
 //            

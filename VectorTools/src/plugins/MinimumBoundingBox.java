@@ -259,6 +259,7 @@ public class MinimumBoundingBox implements WhiteboxPlugin {
             fields[3].setDecimalCount(3);
 
             ShapeFile output = new ShapeFile(outputFile, outputShapeType, fields);
+            output.setProjectionStringFromOtherShapefile(input);
             
             MinimumBoundingRectangle mbr = new MinimumBoundingRectangle(minimizationCriteria);
 	

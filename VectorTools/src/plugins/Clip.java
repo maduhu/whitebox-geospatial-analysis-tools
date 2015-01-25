@@ -246,6 +246,7 @@ public class Clip implements WhiteboxPlugin {
             AttributeTable table = input.getAttributeTable();
             DBFField[] fields = table.getAllFields();
             ShapeFile output = new ShapeFile(outputFile, shapeType, fields);
+            output.setProjectionStringFromOtherShapefile(input);
 
             int numClipFeatures = clipRegion.getNumberOfRecords();
 

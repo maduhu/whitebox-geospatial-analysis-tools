@@ -2933,6 +2933,14 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             ungroupMenu.addActionListener(this);
             ungroupMenu.setActionCommand("ungroupElements");
             cartoMenu.add(ungroupMenu);
+            
+            JMenuItem selectMapElementsMenu = new JMenuItem(bundle.getString("SelectAllMapElements"));
+            selectMapElementsMenu.addActionListener(e -> {
+                if (openMaps.get(activeMap).selectAllElements()) {
+                    refreshMap(false);
+                }
+            });
+            cartoMenu.add(selectMapElementsMenu);
 
             menubar.add(cartoMenu);
 
@@ -4918,6 +4926,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 // create a new map to overlay the layer onto.
                 numOpenMaps = 1;
                 MapInfo mapinfo = new MapInfo("Map1");
+                mapinfo.setPageVisible(isPageVisible);
                 mapinfo.setMargin(defaultMapMargin);
                 mapinfo.setMapName("Map1");
                 MapArea ma = new MapArea("MapArea1");
@@ -5066,6 +5075,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
                 // create a new map to overlay the layer onto.
                 numOpenMaps = 1;
                 MapInfo mapinfo = new MapInfo("Map1");
+                mapinfo.setPageVisible(isPageVisible);
                 mapinfo.setMargin(defaultMapMargin);
                 mapinfo.setMapName("Map1");
                 MapArea ma = new MapArea("MapArea1");
@@ -5748,6 +5758,30 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
             selectedMapAndLayer[0] = -1;
             selectedMapAndLayer[1] = -1;
             selectedMapAndLayer[2] = -1;
+        }
+    }
+    
+    public void setAsActiveMap(int mapIndex) {
+        if (mapIndex >= 0 && mapIndex < openMaps.size()) {
+            activeMap = mapIndex;
+            if (selectedMapAndLayer[2] != -1) {
+                openMaps.get(activeMap).setActiveMapAreaByElementNum(openMaps.get(activeMap).getCartographicElement(selectedMapAndLayer[2]).getElementNumber());
+            }
+            drawingArea.setMapInfo(openMaps.get(activeMap));
+            drawingArea.repaint();
+            updateLayersTab();
+            selectedMapAndLayer[0] = -1;
+            selectedMapAndLayer[1] = -1;
+            selectedMapAndLayer[2] = -1;
+        }
+    }
+    
+    public void setAsActiveMap(String mapName) {
+        // find the map with this map title
+        for (int i = 0; i < openMaps.size(); i++) {
+            if (openMaps.get(i).getMapName().equals(mapName)) {
+                setAsActiveMap(i);
+            }
         }
     }
 

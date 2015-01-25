@@ -32,128 +32,135 @@
  * WITH THE ACCESS, USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 package whitebox.geospatialfiles;
- 
+
 import java.util.*;
- 
+
 /**
  *
  * @author caron
  * @version $Revision:63 $ $Date:2006-07-12 21:50:51Z $
  */
 class IFDEntry implements Comparable {
-  protected Tag tag;
-  protected FieldType type;
-  protected int count;
-  protected int[] value;
-  protected double[] valueD;
-  protected String valueS;
- 
-  protected ArrayList geokeys = null;
- 
-  IFDEntry( Tag tag, FieldType type) {
-    this.tag = tag;
-    this.type = type;
-    this.count = 1;
-  }
- 
-  IFDEntry( Tag tag, FieldType type, int count) {
-    this.tag = tag;
-    this.type = type;
-    this.count = count;
-  }
- 
-  public IFDEntry setValue(int v) {
-    this.value = new int[1];
-    this.value[0] = v;
-    return this;
-  }
- 
-  public IFDEntry setValue(int n, int d) {
-    this.value = new int[2];
-    this.value[0] = n;
-    this.value[1] = d;
-    return this;
-  }
- 
-  public IFDEntry setValue(int n, int d, int f) {
-    this.value = new int[3];
-    this.value[0] = n;
-    this.value[1] = d;
-    this.value[2] = f;
-    return this;
-  }
-  public IFDEntry setValue( int[] v) {
-    this.count = v.length;
-    value = (int[]) v.clone();
-    return this;
-  }
- 
-  public IFDEntry setValue( double v) {
-    this.count = 1;
-    valueD = new double[1];
-    valueD[0] = v;
-    return this;
-  }
- 
-  public IFDEntry setValue( double[] v) {
-    this.count = v.length;
-    valueD = (double[]) v.clone();
-    return this;
-  }
- 
-  public IFDEntry setValue( String v) {
-    this.count = v.length();
-    valueS = v;
-    return this;
-  }
- 
-  public void addGeoKey( GeoKey geokey) {
-    if (geokeys == null)
-      geokeys = new ArrayList();
-    geokeys.add( geokey);
-  }
- 
-    @Override
-  public int compareTo( Object o) {
-    return tag.compareTo( ((IFDEntry)o).tag);
-  }
- 
-    @Override
-  public String toString() {
-    StringBuilder sbuf  = new StringBuilder();
-    sbuf.append(" tag = " + tag);
-    sbuf.append(" type = " + type);
-    sbuf.append(" count = " + count);
-    sbuf.append(" values = ");
- 
-    if (type == FieldType.ASCII) {
-      sbuf.append(valueS);
- 
-    } else if (type == FieldType.RATIONAL) {
-      for (int i=0; i<2; i+=2) {
-        if (i > 1) sbuf.append(", ");
-        sbuf.append(value[i]+"/"+value[i+1]);
-      }
- 
-    } else if ((type == FieldType.DOUBLE) || (type == FieldType.FLOAT)) {
-       for (int i=0; i<count; i++)
-        sbuf.append(valueD[i]+" ");
- 
-    } else {
-       int n= Math.min(count, 30);
-       for (int i=0; i<n; i++)
-        sbuf.append(value[i]+" ");
+
+    protected Tag tag;
+    protected FieldType type;
+    protected int count;
+    protected int[] value;
+    protected double[] valueD;
+    protected String valueS;
+
+    protected ArrayList geokeys = null;
+
+    IFDEntry(Tag tag, FieldType type) {
+        this.tag = tag;
+        this.type = type;
+        this.count = 1;
     }
- 
-    if (geokeys != null) {
-      sbuf.append("\n");
-      for (int i=0; i<geokeys.size(); i++) {
-        GeoKey elem = (GeoKey) geokeys.get(i);
-        sbuf.append("        " + elem + "\n");
-      }
+
+    IFDEntry(Tag tag, FieldType type, int count) {
+        this.tag = tag;
+        this.type = type;
+        this.count = count;
     }
- 
-    return sbuf.toString();
-  }
- 
+
+    public IFDEntry setValue(int v) {
+        this.value = new int[1];
+        this.value[0] = v;
+        return this;
+    }
+
+    public IFDEntry setValue(int n, int d) {
+        this.value = new int[2];
+        this.value[0] = n;
+        this.value[1] = d;
+        return this;
+    }
+
+    public IFDEntry setValue(int n, int d, int f) {
+        this.value = new int[3];
+        this.value[0] = n;
+        this.value[1] = d;
+        this.value[2] = f;
+        return this;
+    }
+
+    public IFDEntry setValue(int[] v) {
+        this.count = v.length;
+        value = (int[]) v.clone();
+        return this;
+    }
+
+    public IFDEntry setValue(double v) {
+        this.count = 1;
+        valueD = new double[1];
+        valueD[0] = v;
+        return this;
+    }
+
+    public IFDEntry setValue(double[] v) {
+        this.count = v.length;
+        valueD = (double[]) v.clone();
+        return this;
+    }
+
+    public IFDEntry setValue(String v) {
+        this.count = v.length();
+        valueS = v;
+        return this;
+    }
+
+    public void addGeoKey(GeoKey geokey) {
+        if (geokeys == null) {
+            geokeys = new ArrayList();
+        }
+        geokeys.add(geokey);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return tag.compareTo(((IFDEntry) o).tag);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sbuf = new StringBuilder();
+        sbuf.append(" tag = " + tag);
+        sbuf.append(" type = " + type);
+        sbuf.append(" count = " + count);
+        sbuf.append(" values = ");
+
+        if (type == FieldType.ASCII) {
+            sbuf.append(valueS);
+
+        } else if (type == FieldType.RATIONAL) {
+            for (int i = 0; i < 2; i += 2) {
+                if (i > 1) {
+                    sbuf.append(", ");
+                }
+                sbuf.append(value[i] + "/" + value[i + 1]);
+            }
+
+        } else if ((type == FieldType.DOUBLE) || (type == FieldType.FLOAT)) {
+            for (int i = 0; i < count; i++) {
+                sbuf.append(valueD[i] + " ");
+            }
+
+        } else {
+            int n = Math.min(count, 30);
+            for (int i = 0; i < n; i++) {
+                sbuf.append(value[i] + " ");
+            }
+        }
+
+        if (geokeys != null) {
+            sbuf.append("\n");
+            for (int i = 0; i < geokeys.size(); i++) {
+                GeoKey elem = (GeoKey) geokeys.get(i);
+                sbuf.append("        " + elem + "\n");
+            }
+        }
+
+        return sbuf.toString();
+    }
+
 }

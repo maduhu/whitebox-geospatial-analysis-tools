@@ -368,7 +368,7 @@ public class Difference implements WhiteboxPlugin {
             
             // set up the output files of the shapefile and the dbf
             output = new ShapeFile(outputFile, outputShapeType, fields);
-
+            output.setProjectionStringFromOtherShapefile(input1);
             
             PreparedGeometry[] tests = new PreparedGeometry[g1.getNumGeometries()];
             com.vividsolutions.jts.geom.Geometry[] testGs = new com.vividsolutions.jts.geom.Geometry[g1.getNumGeometries()];

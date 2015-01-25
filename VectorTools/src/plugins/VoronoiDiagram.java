@@ -255,7 +255,7 @@ public class VoronoiDiagram implements WhiteboxPlugin {
             
             // set up the output files of the shapefile and the dbf
             ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYGON, fields);
-
+            output.setProjectionStringFromOtherShapefile(input);
 
             ArrayList<com.vividsolutions.jts.geom.Geometry> pointList = new ArrayList<>();
             com.vividsolutions.jts.geom.Geometry[] recJTS = null;

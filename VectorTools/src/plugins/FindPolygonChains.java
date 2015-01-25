@@ -276,6 +276,7 @@ public class FindPolygonChains implements WhiteboxPlugin {
             fields[1].setDecimalCount(0);
 
             ShapeFile output = new ShapeFile(outputFile, shapeType, fields);
+            output.setProjectionStringFromOtherShapefile(input);
 
             ShapeFile chainVector = new ShapeFile();
             if (outputChainVector) {

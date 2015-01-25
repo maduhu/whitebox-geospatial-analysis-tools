@@ -236,7 +236,7 @@ public class CentroidVector implements WhiteboxPlugin {
             //AttributeTable writer = output.getAttributeTable();
             //writer.setFields(fields);
             ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
-
+            output.setProjectionStringFromOtherShapefile(input);
             
             // now read in all of the attributes data
             Object[][] attributeTableRecords = new Object[numRecs][numFields];

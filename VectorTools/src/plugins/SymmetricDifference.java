@@ -383,7 +383,7 @@ public class SymmetricDifference implements WhiteboxPlugin {
             
             // set up the output files of the shapefile and the dbf
             output = new ShapeFile(outputFile, outputShapeType, fields);
-
+            output.setProjectionStringFromOtherShapefile(input1);
 //            String DBFName = output.getDatabaseFile();
 //            writer = new DBFWriter(new File(DBFName));
 //

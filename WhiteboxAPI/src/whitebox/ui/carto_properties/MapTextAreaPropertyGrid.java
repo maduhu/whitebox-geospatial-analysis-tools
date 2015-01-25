@@ -52,6 +52,7 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
     private NumericProperty marginSize;
     private NumericProperty interlineSpacing;
     private FontProperty fontProperty;
+    private NumericProperty rotation;
     private ResourceBundle bundle;
     
     public MapTextAreaPropertyGrid() {
@@ -234,6 +235,19 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             marginSize.revalidate();
             mainBox.add(marginSize);
             
+            // bundle.getString("Rotation")
+            rotation = new NumericProperty("Rotation Value:", 
+                    String.valueOf(mapTextArea.getRotation()));
+            rotation.setLeftMargin(leftMargin);
+            rotation.setRightMargin(rightMargin);
+            rotation.setBackColour(Color.WHITE);
+            rotation.setTextboxWidth(5);
+            rotation.setParseIntegersOnly(false);
+            rotation.addPropertyChangeListener("value", this);
+            rotation.setPreferredWidth(preferredWidth);
+            rotation.revalidate();
+            mainBox.add(rotation);
+            
             super.revalidate();
         } catch (Exception e) {
             //host.showFeedback(e.getMessage());
@@ -276,6 +290,9 @@ public class MapTextAreaPropertyGrid extends JPanel implements PropertyChangeLis
             didSomething = true;
         } else if (source == fontProperty) {
             mapTextArea.setLabelFont((Font)evt.getNewValue());
+            didSomething = true;
+        } else if (source == rotation) {
+            mapTextArea.setRotation(Float.parseFloat((String) evt.getNewValue()));
             didSomething = true;
         }
 

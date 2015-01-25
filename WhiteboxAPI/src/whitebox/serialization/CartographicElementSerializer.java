@@ -109,6 +109,7 @@ public class CartographicElementSerializer implements JsonSerializer<Cartographi
                     jo.add("borderColour", gson.toJsonTree(mta.getBorderColour()));
                     jo.add("fontColour", gson.toJsonTree(mta.getFontColour()));
                     jo.add("labelFont", gson.toJsonTree(mta.getLabelFont()));
+                    jo.addProperty("rotation", mta.getRotation());
                     break;
                 case NEATLINE:
                     Neatline nl = (Neatline) t;

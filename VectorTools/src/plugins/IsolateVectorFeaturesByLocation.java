@@ -305,6 +305,7 @@ public class IsolateVectorFeaturesByLocation implements WhiteboxPlugin {
             // set up the output files of the shapefile and the dbf
             outputShapeType = featureShapeType;
             output = new ShapeFile(outputFile, outputShapeType, fields);
+            output.setProjectionStringFromOtherShapefile(featureShape);
             
             // read all of the data geometries into an array
             ArrayList<com.vividsolutions.jts.geom.Geometry> inputGeometryList =

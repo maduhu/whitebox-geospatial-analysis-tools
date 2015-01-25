@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import javax.swing.border.Border;
 import whitebox.interfaces.DialogComponent;
 import whitebox.interfaces.Communicator;
+import whitebox.interfaces.WhiteboxPluginHost;
 import javax.swing.event.HyperlinkListener;
 import whitebox.utilities.FileUtilities;
 
@@ -35,7 +36,7 @@ import whitebox.utilities.FileUtilities;
  *
  * @author Dr. John Lindsay <jlindsay@uoguelph.ca>
  */
-public class ScriptDialog extends JDialog implements Communicator, ActionListener, HyperlinkListener {
+public class ScriptDialog implements Communicator, ActionListener, HyperlinkListener {
 
     private JButton ok = new JButton("OK");
     private JButton close = new JButton("Close");
@@ -63,17 +64,10 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
     private ActionListener buttonActionListener = null;
     private ResourceBundle bundle;
     private ResourceBundle messages;
-
-    /**
-     * Constructor
-     *
-     * @param owner the name of the Whitebox GAT GUI class
-     * @param title A string that should be the same name as the script's
-     * descriptive name
-     * @param buttonActionListener A listener to attach to the OK button
-     */
-    public ScriptDialog(Frame owner, String title, ActionListener buttonActionListener) {
-        super(owner, false);
+    private JDialog dialog;
+    private String title;
+    
+    public ScriptDialog(WhiteboxPluginHost owner, String title, ActionListener buttonActionListener) {
         pathSep = File.separator;
         host = (Communicator) owner;
         workingDirectory = host.getWorkingDirectory();
@@ -82,24 +76,65 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         graphicsDirectory = resourcesDirectory + "Images" + pathSep;
         bundle = host.getGuiLabelsBundle();
         messages = host.getMessageBundle();
-
-        setTitle(title);
+        this.title = title;
+        //setTitle(title);
 
         this.buttonActionListener = buttonActionListener;
 
         createGui();
     }
 
+//    /**
+//     * Constructor
+//     *
+//     * @param owner the name of the Whitebox GAT GUI class
+//     * @param title A string that should be the same name as the script's
+//     * descriptive name
+//     * @param buttonActionListener A listener to attach to the OK button
+//     */
+//    public ScriptDialog(Frame owner, String title, ActionListener buttonActionListener) {
+//        super(owner, false);
+//        pathSep = File.separator;
+//        host = (Communicator) owner;
+//        workingDirectory = host.getWorkingDirectory();
+//        applicationDirectory = host.getApplicationDirectory();
+//        resourcesDirectory = host.getResourcesDirectory();
+//        graphicsDirectory = resourcesDirectory + "Images" + pathSep;
+//        bundle = host.getGuiLabelsBundle();
+//        messages = host.getMessageBundle();
+//
+//        setTitle(title);
+//
+//        this.buttonActionListener = buttonActionListener;
+//
+//        createGui();
+//    }
+
     private void createGui() {
+        if (host != null && host instanceof Frame) {
+            dialog = new JDialog((Frame)host, false);
+        } else {
+            dialog = new JDialog();
+        }
+        dialog.setTitle(title);
+        
         if (System.getProperty("os.name").contains("Mac")) {
-            this.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+            dialog.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         }
 
-        ok = new JButton(bundle.getString("Run"));
-        close = new JButton(bundle.getString("Close"));
-        viewCode = new JButton(bundle.getString("ViewCode"));
-        newHelp = new JButton(bundle.getString("NewHelp"));
-        modifyHelp = new JButton(bundle.getString("ModifyHelp"));
+        if (bundle != null) {
+            ok = new JButton(bundle.getString("Run"));
+            close = new JButton(bundle.getString("Close"));
+            viewCode = new JButton(bundle.getString("ViewCode"));
+            newHelp = new JButton(bundle.getString("NewHelp"));
+            modifyHelp = new JButton(bundle.getString("ModifyHelp"));
+        } else {
+            ok = new JButton("Run");
+            close = new JButton("Close");
+            viewCode = new JButton("View Code");
+            newHelp = new JButton("Create New Help File");
+            modifyHelp = new JButton("Modify Help File");
+        }
 
         String imgLocation = null;
         ImageIcon image = null;
@@ -186,12 +221,12 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         splitter.setResizeWeight(0.0);
         splitter.setDividerSize(4);
 
-        this.getContentPane().add(splitter, BorderLayout.CENTER);
-        this.getContentPane().add(box2, BorderLayout.SOUTH);
+        dialog.getContentPane().add(splitter, BorderLayout.CENTER);
+        dialog.getContentPane().add(box2, BorderLayout.SOUTH);
 
-        pack();
+        dialog.pack();
 
-        setSize(800, 400);
+        dialog.setSize(800, 400);
 
         // Centre the dialog on the screen.
         // Get the size of the screen
@@ -199,7 +234,15 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         int screenHeight = dim.height;
         int screenWidth = dim.width;
         //setSize(screenWidth / 2, screenHeight / 2);
-        setLocation(screenWidth / 4, screenHeight / 4);
+        dialog.setLocation(screenWidth / 4, screenHeight / 4);
+    }
+    
+    public void setVisible(boolean visible) {
+        dialog.setVisible(visible);
+    }
+    
+    public void setSize(int width, int height) {
+        dialog.setSize(width, height);
     }
 
     /**
@@ -319,7 +362,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
             box.add(btn);
             box.add(Box.createHorizontalGlue());
         }
-        
+
 //        JPanel panel = new JPanel();
 //        Border border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
 //        panel.setBorder(border);
@@ -327,7 +370,6 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
 //        panel.setMaximumSize(new Dimension(2500, btn.getPreferredSize().height + 8));
 //        panel.setPreferredSize(new Dimension(350, btn.getPreferredSize().height + 8));
 //        panel.add(box);
-        
         mainPanel.add(box);
         return btn;
     }
@@ -414,7 +456,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         mainPanel.add(dcb);
         return dcb;
     }
-    
+
     public DialogList addDialogList(String description, String labelText,
             String[] listItems, boolean allowMultipleSelection) {
         String[] args = new String[5];
@@ -755,7 +797,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         }
     }
 
-    @Override
+    //@Override
     public void dispose() {
         ok = null;
         close = null;
@@ -767,7 +809,7 @@ public class ScriptDialog extends JDialog implements Communicator, ActionListene
         mainPanel = null;
         components = null;
         host = null;
-        super.dispose();
+        dialog.dispose();
     }
 
     @Override

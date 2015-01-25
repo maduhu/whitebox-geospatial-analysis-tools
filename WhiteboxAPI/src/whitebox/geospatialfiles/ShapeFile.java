@@ -34,6 +34,7 @@ import whitebox.geospatialfiles.shapefile.attributes.AttributeTable;
 import whitebox.utilities.StringUtilities;
 import whitebox.structures.KdTree;
 import whitebox.structures.KdTree.Entry;
+import whitebox.utilities.FileUtilities;
 
 /**
  *
@@ -167,11 +168,36 @@ public class ShapeFile {
     public String getProjectionFile() {
         return projectionFile;
     }
-
+    
     public final void setProjectionFile(String projectionFile) {
         this.projectionFile = projectionFile;
         readProjectionFile();
     }
+    
+    public void setProjectionStringFromOtherFile(String otherProjectionFile) {
+        try {
+            File otherFile = new File(otherProjectionFile);
+            if (otherFile.exists()) {
+                FileUtilities.copyFile(otherFile, new File(this.projectionFile));
+            }
+            readProjectionFile();
+        } catch (IOException e) {
+            // do nothing.
+        }
+    }
+    
+    public void setProjectionStringFromOtherShapefile(ShapeFile otherShapeFile) {
+        try {
+            File otherFile = new File(otherShapeFile.getProjectionFile());
+            if (otherFile.exists()) {
+                FileUtilities.copyFile(otherFile, new File(this.projectionFile));
+            }
+            readProjectionFile();
+        } catch (IOException e) {
+            // do nothing.
+        }
+    }
+    
 
     public String getDatabaseFile() {
         return databaseFile;

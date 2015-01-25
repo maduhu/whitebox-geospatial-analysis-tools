@@ -569,6 +569,12 @@ public class PluginHost implements WhiteboxPluginHost {
     public MapLayer getActiveMapLayer() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    @Override 
+    public void setActiveMapLayer(int layerNumber) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 
     @Override
     public ArrayList<MapLayer> getAllMapLayers() {

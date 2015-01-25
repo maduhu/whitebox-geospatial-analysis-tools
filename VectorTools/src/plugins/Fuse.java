@@ -338,6 +338,7 @@ public class Fuse implements WhiteboxPlugin {
 
             // set up the output files of the shapefile and the dbf
             output = new ShapeFile(outputFile, outputShapeType);
+            output.setProjectionStringFromOtherShapefile(input1);
 
             DBFField fields[] = new DBFField[3];  //numFields];
 

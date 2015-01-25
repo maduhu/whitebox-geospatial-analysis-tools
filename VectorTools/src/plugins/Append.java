@@ -248,6 +248,7 @@ public class Append implements WhiteboxPlugin {
                 if (k == 0) {
                     outputShapeType = shapeType;
                     output = new ShapeFile(outputFile, outputShapeType);
+                    output.setProjectionStringFromOtherShapefile(new ShapeFile(shapefiles[0]));
 
                     DBFField fields[] = new DBFField[3];
 
