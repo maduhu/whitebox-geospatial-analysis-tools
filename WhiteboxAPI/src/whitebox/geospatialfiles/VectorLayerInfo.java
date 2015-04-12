@@ -119,7 +119,7 @@ public class VectorLayerInfo implements MapLayer {
         } else if (shapeType == ShapeType.POLYLINE && (layerTitle.toLowerCase().contains("stream")
                 || layerTitle.toLowerCase().contains("river") || layerTitle.toLowerCase().contains("water")
                 || layerTitle.toLowerCase().contains("hydrology"))) {
-            lineColour = Color.blue;
+            lineColour = new Color(51, 153, 255);//Color.blue;
         } else if (shapeType == ShapeType.POLYGON && (layerTitle.toLowerCase().contains("lake")
                 || layerTitle.toLowerCase().contains("water"))) {
             lineColour = new Color(51, 153, 255);

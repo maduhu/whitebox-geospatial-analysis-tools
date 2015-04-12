@@ -1,3 +1,7 @@
+/* this tool is no longer used, having been replaced by a Groovy script that 
+   is based on a more efficient integral image approach.
+*/
+
 /*
  * Copyright (C) 2013 Elnaz Baradaran Shokouhi 
  *

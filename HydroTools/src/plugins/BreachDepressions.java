@@ -603,29 +603,29 @@ public class BreachDepressions implements WhiteboxPlugin {
 
         @Override
         public int compareTo(DepGridCell cell) {
-            final int BEFORE = -1;
-            final int EQUAL = 0;
-            final int AFTER = 1;
+//            final int BEFORE = -1;
+//            final int EQUAL = 0;
+//            final int AFTER = 1;
 
             if (this.z < cell.z) {
-                return BEFORE;
+                return -1;
             } else if (this.z > cell.z) {
-                return AFTER;
+                return 1;
             }
 
             if (this.row < cell.row) {
-                return BEFORE;
+                return -1;
             } else if (this.row > cell.row) {
-                return AFTER;
+                return 1;
             }
 
             if (this.col < cell.col) {
-                return BEFORE;
+                return -1;
             } else if (this.col > cell.col) {
-                return AFTER;
+                return 1;
             }
 
-            return EQUAL;
+            return 0;
         }
     }
 

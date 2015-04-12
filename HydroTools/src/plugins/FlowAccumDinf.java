@@ -36,6 +36,11 @@ public class FlowAccumDinf implements WhiteboxPlugin {
     double noData = -32768;
     int[] dX = new int[]{1, 1, 1, 0, -1, -1, -1, 0};
     int[] dY = new int[]{-1, 0, 1, 1, 1, 0, -1, -1};
+    /*
+       7 8 1
+       6   2
+       5 4 3
+    */
     double gridRes = 1;
     double[] startFD = new double[]{180, 225, 270, 315, 0, 45, 90, 135};
     double[] endFD = new double[]{270, 315, 360, 45, 90, 135, 180, 225};

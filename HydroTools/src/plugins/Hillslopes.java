@@ -177,16 +177,10 @@ public class Hillslopes implements WhiteboxPlugin {
             return;
         }
         
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                streamsHeader = args[i];
-            } else if (i == 1) {
-                pointerHeader = args[i];
-            } else if (i == 2) {
-                outputHeader = args[i];
-            }
-        }
-
+        streamsHeader = args[0];
+        pointerHeader = args[1];
+        outputHeader = args[2];
+        
         // check to see that the inputHeader and outputHeader are not null.
         if ((streamsHeader == null) || (pointerHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -197,9 +191,10 @@ public class Hillslopes implements WhiteboxPlugin {
             WhiteboxRaster streams = new WhiteboxRaster(streamsHeader, "r");
             int rows = streams.getNumberRows();
             int cols = streams.getNumberColumns();
-            double noData = streams.getNoDataValue();
+//            double noData = streams.getNoDataValue();
             
             WhiteboxRaster pntr = new WhiteboxRaster(pointerHeader, "r");
+            double noData = pntr.getNoDataValue();
             
             if (pntr.getNumberRows() != rows || pntr.getNumberColumns() != cols) {
                 showFeedback("The input images must be of the same dimensions.");
@@ -208,6 +203,7 @@ public class Hillslopes implements WhiteboxPlugin {
             
             output = new WhiteboxRaster(outputHeader, "rw", 
                     streamsHeader, WhiteboxRaster.DataType.INTEGER, 0);
+            output.setNoDataValue(noData);
             output.setPreferredPalette("qual.pal");
             output.setDataScale(WhiteboxRaster.DataScale.CATEGORICAL);
             
@@ -419,10 +415,7 @@ public class Hillslopes implements WhiteboxPlugin {
                                     flag = true;
                                 }
                             } while (!flag);
-                        }
-                        
-                        
-                        
+                        }          
                     }
                 }
                 if (cancelOp) {

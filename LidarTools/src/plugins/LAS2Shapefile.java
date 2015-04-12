@@ -193,6 +193,7 @@ public class LAS2Shapefile implements WhiteboxPlugin {
         String[] pointFiles;
         double x, y;
         double z;
+        double gpsTime;
         int intensity;
         byte classValue, numReturns, returnNum, scanAngle;
         int a, n;
@@ -239,7 +240,7 @@ public class LAS2Shapefile implements WhiteboxPlugin {
 
                 // set up the output files of the shapefile and the dbf
                 
-                DBFField fields[] = new DBFField[7];
+                DBFField fields[] = new DBFField[8];
 
                 fields[0] = new DBFField();
                 fields[0].setName("FID");
@@ -283,6 +284,12 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                 fields[6].setFieldLength(4);
                 fields[6].setDecimalCount(0);
                 
+                fields[7] = new DBFField();
+                fields[7].setName("GPS_TIME");
+                fields[7].setDataType(DBFField.DBFDataType.NUMERIC);
+                fields[7].setFieldLength(14);
+                fields[7].setDecimalCount(6);
+                
                 ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
 
                 progress = (int)((j + 1) * 100d / numPointFiles);
@@ -304,17 +311,19 @@ public class LAS2Shapefile implements WhiteboxPlugin {
                         returnNum = point.getReturnNumber();
                         numReturns = point.getNumberOfReturns();
                         scanAngle = point.getScanAngle();
+                        gpsTime = point.getGPSTime();
                         
                         whitebox.geospatialfiles.shapefile.Point wbGeometry = new whitebox.geospatialfiles.shapefile.Point(x, y);
                         
-                        Object[] rowData = new Object[7];
-                        rowData[0] = new Double(numPoints + 1);
-                        rowData[1] = new Double(z);
-                        rowData[2] = new Double(intensity);
-                        rowData[3] = new Double(classValue);
-                        rowData[4] = new Double(returnNum);
-                        rowData[5] = new Double(numReturns);
-                        rowData[6] = new Double(scanAngle);
+                        Object[] rowData = new Object[8];
+                        rowData[0] = numPoints + 1;
+                        rowData[1] = z;
+                        rowData[2] = (double) intensity;
+                        rowData[3] = (double) classValue;
+                        rowData[4] = (double) returnNum;
+                        rowData[5] = (double) numReturns;
+                        rowData[6] = (double) scanAngle;
+                        rowData[7] = gpsTime;
                         
                         output.addRecord(wbGeometry, rowData);
                         

@@ -96,6 +96,10 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
     }
 
     public void setUnits(String units) {
+        if (mapArea != null && (mapArea.getXYUnits().toLowerCase().contains("deg") ||
+                mapArea.getXYUnits().contains("\u00B0"))) {
+            units = "degrees";
+        }
         this.units = units;
         if (units.toLowerCase().contains("met")) {
             conversionToMetres = 1.0;
@@ -113,6 +117,18 @@ public class MapScale implements CartographicElement, Comparable<CartographicEle
             conversionToMetres = 1000;
         } else if (units.toLowerCase().contains("km")) {
             conversionToMetres = 1000;
+        } else if (units.toLowerCase().contains("deg")) {
+            double p1 = 111412.84;		// longitude calculation term 1
+            double p2 = -93.5;			// longitude calculation term 2
+            double p3 = 0.118;			// longitude calculation term 3
+            double lat = 45.0;
+            if (mapArea != null) {
+                lat = (mapArea.getCurrentMapExtent().getMaxY() + mapArea.getCurrentMapExtent().getMinY()) / 2.0;
+            }
+            lat = Math.toRadians(lat);
+            double longlen = (p1 * Math.cos(lat)) + (p2 * Math.cos(3 * lat)) +
+					(p3 * Math.cos(5 * lat));
+            conversionToMetres = 1.0 / (longlen / 1000.0);
         } else {
             this.units = "metres";
             conversionToMetres = 1.0;

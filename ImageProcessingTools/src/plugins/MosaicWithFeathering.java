@@ -193,6 +193,8 @@ public class MosaicWithFeathering implements WhiteboxPlugin {
         int baseCol, baseRow, appendCol, appendRow;
         double x, y, z, zN, zBase, zAppend;
         double w1, w2, dist1, dist2, sumDist;
+        double r1, g1, b1, r2, g2, b2;
+        int r, g, b;
         boolean performHistoMatching = true;
 
 
@@ -233,6 +235,9 @@ public class MosaicWithFeathering implements WhiteboxPlugin {
             
             WhiteboxRaster baseRaster = new WhiteboxRaster(inputBaseHeader, "r");
             WhiteboxRaster appendRaster = new WhiteboxRaster(inputHeader, "r");
+            
+            boolean rgbMode = ((baseRaster.getDataScale() == WhiteboxRasterBase.DataScale.RGB) & 
+                    (appendRaster.getDataScale() == WhiteboxRasterBase.DataScale.RGB));
 
             double cellSizeX = baseRaster.getCellSizeX();
             double cellSizeY = baseRaster.getCellSizeY();
@@ -338,6 +343,7 @@ public class MosaicWithFeathering implements WhiteboxPlugin {
                     nRows, nCols, WhiteboxRasterBase.DataScale.CONTINUOUS,
                     WhiteboxRasterBase.DataType.FLOAT, outputNoData, outputNoData);
 
+            if (rgbMode) { destination.setDataScale(WhiteboxRasterBase.DataScale.RGB); }
 
             int nRowsLessOne = nRows - 1;
 
@@ -432,8 +438,22 @@ public class MosaicWithFeathering implements WhiteboxPlugin {
 
                             w1 = Math.pow(dist1, power) / sumDist;
                             w2 = Math.pow(dist2, power) / sumDist;
-
-                            z = w1 * zBase + w2 * zAppend;
+                            
+                            if (!rgbMode) {
+                                z = w1 * zBase + w2 * zAppend;
+                            } else {
+                                r1 = (double)((int)zBase & 0xFF);
+                                g1 = (double)(((int)zBase >> 8) & 0xFF);
+                                b1 = (double)(((int)zBase >> 16) & 0xFF);
+                                r2 = (double)((int)zAppend & 0xFF);
+                                g2 = (double)(((int)zAppend >> 8) & 0xFF);
+                                b2 = (double)(((int)zAppend >> 16) & 0xFF);
+                                
+                                r = (int)((r1 * w1) + (r2 * w2));
+                                g = (int)((g1 * w1) + (g2 * w2));
+                                b = (int)((b1 * w1) + (b2 * w2));
+                                z = (double) ((255 << 24) | (b << 16) | (g << 8) | r);
+                            }
 
                             destination.setValue(row, col, z);
                         }

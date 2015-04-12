@@ -1,4 +1,5 @@
 plugins.BreachDepressions
+plugins.BreachDepressionsFast
 plugins.BreachPits
 plugins.BurnStreams
 plugins.CreateBlankOutletRaster

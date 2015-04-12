@@ -244,6 +244,7 @@ public class MapInfo implements java.io.Serializable {
         MapScale ms = new MapScale(name);
         ms.setMapArea(getActiveMapArea());
         ms.setLabelFont(new Font(defaultFont.getName(), Font.PLAIN, 10));
+        ms.setUnits("metres");
         addNewCartographicElement((CartographicElement) ms);
     }
 

@@ -207,7 +207,7 @@ public class IsNoData implements WhiteboxPlugin {
         }
         
         try {
-            if (!inputHeader.contains(".dep") || !inputHeader.contains(File.pathSeparator)) {
+            if (!inputHeader.contains(".dep")) { // || !inputHeader.contains(File.pathSeparator)) {
                 throw new Exception("No input file found");
             }
 
