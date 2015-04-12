@@ -101,7 +101,7 @@ public class MultiscaleElevationResidualIndex implements ActionListener {
 			int numCells
 			int neighbourhoodSize
 			
-			// read the input image and PP vector files
+			// read the input image
 			WhiteboxRaster image = new WhiteboxRaster(inputFile, "r")
 			double nodata = image.getNoDataValue()
 			int rows = image.getNumberRows()

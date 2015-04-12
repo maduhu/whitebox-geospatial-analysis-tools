@@ -50,9 +50,9 @@ the script to appear as an integrated plugin tool.
 You would need to relaunch Whitebox for the tool to
 appear in the tool tree panel.'''
 #name = "MyScript" # the name variable is the unique identifier for this tool. It cannot contain any spaces.
-#descriptiveName = "My Script" # the descriptiveName variable is the name of the tool as it appears in the various tool listings. This name can contain spaces.
-#description = "This tool processes counts the number of records in a shapefile." # this string appears as a brief description in the status bar when the user clicks on your tool.
-#toolboxes = ["ConversionTools", "StatisticalTools"] # these are the various toolboxes in the tool tree panel that this tool will appear in.
+descriptiveName = "My Script" # the descriptiveName variable is the name of the tool as it appears in the various tool listings. This name can contain spaces.
+description = "This tool processes counts the number of records in a shapefile." # this string appears as a brief description in the status bar when the user clicks on your tool.
+toolboxes = ["ConversionTools", "StatisticalTools"] # these are the various toolboxes in the tool tree panel that this tool will appear in.
 	
 class MyScript(ActionListener):
 	def __init__(self, args):

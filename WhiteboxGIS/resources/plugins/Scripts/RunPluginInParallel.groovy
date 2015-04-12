@@ -27,10 +27,10 @@ import java.awt.event.ActionEvent
 import java.util.concurrent.atomic.AtomicInteger
 import groovy.transform.CompileStatic
 
-def name = "RunPluginInParallel"
-def descriptiveName = "Run Plugin In Parallel"
-def description = "Runs a plugin tool multiple times in parallel"
-def toolboxes = ["topmost"]
+def name = "RunPluginInParallel";
+def descriptiveName = "Run Plugin In Parallel";
+def description = "Runs a plugin tool multiple times in parallel";
+def toolboxes = ["topmost"];
 
 public class RunPluginInParallel implements ActionListener {
     private WhiteboxPluginHost pluginHost

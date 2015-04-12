@@ -92,12 +92,13 @@ class FeatureSelection(ActionListener):
 
 			found = False
 			for k in a:
-				if (k.getFileName() == inputfile) and (k.getLayerType() == MapLayerType.VECTOR):
-					afv = AttributesFileViewer(pluginHost, False, k)
-					afv.setActiveTab(3)
-					afv.setSize(int(500 * 1.61803399), 500)
-					afv.setVisible(True)
-					found = True
+				if k.getLayerType() == MapLayerType.VECTOR:
+						if k.getFileName() == inputfile:
+							afv = AttributesFileViewer(pluginHost, False, k)
+							afv.setActiveTab(3)
+							afv.setSize(int(500 * 1.61803399), 500)
+							afv.setVisible(True)
+							found = True
 
 			if not found:
 				pluginHost.returnData(inputfile)
@@ -106,12 +107,13 @@ class FeatureSelection(ActionListener):
 				
 				found = False
 				for k in a:
-					if (k.getFileName() == inputfile) and (k.getLayerType() == MapLayerType.VECTOR):
-						afv = AttributesFileViewer(pluginHost, False, k)
-						afv.setActiveTab(3)
-						afv.setSize(int(500 * 1.61803399), 500)
-						afv.setVisible(True)
-						found = True
+					if k.getLayerType() == MapLayerType.VECTOR:
+						if k.getFileName() == inputfile:
+							afv = AttributesFileViewer(pluginHost, False, k)
+							afv.setActiveTab(3)
+							afv.setSize(int(500 * 1.61803399), 500)
+							afv.setVisible(True)
+							found = True
 			
 			if not found:
 				pluginHost.showFeedback("There was an error while trying to open the Feature Selection dialog.")

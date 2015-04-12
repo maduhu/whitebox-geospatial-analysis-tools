@@ -122,7 +122,7 @@ public class CentroidVector implements ActionListener {
             	breakApartMultipart = Boolean.parseBoolean(args[2])
             }
             
-           	def input = new ShapeFile(inputFile);\
+           	def input = new ShapeFile(inputFile);
 			def shapeType = input.getShapeType()
 			
 			def numRecs = input.getNumberOfRecords();

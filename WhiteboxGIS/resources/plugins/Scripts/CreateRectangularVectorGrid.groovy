@@ -35,7 +35,7 @@ import groovy.transform.CompileStatic
 // Comment them out if you want to remove the script.
 def name = "CreateRectangularVectorGrid"
 def descriptiveName = "Create Rectangular Vector Grid"
-def description = "Creates a rectangular grid of vector polygons"
+def description = "Creates a rectangular grid (fishnet) of vector polygons"
 def toolboxes = ["VectorTools"]
 
 public class CreateRectangularVectorGrid implements ActionListener {

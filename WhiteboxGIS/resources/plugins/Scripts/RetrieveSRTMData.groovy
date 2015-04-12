@@ -562,7 +562,7 @@ public class RetrieveSRTMData implements ActionListener {
 		    	
 		        URL url=new URL(site);
 		        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-		        connection.setReadTimeout(100000)
+		        connection.setReadTimeout(1000000)
 		        int filesize = connection.getContentLength();
 		        float totalDataRead = 0;
 	            java.io.BufferedInputStream inStream = new java.io.BufferedInputStream(connection.getInputStream());

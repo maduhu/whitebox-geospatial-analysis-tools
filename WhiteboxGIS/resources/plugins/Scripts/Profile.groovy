@@ -117,7 +117,36 @@ public class Profile implements ActionListener {
 			def btn = sd.addDialogButton("Or create a new line vector now...", "centre")
 			btn.addActionListener(new ActionListener() {
  	            public void actionPerformed(ActionEvent e) {
- 	            	pluginHost.launchDialog("Create New Shapefile")
+ 	            	// find an appropriate file name for it
+					def outputFile = pluginHost.getWorkingDirectory() + "ProfileLine.shp";
+					def file = new File(outputFile);
+					if (file.exists()) {
+						for (int i = 1; i < 101; i++) {
+							outputFile = pluginHost.getWorkingDirectory() + "ProfileLine${i}.shp";
+							file = new File(outputFile);
+							if (!file.exists()) {
+								break;
+							}
+						}
+					}
+					DBFField[] fields = new DBFField[1];
+		            
+		            fields[0] = new DBFField();
+		            fields[0].setName("FID");
+		            fields[0].setDataType(DBFField.DBFDataType.NUMERIC);
+		            fields[0].setFieldLength(10);
+		            fields[0].setDecimalCount(0);
+		            
+		            ShapeFile output = new ShapeFile(outputFile, ShapeType.POLYLINE, fields);
+		            output.write();
+		            
+		            pluginHost.returnData(outputFile);
+		            
+		            pluginHost.editVector();
+
+		            pluginHost.showFeedback("Press the Digitize New Feature icon on the toolbar \n" +
+		            "to add a line. Then toggle the Edit Vector icon when you \n" + 
+		            "are done digitizing");
  	            }
  	        });  
 

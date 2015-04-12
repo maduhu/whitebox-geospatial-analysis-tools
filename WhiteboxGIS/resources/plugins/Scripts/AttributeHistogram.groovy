@@ -154,6 +154,46 @@ public class AttributeHistogram implements ActionListener {
             } as PropertyChangeListener
             dfs.addPropertyChangeListener(lstr)
 
+            DialogCheckBox cb = sd.addDialogCheckBox("Plot as a cumulative distribution function (CDF)", "Plot as a cumulative distribution function (CDF)?", false)
+            def lstr2 = { evt -> if (evt.getPropertyName().equals("value")) { 
+            	if (Boolean.parseBoolean(cb.getValue())) {
+            		din.setVisible(false);
+            	} else {
+            		String[] inputData = dfs.getValue().split(";")
+    				if (inputData.length > 1 && inputData[0] != null && !inputData[0].isEmpty()) {
+    					if (inputData[1] != null && !inputData[1].isEmpty()) {
+		            		String inputFile = inputData[0].trim()
+							String fieldName = inputData[1].trim()
+							if ((new File(inputFile)).exists()) {
+								ShapeFile shape = new ShapeFile(inputFile)
+								
+								AttributeTable table = shape.getAttributeTable()
+								
+								// see if the specified field is numerical or categorical
+								boolean isAttributeNumeric = true
+								DBFField[] fields = table.getAllFields()
+					        	def fieldNum = table.getFieldColumnNumberFromName(fieldName)
+								if (fields[fieldNum].getDataType() != DBFDataType.NUMERIC && 
+					        	     fields[fieldNum].getDataType() != DBFDataType.FLOAT) {
+					        	    isAttributeNumeric = false
+					        	}
+					        	println isAttributeNumeric
+					        	if (isAttributeNumeric) {
+									int numRecords = shape.getNumberOfRecords()
+									int numBins = (int)(Math.ceil(Math.log(numRecords) / Math.log(2) + 1))
+									din.setValue(numBins.toString())
+									din.setVisible(true)
+								} else {
+									din.setValue("")
+									din.setVisible(false)
+								}
+							}
+    					}
+    				}
+            	}
+            } } as PropertyChangeListener
+            cb.addPropertyChangeListener(lstr2)
+			
             // resize the dialog to the standard size and display it
             sd.setSize(800, 400)
             sd.visible = true
@@ -174,9 +214,14 @@ public class AttributeHistogram implements ActionListener {
 				pluginHost.showFeedback("Error reading one of the input parameters.")
 				return
 			}
-			String inputFile = inputData[0].trim()
+			String inputFile = inputData[0].trim();
+			boolean outputCDF = false;
+			if (args.length >= 3) {
+				if (!args[2].trim().toLowerCase().isEmpty()) {
+					outputCDF = Boolean.parseBoolean(args[2])
+				}
+			}
 			
-        	
         	ShapeFile shape = new ShapeFile(inputFile)
 			
 			String fieldName = inputData[1]
@@ -258,6 +303,9 @@ public class AttributeHistogram implements ActionListener {
 				domain.setRange(minVal, maxVal)
 							
 			} else {
+				if (outputCDF) {
+					pluginHost.showFeedback("The attribute is categorial and therefore \ncannot be plotted as a CDF.");
+				}
 				// there is a categorical attribute.
 				Map<Object, AtomicInteger> hm = new TreeMap<Object, AtomicInteger>();
 				oldProgress = -1

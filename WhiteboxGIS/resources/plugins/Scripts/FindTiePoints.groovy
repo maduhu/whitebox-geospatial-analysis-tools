@@ -349,7 +349,7 @@ public class FindTiePoints implements ActionListener {
 	        pluginHost.logException("Error in " + descriptiveName, e)
         } finally {
         	// reset the progress bar
-        	pluginHost.updateProgress(0)
+        	pluginHost.updateProgress("Progress:", 0)
         }
 	}
 	

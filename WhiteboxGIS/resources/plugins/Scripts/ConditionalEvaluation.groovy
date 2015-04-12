@@ -15,6 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ /*
+  * This tool performs a conditional evaluation (if-then-else) on 
+  * a raster image.
+  */
+
 import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
 import java.util.concurrent.Future
@@ -40,6 +45,8 @@ import whitebox.geospatialfiles.shapefile.*
 import whitebox.ui.plugin_dialog.ScriptDialog
 import whitebox.utilities.StringUtilities
 import groovy.transform.CompileStatic
+import groovy.time.TimeDuration
+import groovy.time.TimeCategory
 
 // The following four variables are required for this 
 // script to be integrated into the tool tree panel. 
@@ -99,6 +106,7 @@ public class ConditionalEvaluation implements ActionListener {
 	@CompileStatic
 	private void execute(String[] args) {
 		try {
+			//Date start = new Date()
 			double value, trueValue = 0, falseValue = 0
 			boolean ret
 			int progress, oldProgress
@@ -126,36 +134,58 @@ public class ConditionalEvaluation implements ActionListener {
 			boolean hasConStatement = !(conStatement.isEmpty() | conStatement.toLowerCase().equals("not specified"))
 
 			// the TRUE value
-			def file = new File(args[2])
-			trueValueConstant = !(file).exists()
-			
-			if (trueValueConstant) {
-				trueValue = Double.parseDouble(file.getName().replace(".dep", ""))
-			} else {
-				trueValueFile = args[2]
-			}
-			
-			// the FALSE value
-			if (args[3] != null && !args[3].isEmpty() && !(args[3].toLowerCase().equals("not specified"))) {
-				file = new File(args[3])
-				falseValueConstant = !(file).exists()
-				if (falseValueConstant) {
-					falseValue = Double.parseDouble(file.getName().replace(".dep", ""))
+			byte trueType = -1
+			String trueExpression = ""
+			if (args[2] != null && !args[2].isEmpty() && !(args[2].toLowerCase().equals("not specified"))) {
+				// see if it's a file
+				def file = new File(args[2]);
+				if ((file).exists()) {
+					trueValueFile = args[2];
+					trueType = 1; // raster file
 				} else {
-					falseValueFile = args[3]
+					String str = file.getName().replace(".dep", "")
+					if (StringUtilities.isNumeric(str)) {
+						trueValue = Double.parseDouble(str);
+						trueType = 0; // constant numerical value
+					} else {
+						trueExpression = str;
+						trueType = 2; // expression
+					}
 				}
+			} else {
+				trueValue = nodata;
+				trueType = 0; // constant numerical value
 			}
 
+			// the FALSE value
+			byte falseType = -1
+			String falseExpression = ""
+			if (args[3] != null && !args[3].isEmpty() && !(args[3].toLowerCase().equals("not specified"))) {
+				// see if it's a file
+				def file = new File(args[3]);
+				if ((file).exists()) {
+					falseValueFile = args[3];
+					falseType = 1; // raster file
+				} else {
+					String str = file.getName().replace(".dep", "")
+					if (StringUtilities.isNumeric(str)) {
+						falseValue = Double.parseDouble(str);
+						falseType = 0; // constant numerical value
+					} else {
+						falseExpression = str;
+						falseType = 2; // expression
+					}
+				}
+			} else {
+				falseValue = nodata;
+				falseType = 0; // constant numerical value
+			}
+			
 			// the output file
 			String outputFile = args[4]
 			
-			
-			if (args[3] == null || args[3].isEmpty() || args[3].toLowerCase().equals("not specified")) {
-				falseValue = nodata
-			}
-
 			WhiteboxRaster trueValueRaster
-			if (!trueValueConstant) {
+			if (trueType == 1) { //!trueValueConstant) {
 				trueValueRaster = new WhiteboxRaster(trueValueFile, "r")
 				if (trueValueRaster.getNumberRows() != rows || trueValueRaster.getNumberColumns() != cols) {
 					pluginHost.showFeedback("The input images must all have the same dimensions \n(i.e. number of rows and columns and spatial extent)")
@@ -164,7 +194,7 @@ public class ConditionalEvaluation implements ActionListener {
 			}
 
 			WhiteboxRaster falseValueRaster
-			if (!falseValueConstant) {
+			if (falseType == 1) { //!falseValueConstant) {
 				falseValueRaster = new WhiteboxRaster(falseValueFile, "r")
 				if (falseValueRaster.getNumberRows() != rows || falseValueRaster.getNumberColumns() != cols) {
 					pluginHost.showFeedback("The input images must all have the same dimensions \n(i.e. number of rows and columns and spatial extent)")
@@ -175,23 +205,30 @@ public class ConditionalEvaluation implements ActionListener {
 			WhiteboxRaster output = new WhiteboxRaster(outputFile, "rw", 
   		  	     inputFile, DataType.FLOAT, nodata)
   		  	output.setNoDataValue(nodata)
-			if (trueValueConstant && falseValueConstant) {
+			if (trueType == 0 && falseType == 0) {
 				output.setPreferredPalette("qual.plt")
 				output.setDataScale(DataScale.CATEGORICAL)
-			} else if (!trueValueConstant) {
+			} else if (trueType == 1) {
 				output.setPreferredPalette(trueValueRaster.getPreferredPalette())
 				output.setDataScale(trueValueRaster.getDataScale())
-			} else {
+			} else if (falseType == 1) {
 				output.setPreferredPalette(falseValueRaster.getPreferredPalette())
 				output.setDataScale(falseValueRaster.getDataScale())
+			} else {
+				output.setPreferredPalette("qual.plt")
+				//output.setDataScale(DataScale.CATEGORICAL)
 			}
 
 			ScriptEngineManager mgr = new ScriptEngineManager();
    			ScriptEngine engine = mgr.getEngineByName("groovy");
+   			//ScriptEngine engine = mgr.getEngineByName("python");
+   			//ScriptEngine engine = mgr.getEngineByName("javascript");
    			String expression = conStatement.replace("\"Value\"", "value").replace("\'Value\'", "value").replace("\"value\"", "value").replace("\'value\'", "value").replace("VALUE", "value").replace("NoData", "nodata").replace("NODATA", "nodata").replace("Null", "nodata").replace("NULL", "nodata").replace("null", "nodata").replace(";", "");
    			boolean expressionEvaluatesNoData = expression.contains("nodata")
-   			String myScript = "for (int i = 0; i < $cols; i++) { double value = inData[i]; if (value != nodata || expressionEvaluatesNoData) { if ($expression) { outData[i] = trueData[i]; } else { outData[i] = falseData[i]; } } else { outData[i] = nodata; } }"
-   			//String myScript = "for i in xrange(0, $cols):\n\tvalue = inData[i]\n\tif (value != nodata) | expressionEvaluatesNoData:\n\t\tif $expression:\n\t\t\toutData[i] = trueData[i]\n\t\telse:\n\t\t\toutData[i] = falseData[i]\n\telse:\n\t\toutData[i] = nodata\n"
+   			String myScript = "for (int column = 0; column < $cols; column++) { double value = inData[column]; if (value != nodata || expressionEvaluatesNoData) { if ($expression) { outData[column] = trueData[column]; } else { outData[column] = falseData[column]; } } else { outData[column] = nodata; } }"
+   			//String myScript = "for column in xrange(0, $cols):\n\tvalue = inData[column]\n\tif (value != nodata) | expressionEvaluatesNoData:\n\t\tif $expression:\n\t\t\toutData[column] = trueData[column]\n\t\telse:\n\t\t\toutData[column] = falseData[column]\n\telse:\n\t\toutData[column] = nodata\n"
+   			//String myScript = "for (column = 0; column < $cols; column++) { value = inData[column]; if (value != nodata || expressionEvaluatesNoData) { if ($expression) { outData[column] = trueData[column]; } else { outData[column] = falseData[column]; } } else { outData[column] = nodata; } }"
+   			
    			//pluginHost.showFeedback(myScript)
    			CompiledScript generate_data = ((Compilable) engine).compile(myScript);
    			double oldValue = nodata
@@ -201,30 +238,204 @@ public class ConditionalEvaluation implements ActionListener {
 			double[] outData = new double[cols];
 			double[] trueData = new double[cols];
 			double[] falseData = new double[cols];
-			if (trueValueConstant) {
+			if (trueType == 0) {
 				Arrays.fill(trueData, trueValue)
 				bindings.put("trueData", trueData);
 			}
-			if (falseValueConstant) {
+			boolean addRowNumberTrue = false;
+			boolean addRowYTrue = false;
+			boolean addValueTrue = false;
+			if (trueType == 2) {
+				if (trueExpression.toLowerCase().equals("nodata") ||
+				     trueExpression.toLowerCase().equals("null")) {
+					Arrays.fill(trueData, nodata);
+					bindings.put("trueData", trueData);				
+				} else if (trueExpression.toLowerCase().equals("rows")) {
+					Arrays.fill(trueData, rows);
+					bindings.put("trueData", trueData);			
+				} else if (trueExpression.toLowerCase().equals("columns")) {
+					Arrays.fill(trueData, cols);
+					bindings.put("trueData", trueData);			
+				} else if (trueExpression.toLowerCase().equals("minvalue")) {
+					Arrays.fill(trueData, image.getMinimumValue());
+					bindings.put("trueData", trueData);		
+				} else if (trueExpression.toLowerCase().equals("maxvalue")) {
+					Arrays.fill(trueData, image.getMaximumValue());
+					bindings.put("trueData", trueData);		
+				} else if (trueExpression.toLowerCase().equals("displayminvalue")) {
+					Arrays.fill(trueData, image.getDisplayMinimum());
+					bindings.put("trueData", trueData);			
+				} else if (trueExpression.toLowerCase().equals("displaymaxvalue")) {
+					Arrays.fill(trueData, image.getDisplayMaximum());
+					bindings.put("trueData", trueData);			
+				} else if (trueExpression.toLowerCase().equals("north")) {
+					Arrays.fill(trueData, image.getNorth());
+					bindings.put("trueData", trueData);		
+				} else if (trueExpression.toLowerCase().equals("south")) {
+					Arrays.fill(trueData, image.getSouth());
+					bindings.put("trueData", trueData);		
+				} else if (trueExpression.toLowerCase().equals("east")) {
+					Arrays.fill(trueData, image.getEast());
+					bindings.put("trueData", trueData);		
+				} else if (trueExpression.toLowerCase().equals("west")) {
+					Arrays.fill(trueData, image.getWest());
+					bindings.put("trueData", trueData);		
+				} else if (trueExpression.toLowerCase().equals("cellsizex")) {
+					Arrays.fill(trueData, image.getCellSizeX());
+					bindings.put("trueData", trueData);		
+				} else if (trueExpression.toLowerCase().equals("cellsizey")) {
+					Arrays.fill(trueData, image.getCellSizeY());
+					bindings.put("trueData", trueData);		
+				} else if (trueExpression.toLowerCase().equals("row")) {
+					addRowNumberTrue = true;
+				} else if (trueExpression.toLowerCase().equals("column")) {
+					for (int col = 0; col < cols; col++) {
+						trueData[col] = col
+					}
+					bindings.put("trueData", trueData);
+				} else if (trueExpression.toLowerCase().equals("rowy")) {
+					addRowYTrue = true;
+				} else if (trueExpression.toLowerCase().equals("columnx")) {
+					for (int col = 0; col < cols; col++) {
+						trueData[col] = image.getXCoordinateFromColumn(col);
+					}
+					bindings.put("trueData", trueData);
+				} else if (trueExpression.toLowerCase().equals("value")) {
+					addValueTrue = true
+				} else {
+					pluginHost.showFeedback("Invalid TRUE value.");
+					return;
+				}
+			}
+			if (falseType == 0) { //falseValueConstant) {
 				Arrays.fill(falseData, falseValue)
 				bindings.put("falseData", falseData);
+			}
+			boolean addRowNumberFalse = false;
+			boolean addRowYFalse = false;
+			boolean addValueFalse = false;
+			if (falseType == 2) {
+				if (falseExpression.toLowerCase().equals("nodata") ||
+				     falseExpression.toLowerCase().equals("null")) {
+					Arrays.fill(falseData, nodata);
+					bindings.put("falseData", falseData);				
+				} else if (falseExpression.toLowerCase().equals("rows")) {
+					Arrays.fill(falseData, rows);
+					bindings.put("falseData", falseData);			
+				} else if (falseExpression.toLowerCase().equals("columns")) {
+					Arrays.fill(falseData, cols);
+					bindings.put("falseData", falseData);			
+				} else if (falseExpression.toLowerCase().equals("minvalue")) {
+					Arrays.fill(falseData, image.getMinimumValue());
+					bindings.put("falseData", falseData);		
+				} else if (falseExpression.toLowerCase().equals("maxvalue")) {
+					Arrays.fill(falseData, image.getMaximumValue());
+					bindings.put("falseData", falseData);		
+				} else if (falseExpression.toLowerCase().equals("displayminvalue")) {
+					Arrays.fill(falseData, image.getDisplayMinimum());
+					bindings.put("falseData", falseData);			
+				} else if (falseExpression.toLowerCase().equals("displaymaxvalue")) {
+					Arrays.fill(falseData, image.getDisplayMaximum());
+					bindings.put("falseData", falseData);		
+				} else if (falseExpression.toLowerCase().equals("north")) {
+					Arrays.fill(falseData, image.getNorth());
+					bindings.put("falseData", falseData);		
+				} else if (falseExpression.toLowerCase().equals("south")) {
+					Arrays.fill(falseData, image.getSouth());
+					bindings.put("falseData", falseData);		
+				} else if (falseExpression.toLowerCase().equals("east")) {
+					Arrays.fill(falseData, image.getEast());
+					bindings.put("falseData", falseData);		
+				} else if (falseExpression.toLowerCase().equals("west")) {
+					Arrays.fill(falseData, image.getWest());
+					bindings.put("falseData", falseData);		
+				} else if (falseExpression.toLowerCase().equals("cellsizex")) {
+					Arrays.fill(falseData, image.getCellSizeX());
+					bindings.put("falseData", falseData);		
+				} else if (falseExpression.toLowerCase().equals("cellsizey")) {
+					Arrays.fill(falseData, image.getCellSizeY());
+					bindings.put("falseData", falseData);		
+				} else if (falseExpression.toLowerCase().equals("row")) {
+					addRowNumberFalse = true;
+				} else if (falseExpression.toLowerCase().equals("column")) {
+					for (int col = 0; col < cols; col++) {
+						falseData[col] = col
+					}
+					bindings.put("falseData", falseData);
+				} else if (falseExpression.toLowerCase().equals("rowy")) {
+					addRowYFalse = true;
+				} else if (falseExpression.toLowerCase().equals("columnx")) {
+					for (int col = 0; col < cols; col++) {
+						falseData[col] = image.getXCoordinateFromColumn(col);
+					}
+					bindings.put("falseData", falseData);
+				} else if (falseExpression.toLowerCase().equals("value")) {
+					addValueFalse = true
+				} else {
+					pluginHost.showFeedback("Invalid FALSE value.");
+					return;
+				}
 			}
 			bindings.put("outData", outData);
 			bindings.put("nodata", nodata);
 			bindings.put("expressionEvaluatesNoData", expressionEvaluatesNoData);
+			bindings.put("maxvalue", image.getMaximumValue());
+			bindings.put("minvalue", image.getMinimumValue());
+			bindings.put("displaymaxvalue", image.getDisplayMaximum());
+			bindings.put("displayminvalue", image.getDisplayMinimum());
+			bindings.put("rows", rows);
+			bindings.put("columns", cols);
+			bindings.put("north", image.getNorth());
+			bindings.put("south", image.getSouth());
+			bindings.put("east", image.getEast());
+			bindings.put("west", image.getWest());
+			bindings.put("cellsizex", image.getCellSizeX());
+			bindings.put("cellsizey", image.getCellSizeY());
+			bindings.put("raster", image);
+
+			if (addValueTrue || addValueFalse) {
+				output.setPreferredPalette(image.getPreferredPalette())
+				output.setDataScale(image.getDataScale())
+			}
 			
 			for (int row = 0; row < rows; row++) {
 				double[] inData = image.getRowValues(row);
-				if (!trueValueConstant) {
+				if (trueType == 1) {
 					trueData = trueValueRaster.getRowValues(row)
 					bindings.put("trueData", trueData);
+				} else if (addValueTrue) {
+					trueData = image.getRowValues(row)
+					bindings.put("trueData", trueData);
 				}
-				if (!falseValueConstant) {
+				if (falseType == 1) {
 					falseData = falseValueRaster.getRowValues(row)
+					bindings.put("falseData", falseData);
+				} else if (addValueFalse) {
+					falseData = image.getRowValues(row)
+					bindings.put("falseData", falseData);
+				}
+				if (addRowNumberTrue) {
+					Arrays.fill(trueData, row);
+					bindings.put("trueData", trueData);
+				}
+				if (addRowNumberFalse) {
+					Arrays.fill(falseData, row);
+					bindings.put("falseData", falseData);
+				}
+				if (addRowYTrue) {
+					value = image.getYCoordinateFromRow(row)
+					Arrays.fill(trueData, value);
+					bindings.put("trueData", trueData);
+				}
+				if (addRowYFalse) {
+					value = image.getYCoordinateFromRow(row)
+					Arrays.fill(falseData, value);
 					bindings.put("falseData", falseData);
 				}
 				bindings.put("inData", inData);
-				generate_data.eval(bindings)
+				bindings.put("row", row);
+				generate_data.eval(bindings);
+				
 				
 				output.setRowValues(row, outData)
   				progress = (int)(100f * row / rows)
@@ -246,6 +457,10 @@ public class ConditionalEvaluation implements ActionListener {
 	                    + descriptiveName + " tool.")
 	        output.addMetadataEntry("Created on " + new Date())
 			output.close()
+
+//			Date stop = new Date()
+//			TimeDuration td = TimeCategory.minus(stop, start)
+//			pluginHost.showFeedback("Elapsed time: $td")
 	
 			// display the output image
 			pluginHost.returnData(outputFile)

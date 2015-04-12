@@ -104,7 +104,7 @@ public class TraceDownslopeFlowpaths implements ActionListener {
 			String outputFile = args[2]
 			boolean backgroundNoData = Boolean.parseBoolean(args[3])
 			
-			// read the input image and PP vector files
+			// read the input image
 			WhiteboxRaster pntr = new WhiteboxRaster(inputFile, "r")
 			double nodata = pntr.getNoDataValue()
 			int rows = pntr.getNumberRows()
@@ -148,7 +148,7 @@ public class TraceDownslopeFlowpaths implements ActionListener {
 	                        colN = col;
 	                        rowN = row;
 	                        while (!flag) {
-	                            // find it's downslope neighbour
+	                            // find its downslope neighbour
 	                            flowDir = pntr.getValue(rowN, colN);
 	                            if (flowDir > 0 && flowDir != nodata) {
 	                            	//move x and y accordingly
@@ -193,7 +193,7 @@ public class TraceDownslopeFlowpaths implements ActionListener {
             	oldProgress = -1;
 				int row, col;
             	int numPoints = input.getNumberOfRecords();
-            	double[][] points = new double[numPoints][2]
+//            	double[][] points = new double[numPoints][2]
             	double[][] point
 
             	for (ShapeFileRecord record : input.records) {
@@ -212,7 +212,7 @@ public class TraceDownslopeFlowpaths implements ActionListener {
                         rowN = row;
                         
 						while (!flag) {
-                            // find it's downslope neighbour
+                            // find its downslope neighbour
                             flowDir = pntr.getValue(rowN, colN);
                             if (flowDir > 0 && flowDir != nodata) {
                             	//move x and y accordingly

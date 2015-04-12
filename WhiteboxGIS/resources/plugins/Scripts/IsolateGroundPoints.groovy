@@ -150,7 +150,7 @@ public class IsolateGroundPoints implements ActionListener {
 			final String inputFile = args[0].trim()
 			if (args.length == 7) {
 				zField = args[1].trim()
-				outputFile = args[1]
+				outputFile = args[2]
 		        maxDist = Double.parseDouble(args[3]);
 		        numNeighbours = Integer.parseInt(args[4]);
 				maxSlope = Double.parseDouble(args[5]);
@@ -279,8 +279,8 @@ public class IsolateGroundPoints implements ActionListener {
 		            (new File(outputFile.replace(".shp", ".dbf"))).delete();
 		            (new File(outputFile.replace(".shp", ".shx"))).delete();
 		        }
-	            
-	            ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
+
+		        ShapeFile output = new ShapeFile(outputFile, ShapeType.POINT, fields);
 	
 				for (a = 0; a < numPoints; a++) {
 	            	if (!isOffTerrain.getValue(a)) {

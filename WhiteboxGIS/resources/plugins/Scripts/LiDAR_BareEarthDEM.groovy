@@ -448,7 +448,7 @@ public class LiDAR_BareEarthDEM implements ActionListener {
 	                        			weights = new ArrayList<>()
 	                        			vals = new ArrayList<>()
 	                        			weights.add(1.0d)
-			                            sumWeights += 1.0
+			                            sumWeights = 1.0
 			                            vals.add(rec1.value)
 			                            n = 1
 	                        			break

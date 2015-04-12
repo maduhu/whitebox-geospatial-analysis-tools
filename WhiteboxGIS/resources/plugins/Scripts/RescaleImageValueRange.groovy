@@ -72,8 +72,10 @@ public class RescaleImageValueRange implements ActionListener {
 			// add some components to the dialog
 			sd.addDialogFile("Input file", "Input File:", "open", "Raster Files (*.dep), DEP", true, false)
 			sd.addDialogFile("Output file", "Output File:", "save", "Raster Files (*.dep), DEP", true, false)
-			sd.addDialogDataInput("New minimum value", "New Minimum Value:", "0.0", true, false)
-            sd.addDialogDataInput("New maximum value", "New Maximum Value:", "100.0", true, false)
+			sd.addDialogDataInput("Clip input values below this value (optional)", "Clip input values below (optional):", "", true, true)
+            sd.addDialogDataInput("Clip input values above this value (optional)", "Clip input values above (optional):", "", true, true)
+            sd.addDialogDataInput("New minimum value", "New minimum value:", "0.0", true, false)
+            sd.addDialogDataInput("New maximum value", "New maximum value:", "100.0", true, false)
             
 			// resize the dialog to the standard size and display it
 			sd.setSize(800, 400)
@@ -87,15 +89,15 @@ public class RescaleImageValueRange implements ActionListener {
 	@CompileStatic
 	private void execute(String[] args) {
 		try {
-			if (args.length != 4) {
+			if (args.length != 6) {
 				pluginHost.showFeedback("Incorrect number of arguments given to tool.")
 				return
 			}
 			// read the input parameters
 			String inputFile = args[0]
 			String outputFile = args[1]
-			double newMinVal = Double.parseDouble(args[2])
-			double newMaxVal = Double.parseDouble(args[3])
+			double newMinVal = Double.parseDouble(args[4])
+			double newMaxVal = Double.parseDouble(args[5])
 			double outRange = newMaxVal - newMinVal
 			
 			// read the input image and PP vector files
@@ -104,7 +106,14 @@ public class RescaleImageValueRange implements ActionListener {
 			int rows = image.getNumberRows()
 			int cols = image.getNumberColumns()
 			double minValue = image.getMinimumValue()
-			double range = image.getMaximumValue() - minValue
+			double maxValue = image.getMaximumValue()
+			if (!args[2].trim().isEmpty() && args[2].toLowerCase() != "not specified") {
+				minValue = Double.parseDouble(args[2])
+			}
+			if (!args[3].trim().isEmpty() && args[3].toLowerCase() != "not specified") {
+				maxValue = Double.parseDouble(args[3])
+			}
+			double range = maxValue - minValue
 			
 			WhiteboxRaster output = new WhiteboxRaster(outputFile, "rw", 
   		  	  inputFile, DataType.FLOAT, nodata)
@@ -116,13 +125,15 @@ public class RescaleImageValueRange implements ActionListener {
 				for (int col = 0; col < cols; col++) {
   					z = image.getValue(row, col)
   					if (z != nodata) {
+  						if (z < minValue) { z = minValue }
+  						if (z > maxValue) { z = maxValue }
 	  					outValue = newMinVal + ((z - minValue) / range) * outRange
 	  					output.setValue(row, col, outValue)
   					}
   				}
   				progress = (int)(100f * row / rows)
 				if (progress > oldProgress) {
-					pluginHost.updateProgress("Loop 2 of 2:", progress)
+					pluginHost.updateProgress(progress)
 					oldProgress = progress
 				}
 				// check to see if the user has requested a cancellation

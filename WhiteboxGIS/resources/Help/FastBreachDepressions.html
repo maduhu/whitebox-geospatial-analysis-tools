@@ -23,7 +23,8 @@
             depression filling algorithm operates, except when a grid cell contained in a topographic 
             depression is encountered during the flood sequence, the algorithm works backwards along 
             the sequence until a lower cell is found, then the flow directions and elevations along 
-            this pathway are updated to reflect the breach channel.</p>
+            this pathway are updated to reflect the breach channel. The algorithm is also similar to the 
+            depression breaching method described by Soille (2004).</p>
             
             <p>Importantly, the breach channels resulting from this method are not optimized to 
             reduce the degree to which the DEM must be modified to enforce flow, as is the case with 
@@ -74,7 +75,15 @@
             Breach Depressions (Fast) tool will read the entire DEM into memory, along with several 
             other grids. This the algorithm is not suited to processing massive DEMs except where the 
             user's computer has substantial memory (RAM) resources.</p>
-            
+
+        <h2 class="SeeAlso">References:</h2>
+        <ol>
+        	  <li>Soille, P. 2004. Morphological carving. <i>Pattern Recognition Letters</i>, 25: 543-550.</li>
+        	  <li>Wang, L. and Lui, H. 2006. An efficient method for identifying and filling surface 
+        	  depressions in digital elevation models for hydrologic analysis and modelling. 
+        	  <i>International Journal of Geographical Information Science</i>, 20(2): 193-213.</li>
+        </ol>
+        
         <h2 class="SeeAlso">See Also:</h2>
         <ul>
         	  <li><a href="BreachDepressions.html">Breach Depressions</a></li>

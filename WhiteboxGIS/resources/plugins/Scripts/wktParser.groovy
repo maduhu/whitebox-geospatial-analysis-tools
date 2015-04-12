@@ -4,7 +4,7 @@ import whitebox.geospatialfiles.shapefile.*
 
 def wd = pluginHost.getWorkingDirectory()
 //def prjFileName = wd + "StatsCanada_2006_CartoProv.prj"
-def prjFileName = "/Users/johnlindsay/Documents/Data/Beau's Data/ParisGaltGuelph Moraine Shape/ParisGalt.prj"
+def prjFileName = "/Users/johnlindsay/Documents/Data/TM_WORLD_BORDERS-0/TM_WORLD_BORDERS-0.2.prj"
 //def prjFileName = wd + "StatsCan_2006_Ont.prj"
 
 //WKTReader wktReader = new WKTReader()

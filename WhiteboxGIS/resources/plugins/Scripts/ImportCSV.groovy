@@ -102,6 +102,7 @@ public class ImportCSV implements ActionListener {
         	double x, y
         	int progress = 0;
         	int oldProgress = -1;
+        	String delimeter = ",";
 
         	if (args.length < 1) {
 				pluginHost.showFeedback("Incorrect number of arguments given to tool.")
@@ -150,11 +151,37 @@ public class ImportCSV implements ActionListener {
 				
                 String[] fileLines = ((new File(csvFileName)).text).split("\n")
                 String[] secondLine
+                
                 if (fileLines.length > 1) {
-                	secondLine = fileLines[1].split(",")
+                	secondLine = fileLines[1].split(delimeter)
+                	if (secondLine.length == 1) {
+                		delimeter = "\t";
+                		secondLine = fileLines[1].split(delimeter)
+                		if (secondLine.length == 1) {
+                			delimeter = ";";
+                			secondLine = fileLines[1].split(delimeter)
+                			if (secondLine.length == 1) {
+                				delimeter = " ";
+                				secondLine = fileLines[1].split(delimeter)
+                			}
+                		}
+                	}
                 } else {
-                	secondLine = fileLines[0].split(",") // actually the first line
+                	secondLine = fileLines[0].split(delimeter) // actually the first line
+                	if (secondLine.length == 1) {
+                		delimeter = "\t";
+                		secondLine = fileLines[0].split(delimeter)
+                		if (secondLine.length == 1) {
+                			delimeter = ";";
+                			secondLine = fileLines[0].split(delimeter)
+                			if (secondLine.length == 1) {
+                				delimeter = " ";
+                				secondLine = fileLines[0].split(delimeter)
+                			}
+                		}
+                	}
                 }
+
                 numColumnDefinitions = secondLine.length
                 columnDef = new String[numColumnDefinitions]
                 for (i = 0; i < numColumnDefinitions; i++) {
@@ -240,7 +267,19 @@ public class ImportCSV implements ActionListener {
 				boolean checkForHeader = false
 				csvFile.eachLine { line -> 
 					String str = String.valueOf(line)
-					String[] columnData = str.split(",")
+					String[] columnData = str.split(delimeter)
+					if (columnData.length == 1) {
+                		delimeter = "\t";
+                		columnData = str.split(delimeter)
+                		if (columnData.length == 1) {
+                			delimeter = ";";
+                			columnData = str.split(delimeter)
+                			if (columnData.length == 1) {
+                				delimeter = " ";
+                				columnData = str.split(delimeter)
+                			}
+                		}
+                	}
 					int lowerNum = (numColumnDefinitions < columnData.length) ? numColumnDefinitions :  columnData.length
 					boolean headerLine = false
 					if (!checkForHeader) {

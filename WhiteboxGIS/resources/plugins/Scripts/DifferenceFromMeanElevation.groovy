@@ -97,7 +97,7 @@ public class DifferenceFromMeanElevation implements ActionListener {
 			if (neighbourhoodSize < 1) { neighbourhoodSize = 1 }
 			int numCells
 			
-			// read the input image and PP vector files
+			// read the input image
 			WhiteboxRaster image = new WhiteboxRaster(inputFile, "r")
 			double nodata = image.getNoDataValue()
 			int rows = image.getNumberRows()
@@ -193,13 +193,13 @@ public class DifferenceFromMeanElevation implements ActionListener {
   				}
   				progress = (int)(100f * row / rows)
 				if (progress > oldProgress) {
-					pluginHost.updateProgress("Loop 2 of 2:", progress)
+					pluginHost.updateProgress("Loop 2 of 4:", progress)
 					oldProgress = progress
-				}
-				// check to see if the user has requested a cancellation
-				if (pluginHost.isRequestForOperationCancelSet()) {
-					pluginHost.showFeedback("Operation cancelled")
-					return
+					// check to see if the user has requested a cancellation
+					if (pluginHost.isRequestForOperationCancelSet()) {
+						pluginHost.showFeedback("Operation cancelled")
+						return
+					}
 				}
 			}
 			

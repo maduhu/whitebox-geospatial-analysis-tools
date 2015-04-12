@@ -157,7 +157,7 @@ public class Dissolve implements ActionListener {
 	            fields[1].setDecimalCount(inputFields[keyFieldNum].getDecimalCount());
 	            
 	            ShapeFile output = new ShapeFile(outputFile, shapeType, fields);
-            
+            	output.setProjectionStringFromOtherShapefile(input)
 	            
 				HashSet hs = new HashSet();
 				progress = 0
