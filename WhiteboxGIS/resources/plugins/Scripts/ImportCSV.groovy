@@ -93,7 +93,7 @@ public class ImportCSV implements ActionListener {
     // The CompileStatic annotation can be used to significantly
     // improve the performance of a Groovy script to nearly 
     // that of native Java code.
-    @CompileStatic
+    //@CompileStatic
     private void execute(String[] args) {
         try {
 			String csvFileName = null;
