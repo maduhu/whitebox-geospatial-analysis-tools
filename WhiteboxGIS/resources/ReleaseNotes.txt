@@ -20,7 +20,19 @@ greatly increased performance.
 
 RELEASE NOTES:
 
-Version 3.2.2 ()
+Version 3.2.3 ()
+-Added the Quantiles tool, which transforms a raster into quantiles. Quantiles 
+ are values taken at regular intervals from the inverse of the cumulative 
+ distribution function (CDF) of a random variable.
+-Added an Integral Image transform tool.
+-Added Split Vector Lines tool, which takes a polyline type shapefile and outputs
+ polylines of a specified maximum length.
+-Modified the Create Colour Composite tool to have a built in option for 
+ performing a post-composite balance contrast enhancement.
+-Added Standard Deviation of Elevation tool to measure local roughness from DEMs.
+
+
+Version 3.2.2 (April 12, 2015)
 -LAS files can now be rendered based on the Classification, Scan Angle, and GPS Time
  in addition to Elevation and Intensity.
 -Added Conditional Evaluation tool (if-then-else statement).

@@ -24,56 +24,73 @@ import whitebox.interfaces.WhiteboxPluginHost;
 
 /**
  * WhiteboxPlugin is used to define a plugin tool for Whitebox GIS.
+ *
  * @author johnlindsay
  */
 public class CreateColourComposite implements WhiteboxPlugin {
-    
+
     private WhiteboxPluginHost myHost = null;
     private String[] args;
+
     /**
-     * Used to retrieve the plugin tool's name. This is a short, unique name containing no spaces.
+     * Used to retrieve the plugin tool's name. This is a short, unique name
+     * containing no spaces.
+     *
      * @return String containing plugin name.
      */
     @Override
     public String getName() {
         return "CreateColourComposite";
     }
+
     /**
-     * Used to retrieve the plugin tool's descriptive name. This can be a longer name (containing spaces) and is used in the interface to list the tool.
+     * Used to retrieve the plugin tool's descriptive name. This can be a longer
+     * name (containing spaces) and is used in the interface to list the tool.
+     *
      * @return String containing the plugin descriptive name.
      */
     @Override
     public String getDescriptiveName() {
-    	return "Create Colour Composite";
+        return "Create Colour Composite";
     }
+
     /**
      * Used to retrieve a short description of what the plugin tool does.
+     *
      * @return String containing the plugin's description.
      */
     @Override
     public String getToolDescription() {
-    	return "This tool creates an RGBa colour composite image from multispectral data.";
+        return "This tool creates an RGBa colour composite image from multispectral data.";
     }
-     /**
+
+    /**
      * Used to identify which toolboxes this plugin tool should be listed in.
+     *
      * @return Array of Strings.
      */
     @Override
     public String[] getToolbox() {
-    	String[] ret = { "ImageProc" };
-    	return ret;
+        String[] ret = {"ImageProc"};
+        return ret;
     }
-     /**
-     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the class
-     * that the plugin will send all feedback messages, progress updates, and return objects.
+
+    /**
+     * Sets the WhiteboxPluginHost to which the plugin tool is tied. This is the
+     * class that the plugin will send all feedback messages, progress updates,
+     * and return objects.
+     *
      * @param host The WhiteboxPluginHost that called the plugin tool.
-     */  
+     */
     @Override
     public void setPluginHost(WhiteboxPluginHost host) {
         myHost = host;
     }
+
     /**
-     * Used to communicate feedback pop-up messages between a plugin tool and the main Whitebox user-interface.
+     * Used to communicate feedback pop-up messages between a plugin tool and
+     * the main Whitebox user-interface.
+     *
      * @param feedback String containing the text to display.
      */
     private void showFeedback(String message) {
@@ -83,8 +100,11 @@ public class CreateColourComposite implements WhiteboxPlugin {
             System.out.println(message);
         }
     }
+
     /**
-     * Used to communicate a return object from a plugin tool to the main Whitebox user-interface.
+     * Used to communicate a return object from a plugin tool to the main
+     * Whitebox user-interface.
+     *
      * @return Object, such as an output WhiteboxRaster.
      */
     private void returnData(Object ret) {
@@ -95,21 +115,27 @@ public class CreateColourComposite implements WhiteboxPlugin {
 
     private int previousProgress = 0;
     private String previousProgressLabel = "";
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progressLabel A String to use for the progress label.
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(String progressLabel, int progress) {
-        if (myHost != null && ((progress != previousProgress) || 
-                (!progressLabel.equals(previousProgressLabel)))) {
+        if (myHost != null && ((progress != previousProgress)
+                || (!progressLabel.equals(previousProgressLabel)))) {
             myHost.updateProgress(progressLabel, progress);
         }
         previousProgress = progress;
         previousProgressLabel = progressLabel;
     }
+
     /**
-     * Used to communicate a progress update between a plugin tool and the main Whitebox user interface.
+     * Used to communicate a progress update between a plugin tool and the main
+     * Whitebox user interface.
+     *
      * @param progress Float containing the progress value (between 0 and 100).
      */
     private void updateProgress(int progress) {
@@ -118,34 +144,41 @@ public class CreateColourComposite implements WhiteboxPlugin {
         }
         previousProgress = progress;
     }
+
     /**
      * Sets the arguments (parameters) used by the plugin.
-     * @param args 
+     *
+     * @param args
      */
     @Override
     public void setArgs(String[] args) {
         this.args = args.clone();
     }
-    
+
     private boolean cancelOp = false;
+
     /**
      * Used to communicate a cancel operation from the Whitebox GUI.
+     *
      * @param cancel Set to true if the plugin should be canceled.
      */
     @Override
     public void setCancelOp(boolean cancel) {
         cancelOp = cancel;
     }
-    
+
     private void cancelOperation() {
         showFeedback("Operation cancelled.");
         updateProgress("Progress: ", 0);
     }
-    
+
     private boolean amIActive = false;
+
     /**
      * Used by the Whitebox GUI to tell if this plugin is still running.
-     * @return a boolean describing whether or not the plugin is actively being used.
+     *
+     * @return a boolean describing whether or not the plugin is actively being
+     * used.
      */
     @Override
     public boolean isActive() {
@@ -155,42 +188,40 @@ public class CreateColourComposite implements WhiteboxPlugin {
     @Override
     public void run() {
         amIActive = true;
-        
+
         String inputHeaderRed = null;
         String inputHeaderGreen = null;
         String inputHeaderBlue = null;
         String inputHeaderAlpha = null;
         String outputHeader = null;
-        boolean alphaChannelSpecified = true; 
-        
+        boolean alphaChannelSpecified = true;
+        boolean performContrastEnhancement = true;
+
         if (args.length <= 0) {
             showFeedback("Plugin parameters have not been set.");
             return;
         }
-        
-        for (int i = 0; i < args.length; i++) {
-    		if (i == 0) {
-                    inputHeaderRed = args[i];
-                } else if (i == 1) {
-                    inputHeaderGreen = args[i];
-                } else if (i == 2) {
-                    inputHeaderBlue = args[i];
-                } else if (i == 3) {
-                    inputHeaderAlpha = args[i];
-                    if (inputHeaderAlpha.toLowerCase().contains("not specified")) {
-                        alphaChannelSpecified = false;
-                    }
-                } else if (i == 4) {
-                    outputHeader = args[i];
-                }
-    	}
+
+        inputHeaderRed = args[0];
+        inputHeaderGreen = args[1];
+        inputHeaderBlue = args[2];
+        inputHeaderAlpha = args[3];
+        if (inputHeaderAlpha.toLowerCase().contains("not specified")) {
+            alphaChannelSpecified = false;
+        }
+        outputHeader = args[4];
+        String doEnhancement = args[5];
+        if (doEnhancement.toLowerCase().contains("not specified")
+                || doEnhancement.toLowerCase().contains("f")) {
+            performContrastEnhancement = false;
+        }
 
         // check to see that the inputHeader and outputHeader are not null.
-       if ((inputHeaderRed == null) || (inputHeaderGreen == null) || 
-                (inputHeaderBlue == null) || (outputHeader == null)) {
-           showFeedback("One or more of the input parameters have not been set properly.");
-           return;
-       }
+        if ((inputHeaderRed == null) || (inputHeaderGreen == null)
+                || (inputHeaderBlue == null) || (outputHeader == null)) {
+            showFeedback("One or more of the input parameters have not been set properly.");
+            return;
+        }
 
         try {
             int row, col;
@@ -199,10 +230,11 @@ public class CreateColourComposite implements WhiteboxPlugin {
             double redMin, greenMin, blueMin;
             int r, g, b, a;
             double z;
-            float progress = 0;
-            
+            int progress = 0;
+            int oldProgress = -1;
+
             WhiteboxRasterInfo red = new WhiteboxRasterInfo(inputHeaderRed);
-            
+
             int rows = red.getNumberRows();
             int cols = red.getNumberColumns();
 
@@ -219,7 +251,7 @@ public class CreateColourComposite implements WhiteboxPlugin {
 
             double noData = red.getNoDataValue();
 
-            WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw", 
+            WhiteboxRaster outputFile = new WhiteboxRaster(outputHeader, "rw",
                     inputHeaderRed, WhiteboxRaster.DataType.FLOAT, noData);
             outputFile.setPreferredPalette("rgb.pal");
             outputFile.setDataScale(WhiteboxRaster.DataScale.RGB);
@@ -234,6 +266,7 @@ public class CreateColourComposite implements WhiteboxPlugin {
 
             if (!alphaChannelSpecified) {
                 double[] dataRed, dataGreen, dataBlue;
+                oldProgress = -1;
                 for (row = 0; row < rows; row++) {
                     dataRed = red.getRowValues(row);
                     dataGreen = green.getRowValues(row);
@@ -271,23 +304,17 @@ public class CreateColourComposite implements WhiteboxPlugin {
                         }
 
                     }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
+                    progress = (int) (100f * row / (rows - 1));
+                    if (progress != oldProgress) {
+                        updateProgress(progress);
+                        oldProgress = progress;
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
                     }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress((int) progress);
                 }
-                
-                outputFile.addMetadataEntry("Created by the "
-                    + getDescriptiveName() + " tool.");
-                outputFile.addMetadataEntry("Created on " + new Date());
 
-                outputFile.close();
-                red.close();
-                green.close();
-                blue.close();
-                
             } else {
                 WhiteboxRaster alpha = new WhiteboxRaster(inputHeaderAlpha, "r");
                 if ((alpha.getNumberRows() != rows) || (alpha.getNumberColumns() != cols)) {
@@ -298,6 +325,7 @@ public class CreateColourComposite implements WhiteboxPlugin {
                 double alphaMin, alphaRange;
                 alphaMin = alpha.getDisplayMinimum();
                 alphaRange = alpha.getDisplayMaximum() - alphaMin;
+                oldProgress = -1;
                 for (row = 0; row < rows; row++) {
                     dataRed = red.getRowValues(row);
                     dataGreen = green.getRowValues(row);
@@ -344,28 +372,188 @@ public class CreateColourComposite implements WhiteboxPlugin {
                         }
 
                     }
-                    if (cancelOp) {
-                        cancelOperation();
-                        return;
+                    progress = (int) (100f * row / (rows - 1));
+                    if (progress != oldProgress) {
+                        updateProgress(progress);
+                        oldProgress = progress;
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
                     }
-                    progress = (float) (100f * row / (rows - 1));
-                    updateProgress((int) progress);
                 }
-                
-                outputFile.addMetadataEntry("Created by the "
-                    + getDescriptiveName() + " tool.");
-                outputFile.addMetadataEntry("Created on " + new Date());
 
-                outputFile.close();
-                red.close();
-                green.close();
-                blue.close();
                 alpha.close();
             }
 
+            red.close();
+            green.close();
+            blue.close();
+
+            if (performContrastEnhancement) {
+                outputFile.flush();
+                
+                int rOut, gOut, bOut;
+                int E = 100;
+
+                double[] data;
+                long numPixels = 0;
+                int r_l = Integer.MAX_VALUE;
+                int r_h = Integer.MIN_VALUE;
+                long r_e = 0;
+                long rSqrTotal = 0;
+                int g_l = Integer.MAX_VALUE;
+                int g_h = Integer.MIN_VALUE;
+                long g_e = 0;
+                long gSqrTotal = 0;
+                int b_l = Integer.MAX_VALUE;
+                int b_h = Integer.MIN_VALUE;
+                long b_e = 0;
+                long bSqrTotal = 0;
+
+                int L = 0;
+                int H = 255;
+                oldProgress = -1;
+                for (row = 0; row < rows; row++) {
+                    data = outputFile.getRowValues(row);
+                    for (col = 0; col < cols; col++) {
+                        z = data[col];
+                        if (z != noData) {
+                            numPixels++;
+                            r = ((int) z & 0xFF);
+                            g = (((int) z >> 8) & 0xFF);
+                            b = (((int) z >> 16) & 0xFF);
+                            
+                            if (r < r_l) {
+                                r_l = r;
+                            }
+                            if (r > r_h) {
+                                r_h = r;
+                            }
+                            r_e += r;
+                            rSqrTotal += r * r;
+
+                            if (g < g_l) {
+                                g_l = g;
+                            }
+                            if (g > g_h) {
+                                g_h = g;
+                            }
+                            g_e += g;
+                            gSqrTotal += g * g;
+
+                            if (b < b_l) {
+                                b_l = b;
+                            }
+                            if (b > b_h) {
+                                b_h = b;
+                            }
+                            b_e += b;
+                            bSqrTotal += b * b;
+
+                        }
+                    }
+                    progress = (int) (100f * row / (rows - 1));
+                    if (progress != oldProgress) {
+                        updateProgress("Performing Enhancement (2 of 2):", progress);
+                        oldProgress = progress;
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
+                    }
+                }
+
+                r_e = r_e / numPixels;
+                g_e = g_e / numPixels;
+                b_e = b_e / numPixels;
+
+                double r_s = (double) rSqrTotal / numPixels;
+                double g_s = (double) gSqrTotal / numPixels;
+                double b_s = (double) bSqrTotal / numPixels;
+
+                double r_b = (r_h * r_h * (E - L) - r_s * (H - L) + r_l * r_l * (H - E))
+                        / (2 * (r_h * (E - L) - r_e * (H - L) + r_l * (H - E)));
+
+                double r_a = (H - L) / ((r_h - r_l) * (r_h + r_l - 2 * r_b));
+
+                double r_c = L - r_a * ((r_l - r_b) * (r_l - r_b));
+
+                double g_b = (g_h * g_h * (E - L) - g_s * (H - L) + g_l * g_l * (H - E))
+                        / (2 * (g_h * (E - L) - g_e * (H - L) + g_l * (H - E)));
+
+                double g_a = (H - L) / ((g_h - g_l) * (g_h + g_l - 2 * g_b));
+
+                double g_c = L - g_a * ((g_l - g_b) * (g_l - g_b));
+
+                double b_b = (b_h * b_h * (E - L) - b_s * (H - L) + b_l * b_l * (H - E))
+                        / (2 * (b_h * (E - L) - b_e * (H - L) + b_l * (H - E)));
+
+                double b_a = (H - L) / ((b_h - b_l) * (b_h + b_l - 2 * b_b));
+
+                double b_c = L - b_a * ((b_l - b_b) * (b_l - b_b));
+                
+                oldProgress = -1;
+                for (row = 0; row < rows; row++) {
+                    data = outputFile.getRowValues(row);
+                    for (col = 0; col < cols; col++) {
+                        z = data[col];
+                        if (z != noData) {
+                            numPixels++;
+                            r = ((int) z & 0xFF);
+                            g = (((int) z >> 8) & 0xFF);
+                            b = (((int) z >> 16) & 0xFF);
+                            a = (((int) z >> 24) & 0xFF);
+                            
+                            rOut = (int) (r_a * ((r - r_b) * (r - r_b)) + r_c);
+                            gOut = (int) (g_a * ((g - g_b) * (g - g_b)) + g_c);
+                            bOut = (int) (b_a * ((b - b_b) * (b - b_b)) + b_c);
+
+                            if (rOut > 255) {
+                                rOut = 255;
+                            }
+                            if (gOut > 255) {
+                                gOut = 255;
+                            }
+                            if (bOut > 255) {
+                                bOut = 255;
+                            }
+
+                            if (rOut < 0) {
+                                rOut = 0;
+                            }
+                            if (gOut < 0) {
+                                gOut = 0;
+                            }
+                            if (bOut < 0) {
+                                bOut = 0;
+                            }
+
+                            z = (double) ((a << 24) | (bOut << 16) | (gOut << 8) | rOut);
+                            outputFile.setValue(row, col, z);
+                        }
+                    }
+                    progress = (int) (100f * row / (rows - 1));
+                    if (progress != oldProgress) {
+                        updateProgress("Performing Enhancement (2 of 2):", progress);
+                        oldProgress = progress;
+                        if (cancelOp) {
+                            cancelOperation();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            outputFile.addMetadataEntry("Created by the "
+                    + getDescriptiveName() + " tool.");
+            outputFile.addMetadataEntry("Created on " + new Date());
+
+            outputFile.close();
+
             // returning a header file string displays the image.
             returnData(outputHeader);
-            
+
         } catch (OutOfMemoryError oe) {
             myHost.showFeedback("An out-of-memory error has occurred during operation.");
         } catch (Exception e) {

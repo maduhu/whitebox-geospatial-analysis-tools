@@ -112,7 +112,7 @@ public class WhiteboxGui extends JFrame implements ThreadListener, ActionListene
     private StatusBar status;
     // common variables
     private static final String versionName = "3.2 'Iguazu'";
-    public static final String versionNumber = "3.2.2";
+    public static final String versionNumber = "3.2.3";
     public static String currentVersionNumber;
     private String skipVersionNumber = versionNumber;
     private ArrayList<PluginInfo> plugInfo = null;

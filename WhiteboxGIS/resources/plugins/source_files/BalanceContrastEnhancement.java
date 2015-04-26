@@ -243,7 +243,6 @@ public class BalanceContrastEnhancement implements WhiteboxPlugin {
             long bSqrTotal = 0;
             
             int L = 0;
-            //int E = 100;
             int H = 255;
             for (row = 0; row < rows; row++) {
                 data = input.getRowValues(row);
