@@ -30,6 +30,11 @@ Version 3.2.3 ()
 -Modified the Create Colour Composite tool to have a built in option for 
  performing a post-composite balance contrast enhancement.
 -Added Standard Deviation of Elevation tool to measure local roughness from DEMs.
+-Added the Impoundment Index tool, which can be used to measure the size (area or
+ volume) of the impoundment that would be created by damming grid cells in an 
+ input DEM with a dam/dyke of a specified length and height. 
+-Added the Stream Slope (Continuous) tool to measure channel slope within a 
+ raster stream network. This is in contrast to the stream link average slope.
 
 
 Version 3.2.2 (April 12, 2015)
