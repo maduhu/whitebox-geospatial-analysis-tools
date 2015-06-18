@@ -95,6 +95,9 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 			sd.addDialogCheckBox("Low Points", "Low Points", false)
 			sd.addDialogCheckBox("Model Key Points", "Model Key Points", false)
 			sd.addDialogCheckBox("Water", "Water", false)
+			sd.addDialogDataInput("Minimum height (Optional: used to exclude points).", "Minimum Height (optional):", "", true, true)
+			sd.addDialogDataInput("Maximum height (Optional: used to exclude points).", "Maximum Height (optional):", "", true, true)
+			
 			
 			// resize the dialog to the standard size and display it
 			sd.setSize(800, 400)
@@ -109,7 +112,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 	private void execute(String[] args) {
 		long start = System.currentTimeMillis()  
 	  try {
-	  	if (args.length != 18) {
+	  	if (args.length < 18) {
 			pluginHost.showFeedback("Incorrect number of arguments given to tool.")
 			return
 		}
@@ -118,7 +121,7 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 		final String inputFileString = args[0]
 		String suffix = ""
 		if (args[1] != null) {
-			suffix = " " + args[1].trim();
+			suffix = args[1].trim();
 		}
         String whatToInterpolate = args[2].toLowerCase();
         String returnNumberToInterpolate = args[3].toLowerCase();
@@ -136,6 +139,17 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
         final boolean excludeLowPoint = Boolean.parseBoolean(args[15]);
         final boolean excludeModelKeyPoint = Boolean.parseBoolean(args[16]);
         final boolean excludeWater = Boolean.parseBoolean(args[17]);
+
+        double minHeight = Double.NEGATIVE_INFINITY 
+        double maxHeight = Double.POSITIVE_INFINITY
+        if (args.length == 20) { // min and max heights have been specified
+	        if (!args[18].toLowerCase().contains("not")) {
+	        	minHeight = Double.parseDouble(args[18]);
+	        }
+	        if (!args[19].toLowerCase().contains("not")) {
+	        	maxHeight = Double.parseDouble(args[19]);
+	        }
+        }
 
         boolean[] classValuesToExclude = new boolean[32]; // there can be up to 32 different classes in future versions
 
@@ -209,7 +223,8 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 		for (i = 0; i < numFiles; i++) {
 			tasks.add(new DoWork(i, inputFiles, suffix, 
 	      		 bb, whatToInterpolate, returnNumberToInterpolate, 
-	      		 weight, maxDist, resolution, maxScanAngleDeviation, classValuesToExclude))
+	      		 weight, maxDist, resolution, maxScanAngleDeviation, 
+	      		 classValuesToExclude, minHeight, maxHeight))
 		}
 
 		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -294,12 +309,14 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 		private double maxDist
 		private double resolution
 		private double maxScanAngleDeviation
+		private double minVal = Double.NEGATIVE_INFINITY;
+		private double maxVal = Double.POSITIVE_INFINITY;
 		
 	    DoWork(int tileNum, String[] inputFiles, String suffix, 
 	      BoundingBox[] bb, String whatToInterpolate, 
 	      String returnNumberToInterpolate, double weight, 
 	      double maxDist, double resolution, double maxScanAngleDeviation,
-	      boolean[] classValuesToExclude) {
+	      boolean[] classValuesToExclude, double minHeight, double maxHeight) {
 			this.tileNum = tileNum;
 			this.inputFiles = inputFiles.clone();
 			this.suffix = suffix;
@@ -311,6 +328,8 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 			this.resolution = resolution;
 			this.maxScanAngleDeviation = maxScanAngleDeviation;
 			this.classValuesToExclude = classValuesToExclude.clone();
+			this.minVal = minHeight;
+			this.maxVal = maxHeight;
        	}
         	
         @Override
@@ -344,24 +363,29 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 				 	ArrayList<PointRecord> points = las.getPointRecordsInBoundingBox(expandedBB)
 				 	if (returnNumberToInterpolate.equals("all points")) {
 				 		for (PointRecord point : points) {
+				 			z = point.getZ()
 					 		if (!point.isPointWithheld() &&
-	                          !(classValuesToExclude[point.getClassification()])) {
+	                          !(classValuesToExclude[point.getClassification()]) &&
+	                          z > minVal && z < maxVal) {
 	                            recs.add(point);
 	                        }
 				 		}
 				 	} else if (returnNumberToInterpolate.equals("first return")) {
 				 		for (PointRecord point : points) {
+					 		z = point.getZ()
 					 		if (!point.isPointWithheld() &&
 	                          !(classValuesToExclude[point.getClassification()])
-                              && point.getReturnNumber() == 1) {
+                              && point.getReturnNumber() == 1 && z > minVal && z < maxVal) {
 	                            recs.add(point);
 	                        }
 				 		}
 				 	} else { // if (returnNumberToInterpolate.equals("last return")) {
 				 		for (PointRecord point : points) {
+					 		z = point.getZ()
 					 		if (!point.isPointWithheld() &&
 	                          !(classValuesToExclude[point.getClassification()])
-                              && point.getReturnNumber() == point.getNumberOfReturns()) {
+                              && point.getReturnNumber() == point.getNumberOfReturns()
+                              && z > minVal && z < maxVal) {
 	                            recs.add(point);
 	                        }
 				 		}
@@ -542,6 +566,13 @@ public class LiDAR_IDW_Interpolation implements ActionListener {
 
                 image.addMetadataEntry("Created by the " + descriptiveName + " tool.");
                 image.addMetadataEntry("Created on " + new Date());
+                image.addMetadataEntry("Weight parameter: $weight");
+                image.addMetadataEntry("Search Distance: $maxDist");
+                if (minVal > Double.NEGATIVE_INFINITY) {
+                	image.addMetadataEntry("Min Height: $minVal");
+                	image.addMetadataEntry("Max Height: $maxVal");                
+                }
+                
                 image.close();
 	
 	        } catch (Exception e) {
