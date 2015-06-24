@@ -256,7 +256,7 @@ public class LiDAR_IDW_interpolation implements WhiteboxPlugin {
             return;
         }
         inputFilesString = args[0];
-        suffix = " " + args[1].trim();
+        suffix = args[1].trim();
         whatToInterpolate = args[2].toLowerCase();
         returnNumberToInterpolate = args[3].toLowerCase();
         weight = Double.parseDouble(args[4]);

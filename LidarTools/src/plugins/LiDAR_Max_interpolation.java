@@ -240,7 +240,7 @@ public class LiDAR_Max_interpolation implements WhiteboxPlugin {
             return;
         }
         inputFilesString = args[0];
-        suffix = " " + args[1].trim();
+        suffix = args[1].trim();
         whatToInterpolate = args[2].toLowerCase();
         returnNumberToInterpolate = args[3].toLowerCase();
         resolution = Double.parseDouble(args[4]);

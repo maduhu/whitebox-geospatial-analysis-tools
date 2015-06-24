@@ -278,11 +278,12 @@ public class VectorLinesToRaster implements WhiteboxPlugin {
                     assignmentFieldNum = i;
                     if (field.getDataType() == DBFField.DBFDataType.NUMERIC
                             || field.getDataType() == DBFField.DBFDataType.FLOAT) {
-                        if (field.getDecimalCount() == 0) {
-                            dataType = WhiteboxRasterBase.DataType.INTEGER;
-                        } else {
-                            dataType = WhiteboxRasterBase.DataType.FLOAT;
-                        }
+//                        if (field.getDecimalCount() == 0) {
+//                            dataType = WhiteboxRasterBase.DataType.INTEGER;
+//                        } else {
+//                            dataType = WhiteboxRasterBase.DataType.FLOAT;
+//                        }
+                        dataType = WhiteboxRasterBase.DataType.FLOAT;
                     } else {
                         showFeedback("The type of data contained in the field "
                                 + "can not be mapped into grid cells. Choose a "

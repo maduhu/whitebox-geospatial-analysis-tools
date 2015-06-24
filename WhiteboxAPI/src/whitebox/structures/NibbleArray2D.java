@@ -84,5 +84,8 @@ public class NibbleArray2D {
         System.out.println(nibble.getValue(5, 5));
         System.out.println(nibble.getValue(6, 76));
         
+        nibble.setValue(6, 76, 87);
+        System.out.println(nibble.getValue(6, 76));
+        
     }
 }

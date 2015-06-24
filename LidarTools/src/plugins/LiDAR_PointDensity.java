@@ -239,7 +239,7 @@ public class LiDAR_PointDensity implements WhiteboxPlugin {
             return;
         }
         inputFilesString = args[0];
-        suffix = " " + args[1].trim();
+        suffix = args[1].trim();
         returnNumberToInterpolate = args[2].toLowerCase();
         resolution = Double.parseDouble(args[3]);
         excludeNeverClassified = Boolean.parseBoolean(args[4]);

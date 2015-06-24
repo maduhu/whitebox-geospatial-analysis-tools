@@ -289,7 +289,7 @@ public class ExtractNodes implements WhiteboxPlugin {
                     x = vertices[i][0];
                     y = vertices[i][1];
                     Object[] rowData = new Object[numOutputFields];
-                    rowData[0] = new Double(recordNum - 1);
+                    rowData[0] = (double) recordNum - 1;
                     System.arraycopy(attData, 0, rowData, 1, numInputFields);
                     output.addRecord(new whitebox.geospatialfiles.shapefile.Point(x, y), rowData);
                 }

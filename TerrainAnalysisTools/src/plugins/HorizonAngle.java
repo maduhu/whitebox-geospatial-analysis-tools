@@ -196,6 +196,7 @@ public class HorizonAngle implements WhiteboxPlugin {
         int progress;
         int row, col;
         double z = 0;
+        double distConvFactor = 1.0;
         double gridRes = 0;
         double currentVal = 0;
         double currentMaxVal = 0;
@@ -230,37 +231,35 @@ public class HorizonAngle implements WhiteboxPlugin {
             return;
         }
         
-        for (i = 0; i < args.length; i++) {
-            if (i == 0) {
-                inputHeader = args[i];
-            } else if (i == 1) {
-                outputHeader = args[i];
-            } else if (i == 2) {
-                azimuth = Double.parseDouble(args[i]);
-                if (azimuth > 360 || azimuth < 0) {
-                    azimuth = 0.1;
-                }
-                if (azimuth == 0) { azimuth = 0.1; }
-                if (azimuth == 180) { azimuth = 179.9; }
-                if (azimuth == 360) { azimuth = 359.9; }
-                if (azimuth < 180) { 
-                    lineSlope = Math.tan(Math.toRadians(90 - azimuth));
-                } else {
-                    lineSlope = Math.tan(Math.toRadians(270 - azimuth));
-                }
-                
-            } else if (i == 3) {
-                if (!args[i].toLowerCase().equals("not specified")) {
-                    maxDist = Double.parseDouble(args[i]);
-                }
-            } else if (i == 4) {
-                if (!args[i].toLowerCase().equals("not specified")) {
-                    saveDistance = true;
-                    distanceOutputHeader = args[i];
-                }
-            }
+        inputHeader = args[0];
+        outputHeader = args[1];
+        azimuth = Double.parseDouble(args[2]);
+        if (azimuth > 360 || azimuth < 0) {
+            azimuth = 0.1;
         }
-        
+        if (azimuth == 0) {
+            azimuth = 0.1;
+        }
+        if (azimuth == 180) {
+            azimuth = 179.9;
+        }
+        if (azimuth == 360) {
+            azimuth = 359.9;
+        }
+        if (azimuth < 180) {
+            lineSlope = Math.tan(Math.toRadians(90 - azimuth));
+        } else {
+            lineSlope = Math.tan(Math.toRadians(270 - azimuth));
+        }
+        if (!args[3].toLowerCase().equals("not specified")) {
+            maxDist = Double.parseDouble(args[3]);
+        }
+
+        if (!args[4].toLowerCase().equals("not specified")) {
+            saveDistance = true;
+            distanceOutputHeader = args[4];
+        }
+
         // check to see that the inputHeader and outputHeader are not null.
         if ((inputHeader == null) || (outputHeader == null)) {
             showFeedback("One or more of the input parameters have not been set properly.");
@@ -269,18 +268,31 @@ public class HorizonAngle implements WhiteboxPlugin {
 
         try {
             WhiteboxRaster DEM = new WhiteboxRaster(inputHeader, "r");
+            DEM.setForceAllDataInMemory(true);
             int rows = DEM.getNumberRows();
             int cols = DEM.getNumberColumns();
             noData = DEM.getNoDataValue();
-            gridRes = (DEM.getCellSizeX() + DEM.getCellSizeY()) / 2;
+            
+            if (DEM.getXYUnits().toLowerCase().contains("deg") || 
+                    DEM.getProjection().toLowerCase().contains("geog")) {
+                // calculate a new z-conversion factor
+                double midLat = (DEM.getNorth() - DEM.getSouth()) / 2.0;
+                if (midLat <= 90 && midLat >= -90) {
+                    distConvFactor = (113200 * Math.cos(Math.toRadians(midLat)));
+                }
+            }
+            gridRes = (DEM.getCellSizeX() + DEM.getCellSizeY()) / 2 * distConvFactor;
+            
             
             WhiteboxRaster output = new WhiteboxRaster(outputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
             output.setPreferredPalette("grey.pal");
-
+            output.setForceAllDataInMemory(true);
+            
             WhiteboxRaster outputDist = null;
             if (saveDistance) {
                 outputDist = new WhiteboxRaster(distanceOutputHeader, "rw", inputHeader, WhiteboxRaster.DataType.FLOAT, noData);
                 outputDist.setPreferredPalette("blue_white_red.pal");
+                outputDist.setForceAllDataInMemory(true);
             }
             
             if (azimuth > 0 && azimuth <= 90) {
