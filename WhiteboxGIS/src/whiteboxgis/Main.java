@@ -146,6 +146,10 @@ public class Main {
                     }
                 } else {
                     heapSize = (int) (amountOfMemory / 1073741824 / 1.5);
+                    if (heapSize == 0) {
+                        heapSizeUnit = "M";
+                        heapSize = 1000;
+                    }
                 }
 
                 if (logDirectoryFound) {
