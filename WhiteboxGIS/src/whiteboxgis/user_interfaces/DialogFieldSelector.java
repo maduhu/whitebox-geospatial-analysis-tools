@@ -219,4 +219,15 @@ public class DialogFieldSelector extends JPanel implements ActionListener, Dialo
         shapefile = df.getValue();
         updateList();
     }
+    
+    @Override
+    public String getLabel() {
+        return label;
+    }
+
+    @Override
+    public void setLabel(String label) {
+        this.label = label;
+        lbl.setText(label);
+    }
 }

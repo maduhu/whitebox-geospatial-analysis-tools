@@ -190,6 +190,16 @@ public class DialogReclassGrid extends JPanel implements ActionListener, DialogC
     }
     
     @Override
+    public String getLabel() {
+        return name;
+    }
+
+    @Override
+    public void setLabel(String label) {
+        this.name = label;
+    }
+    
+    @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
         String actionCommand = e.getActionCommand();

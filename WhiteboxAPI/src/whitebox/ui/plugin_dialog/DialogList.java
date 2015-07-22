@@ -181,4 +181,15 @@ public class DialogList extends JPanel implements ActionListener, DialogComponen
     public void propertyChange(PropertyChangeEvent evt) {
         raisePropertyChangedEvent("");
     }
+    
+    @Override
+    public String getLabel() {
+        return label;
+    }
+
+    @Override
+    public void setLabel(String label) {
+        this.label = label;
+        lbl.setText(label);
+    }
 }

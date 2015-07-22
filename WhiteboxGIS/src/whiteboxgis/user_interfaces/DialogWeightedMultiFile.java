@@ -261,6 +261,16 @@ public class DialogWeightedMultiFile extends JPanel implements ActionListener, D
         if (actionCommand.equals("open")) {
         }
     }
+    
+    @Override
+    public String getLabel() {
+        return name;
+    }
+
+    @Override
+    public void setLabel(String label) {
+        this.name = label;
+    }
 
 //    public void highlightLastRow(int row) {
 //        int lastrow = table.getModel().getRowCount();

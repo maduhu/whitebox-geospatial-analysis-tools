@@ -39,6 +39,7 @@ public class DialogOption extends JPanel implements ActionListener, DialogCompon
     private JRadioButton button1 = new JRadioButton();
     private JRadioButton button2 = new JRadioButton();
     private JPanel panel = new JPanel();
+    private TitledBorder title;
     
     private void createUI() {
         try {
@@ -48,7 +49,7 @@ public class DialogOption extends JPanel implements ActionListener, DialogCompon
             this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            TitledBorder title = BorderFactory.createTitledBorder(
+            title = BorderFactory.createTitledBorder(
                     BorderFactory.createLineBorder(Color.DARK_GRAY), label);
             title.setTitleJustification(TitledBorder.LEFT);
             panel.setBorder(title);
@@ -134,5 +135,16 @@ public class DialogOption extends JPanel implements ActionListener, DialogCompon
     @Override
     public void actionPerformed(ActionEvent e) {
         value = e.getActionCommand();
+    }
+    
+    @Override
+    public String getLabel() {
+        return label;
+    }
+
+    @Override
+    public void setLabel(String label) {
+        this.label = label;
+        title.setTitle(label);
     }
 }

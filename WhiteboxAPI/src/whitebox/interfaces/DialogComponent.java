@@ -27,4 +27,6 @@ public interface DialogComponent {
     public boolean getOptionalStatus();
     public String getValue();
     public boolean setArgs(String[] args);
+    public String getLabel();
+    public void setLabel(String label);
 }

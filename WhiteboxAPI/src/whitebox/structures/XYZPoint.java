@@ -36,6 +36,10 @@ public class XYZPoint implements Comparable<XYZPoint> {
         return (x - other.x) * (x - other.x) + (y - other.y) * (y - other.y) + (z - other.z) * (z - other.z);
     }
     
+    public double getDistance(XYZPoint other) {
+        return Math.sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y) + (z - other.z) * (z - other.z));
+    }
+    
     @Override
     public int compareTo(XYZPoint cell) {
         final int BEFORE = -1;

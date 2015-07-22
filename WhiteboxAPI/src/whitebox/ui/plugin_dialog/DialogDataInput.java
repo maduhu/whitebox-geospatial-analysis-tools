@@ -200,4 +200,15 @@ public class DialogDataInput extends JPanel implements ActionListener, DialogCom
         JComboBox cb = (JComboBox)e.getSource();
         value = (String)cb.getSelectedItem();
     }
+
+    @Override
+    public String getLabel() {
+        return label;
+    }
+
+    @Override
+    public void setLabel(String label) {
+        this.label = label;
+        lbl.setText(label);
+    }
 }

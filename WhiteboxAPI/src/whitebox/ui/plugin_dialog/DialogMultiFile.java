@@ -264,4 +264,14 @@ public class DialogMultiFile extends JPanel implements ActionListener, DialogCom
             firePropertyChange("value", oldValue, newValue);
         }
     }
+    
+    @Override
+    public String getLabel() {
+        return label.getText();
+    }
+
+    @Override
+    public void setLabel(String lbl) {
+        this.label.setText(lbl);
+    }
 }

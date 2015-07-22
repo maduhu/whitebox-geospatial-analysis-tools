@@ -182,6 +182,16 @@ public class DialogReclassGrid extends JPanel implements ActionListener, DialogC
 
          table.setColumnSelectionInterval(0, 0);
      }
+
+    @Override
+    public String getLabel() {
+        return name;
+    }
+
+    @Override
+    public void setLabel(String label) {
+        this.name = label;
+    }
     
     class InteractiveRenderer extends DefaultTableCellRenderer {
 

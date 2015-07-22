@@ -481,4 +481,14 @@ public class DialogFile extends JPanel implements ActionListener, DialogComponen
     public void propertyChange(PropertyChangeEvent evt) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    @Override
+    public String getLabel() {
+        return label.getText();
+    }
+
+    @Override
+    public void setLabel(String lbl) {
+        this.label.setText(lbl);
+    }
 }

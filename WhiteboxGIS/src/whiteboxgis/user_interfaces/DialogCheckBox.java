@@ -111,4 +111,15 @@ public class DialogCheckBox extends JPanel implements ItemListener, DialogCompon
             value = "true";
         }
     }
+    
+    @Override
+    public String getLabel() {
+        return label;
+    }
+
+    @Override
+    public void setLabel(String label) {
+        this.label = label;
+        check.setText(label);
+    }
 }

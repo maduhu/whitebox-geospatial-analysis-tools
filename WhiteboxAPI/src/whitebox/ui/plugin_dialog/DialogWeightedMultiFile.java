@@ -329,6 +329,16 @@ public class DialogWeightedMultiFile extends JPanel implements ActionListener, D
         }
     }
 
+    @Override
+    public String getLabel() {
+        return name;
+    }
+
+    @Override
+    public void setLabel(String label) {
+        this.name = label;
+    }
+
     class MyTableModel extends AbstractTableModel {
 
         private String[] columnNames = {"Cost?", "File Name", "Weight"};

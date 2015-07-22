@@ -82,7 +82,7 @@ public class PCAForAttributes implements WhiteboxPlugin {
      */
     @Override
     public String[] getToolbox() {
-        String[] ret = {"StatisticalTools"};
+        String[] ret = {"StatisticalTools", "DatabaseTools"};
         return ret;
     }
     /**

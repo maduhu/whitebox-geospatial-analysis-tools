@@ -37,6 +37,10 @@ public class XYPoint implements Comparable<XYPoint> {
     public double getSquareDistance(XYPoint other) {
         return (x - other.x) * (x - other.x) + (y - other.y) * (y - other.y);
     }
+    
+    public double getDistance(XYPoint other) {
+        return Math.sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y));
+    }
 
     @Override
     public int compareTo(XYPoint cell) {
